@@ -10,7 +10,7 @@ The **AI Country Risk Dashboard** is an open‑source web application that quan
 
 ### Features
 
-* **Data ingestion** – Downloads and formats World‑Bank macro‑economic indicators such as inflation, unemployment, political stability and other factors and stores them in per‑country panel datasets. The coverage universe currently includes 56 countries (25 developed and 31 emerging). Sub‑annual prints (e.g. monthly/quarterly inflation) are refreshed from the **IMF** (SDMX 2.1) so fast‑moving economies aren't stuck on a year‑old annual figure, and the V‑Dem political‑corruption index is pulled from **Our World in Data (OWID)**.
+* **Data ingestion** – Downloads and formats World‑Bank macro‑economic indicators such as inflation, unemployment, political stability and other factors and stores them in per‑country panel datasets. The coverage universe currently includes 57 countries (see `COUNTRY_ROSTER` in `backend/utils/constants.py`). Sub‑annual prints (e.g. monthly/quarterly inflation) are refreshed from the **IMF** (SDMX 2.1) so fast‑moving economies aren't stuck on a year‑old annual figure, and the V‑Dem political‑corruption index is pulled from **Our World in Data (OWID)**.
 * **Risk scoring** – Uses a large‑language model (OpenAI `gpt-4o-2024-08-06` via LangChain) to combine macro data and recent headlines into a single 0–1 risk score and a bullet‑point explanation. The AI prompt enforces hard rules around war, political stability and macro floors to ensure consistent scoring, and a YAML‑driven **sanctions / investability gate** pins un‑investable jurisdictions (e.g. Russia, Iran, North Korea, Cuba, occupied Ukrainian oblasts) to maximum risk.
 * **Live market & event feeds** – A standalone prices daemon polls **Financial Modeling Prep (FMP)** for live equity, bond‑yield, crypto and commodity quotes, a global **AI Alerts** feed re‑ranks every country's top headlines by importance to the world economy, and an AI‑ranked **economic calendar** surfaces the next ~14 days of major releases.
 * **Persistence** – Persists macro series, risk snapshots, alerts, calendar events and live prices into a Neon‑hosted PostgreSQL database using a transactional upsert strategy.
@@ -122,11 +122,7 @@ The `backend/.env` file is read by the ETL pipeline and the database upsert rout
  pip install -r backend/requirements.txt
  ```
 
-2. **Seed macro data (optional):** The first run of the ETL will automatically download World Bank panels for all configured countries. If you wish to pre‑download, run:
-
- ```bash
- python backend/utils/country_data_fetch.py
- ```
+2. **Seed macro data:** No separate step is needed — the first run of the ETL automatically downloads World Bank panels for every country that does not already have one, and skips the rest.
 
 3. **Run the end‑to‑end ETL:** This computes risk scores and persists them to the database.
 
@@ -175,7 +171,10 @@ AI-Country-Risk-Dashboard/
 │   │   ├── data_upsert/        # Transactional upserts into PostgreSQL (data_push.py)
 │   │   ├── data_retrieval.py   # Reads panels and builds the LLM payload
 │   │   ├── market_hours.py     # Market‑open gating for the prices daemon
+│   │   ├── http.py             # Shared retry policy, User‑Agents, FMP GET wrapper
+│   │   ├── dates.py            # Datetime formats shared across modules
 │   │   └── constants.py        # Indicator definitions, asset universe, LLM prompt
+│   ├── tests/                  # Characterization tests (no network, no DB)
 │   └── README.md               # Detailed backend instructions
 ├── frontend/                   # Next.js (App Router) dashboard
 │   ├── app/

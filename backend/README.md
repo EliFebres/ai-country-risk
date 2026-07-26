@@ -16,7 +16,7 @@ This directory contains the **data-engineering and inference pipeline** that pow
   - fetches each article **once**,
   - extracts a clean **summary**, **full text** (truncated for storage), and a **thumbnail** (OG/Twitter/JSON-LD with fallbacks).
 - The LLM ranks articles by impact.
-- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/utils/news_fetching/advanced_scraper.py`) **when they are from Reuters or Bloomberg** and a Crawlbase token is available. This uses Crawlbase to improve metadata while respecting `robots.txt`.
+- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/utils/news_fetching/advanced_scraper.py`), and only when an article is still missing an image after the simple scraper and a Crawlbase token is available. This uses Crawlbase (JS rendering) to recover metadata while respecting `robots.txt`.
 
 ---
 
@@ -55,7 +55,7 @@ pip install -r backend/requirements.txt
 python backend/main.py
 ```
 
-*Running the full ETL for ~200 countries can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
+*Running the full ETL across the 57-country roster can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
 
 ---
 
@@ -63,7 +63,7 @@ python backend/main.py
 
 * `backend/main.py` — orchestrates the run: data payload → news → LLM scoring → DB upsert.
 * `backend/utils/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
-* `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata for **Top-3** Reuters/Bloomberg links only.
+* `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata, used only for **Top-3** articles still missing an image.
 * `backend/utils/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
 * `backend/utils/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
 * `backend/utils/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
@@ -72,6 +72,22 @@ python backend/main.py
 * `backend/utils/ai/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
 * `backend/utils/ai/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
 * `backend/utils/data_upsert/data_push.py` — transactional upserts for every table below.
+* `backend/utils/http.py` — shared retry policy, User-Agent strings, and FMP GET wrapper.
+* `backend/utils/ai/client.py` — the scoring model name and its deterministic settings, in one place.
+* `backend/utils/dates.py` — the two datetime formats shared across modules.
+
+---
+
+## Tests
+
+Characterization tests covering the pure logic (market-hours gating, article
+relevance scoring, Top-3 selection, external-payload parsing, the sanctions
+gate, and the price math). They touch no network and no database.
+
+```bash
+pip install -r backend/requirements-dev.txt
+python -m pytest backend/tests -q
+```
 
 ---
 
