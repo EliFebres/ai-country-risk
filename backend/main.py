@@ -22,6 +22,7 @@ load_dotenv()  # also pick up a repo-root/cwd .env, without overriding
 # --- Internal Imports -------------------------------------------
 from backend.utils import constants
 from backend.utils import data_retrieval
+from backend.utils.dates import utc_minute_iso
 from backend.utils.ai import langchain_llm
 from backend.utils.ai import calendar_ranker
 from backend.utils.ai import alerts_ranker
@@ -44,11 +45,6 @@ logger = logging.getLogger("main")
 
 
 # --- Helpers ----------------------------------------------------------------
-def _to_utc_iso(dt: datetime) -> str:
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=timezone.utc)
-    return dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")
-
 def _crawlbase_token() -> str:
     # Prefer JS token, then standard token
     return os.getenv("CRAWLBASE_JS_TOKEN") or os.getenv("CRAWLBASE_TOKEN") or ""
@@ -255,7 +251,7 @@ def ensure_missing_country_panels(root: pathlib.Path, indicators: dict) -> None:
 # --- Main -------------------------------------------------------------------
 def main() -> None:
     """Loop countries → payload → news → LLM score → enrich Top-3 images if missing → DB."""
-    logger.info("=== AI Country Risk run started at %s UTC ===", _to_utc_iso(datetime.now(timezone.utc)))
+    logger.info("=== AI Country Risk run started at %s UTC ===", utc_minute_iso(datetime.now(timezone.utc)))
 
     # 0) Ensure/Backfill panels per country (incremental, idempotent)
     #    World Bank indicators are fetched per-country; non-WB indicators
@@ -381,8 +377,6 @@ def main() -> None:
                 country_display=country_name,
                 payload=payload,
                 articles=items,
-                model="gpt-4o-2024-08-06",
-                seed=42,
             )
 
             # 4) Rank and select Top-3 using AI's TOPIC CLUSTERING, with guaranteed length=3
@@ -555,7 +549,7 @@ def main() -> None:
     except Exception:
         logger.exception("[alerts] ERROR")
 
-    logger.info("=== Run finished at %s UTC ===", _to_utc_iso(datetime.now(timezone.utc)))
+    logger.info("=== Run finished at %s UTC ===", utc_minute_iso(datetime.now(timezone.utc)))
 
 
 if __name__ == "__main__":

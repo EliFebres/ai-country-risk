@@ -7,10 +7,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 
 import backend.utils.ai.constants as ai_constants
+from backend.utils.ai import client as ai_client
 
 logger = logging.getLogger(__name__)
 
@@ -113,8 +113,6 @@ def country_llm_score(
     country_display: str,
     payload: Dict,
     articles: List[Dict],
-    model: str = "gpt-4o-2024-08-06",
-    seed: int = 42,
 ) -> Dict[str, object]:
     """
     Returns:
@@ -146,14 +144,9 @@ def country_llm_score(
         articles_json=articles_json
     )
 
-    _llm = ChatOpenAI(
-        model=model,
-        temperature=0.0,
-        max_retries=0,
-        api_key=api_key,
-        seed=seed,
+    structured_llm = ai_client.build_chat(api_key).with_structured_output(
+        schema=ai_constants.RISK_SCHEMA, strict=True
     )
-    structured_llm = _llm.with_structured_output(schema=ai_constants.RISK_SCHEMA, strict=True)
 
     try:
         data = structured_llm.invoke([SystemMessage(content=prompt)])

@@ -6,6 +6,7 @@ import pandas as pd
 from datetime import datetime, timezone
 
 from backend.utils import constants
+from backend.utils.dates import utc_minute_iso
 
 
 # Anchor all data paths to the backend/ folder (this file lives in backend/utils/)
@@ -114,7 +115,7 @@ def prepare_llm_payload_pretty(
         "_meta": {
             "units": constants.UNITS,
             "source": "World Bank",
-            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+            "generated_at": utc_minute_iso(datetime.now(timezone.utc)),
             "series_lookback": lookback,
             "data_dir": str(DATA_DIR),
         },

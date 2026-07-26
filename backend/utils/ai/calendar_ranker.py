@@ -20,25 +20,17 @@ import logging
 from datetime import datetime, date, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 
 import backend.utils.constants as constants
 import backend.utils.ai.constants as ai_constants
+from backend.utils import dates
+from backend.utils.ai import client as ai_client
 
 logger = logging.getLogger(__name__)
 
 # Events per LLM call — bounds prompt/output size on busy weeks.
 _BATCH_SIZE = 80
-
-
-def _event_time_iso(event_time: Any) -> str:
-    """Best-effort 'YYYY-MM-DD' for the prompt (accepts datetime or string)."""
-    if isinstance(event_time, datetime):
-        return event_time.strftime("%Y-%m-%d")
-    if isinstance(event_time, str):
-        return event_time[:10]
-    return ""
 
 
 def _event_date(event_time: Any) -> Optional[date]:
@@ -62,7 +54,7 @@ def _compact(events: List[Dict[str, Any]]) -> List[Dict[str, str]]:
             continue
         out.append({
             "id": rid,
-            "date": _event_time_iso(e.get("event_time")),
+            "date": dates.date_prefix(e.get("event_time")),
             "country": (e.get("country_name") or "").strip(),
             "event": (e.get("event") or "").strip(),
             "fmp_importance": (e.get("importance") or "").strip(),
@@ -97,11 +89,9 @@ def _rank_batch(structured_llm, today: str, period: str, batch: List[Dict[str, s
         rid = r.get("id")
         if not rid:
             continue
-        try:
-            importance = float(r.get("importance"))
-        except (TypeError, ValueError):
+        importance = ai_client.parse_importance(r.get("importance"))
+        if importance is None:
             continue
-        importance = max(0.0, min(1.0, importance))
         out[rid] = {
             "importance": importance,
             "rationale": (r.get("rationale") or "").strip(),
@@ -135,14 +125,9 @@ def rank_calendar_events(events: List[Dict[str, Any]]) -> Dict[str, Dict[str, An
 
     week_days = constants.CAL_RANK_WEEK_DAYS
 
-    llm = ChatOpenAI(
-        model="gpt-4o-2024-08-06",
-        temperature=0.0,
-        max_retries=0,
-        api_key=api_key,
-        seed=42,
+    structured_llm = ai_client.build_chat(api_key).with_structured_output(
+        schema=ai_constants.CAL_RANK_SCHEMA, strict=True
     )
-    structured_llm = llm.with_structured_output(schema=ai_constants.CAL_RANK_SCHEMA, strict=True)
 
     today = datetime.now(timezone.utc).date()
 

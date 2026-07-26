@@ -24,6 +24,14 @@ logger = logging.getLogger(__name__)
 BLOCKLIST_PATH = Path(__file__).with_name("blocked_sources.txt")
 
 
+def _strip_port_www(host: str) -> str:
+    """Drop a trailing ``:port`` and a leading ``www.`` from a host."""
+    host = host.split(":", 1)[0]
+    if host.startswith("www."):
+        host = host[4:]
+    return host
+
+
 def _normalize_host(value: str) -> str:
     """Reduce a denylist line (URL or bare domain) to a comparable host.
 
@@ -37,10 +45,7 @@ def _normalize_host(value: str) -> str:
         v = urlparse(v).netloc
     else:
         v = v.split("/", 1)[0]  # strip any path on a bare-domain entry
-    v = v.split(":", 1)[0]       # strip port
-    if v.startswith("www."):
-        v = v[4:]
-    return v
+    return _strip_port_www(v)
 
 
 @lru_cache(maxsize=1)
@@ -70,10 +75,7 @@ def _host_of(url: str) -> str:
         host = (urlparse(url).netloc or "").lower()
     except Exception:
         return ""
-    host = host.split(":", 1)[0]
-    if host.startswith("www."):
-        host = host[4:]
-    return host
+    return _strip_port_www(host)
 
 
 def is_blocked_url(url: str | None) -> bool:

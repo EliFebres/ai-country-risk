@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import pytest
 
 from backend import main
+from backend.utils.dates import utc_minute_iso
 
 
 class TestScoreArticleRelevance:
@@ -88,13 +89,14 @@ class TestParseDateForSort:
         assert main._parse_date_for_sort("2026-05-01 extra junk") == datetime(2026, 5, 1)
 
 
-class TestToUtcIso:
+class TestUtcMinuteIso:
+    # Lives in backend.utils.dates since the shared-helpers consolidation.
     def test_aware_utc(self):
         dt = datetime(2026, 5, 1, 12, 30, 45, tzinfo=timezone.utc)
-        assert main._to_utc_iso(dt) == "2026-05-01T12:30Z"
+        assert utc_minute_iso(dt) == "2026-05-01T12:30Z"
 
     def test_naive_assumed_utc(self):
-        assert main._to_utc_iso(datetime(2026, 5, 1, 12, 30)) == "2026-05-01T12:30Z"
+        assert utc_minute_iso(datetime(2026, 5, 1, 12, 30)) == "2026-05-01T12:30Z"
 
 
 class TestHasCountryPartition:

@@ -4,40 +4,16 @@ import requests
 import pandas as pd
 
 from typing import List, Dict, Mapping, Optional
-from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
-from tenacity import (
-    retry,
-    wait_exponential_jitter,
-    stop_after_attempt,
-    retry_if_exception,
-)
+from requests.exceptions import HTTPError, RequestException
 
 import backend.utils.constants as constants
+from backend.utils import http
 
 
 # ---------------------------- Helpers --------------------------------- #
-_RETRYABLE_STATUS = {400, 429, 500, 502, 503, 504}  # WB sporadically throws spurious 400s under load
-_DEFAULT_HEADERS = {
-    "User-Agent": "AI-Country-Risk/1.0 (+https://github.com/EliFebres/AI-Country-Risk-Dashboard)"
-}
-
-
-def _is_retryable_exc(exc: BaseException) -> bool:
-    """Retry on network/transient HTTP conditions only."""
-    if isinstance(exc, (Timeout, ConnectionError)):
-        return True
-    if isinstance(exc, HTTPError):
-        try:
-            status = exc.response.status_code if exc.response is not None else None
-        except Exception:
-            status = None
-        return status in _RETRYABLE_STATUS
-    # Some libraries wrap HTTPError inside RequestException
-    if isinstance(exc, RequestException):
-        resp = getattr(exc, "response", None)
-        status = getattr(resp, "status_code", None)
-        return status in _RETRYABLE_STATUS or isinstance(exc, (Timeout, ConnectionError))
-    return False
+# WB sporadically throws spurious 400s under load, so unlike FMP we retry 400.
+_RETRYABLE_STATUS = frozenset({400, 429, 500, 502, 503, 504})
+_DEFAULT_HEADERS = {"User-Agent": http.PROJECT_UA}
 
 
 def _empty_series(indicator: str) -> pd.Series:
@@ -46,12 +22,7 @@ def _empty_series(indicator: str) -> pd.Series:
 
 
 # ----------------------------- Fetch one series ----------------------------- #
-@retry(
-    wait=wait_exponential_jitter(initial=1, max=30),
-    stop=stop_after_attempt(5),
-    retry=retry_if_exception(_is_retryable_exc),
-    reraise=True,
-)
+@http.retry_transient(_RETRYABLE_STATUS)
 def _wb_request(
     url: str,
     params: Dict[str, str],

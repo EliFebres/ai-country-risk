@@ -6,15 +6,9 @@ from typing import Optional
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 
+from backend.utils.http import BROWSER_UA as _UA
+
 logger = logging.getLogger(__name__)
-
-
-# Keep a realistic UA; some endpoints return different HTML otherwise
-_UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/132.0.0.0 Safari/537.36"
-)
 
 
 def resolve_google_news_url(

@@ -6,14 +6,10 @@ from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from typing import Optional, Tuple, List
 
+from backend.utils.http import BROWSER_UA as _UA
+
 
 # --------------------------- HTTP / Config ---------------------------
-
-_UA = (
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/132.0.0.0 Safari/537.36"
-)
 
 _REMOVALS = {"script", "style", "noscript", "iframe", "svg", "footer", "header", "nav", "aside", "form"}
 
@@ -137,14 +133,8 @@ def _collect_meta_images(soup: BeautifulSoup, base_url: str) -> List[str]:
                 if img_field:
                     push_image(img_field)
 
-    # Dedup preserve order
-    seen = set()
-    uniq = []
-    for u in out:
-        if u not in seen:
-            uniq.append(u)
-            seen.add(u)
-    return uniq
+    # Dedup preserving order
+    return list(dict.fromkeys(out))
 
 def _first_content_image(soup: BeautifulSoup, base_url: str) -> Optional[str]:
     """Fallback: traverse likely containers and pick a meaningful <img>."""
