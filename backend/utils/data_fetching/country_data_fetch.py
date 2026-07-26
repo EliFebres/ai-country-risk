@@ -101,10 +101,11 @@ def merge_extra_indicators(
     """Merge non-World-Bank indicators into a country's wide WB panel.
 
     Currently adds the OWID/V-Dem **Political Corruption Index** as a
-    ``POL_CORRUPTION`` column, aligned on the panel's int year index. The
-    corruption series is clamped to the panel's latest year so this never
-    advances ``latest_year`` downstream (which would null out existing
-    indicators' ``latest`` values).
+    ``POL_CORRUPTION`` column, aligned on the panel's int year index. OWID
+    often publishes a year ahead of the World Bank, so the join is an outer one
+    and the extra year is kept: ``data_retrieval`` anchors each indicator on its
+    own newest observation, so a longer corruption series costs the others
+    nothing.
 
     Args:
         panel: Wide, year-indexed WB panel (may be empty).
@@ -116,10 +117,9 @@ def merge_extra_indicators(
         the WB panel and the corruption series are empty.
     """
     has_panel = isinstance(panel, pd.DataFrame) and not panel.empty
-    max_year = int(panel.index.max()) if has_panel else None
 
     series = political_corruption_fetch.corruption_series_for_iso2(
-        iso2, iso3_by_iso2, max_year=max_year
+        iso2, iso3_by_iso2
     ).rename("POL_CORRUPTION")
 
     if not series.empty:

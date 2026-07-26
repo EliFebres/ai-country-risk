@@ -8,8 +8,13 @@ and the database upsert both consume.
 
 The payload is deliberately "pretty": indicators carry their display names and
 units, values are rounded, and only a short recent window plus a couple of
-percent-change horizons are included — enough for the model to reason about
-trend and level without spending context on a full history.
+change horizons are included — enough for the model to reason about trend and
+level without spending context on a full history.
+
+Everything per-indicator is anchored on that indicator's own newest
+observation. The World Bank publishes these on different lags, so the panel's
+last row is populated for the fastest series only, and anchoring on it would
+report a null ``latest`` for the slower half of the set.
 """
 
 import re
@@ -113,7 +118,9 @@ def prepare_llm_payload_pretty(
             ``constants.NICE_NAME``.
         since: earliest year to include.
         lookback: how many recent values to keep per indicator series.
-        deltas: percent-change horizons in years, emitted as ``Δ{h}y`` keys.
+        deltas: change horizons in years, emitted as ``Δ{h}y`` keys. Each is an
+            absolute difference in the indicator's own unit, measured from that
+            indicator's newest observation.
 
     Returns:
         ``{country, latest_year, indicators: {pretty_name: {latest, Δ..y,
@@ -150,8 +157,7 @@ def prepare_llm_payload_pretty(
     df = query_macro_panel(country_iso)
     df = df[df.year >= since]
 
-    latest_row  = df.tail(1).squeeze()
-    latest_year = int(latest_row["year"])
+    latest_year = int(df["year"].max())
 
     # ---- per-indicator build ----------------------------------------------
     year_indexed = df.set_index("year")
@@ -160,17 +166,31 @@ def prepare_llm_payload_pretty(
         pretty_name = constants.NICE_NAME.get(raw_col, raw_col)
         column = year_indexed[raw_col]
 
-        # last `lookback` values
-        series = column.dropna().tail(lookback).round(2).to_dict()
+        # Anchor on this indicator's own newest observation, not on the panel's
+        # last row: the World Bank publishes these on different lags (WGI
+        # z-scores trail a year, Gini two), so the newest row is populated only
+        # for the fastest of them and reading `latest` off it nulls the rest.
+        observed = column.dropna()
+        latest = None if observed.empty else round(float(observed.iloc[-1]), 2)
 
-        # Δ-changes
-        delta_vals = {}
+        # last `lookback` values
+        series = observed.tail(lookback).round(2).to_dict()
+
+        # Δ-changes, as absolute differences in the indicator's own unit. Every
+        # indicator here is a rate, ratio, or index, and percent-change breaks
+        # on the ones that cross zero: PT inflation going -0.01 -> 2.34 is
+        # +2.35pp, but pct_change reports -188.8 (huge, and sign-flipped by the
+        # negative base).
+        delta_vals: dict[str, float | None] = {}
         for h in deltas:
-            pct = column.pct_change(h, fill_method=None).round(3).tail(1).iloc[0]
-            delta_vals[f"Δ{h}y"] = None if pd.isna(pct) else float(pct)
+            base = None if observed.empty else column.get(int(observed.index[-1]) - h)
+            delta_vals[f"Δ{h}y"] = (
+                None if base is None or pd.isna(base)
+                else round(float(observed.iloc[-1]) - float(base), 3)
+            )
 
         ind_payload[pretty_name] = {
-            "latest": None if pd.isna(latest_row[raw_col]) else round(float(latest_row[raw_col]), 2),
+            "latest": latest,
             **delta_vals,
             "series": series,
         }
@@ -181,6 +201,7 @@ def prepare_llm_payload_pretty(
         "indicators": ind_payload,
         "_meta": {
             "units": constants.UNITS,
+            "delta_basis": "Δ values are absolute changes in the indicator's own unit, not percent changes",
             "source": "World Bank",
             "generated_at": utc_minute_iso(datetime.now(timezone.utc)),
             "series_lookback": lookback,
