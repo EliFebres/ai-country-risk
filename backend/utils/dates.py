@@ -30,3 +30,27 @@ def date_prefix(value: Any) -> str:
     if isinstance(value, str):
         return value[:10]
     return ""
+
+
+def parse_date_for_sort(date_str: str | None) -> datetime:
+    """Parse a publication date for ranking, tolerating anything.
+
+    Publishers emit inconsistent (and sometimes absent) timestamps, and one bad
+    value must not break a sort over a whole country's articles.
+
+    Returns:
+        The parsed datetime, or the epoch for missing/unparseable input so such
+        articles sort last instead of raising.
+    """
+    if not date_str:
+        return datetime(1970, 1, 1)
+    try:
+        # Try ISO (allow trailing Z)
+        return datetime.fromisoformat(date_str.replace('Z', '+00:00'))
+    except Exception:
+        pass
+    try:
+        # Try date-only
+        return datetime.strptime(date_str[:10], "%Y-%m-%d")
+    except Exception:
+        return datetime(1970, 1, 1)

@@ -12,6 +12,7 @@ dict rather than raised — one unscrapable article must not interrupt the run.
 """
 
 import json
+import os
 
 import requests
 import tldextract
@@ -42,6 +43,18 @@ DEFAULT_UA = "NewsMetaScraper/1.0 (AI Country Risk) Python"
 def now_utc_z() -> str:
     """ISO 8601 UTC with trailing 'Z'."""
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+# -------------------- Credentials -------------------- #
+def crawlbase_token() -> str:
+    """The Crawlbase token to scrape with, preferring the JS-rendering one.
+
+    Returns:
+        The token, or ``""`` when neither env var is set — callers treat an
+        empty token as "skip Crawlbase enrichment entirely", so the ETL still
+        runs without a Crawlbase account.
+    """
+    return os.getenv("CRAWLBASE_JS_TOKEN") or os.getenv("CRAWLBASE_TOKEN") or ""
 
 
 # -------------------- robots.txt compliance (with timeouts & caching) -------------------- #

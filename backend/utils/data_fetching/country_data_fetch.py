@@ -1,18 +1,32 @@
-"""Write side of the macro panel: assembled DataFrame out to Parquet.
+"""Write side of the macro panel: World Bank data out to Parquet.
 
-``ingest_panel_wide`` persists one country's panel as a Parquet partition that
-``data_retrieval.query_macro_panel`` reads back with DuckDB;
-``merge_extra_indicators`` folds in the indicators that don't come from the
-World Bank before that write.
+``backfill_missing_panels`` is the ETL's first phase — it builds a panel for
+every rostered country that doesn't have one yet and writes it to the Parquet
+store that ``data_retrieval.query_macro_panel`` reads back with DuckDB.
+``ingest_panel_wide`` does the write, and ``merge_extra_indicators`` folds in
+the indicators that don't come from the World Bank beforehand.
+
+The backfill is incremental by design: World Bank fetches are slow and the
+data is annual, so a country keeps its panel until someone deletes it. A
+normal daily run does no fetching here at all.
 """
 
+import logging
 import duckdb
 import pathlib
 import pandas as pd
 
 from typing import Mapping
 
+from backend.utils import constants
+import backend.utils.data_fetching.fetch_metrics as fetch_metrics
 import backend.utils.data_fetching.political_corruption_fetch as political_corruption_fetch
+
+logger = logging.getLogger(__name__)
+
+# Parquet panel store: backend/data/wb_panel_wide (this file is in
+# backend/utils/data_fetching/).
+PANEL_DIR = pathlib.Path(__file__).resolve().parents[2] / "data" / "wb_panel_wide"
 
 
 def ingest_panel_wide(panel: pd.DataFrame, country_code: str, root: pathlib.Path) -> None:
@@ -118,3 +132,71 @@ def merge_extra_indicators(
         panel = panel.copy()
         panel["POL_CORRUPTION"] = pd.NA
     return panel
+
+
+def has_country_partition(root: pathlib.Path, iso2: str) -> bool:
+    """True if ``root`` holds a non-empty ``country_code=XX`` Parquet partition.
+
+    Args:
+        root: the ``wb_panel_wide`` directory.
+        iso2: country code naming the partition.
+
+    Returns:
+        True only when the directory exists and contains at least one
+        ``.parquet`` file. An unreadable directory counts as "no partition",
+        which triggers a harmless re-fetch.
+    """
+    part_dir = root / f"country_code={iso2}"
+    if not part_dir.is_dir():
+        return False
+    try:
+        return any(p.suffix == ".parquet" for p in part_dir.glob("*.parquet"))
+    except OSError:
+        return False
+
+
+def backfill_missing_panels() -> None:
+    """Build Parquet panels for any rostered country that lacks one.
+
+    Incremental and idempotent: countries that already have a partition are
+    skipped, so a normal daily run does no World Bank fetching at all and only
+    a first run (or a newly added country) pays for it.
+
+    A country whose build fails is logged with a traceback and skipped — the
+    others still get their panels.
+    """
+    root = PANEL_DIR
+    root.mkdir(parents=True, exist_ok=True)
+
+    roster = constants.COUNTRY_ROSTER
+    iso3_by_iso2 = constants.ISO3_BY_ISO2
+
+    missing = []
+    for country in roster:
+        iso2 = str(country["iso2"]).strip()
+        if not iso2:
+            continue
+        if not has_country_partition(root, iso2):
+            missing.append(iso2)
+
+    if not missing:
+        logger.info("All %d countries already have parquet partitions in %s.", len(roster), root)
+        return
+
+    logger.info("Backfilling %d missing panels → %s", len(missing), missing)
+    for iso2 in missing:
+        try:
+            panel = fetch_metrics.build_country_panel(iso2, constants.INDICATORS)
+
+            # Merge non-WB indicators (e.g. Political Corruption Index from OWID)
+            panel = merge_extra_indicators(panel, iso2, iso3_by_iso2)
+
+            if panel is None or panel.empty:
+                logger.info("[%s] No rows for selected indicators — skipping write.", iso2)
+                continue
+
+            ingest_panel_wide(panel, iso2, root)
+            logger.info("[%s] Wrote panel with %d years × %d indicators.", iso2, panel.shape[0], panel.shape[1])
+        except Exception:
+            # One country's failed backfill must not block the others.
+            logger.exception("[%s] ERROR while backfilling panel", iso2)
