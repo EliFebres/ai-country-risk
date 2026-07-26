@@ -35,12 +35,12 @@ BROWSER_UA = (
 )
 
 # Statuses FMP endpoints are retried on (no 400 — an FMP 400 is a real error).
-FMP_RETRYABLE_STATUS: frozenset = frozenset({429, 500, 502, 503, 504})
+FMP_RETRYABLE_STATUS: frozenset[int] = frozenset({429, 500, 502, 503, 504})
 
 _REQUEST_TIMEOUT = 20  # seconds
 
 
-def is_retryable_exc(exc: BaseException, retryable_status: AbstractSet[int]) -> bool:
+def _is_retryable_exc(exc: BaseException, retryable_status: AbstractSet[int]) -> bool:
     """True for network errors and HTTP errors whose status is transient.
 
     Args:
@@ -64,7 +64,7 @@ def retry_transient(retryable_status: AbstractSet[int]) -> Callable:
     return retry(
         wait=wait_exponential_jitter(initial=1, max=30),
         stop=stop_after_attempt(5),
-        retry=retry_if_exception(lambda exc: is_retryable_exc(exc, retryable_status)),
+        retry=retry_if_exception(lambda exc: _is_retryable_exc(exc, retryable_status)),
         reraise=True,
     )
 
