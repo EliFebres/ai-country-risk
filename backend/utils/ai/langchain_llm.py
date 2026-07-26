@@ -1,32 +1,35 @@
-"""Country risk scoring: the LLM call plus the sanctions override around it.
+"""Country risk scoring: the LLM call and the scale boundary around it.
 
-``country_llm_score`` sends one country's macro payload and its top articles to
-the model under ``ai_constants.AI_PROMPT`` / ``RISK_SCHEMA`` and returns the
-calibrated 0-1 risk score and summary.
+``country_llm_score`` sends one country's macro payload and its articles to the
+model under ``ai_constants.AI_PROMPT_V2`` / ``RISK_SCHEMA_V2`` and returns both
+horizons — raw as the model reported them, and gated after ``ai/policy.py``
+has applied the versioned floors, caps and sanctions gate.
 
-On top of the model's judgement sits a **legal-investability gate**: countries
-under a US sanctions regime that makes securities exposure unlawful are forced
-to 1.0 regardless of what the model says, because "risk" for a US investor who
-legally cannot hold the asset is total. Those rules live in
-``legal_restrictions.yaml`` (OFAC-derived, each entry dated) rather than in
-code so they can be updated without a deploy. The gate runs *after* the model
-call so the summary still explains the underlying situation.
+This module owns exactly one conversion: the prompt asks for **integers 0-100**
+because that grid has the rank resolution the roster needs, and everything
+downstream — policy, the database, the front-end — speaks 0-1. ``_from_100``
+runs the moment the call returns, so a 0-100 number never leaves this file.
+
+Enforcement itself is not here. It used to be: the floors lived in the prompt
+and the sanctions gate overwrote the score in this function, destroying the
+model's own number. Both now live in ``ai/policy.py``, which is pure and
+versioned. ``_parse_iso_date``, ``_load_legal_rules_index`` and
+``_legal_gate_decision`` remain importable from here as aliases onto that
+module.
 """
 
 import os
 import json
 import logging
-from datetime import datetime, date
-from functools import lru_cache
-from pathlib import Path
-from typing import List, Dict, Optional, Tuple
+from datetime import date
+from typing import Any, List, Dict, Optional, Tuple
 
-import yaml
 from langchain_core.messages import SystemMessage
 
 import backend.utils.ai.constants as ai_constants
 from backend.utils.ai import client as ai_client
 from backend.utils.ai import digest_engine
+from backend.utils.ai import policy
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +37,7 @@ logger = logging.getLogger(__name__)
 # digest path sends every fetched article.
 _MAX_PROMPT_ARTICLES = 10
 
-# Matches the maxLength on RISK_SCHEMA.bullet_summary.
+# Matches the maxLength on RISK_SCHEMA_V2.bullet_summary.
 _MAX_SUMMARY_CHARS = 800
 
 # Per-article cap for the FULL_TEXT block: 3 articles × 12k chars ≈ 9k tokens,
@@ -114,47 +117,14 @@ def _fulltext_block(items: List[Dict], fulltext_ids: List[str]) -> str:
 
 
 # -------------------------
-# Legal-investability gate (YAML-driven)
+# Legal-investability gate — now owned by ai/policy.py.
+# Aliased here so existing importers (and the characterization tests that pin
+# this behavior) keep working against the same functions.
 # -------------------------
-LEGAL_RULES_PATH = Path(__file__).with_name("legal_restrictions.yaml")
-
-
-@lru_cache(maxsize=1)
-def _load_legal_rules_index() -> Dict[str, Dict]:
-    """Load the sanctions rules once per process, indexed by iso2/code.
-
-    Returns:
-        ``{ISO2: entry}``. Empty if the file is unreadable or malformed — the
-        failure is logged and the gate simply never fires.
-    """
-    try:
-        with open(LEGAL_RULES_PATH, "r", encoding="utf-8") as f:
-            y = yaml.safe_load(f) or {}
-        entries = y.get("entries") or []
-        idx: Dict[str, Dict] = {}
-        for e in entries:
-            key = (e.get("iso2") or e.get("code") or "").upper()
-            if key:
-                idx[key] = e
-        return idx
-    except Exception as exc:
-        logger.warning("Failed to load legal_restrictions.yaml: %s", exc)
-        return {}
-
-def _parse_iso_date(s: Optional[str]) -> date:
-    """Parse a YAML ``effective_from`` date.
-
-    Returns ``date.min`` for missing or unparseable values so a rule with a bad
-    date is treated as already in force — the safe direction for a sanctions
-    gate, where failing open would understate risk.
-    """
-    if not s:
-        return date.min
-    try:
-        return datetime.fromisoformat(s[:10]).date()
-    except ValueError:
-        logger.warning("Unparseable effective_from %r; treating rule as always in force", s)
-        return date.min
+LEGAL_RULES_PATH = policy.LEGAL_RULES_PATH
+_load_legal_rules_index = policy._load_legal_rules_index
+_parse_iso_date = policy._parse_iso_date
+_legal_gate_decision = policy._legal_gate_decision
 
 
 def _extract_iso2_and_asof(payload: Dict) -> Tuple[Optional[str], date]:
@@ -170,49 +140,65 @@ def _extract_iso2_and_asof(payload: Dict) -> Tuple[Optional[str], date]:
         iso2 = v.upper()
     return iso2, date.today()
 
-def _legal_gate_decision(iso2: Optional[str], as_of: date) -> Optional[Dict]:
-    """Decide whether the sanctions 1.0 override applies to a country.
-
-    Args:
-        iso2: country code to look up, or None (gate never fires).
-        as_of: date the score is being computed for; a rule applies only from
-            its ``effective_from`` onward.
-
-    Returns:
-        ``{name, rule, sources}`` describing the triggering rule, or None when
-        the country is unrestricted or the rule is not yet in force.
-    """
-    if not iso2:
-        return None
-    rules = _load_legal_rules_index()
-    entry = rules.get(iso2.upper())
-    if not entry:
-        return None
-
-    trigger = (entry.get("trigger") or {}).get("set_score_1_0") is True
-    if not trigger:
-        return None
-
-    eff = _parse_iso_date(entry.get("effective_from"))
-    if as_of >= eff:
-        return {
-            "name": entry.get("name") or iso2,
-            "rule": entry.get("rule") or "Sanctions investability prohibition",
-            "sources": entry.get("sources") or []
-        }
-    return None
 
 # -------------------------
-# Main entry — model score with optional legal override
+# The 0-100 → 0-1 boundary
+# -------------------------
+def _from_100(value: Any) -> Optional[float]:
+    """Convert one model-reported 0-100 integer to the 0-1 scale.
+
+    The single place this conversion lives. Non-numeric values and None become
+    None rather than raising: a malformed field on one article must not take
+    down a country's scoring. Clamped, because ``strict=True`` structured
+    output enforces the schema's shape but not its ``minimum``/``maximum``.
+    """
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return max(0.0, min(1.0, float(value) / 100.0))
+    except (TypeError, ValueError):
+        return None
+
+
+def _failure_result() -> Dict[str, object]:
+    """The no-score return shape, used by every failure path.
+
+    Same keys as a successful call — the caller reads several of them
+    unconditionally, so a failure must never return a dict with holes in it.
+    ``score is None`` is the signal to skip the country.
+    """
+    return {
+        "score": None,
+        "bullet_summary": "",
+        "subscores": {},
+        "news_article_scores": [],
+        "score_3m": None,
+        "raw_score_12m": None,
+        "raw_score_3m": None,
+        "raw_subscores": {},
+        "subscore_evidence": {},
+        "condition_flags": {},
+        "evidence_coverage": None,
+        "applied_rules": [],
+        "model_id": ai_client.MODEL_NAME,
+        "prompt_version": ai_constants.PROMPT_VERSION,
+        "policy_version": policy.POLICY_VERSION,
+    }
+
+
+# -------------------------
+# Main entry — model perception, then policy enforcement
 # -------------------------
 def country_llm_score(
     *,
     country_display: str,
     payload: Dict,
     articles: List[Dict],
+    as_of: date,
+    macro_facts: Dict,
     fulltext_ids: Optional[List[str]] = None,
 ) -> Dict[str, object]:
-    """Score one country's 12-month investor risk, applying the sanctions gate.
+    """Score one country at both horizons: model perception, then policy.
 
     Args:
         country_display: country name as it should appear in the prompt.
@@ -224,18 +210,31 @@ def country_llm_score(
             the model; if stage 1 produced no digests at all, the prompt falls
             back to the legacy title+summary shape (first
             ``_MAX_PROMPT_ARTICLES``) so the country still scores.
+        as_of: the date being scored — the same one the snapshot is keyed on
+            (``data_push.payload_as_of``), not today's date. It is both the
+            prompt's "treat this as today" anchor and the date policy evaluates
+            the sanctions rules against, so re-running history is deterministic.
+        macro_facts: ``{indicator_pretty_name: latest_value}`` from the payload
+            (``data_retrieval.macro_latest_facts``). Policy reads the measured
+            CPI from here rather than from the model's reading of it.
         fulltext_ids: ids whose full text the model should read (from
             ``digest_engine.select_fulltext_ids``); empty/None means no
             FULL_TEXT section.
 
     Returns:
-        ``{"score": float|None, "bullet_summary": str, "subscores": {...},
-        "news_article_scores": [...]}``. ``score`` is 1.0 when the legal gate
-        fires, else the model's calibrated score, or None if the call failed
-        (missing key, network, or a malformed response) — the caller treats a
-        None score as "skip this country", so a failure never writes a bogus
-        number to the database. ``news_article_scores`` carries each article's
-        impact and topic group, which drive Top-3 selection.
+        A dict whose first four keys keep their historical names, scale and
+        meaning: ``score`` (the **gated 12-month** score, 0-1, what
+        ``risk_snapshot.score`` stores), ``bullet_summary``, ``subscores``
+        (gated, 0-1) and ``news_article_scores`` (impacts converted to 0-1,
+        driving Top-3 selection). Alongside them: ``score_3m`` (gated),
+        ``raw_score_12m``/``raw_score_3m``/``raw_subscores`` (exactly what the
+        model said, before any floor, cap or gate), ``subscore_evidence``,
+        ``condition_flags``, ``evidence_coverage``, ``applied_rules``, and the
+        ``model_id``/``prompt_version``/``policy_version`` stamps.
+
+        ``score`` is None if the call failed (missing key, network, or a
+        malformed response) — the caller treats that as "skip this country", so
+        a failure never writes a bogus number to the database.
 
     Raises:
         TypeError: if ``payload``/``articles``/``country_display`` have the
@@ -258,11 +257,11 @@ def country_llm_score(
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         logger.error("OPENAI_API_KEY not set.")
-        return {"score": None, "bullet_summary": "", "subscores": {}, "news_article_scores": []}
+        return _failure_result()
 
-    # --- Legal gate check (US-person investability); applied after the model runs
-    iso2, as_of = _extract_iso2_and_asof(payload)
-    gate = _legal_gate_decision(iso2, as_of)
+    # Only the iso2 half: the gate is evaluated against the caller's `as_of`,
+    # not today, so a backfill of an old date gets that date's rules.
+    iso2 = _extract_iso2_and_asof(payload)[0]
 
     evidence_json = json.dumps(payload, ensure_ascii=False)
     has_digests = any(isinstance(it.get("digest"), dict) for it in articles if isinstance(it, dict))
@@ -282,42 +281,73 @@ def country_llm_score(
             ensure_ascii=False,
         )
         fulltext_block = "(none)"
-    prompt = ai_constants.AI_PROMPT.format(
+    prompt = ai_constants.AI_PROMPT_V2.format(
         country=country_display,
+        as_of_date=as_of.isoformat(),
         evidence_json=evidence_json,
-        article_digests_json=article_digests_json,
-        fulltext_block=fulltext_block,
+        articles_json=article_digests_json,
+        # A1 (the two-stage digest pipeline) fills this slot; until then the
+        # block is the same one the digest path already builds.
+        full_text_block=fulltext_block if fulltext_block != "(none)"
+        else "(no full-text articles supplied)",
     )
 
     structured_llm = ai_client.build_chat(api_key).with_structured_output(
-        schema=ai_constants.RISK_SCHEMA, strict=True
+        schema=ai_constants.RISK_SCHEMA_V2, strict=True
     )
 
     try:
         data = structured_llm.invoke([SystemMessage(content=prompt)])
     except Exception as exc:
         logger.error("LangChain structured output error: %s", exc)
-        return {"score": None, "bullet_summary": "", "subscores": {}, "news_article_scores": []}
+        return _failure_result()
 
     # Validate shape minimally
-    if not isinstance(data, dict) or "score" not in data or "subscores" not in data or "news_article_scores" not in data:
+    if not isinstance(data, dict) or "score_12m" not in data or "subscores" not in data or "news_article_scores" not in data:
         logger.error("Model returned invalid structure: %s", str(data)[:300])
-        return {"score": None, "bullet_summary": "", "subscores": {}, "news_article_scores": []}
+        return _failure_result()
 
-    # --- Post-LLM legal override
-    model_score = float(data["score"]) if isinstance(data.get("score"), (int, float, str)) else None
+    # --- Leave the 0-100 scale here and never return to it.
+    raw_score_12m = _from_100(data.get("score_12m"))
+    raw_score_3m = _from_100(data.get("score_3m"))
+    raw_subscores = {k: _from_100(v) for k, v in (data.get("subscores") or {}).items()}
+    evidence_coverage = _from_100(data.get("evidence_coverage"))
+    article_scores = [
+        {**a, "impact": _from_100(a.get("impact"))}
+        for a in (data.get("news_article_scores") or [])
+        if isinstance(a, dict)
+    ]
+    condition_flags = data.get("condition_flags") or {}
+
+    # --- Enforcement: floors, caps, and the sanctions gate, from versioned code.
+    enforced = policy.apply_policy(
+        iso2=iso2,
+        as_of=as_of,
+        raw_score_12m=raw_score_12m,
+        raw_score_3m=raw_score_3m,
+        raw_subscores=raw_subscores,
+        condition_flags=condition_flags,
+        macro_facts=macro_facts if isinstance(macro_facts, dict) else {},
+    )
+
     bullet = (data.get("bullet_summary") or "").strip()
-
-    if gate:
-        logger.info("Legal-investability gate triggered (override): %s", gate["name"])
-        note = f"Legal-investability gate triggered for {gate['name']}: {gate['rule']} ⇒ score forced to 1.0."
-        bullet = (note + " " + bullet).strip()
-
-    final_score = 1.0 if gate else model_score
+    if enforced.gate_note:
+        bullet = (enforced.gate_note + " " + bullet).strip()
 
     return {
-        "score": final_score,
+        "score": enforced.score_12m,
         "bullet_summary": bullet[:_MAX_SUMMARY_CHARS],
-        "subscores": data.get("subscores") or {},
-        "news_article_scores": data.get("news_article_scores") or [],
+        "subscores": enforced.subscores,
+        "news_article_scores": article_scores,
+        "score_3m": enforced.score_3m,
+        "raw_score_12m": raw_score_12m,
+        "raw_score_3m": raw_score_3m,
+        "raw_subscores": raw_subscores,
+        "subscore_evidence": data.get("subscore_evidence") or {},
+        "condition_flags": condition_flags,
+        "evidence_coverage": evidence_coverage,
+        "applied_rules": enforced.applied_rules,
+        "model_id": ai_client.MODEL_NAME,
+        "prompt_version": ai_constants.PROMPT_VERSION,
+        "policy_version": policy.POLICY_VERSION,
     }

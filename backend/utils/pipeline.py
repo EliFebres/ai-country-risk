@@ -140,11 +140,16 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     fulltext_ids = digest_engine.select_fulltext_ids(items)
     logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)
 
-    # 3) LLM scoring
+    # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it
+    #    anchors the prompt and the policy layer's sanctions lookup on the same
+    #    day the row is keyed on. `macro_facts` lets policy read the measured
+    #    CPI instead of the model's opinion of it.
     llm_output = langchain_llm.country_llm_score(
         country_display=country_name,
         payload=payload,
         articles=items,
+        as_of=as_of,
+        macro_facts=data_retrieval.macro_latest_facts(payload),
         fulltext_ids=fulltext_ids,
     )
 

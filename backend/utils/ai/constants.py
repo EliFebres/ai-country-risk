@@ -1,11 +1,13 @@
-"""Prompts and JSON schemas for the three LLM calls.
+"""Prompts and JSON schemas for the LLM calls.
 
 Kept apart from the code that issues those calls because this is the file a
-human edits when tuning model behavior — the prompts are long, and the scoring
-rubric (bands, hard rules, guardrails) is the actual product logic.
+human edits when tuning model behavior — the prompts are long, and what the
+model is asked to perceive is the actual product logic.
 
-Four pairs live here:
-  • ``AI_PROMPT`` / ``RISK_SCHEMA`` — per-country risk scoring.
+Five pairs live here:
+  • ``AI_PROMPT_V2`` / ``RISK_SCHEMA_V2`` — per-country risk scoring (current).
+  • ``AI_PROMPT`` / ``RISK_SCHEMA`` — the v1 scoring pair, retained for
+    reference and for re-reading historical snapshots; no longer called.
   • ``DIGEST_PROMPT`` / ``DIGEST_SCHEMA`` — stage-1 per-article digestion.
   • ``CAL_RANK_PROMPT`` / ``CAL_RANK_SCHEMA`` — economic-calendar importance.
   • ``ALERTS_RANK_PROMPT`` / ``ALERTS_RANK_SCHEMA`` — global news alerts.
@@ -13,16 +15,30 @@ Four pairs live here:
 Every schema is used with ``strict=True`` structured output, so the model's
 reply is guaranteed to match or the call fails.
 
-Note that ``subscores`` in ``RISK_SCHEMA`` is not stored anywhere, but is NOT
-dead: the prompt's hard rules bind the overall score to subscore floors (e.g.
-"conflict_war >= 0.90 AND overall >= 0.90"), so asking for them is what makes
-those rules enforceable. Removing them would change the scores.
+**Perception vs. policy.** v2 splits the two. The model reports only what it
+perceives — scores at both horizons, sub-factor scores, the evidence ids
+behind each, and boolean/level ``condition_flags`` describing the situation on
+the ground. It applies no floors, caps, or gates. Enforcement lives downstream
+in ``ai/policy.py`` + ``ai/risk_policy.yaml``, versioned and unit-testable, and
+runs after the call so the model's raw judgement survives alongside the gated
+one. That is why the prompt tells the model not to anticipate enforcement:
+a model that pre-applies a floor makes the raw score unrecoverable.
+
+v2 also asks for **integers 0-100** rather than 0-1 floats — the coarse grid
+cost cross-sectional rank resolution across the roster. ``langchain_llm``
+converts every one of them back to 0-1 immediately after the API call, so the
+0-100 scale never escapes that boundary: policy, the database, and the
+front-end all still speak 0-1.
 
 Literal braces inside the JSON examples are escaped as ``{{ }}`` because these
 strings go through ``str.format()``.
 """
 
 from typing import Dict
+
+# Stamped on every snapshot. Bump when AI_PROMPT_V2 or RISK_SCHEMA_V2 changes
+# in a way that could move scores, so a time series can be split on it.
+PROMPT_VERSION = "v2.0"
 
 # ---------------------------------------------------------------------------
 # System prompt fed to the LLM — model decides the final score (no code weights)
@@ -160,6 +176,217 @@ RISK_SCHEMA: Dict = {
     },
     "required": ["subscores", "news_article_scores", "score", "bullet_summary"],
     "additionalProperties": False
+}
+
+
+# ---------------------------------------------------------------------------
+# v2 — the current scoring prompt. The model perceives; ai/policy.py enforces.
+# Scores are integers 0-100 here for rank resolution and are converted to 0-1
+# in langchain_llm the moment the call returns.
+# NOTE: literal braces inside JSON examples are escaped as {{ }} for .format().
+# ---------------------------------------------------------------------------
+
+AI_PROMPT_V2 = """
+You are a senior geopolitical risk analyst. Assess investor risk for {country}
+as of {as_of_date}, using ONLY the evidence below.
+Treat {as_of_date} as today: this evidence is your complete knowledge of the
+world. Do not use anything you know about events after this date.
+
+EVIDENCE_JSON
+{evidence_json}
+
+ARTICLES_JSON
+{articles_json}
+
+FULL_TEXT
+{full_text_block}
+
+All scores are INTEGERS 0-100. Use precise values (37, 62, 81) — never round
+to multiples of 5. Neighboring countries must be distinguishable.
+
+Scoring bands (guidance; use the full range):
+  5-20 Low · 20-40 Low-Moderate · 40-75 Moderate · 75-90 High · 90-98 Extreme
+
+Calibration anchors — composite scenarios, not real countries:
+  ~12  Stable developed market: routine politics, ~2% inflation, no security
+       events.
+  ~38  EM with a contested but constitutional election, ~9% inflation,
+       currency pressure, no violence.
+  ~58  Sustained nationwide protests with sporadic violence, caretaker
+       cabinet, ~20% inflation, FX reserves falling.
+  ~85  Capital controls or default negotiations underway; unrest disrupting
+       essential services.
+  ~95  Interstate war on the country's territory, or nationwide shutdown.
+
+Score two horizons independently. Do not derive one from the other:
+  score_3m  — investor risk over the next 3 months
+  score_12m — investor risk over the next 12 months
+
+Sub-factors (0-100; null only if the evidence is silent):
+  conflict_war, political_stability, governance_corruption,
+  macroeconomic_volatility, regulatory_uncertainty.
+For each sub-factor, cite the evidence ids that drove it — article ids like
+"a3", or indicator names exactly as they appear in EVIDENCE_JSON.
+
+# --- Localization & Materiality ---
+Do NOT raise risk for indirect foreign tensions or rhetoric. Elevate risk
+ONLY when evidence shows kinetic activity on {country}'s territory, imminent
+hostilities, or economically binding policy affecting {country}. Indirect
+disputes, UN votes, or rhetoric without domestic transmission = low impact.
+
+# --- Condition flags: report what the evidence shows.
+# Enforcement (floors, caps, gates) happens downstream in versioned code.
+# Do NOT adjust your scores to anticipate it.
+  war_on_territory        sustained interstate war, or regular long-range
+                          strikes on cities / critical infrastructure
+  internal_conflict_level "none" | "A" recurring mass-casualty attacks
+                          (20+ killed) or mass kidnappings, last 90 days,
+                          across 3+ regions | "B" = A + repeated attacks on
+                          critical infrastructure or major cities | "C" = B +
+                          nationwide emergency effects (large displacement,
+                          prolonged curfews, export shut-ins)
+  emergency_rule          unconstitutional dissolution, martial law, or
+                          week-long widespread violent unrest disrupting
+                          essential services
+  sovereign_stress        bank runs, capital controls, default negotiations
+                          or missed payments
+
+# --- One-off incidents & foiled plots (anti-overreaction guardrail) ---
+"One-off" = a single incident or foiled/attempted plot with no follow-on
+attacks, no multi-region spread, and no successful damage to critical
+infrastructure in the last 60 days.
+  • Foiled/attempted plots with arrests and no casualties → impact at most 30.
+  • Single-target assassinations or attempts without sustained campaign
+    signals → political_stability at most 50, conflict_war at most 35.
+  • Temporary terror-alert hikes without operational disruption → impact
+    10-25.
+A single foiled / low-casualty topic group with no spread is NOT High risk:
+keep overall at most 55 — unless a condition flag above is true.
+
+# --- Per-article impact and topic clustering (CRITICAL) ---
+Impact is an INTEGER 0-100:
+  85-100 Severe — successful kinetic activity in/against {country}, mass
+         kidnappings, binding economic measures, major infrastructure
+         sabotage.
+  60-75  Moderate — credible mobilization with specific capabilities or
+         timelines, high-probability binding sanctions.
+  40-55  Mixed/unclear — indirect third-country events, uncertain
+         transmission.
+  10-35  Low/benign — rhetoric, symbolic acts, foiled plots without
+         casualties, alert-level changes without disruption.
+
+You MUST assign the same topic_group to articles covering the same underlying
+event, even when the headlines differ. Aggregation: within a topic_group take
+the max impact. When calibrating sub-factors, weigh:
+  • Persistence — the same topic_group across 7+ days (by published_at)
+    counts one band higher.
+  • Breadth — multiple independent severe topic_groups within a 30-day window
+    justifies moving into High.
+  • Singularity — a lone foiled/low-casualty group with no spread does not
+    move the country into High.
+
+Example of SAME topic: "Australia Central Bank Holds Rates Steady" +
+"RBA Decides Against Rate Cut" → both topic_group="australia_rba_rate_decision".
+Example of DIFFERENT topics: that rate decision vs "Trade Deal with China"
+(topic_group="australia_china_trade").
+
+evidence_coverage (0-100): how completely this evidence captures the
+country's situation. Two thin wire stories about a G7 economy = low.
+
+Return JSON exactly per the response schema: condition_flags, subscores,
+subscore_evidence, news_article_scores, score_3m, score_12m,
+evidence_coverage, bullet_summary (at most 120 words: primary drivers and
+meaningful mitigants).
+""".strip()
+
+
+# The five sub-factors, in one place: the schema builds three objects from
+# them (scores, evidence, required-key lists) and policy.py floors two of them.
+_SUBFACTORS = [
+    "conflict_war",
+    "political_stability",
+    "governance_corruption",
+    "macroeconomic_volatility",
+    "regulatory_uncertainty",
+]
+
+
+RISK_SCHEMA_V2: Dict = {
+    "title": "CountryRiskAssessmentV2",
+    "description": (
+        "What the model perceives: condition flags, sub-factor scores with their "
+        "evidence, per-article impacts with topic grouping, two horizons, and a "
+        "short summary. All scores are integers 0-100; floors, caps and gates are "
+        "applied downstream by ai/policy.py."
+    ),
+    "type": "object",
+    "properties": {
+        "condition_flags": {
+            "title": "ConditionFlags",
+            "type": "object",
+            "properties": {
+                "war_on_territory":        {"type": "boolean"},
+                "internal_conflict_level": {"type": "string", "enum": ["none", "A", "B", "C"]},
+                "emergency_rule":          {"type": "boolean"},
+                "sovereign_stress":        {"type": "boolean"},
+            },
+            "required": [
+                "war_on_territory",
+                "internal_conflict_level",
+                "emergency_rule",
+                "sovereign_stress",
+            ],
+            "additionalProperties": False,
+        },
+        "subscores": {
+            "title": "Subscores",
+            "type": "object",
+            "properties": {
+                k: {"type": ["integer", "null"], "minimum": 0, "maximum": 100}
+                for k in _SUBFACTORS
+            },
+            "required": list(_SUBFACTORS),
+            "additionalProperties": False,
+        },
+        "subscore_evidence": {
+            "title": "SubscoreEvidence",
+            "type": "object",
+            "properties": {
+                k: {"type": "array", "items": {"type": "string"}} for k in _SUBFACTORS
+            },
+            "required": list(_SUBFACTORS),
+            "additionalProperties": False,
+        },
+        "news_article_scores": {
+            "title": "NewsArticleScores",
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "id":          {"type": "string"},
+                    "impact":      {"type": "integer", "minimum": 0, "maximum": 100},
+                    "topic_group": {"type": "string"},
+                },
+                "required": ["id", "impact", "topic_group"],
+                "additionalProperties": False,
+            },
+        },
+        "score_3m":          {"type": "integer", "minimum": 0, "maximum": 100},
+        "score_12m":         {"type": "integer", "minimum": 0, "maximum": 100},
+        "evidence_coverage": {"type": "integer", "minimum": 0, "maximum": 100},
+        "bullet_summary":    {"type": "string", "maxLength": 800},
+    },
+    "required": [
+        "condition_flags",
+        "subscores",
+        "subscore_evidence",
+        "news_article_scores",
+        "score_3m",
+        "score_12m",
+        "evidence_coverage",
+        "bullet_summary",
+    ],
+    "additionalProperties": False,
 }
 
 

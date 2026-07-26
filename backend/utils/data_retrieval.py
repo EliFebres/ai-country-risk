@@ -208,3 +208,21 @@ def prepare_llm_payload_pretty(
             "data_dir": str(DATA_DIR),
         },
     }
+
+
+def macro_latest_facts(payload: dict) -> dict[str, float]:
+    """Flatten a payload to ``{pretty_name: latest_value}`` for the policy layer.
+
+    ``ai.policy`` reads measured numbers (the CPI floors, today) from the macro
+    data rather than from the model's reading of it, so it needs the payload's
+    latest observations without the deltas and series around them.
+
+    Indicators whose ``latest`` is None are dropped — the country has no
+    observation, so no rule keyed on it should fire. The test is ``is not
+    None``, not truthiness: 0.0 is a legitimate reading for a rate or a delta.
+    """
+    return {
+        name: ind["latest"]
+        for name, ind in (payload.get("indicators") or {}).items()
+        if isinstance(ind, dict) and ind.get("latest") is not None
+    }

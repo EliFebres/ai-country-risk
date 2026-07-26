@@ -163,13 +163,35 @@ def upsert_countries(roster: List[Dict[str, Any]]) -> None:
 
 
 class _SnapshotData(NamedTuple):
-    """Validated fields pulled out of an upsert_snapshot payload."""
+    """Validated fields pulled out of an upsert_snapshot payload.
+
+    Everything from ``score_3m`` down arrived with the perception/policy split
+    and defaults to None, so a payload produced before it still upserts — those
+    columns simply stay NULL for that row.
+    """
     country: str
     as_of: datetime.date
     units: Dict[str, str]
     indicators: Dict[str, Any]
     llm_out: Dict[str, Any]
     top_articles: List[Dict[str, Any]]
+    # Both horizons, before and after policy. `llm_out["score"]` remains the
+    # gated 12-month score, unchanged in name and meaning.
+    score_3m: Optional[float] = None
+    raw_score_12m: Optional[float] = None
+    raw_score_3m: Optional[float] = None
+    # JSONB columns: the model's perception and what policy did with it.
+    subscores: Optional[Dict[str, Any]] = None
+    raw_subscores: Optional[Dict[str, Any]] = None
+    subscore_evidence: Optional[Dict[str, Any]] = None
+    condition_flags: Optional[Dict[str, Any]] = None
+    article_scores: Optional[List[Dict[str, Any]]] = None
+    applied_rules: Optional[List[str]] = None
+    evidence_coverage: Optional[float] = None
+    # Provenance: which model, prompt and policy produced this row.
+    model_id: Optional[str] = None
+    prompt_version: Optional[str] = None
+    policy_version: Optional[str] = None
 
 
 class _ArticleRow(NamedTuple):
@@ -241,7 +263,55 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
         indicators=indicators,
         llm_out=llm_out,
         top_articles=top_articles,
+        score_3m=llm_out.get("score_3m"),
+        raw_score_12m=llm_out.get("raw_score_12m"),
+        raw_score_3m=llm_out.get("raw_score_3m"),
+        subscores=llm_out.get("subscores"),
+        raw_subscores=llm_out.get("raw_subscores"),
+        subscore_evidence=llm_out.get("subscore_evidence"),
+        condition_flags=llm_out.get("condition_flags"),
+        # Every article's impact and topic group, not just the displayed
+        # top-3: the full cross-section is the point of storing it.
+        article_scores=llm_out.get("news_article_scores"),
+        applied_rules=llm_out.get("applied_rules"),
+        evidence_coverage=llm_out.get("evidence_coverage"),
+        model_id=llm_out.get("model_id"),
+        prompt_version=llm_out.get("prompt_version"),
+        policy_version=llm_out.get("policy_version"),
     )
+
+
+# `risk_snapshot` is operator-provisioned (see backend/README.md), but the
+# perception/policy split added columns to it: both horizons raw and gated, the
+# model's sub-factor detail, and the provenance stamps. Additive and idempotent
+# so an existing database comes up to date without a migration tool.
+_RISK_SNAPSHOT_DDL = """
+ALTER TABLE risk_snapshot
+  ADD COLUMN IF NOT EXISTS raw_score_12m     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS raw_score_3m      DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS score_3m          DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS subscores         JSONB,
+  ADD COLUMN IF NOT EXISTS raw_subscores     JSONB,
+  ADD COLUMN IF NOT EXISTS subscore_evidence JSONB,
+  ADD COLUMN IF NOT EXISTS condition_flags   JSONB,
+  ADD COLUMN IF NOT EXISTS article_scores    JSONB,
+  ADD COLUMN IF NOT EXISTS applied_rules     JSONB,
+  ADD COLUMN IF NOT EXISTS evidence_coverage DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS model_id          TEXT,
+  ADD COLUMN IF NOT EXISTS prompt_version    TEXT,
+  ADD COLUMN IF NOT EXISTS policy_version    TEXT;
+"""
+
+# ALTER TABLE takes an ACCESS EXCLUSIVE lock even when every column already
+# exists, and the country loop calls upsert_snapshot once per country. Run it
+# once per process instead. Set only after the transaction commits, so a
+# rolled-back run re-issues it.
+_risk_snapshot_ddl_done = False
+
+
+def _json_or_none(value: Any) -> Optional[extras.Json]:
+    """Wrap a value for a JSONB column, leaving None as SQL NULL."""
+    return None if value is None else extras.Json(value)
 
 
 def _article_rows(country: str, as_of: datetime.date,
@@ -291,12 +361,22 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
     Optional:
       - top_articles: list of dicts with
           {rank, url, title, source, published_at (ISO), impact, summary, image?}
+      - the rest of ``llm_output`` (score_3m, raw_score_*, raw_subscores,
+        subscore_evidence, condition_flags, news_article_scores, applied_rules,
+        evidence_coverage, model_id, prompt_version, policy_version). Absent
+        keys write NULL, so a payload from before the perception/policy split
+        still upserts.
     """
+    global _risk_snapshot_ddl_done
+
     _require_db_url()  # fail fast before any parsing work
     data = _parse_snapshot_payload(payload)
     rows_art = _article_rows(data.country, data.as_of, data.top_articles)
 
     with _transaction() as cur:
+        if not _risk_snapshot_ddl_done:
+            cur.execute(_RISK_SNAPSHOT_DDL)
+
         # 0) Ensure the parent 'country' row exists for the FK
         cur.execute(
             """
@@ -350,17 +430,52 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                     page_size=1000,
                 )
 
-        # 2) Risk snapshot (latest AI score for the run date)
+        # 2) Risk snapshot (latest AI score for the run date). `score` stays
+        #    the gated 12-month score on the 0-1 scale — the front-end reads
+        #    it and its meaning has not changed. Everything else is additive:
+        #    the raw scores the model gave before policy, the sub-factor detail
+        #    behind them, and which model/prompt/policy produced the row.
         cur.execute(
             """
-            INSERT INTO risk_snapshot (country_iso2, as_of, score, bullet_summary)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO risk_snapshot (
+              country_iso2, as_of, score, bullet_summary,
+              score_3m, raw_score_12m, raw_score_3m,
+              subscores, raw_subscores, subscore_evidence, condition_flags,
+              article_scores, applied_rules, evidence_coverage,
+              model_id, prompt_version, policy_version
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (country_iso2, as_of)
             DO UPDATE SET
-              score = EXCLUDED.score,
-              bullet_summary = EXCLUDED.bullet_summary
+              score             = EXCLUDED.score,
+              bullet_summary    = EXCLUDED.bullet_summary,
+              score_3m          = EXCLUDED.score_3m,
+              raw_score_12m     = EXCLUDED.raw_score_12m,
+              raw_score_3m      = EXCLUDED.raw_score_3m,
+              subscores         = EXCLUDED.subscores,
+              raw_subscores     = EXCLUDED.raw_subscores,
+              subscore_evidence = EXCLUDED.subscore_evidence,
+              condition_flags   = EXCLUDED.condition_flags,
+              article_scores    = EXCLUDED.article_scores,
+              applied_rules     = EXCLUDED.applied_rules,
+              evidence_coverage = EXCLUDED.evidence_coverage,
+              model_id          = EXCLUDED.model_id,
+              prompt_version    = EXCLUDED.prompt_version,
+              policy_version    = EXCLUDED.policy_version
             """,
-            (data.country, data.as_of, data.llm_out["score"], data.llm_out["bullet_summary"]),
+            (
+                data.country, data.as_of,
+                data.llm_out["score"], data.llm_out["bullet_summary"],
+                data.score_3m, data.raw_score_12m, data.raw_score_3m,
+                _json_or_none(data.subscores),
+                _json_or_none(data.raw_subscores),
+                _json_or_none(data.subscore_evidence),
+                _json_or_none(data.condition_flags),
+                _json_or_none(data.article_scores),
+                _json_or_none(data.applied_rules),
+                data.evidence_coverage,
+                data.model_id, data.prompt_version, data.policy_version,
+            ),
         )
 
         # 3) Optional: write the top-3 links for this snapshot (includes image_url)
@@ -385,6 +500,9 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                 rows_art,
                 page_size=10,
             )
+
+    # Committed — the columns are there for the rest of this process.
+    _risk_snapshot_ddl_done = True
 
 
 _RECENT_INDICATOR_DDL = """
