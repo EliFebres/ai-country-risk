@@ -37,8 +37,7 @@ def _strip_html(s: str) -> str:
     s = re.sub(r"<a[^>]*>.*?</a>", "", s, flags=re.S | re.I)  # drop anchors
     s = re.sub(r"<[^>]+>", "", s)                              # drop remaining tags
     s = html.unescape(s)                                       # unescape entities
-    s = re.sub(r"\s+", " ", s).strip()                         # collapse whitespace
-    return s
+    return " ".join(s.split())                                 # collapse whitespace
 
 
 def _clip_words(s: str, max_words: int) -> str:

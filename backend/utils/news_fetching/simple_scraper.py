@@ -170,7 +170,8 @@ def _first_content_image(soup: BeautifulSoup, base_url: str) -> Optional[str]:
 # --------------------------- Text extraction & summary ---------------------------
 
 def _clean(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
+    """Collapse all whitespace runs to single spaces and strip the ends."""
+    return " ".join(text.split())
 
 def _best_container(soup: BeautifulSoup) -> Optional[BeautifulSoup]:
     """
