@@ -56,14 +56,14 @@ class TestLegalGateDecision:
 class TestExtractIso2AndAsof:
     def test_country_key_with_iso2_value(self):
         # This is the shape prepare_llm_payload_pretty actually emits.
-        iso2, as_of = llm._extract_iso2_and_asof("Germany", {"country": "DE"})
+        iso2, as_of = llm._extract_iso2_and_asof({"country": "DE"})
         assert iso2 == "DE"
         assert as_of == date.today()
 
     def test_no_usable_key_gives_none(self):
-        iso2, _ = llm._extract_iso2_and_asof("Germany", {"country": "Germany"})
+        iso2, _ = llm._extract_iso2_and_asof({"country": "Germany"})
         assert iso2 is None  # 2-char check fails on a full name
 
     def test_lowercase_uppercased(self):
-        iso2, _ = llm._extract_iso2_and_asof("Germany", {"country": "de"})
+        iso2, _ = llm._extract_iso2_and_asof({"country": "de"})
         assert iso2 == "DE"

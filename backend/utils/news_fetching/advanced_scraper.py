@@ -1,7 +1,5 @@
 import json
-import os
-import time
-import random
+
 import requests
 import tldextract
 
@@ -10,7 +8,7 @@ from bs4 import BeautifulSoup
 from urllib import robotparser
 from urllib.parse import urlparse
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List, Union, Tuple
+from typing import Dict, Any, Optional, Tuple
 
 # --- .env loading (simple & explicit) ---
 from dotenv import load_dotenv
@@ -33,9 +31,6 @@ AJAX_WAIT_MS = 300    # was 2000
 
 # Global UA
 DEFAULT_UA = "NewsMetaScraper/1.0 (AI Country Risk) Python"
-
-# Retries kept small: 2 attempts total (1 retry) with short jittered backoff.
-MAX_ATTEMPTS = 1
 
 
 # -------------------- Time helper -------------------- #
@@ -95,10 +90,6 @@ def robots_allowed(url: str, user_agent: str = DEFAULT_UA) -> bool:
 
 
 # -------------------- Crawlbase fetch -------------------- #
-def _resolve_token(explicit_token: Optional[str]) -> Optional[str]:
-    """Prefer explicit token, then JS token, then standard token."""
-    return explicit_token or os.getenv("CRAWLBASE_JS_TOKEN") or os.getenv("CRAWLBASE_TOKEN")
-
 def crawlbase_fetch(url: str, token: str) -> Dict[str, Any]:
     """
     Hit Crawlbase with format=json to receive HTML body plus metadata.
@@ -111,8 +102,6 @@ def crawlbase_fetch(url: str, token: str) -> Dict[str, Any]:
         "device": "desktop",
         "page_wait": PAGE_WAIT_MS,
         "ajax_wait": AJAX_WAIT_MS,
-        # "country": "US",
-        # "pretty": "true",
     }
     r = requests.get(
         API_BASE,
@@ -193,14 +182,11 @@ def extract_metadata(html: str, url: str) -> Dict[str, Any]:
     image = image or ld.get("image")
     published = published or ld.get("datePublished")
 
-    # Domain nudges:
+    # Domain nudge: Reuters exposes the publish date in a <time> tag.
     if domain == "reuters.com":
         time_tag = soup.find("time", attrs={"datetime": True})
         if time_tag and time_tag.get("datetime"):
             published = published or time_tag["datetime"].strip()
-    elif domain == "bloomberg.com":
-        # Usually well-covered by OG/JSON-LD above
-        pass
 
     return {
         "title": title,
@@ -212,19 +198,15 @@ def extract_metadata(html: str, url: str) -> Dict[str, Any]:
 
 
 # -------------------- Orchestrator -------------------- #
-def scrape_one(url: str, token: str, respect_robots: bool = True) -> Dict[str, Any]:
+def scrape_one(url: str, token: str) -> Dict[str, Any]:
     """
-    Fetch via Crawlbase and extract metadata, with polite, bounded retries.
+    Fetch one URL via Crawlbase (single attempt) and extract its metadata.
 
-    Quick-fix changes:
-      • Shorter connect/read timeouts on all network calls.
-      • Reduced page/JS waits for Crawlbase render.
-      • Only 2 total attempts (1 retry).
-      • Skip retry on 4xx upstream statuses (won't succeed on retry).
-      • Short jittered backoff between attempts.
-      • robots.txt fetched with explicit short timeouts and cached.
+    Respects robots.txt (fetched with short timeouts and cached per host).
+    Returns a dict that carries either the extracted metadata, a "skipped"
+    marker (robots disallow), or an "error" string — it never raises.
     """
-    if respect_robots and not robots_allowed(url):
+    if not robots_allowed(url):
         return {
             "url": url,
             "skipped": True,
@@ -232,93 +214,34 @@ def scrape_one(url: str, token: str, respect_robots: bool = True) -> Dict[str, A
             "fetched_at": now_utc_z(),
         }
 
-    attempts = 0
-    last_err = None
-
-    while attempts < MAX_ATTEMPTS:
-        attempts += 1
-        try:
-            cb = crawlbase_fetch(url, token)
-            original_status = cb.get("original_status")
-            body = cb.get("body") or ""
-
-            # If Crawlbase indicates a client error at the origin, don't retry.
-            if original_status is None or int(original_status) >= 400:
-                if original_status is not None and 400 <= int(original_status) < 500:
-                    return {
-                        "url": url,
-                        "fetched_at": now_utc_z(),
-                        "original_status": original_status,
-                        "error": f"origin_4xx:{original_status}",
-                    }
-                # treat 5xx or missing body/status as retryable
-                raise RuntimeError(f"Upstream status/body invalid: {original_status}, bytes={len(body)}")
-
-            meta = extract_metadata(body, url)
-            return {
-                "url": url,
-                "fetched_at": now_utc_z(),
-                "original_status": original_status,
-                "html_bytes": len(body),
-                **meta,
-            }
-
-        except Exception as e:
-            last_err = str(e)
-            if attempts >= MAX_ATTEMPTS:
-                break
-            # jittered backoff (short)
-            time.sleep(0.4 * attempts + random.random() * 0.4)
-
-    return {
-        "url": url,
-        "error": f"failed_after_{attempts}_attempts: {last_err}",
-        "fetched_at": now_utc_z(),
-    }
-
-
-def _normalize_urls(urls: Union[str, List[str]]) -> List[str]:
-    if isinstance(urls, str):
-        return [urls]
-    return list(urls)
-
-
-def main(
-    urls: Union[str, List[str]],
-    outfile: Optional[str] = None,
-    token: Optional[str] = None,
-    respect_robots: bool = True,
-) -> List[Dict[str, Any]]:
-    """
-    Scrape one or many URLs via Crawlbase and extract metadata.
-
-    Args:
-        urls: A single URL string or a list of URL strings.
-        outfile: Optional path to write newline-delimited JSON.
-        token: Explicit Crawlbase token; if None, uses env (CRAWLBASE_JS_TOKEN/CRAWLBASE_TOKEN).
-        respect_robots: If True, skip URLs disallowed by robots.txt.
-
-    Returns:
-        List of result dictionaries.
-    """
-    tok = _resolve_token(token)
-    if not tok:
-        raise RuntimeError("Set CRAWLBASE_JS_TOKEN or CRAWLBASE_TOKEN (or pass token=).")
-
-    urls_list = _normalize_urls(urls)
-    results: List[Dict[str, Any]] = []
-
-    out_fp = open(outfile, "w", encoding="utf-8") if outfile else None
     try:
-        for u in urls_list:
-            rec = scrape_one(u, tok, respect_robots=respect_robots)
-            results.append(rec)
-            if out_fp:
-                out_fp.write(json.dumps(rec, ensure_ascii=False) + "\n")
-                out_fp.flush()
-            time.sleep(0.25)  # polite pacing between different hosts
-    finally:
-        if out_fp:
-            out_fp.close()
+        cb = crawlbase_fetch(url, token)
+        original_status = cb.get("original_status")
+        body = cb.get("body") or ""
 
-    return results
+        if original_status is None or int(original_status) >= 400:
+            if original_status is not None and 400 <= int(original_status) < 500:
+                return {
+                    "url": url,
+                    "fetched_at": now_utc_z(),
+                    "original_status": original_status,
+                    "error": f"origin_4xx:{original_status}",
+                }
+            # 5xx or missing body/status: surface as a generic failure below.
+            raise RuntimeError(f"Upstream status/body invalid: {original_status}, bytes={len(body)}")
+
+        meta = extract_metadata(body, url)
+        return {
+            "url": url,
+            "fetched_at": now_utc_z(),
+            "original_status": original_status,
+            "html_bytes": len(body),
+            **meta,
+        }
+
+    except Exception as e:
+        return {
+            "url": url,
+            "error": f"failed_after_1_attempts: {e}",
+            "fetched_at": now_utc_z(),
+        }

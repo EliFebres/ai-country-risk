@@ -177,18 +177,6 @@ def _first_content_image(soup: BeautifulSoup, base_url: str) -> Optional[str]:
                     return u
     return None
 
-def extract_thumbnail_from_html(html: str, base_url: str) -> str:
-    """Public helper if you already have HTML. Returns best thumbnail URL or ''."""
-    try:
-        soup = BeautifulSoup(html, "html.parser")
-        metas = _collect_meta_images(soup, base_url)
-        if metas:
-            return metas[0]
-        u2 = _first_content_image(soup, base_url)
-        return u2 or ""
-    except Exception:
-        return ""
-
 # --------------------------- Text extraction & summary ---------------------------
 
 def _clean(text: str) -> str:
@@ -317,44 +305,3 @@ def get_article_assets(
         return thumb, summary, full_text
     except Exception:
         return "", "", ""
-
-# --------------------------- Backwards-compatible helpers ---------------------------
-
-def extract_thumbnail(
-    url: str,
-    session: Optional[requests.Session] = None,
-    timeout: float = 10.0,
-) -> str:
-    """
-    Backwards-compatible: fetches and returns only the thumbnail URL.
-    NOTE: This performs its own GET. Prefer `get_article_assets()` to avoid multiple requests.
-    """
-    try:
-        s = session or requests.Session()
-        r = s.get(url, headers={"user-agent": _UA}, timeout=timeout, allow_redirects=True)
-        r.raise_for_status()
-        return extract_thumbnail_from_html(r.text, r.url)
-    except Exception:
-        return ""
-
-def extract_and_summarize(
-    url: str,
-    session: Optional[requests.Session] = None,
-    timeout: float = 10.0,
-    max_words: int = 160,
-) -> Tuple[str, str]:
-    """
-    Backwards-compatible: fetches and returns (summary, full_text).
-    NOTE: This performs its own GET. Prefer `get_article_assets()` to avoid multiple requests.
-    """
-    try:
-        s = session or requests.Session()
-        r = s.get(url, headers={"user-agent": _UA}, timeout=timeout, allow_redirects=True)
-        r.raise_for_status()
-        text = extract_main_text_from_html(r.text)
-        if not text:
-            return "", ""
-        summary = summarize_lead(text, max_words=max_words)
-        return summary, text
-    except Exception:
-        return "", ""

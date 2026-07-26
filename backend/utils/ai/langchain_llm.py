@@ -18,43 +18,6 @@ import backend.utils.ai.constants as ai_constants
 logger = logging.getLogger(__name__)
 
 # -------------------------
-# Optional diagnostic metric (does not affect score)
-# -------------------------
-def _recency_weight(days_old: int) -> float:
-    if days_old <= 14: return 1.0
-    if days_old <= 60: return 0.60
-    return 0.30
-
-def _compute_news_flow(articles_min: List[Dict], impact_by_id: Dict[str, float]) -> float:
-    """Recency-weighted mean + small corroboration boost if >=2 severe (>=0.85) events within 30 days.
-    This is purely diagnostic; it does not alter the model's score.
-    """
-    num = den = 0.0
-    today = datetime.utcnow().date()
-    severe_recent = 0
-
-    for it in articles_min:
-        _id = it.get("id")
-        imp = impact_by_id.get(_id)
-        if imp is None:
-            continue
-        published_at = (it.get("published_at") or "")[:10]
-        try:
-            age = (today - datetime.fromisoformat(published_at).date()).days
-        except Exception:
-            age = 9999
-        w = _recency_weight(age)
-        num += w * float(imp)
-        den += w
-        if imp >= 0.85 and age <= 30:
-            severe_recent += 1
-
-    news = (num / den) if den > 0 else 0.10
-    if severe_recent >= 2:
-        news = min(news * 1.10, 1.0)
-    return float(max(0.05, min(news, 0.95)))
-
-# -------------------------
 # Helpers for prompt I/O
 # -------------------------
 def _articles_to_json(articles: List[Dict]) -> str:
@@ -69,19 +32,6 @@ def _articles_to_json(articles: List[Dict]) -> str:
             "summary": (it.get("summary") or it.get("text") or it.get("snippet") or "").strip(),
         })
     return json.dumps(norm, ensure_ascii=False)
-
-def _articles_min_list(articles_json_str: str) -> List[Dict]:
-    raw = json.loads(articles_json_str) if articles_json_str else []
-    return [
-        {
-            "id": it.get("id"),
-            "title": it.get("title", ""),
-            "summary": it.get("summary", ""),
-            "source": it.get("source", ""),
-            "published_at": it.get("published_at", "")
-        }
-        for it in raw
-    ]
 
 # -------------------------
 # Legal-investability gate (YAML-driven)
@@ -121,39 +71,18 @@ def _parse_iso_date(s: Optional[str]) -> date:
     except Exception:
         return date.min
 
-def _extract_iso2_and_asof(
-    country_display: str,
-    payload: Dict
-) -> Tuple[Optional[str], date]:
+def _extract_iso2_and_asof(payload: Dict) -> Tuple[Optional[str], date]:
     """
-    Best-effort extraction of iso2 and as_of date from payload/callsite.
-    Falls back to today's date if as_of not present.
+    Read the country's iso2 from the payload's ``country`` key (the shape
+    ``data_retrieval.prepare_llm_payload_pretty`` emits). The gate is evaluated
+    as of today. Returns ``(None, today)`` if no 2-letter code is present, in
+    which case the gate simply won't fire.
     """
     iso2 = None
-    # common keys used across pipelines
-    for k in ("iso2", "country_iso2", "country_code", "countryCode", "country", "country_meta"):
-        v = payload.get(k)
-        if isinstance(v, str) and len(v) == 2:
-            iso2 = v.upper()
-            break
-        if isinstance(v, dict):
-            cc = v.get("iso2") or v.get("code")
-            if isinstance(cc, str) and len(cc) == 2:
-                iso2 = cc.upper()
-                break
-
-    # as_of date
-    as_of_raw = (
-        payload.get("as_of")
-        or payload.get("score_as_of")
-        or payload.get("date")
-        or payload.get("scoring_date")
-    )
-    as_of = _parse_iso_date(as_of_raw) if isinstance(as_of_raw, str) else date.today()
-
-    # final fallback: no iso2 found; we could try mapping country_display -> iso2,
-    # but to avoid brittle heuristics we simply return None (gate won't fire).
-    return iso2, as_of
+    v = payload.get("country")
+    if isinstance(v, str) and len(v) == 2:
+        iso2 = v.upper()
+    return iso2, date.today()
 
 def _legal_gate_decision(iso2: Optional[str], as_of: date) -> Optional[Dict]:
     """
@@ -187,12 +116,8 @@ def country_llm_score(
     country_display: str,
     payload: Dict,
     articles: List[Dict],
-    llm: Optional["ChatOpenAI"] = None,
-    model: str = "gpt-4o",   # any model supporting structured outputs
-    temperature: float = 0.0,
+    model: str = "gpt-4o-2024-08-06",
     seed: int = 42,
-    api_key: Optional[str] = None,
-    short_circuit_if_gate: bool = False,   # leave False to keep your current behavior
 ) -> Dict[str, object]:
     """
     Returns:
@@ -201,46 +126,21 @@ def country_llm_score(
         "bullet_summary": str,
         "subscores": {...},         # model diagnostics only
         "news_article_scores": [...],  # includes topic_group
-        "news_flow": float,         # diagnostic only
       }
     """
     assert isinstance(payload, dict) and payload, "`payload` must be a non-empty dict"
     assert isinstance(articles, list), "`articles` must be a list"
     assert isinstance(country_display, str) and country_display.strip(), "`country_display` must be non-empty"
 
-    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        logger.error("OPENAI_API_KEY not set (env var or api_key arg).")
-        return {"score": None, "bullet_summary": "", "subscores": {}, "news_flow": None, "news_article_scores": []}
+        logger.error("OPENAI_API_KEY not set.")
+        return {"score": None, "bullet_summary": "", "subscores": {}, "news_article_scores": []}
 
-    # --- Legal gate check (US-person investability)
-    iso2, as_of = _extract_iso2_and_asof(country_display, payload)
+    # --- Legal gate check (US-person investability); applied after the model runs
+    iso2, as_of = _extract_iso2_and_asof(payload)
     gate = _legal_gate_decision(iso2, as_of)
 
-    # If you ever want to skip the LLM entirely for 1.0 countries, flip short_circuit_if_gate=True
-    if gate and short_circuit_if_gate:
-        logger.info("Legal-investability gate triggered (short-circuit): %s", gate["name"])
-        bullet = (
-            f"Legal-investability gate triggered for {gate['name']}: "
-            f"{gate['rule']} ⇒ score forced to 1.0."
-        )
-        # Produce a schema-conformant minimal payload without calling the model
-        subs = {
-            "conflict_war": 0.20,
-            "political_stability": 0.60,
-            "governance_corruption": 0.55,
-            "macroeconomic_volatility": 0.55,
-            "regulatory_uncertainty": 0.98,  # the legal reason
-        }
-        return {
-            "score": 1.0,
-            "bullet_summary": bullet[:800],
-            "subscores": subs,
-            "news_article_scores": [],
-            "news_flow": 0.10,
-        }
-
-    # --- Normal model path
     evidence_json = json.dumps(payload, ensure_ascii=False)
     articles_json = _articles_to_json(articles)
     prompt = ai_constants.AI_PROMPT.format(
@@ -249,9 +149,9 @@ def country_llm_score(
         articles_json=articles_json
     )
 
-    _llm = llm or ChatOpenAI(
+    _llm = ChatOpenAI(
         model=model,
-        temperature=temperature,
+        temperature=0.0,
         max_retries=0,
         api_key=api_key,
         seed=seed,
@@ -262,21 +162,14 @@ def country_llm_score(
         data = structured_llm.invoke([SystemMessage(content=prompt)])
     except Exception as exc:
         logger.error("LangChain structured output error: %s", exc)
-        return {"score": None, "bullet_summary": "", "subscores": {}, "news_flow": None, "news_article_scores": []}
+        return {"score": None, "bullet_summary": "", "subscores": {}, "news_article_scores": []}
 
     # Validate shape minimally
     if not isinstance(data, dict) or "score" not in data or "subscores" not in data or "news_article_scores" not in data:
         logger.error("Model returned invalid structure: %s", str(data)[:300])
-        return {"score": None, "bullet_summary": "", "subscores": {}, "news_flow": None, "news_article_scores": []}
+        return {"score": None, "bullet_summary": "", "subscores": {}, "news_article_scores": []}
 
-    # Diagnostics only (does not affect score)
-    try:
-        impacts = {e["id"]: float(e["impact"]) for e in data.get("news_article_scores", []) if isinstance(e, dict) and "id" in e and "impact" in e}
-    except Exception:
-        impacts = {}
-    news_flow = _compute_news_flow(_articles_min_list(articles_json), impacts)
-
-    # --- Post-LLM legal override (default behavior)
+    # --- Post-LLM legal override
     model_score = float(data["score"]) if isinstance(data.get("score"), (int, float, str)) else None
     bullet = (data.get("bullet_summary") or "").strip()
 
@@ -292,5 +185,4 @@ def country_llm_score(
         "bullet_summary": bullet[:800],
         "subscores": data.get("subscores") or {},
         "news_article_scores": data.get("news_article_scores") or [],
-        "news_flow": news_flow,
     }

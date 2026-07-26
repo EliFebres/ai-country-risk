@@ -3,7 +3,7 @@ import logging
 import requests
 import pandas as pd
 
-from typing import List, Dict, Tuple, Mapping, Optional, Union, Any
+from typing import List, Dict, Mapping, Optional
 from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
 from tenacity import (
     retry,
@@ -40,11 +40,9 @@ def _is_retryable_exc(exc: BaseException) -> bool:
     return False
 
 
-def _empty_return(indicator: str, tidy: bool) -> Union[List[Tuple[int, Optional[float]]], pd.Series]:
-    """Return the correct 'empty' shape for wb_series depending on tidy flag."""
-    if tidy:
-        return pd.Series(dtype="float64", name=indicator)
-    return []  # for descending list-of-pairs mode
+def _empty_series(indicator: str) -> pd.Series:
+    """The 'no data' return shape for wb_series."""
+    return pd.Series(dtype="float64", name=indicator)
 
 
 # ----------------------------- Fetch one series ----------------------------- #
@@ -82,24 +80,21 @@ def wb_series(
     *,
     start: Optional[int] = None,
     end:   Optional[int] = None,
-    tidy: bool = False,
     session: Optional[requests.Session] = None,
-) -> Union[List[Tuple[int, Optional[float]]], pd.Series]:
+) -> pd.Series:
     """
     Fetch a World Bank indicator time series for a single country.
 
     Returns:
-        list[(year, value | None)] in descending WB order when tidy=False,
-        or pandas.Series (ascending years) when tidy=True.
+        pandas.Series of values indexed by ascending year; empty on 'no data'.
 
-    Robustness changes:
+    Robustness:
       - Retries only on transient statuses (429/5xx) and network errors.
       - Treats 200 with empty rows, 400/404 as 'no data' (empty), not as an error.
     """
     # Input validation
     assert isinstance(code, str) and code.strip(),  "`code` must be non-empty str"
     assert isinstance(indicator, str) and indicator.strip(), "`indicator` must be non-empty str"
-    assert isinstance(tidy, bool), "`tidy` must be bool"
     if start is not None:
         assert isinstance(start, int), "`start` must be int"
     if end is not None:
@@ -125,35 +120,35 @@ def wb_series(
     except RequestException as e:
         # If the exception was already filtered as non-retryable, we land here.
         logging.warning("WB network error for %s/%s: %s (skipping)", norm_code, indicator, e)
-        return _empty_return(indicator, tidy)
+        return _empty_series(indicator)
 
     # Handle non-transient statuses gracefully (e.g., 400/404 → no data)
     if resp.status_code >= 400:
         if resp.status_code in (400, 404):
             logging.warning("WB %s for %s/%s (treating as empty)", resp.status_code, norm_code, indicator)
-            return _empty_return(indicator, tidy)
+            return _empty_series(indicator)
         # Anything else 4xx that slipped through
         try:
             resp.raise_for_status()
         except HTTPError as e:
             logging.warning("WB HTTP %s for %s/%s: %s (skipping)", resp.status_code, norm_code, indicator, e)
-            return _empty_return(indicator, tidy)
+            return _empty_series(indicator)
 
     # Parse payload
     try:
         payload = resp.json()
     except ValueError:
         logging.warning("WB invalid JSON for %s/%s (treating as empty)", norm_code, indicator)
-        return _empty_return(indicator, tidy)
+        return _empty_series(indicator)
 
     if not isinstance(payload, list) or len(payload) < 2:
         logging.warning("WB unexpected payload for %s/%s: %s (treating as empty)", norm_code, indicator, payload)
-        return _empty_return(indicator, tidy)
+        return _empty_series(indicator)
 
     rows = payload[1] or []  # WB returns [meta, rows]; rows can be None
 
-    # Build list of (year, value) in WB default order (desc by year)
-    series_pairs: List[Tuple[int, Optional[float]]] = []
+    # Build (year, value) pairs in WB default order (desc by year)
+    series_pairs = []
     for item in rows:
         try:
             year = int(item.get("date"))
@@ -168,16 +163,11 @@ def wb_series(
     elif end is not None and start is None:
         series_pairs = [(y, v) for y, v in series_pairs if y <= end]
 
-    if tidy:
-        if not series_pairs:
-            return pd.Series(dtype="float64", name=indicator)
-        years = [y for (y, _) in series_pairs]
-        vals  = [v for (_, v) in series_pairs]
-        s = pd.Series(vals, index=years, name=indicator)
-        return s.sort_index()
-
-    # Default: return descending pairs (as WB provides)
-    return series_pairs
+    if not series_pairs:
+        return _empty_series(indicator)
+    years = [y for (y, _) in series_pairs]
+    vals  = [v for (_, v) in series_pairs]
+    return pd.Series(vals, index=years, name=indicator).sort_index()
 
 
 # --------------------------- Multi-indicator panel --------------------------- #
@@ -187,7 +177,6 @@ def build_country_panel(
     *,
     start: Optional[int] = None,
     end:   Optional[int] = None,
-    tidy_fetch: bool = True,
 ) -> pd.DataFrame:
     """
     Assemble multiple World Bank indicators for one country into a year-indexed table.
@@ -201,7 +190,6 @@ def build_country_panel(
         "all World-Bank codes must be non-empty str"
     if start is not None and end is not None:
         assert start <= end, "`start` year must be ≤ `end` year"
-    assert isinstance(tidy_fetch, bool), "`tidy_fetch` must be bool"
 
     frames: List[pd.Series] = []
     # Reuse one session per country to avoid excess handshakes
@@ -209,19 +197,8 @@ def build_country_panel(
         sess.headers.update(_DEFAULT_HEADERS)
         for col, ind_code in indicators.items():
             try:
-                if tidy_fetch:
-                    s: Any = wb_series(code, ind_code, start=start, end=end, tidy=True, session=sess)
-                    if isinstance(s, pd.Series):
-                        s.name = col
-                    else:
-                        s = pd.Series(dtype="float64", name=col)
-                else:
-                    lst = wb_series(code, ind_code, start=start, end=end, tidy=False, session=sess)
-                    if not lst:
-                        s = pd.Series(dtype="float64", name=col)
-                    else:
-                        years, vals = zip(*lst)  # WB order is descending
-                        s = pd.Series(list(vals)[::-1], index=list(years)[::-1], name=col)
+                s = wb_series(code, ind_code, start=start, end=end, session=sess)
+                s.name = col
             except RequestException as e:
                 logging.warning("WB network error for %s/%s: %s (skipping)", code, ind_code, e)
                 s = pd.Series(dtype="float64", name=col)

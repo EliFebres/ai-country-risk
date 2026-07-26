@@ -1,23 +1,10 @@
-import shutil
 import duckdb
 import pathlib
 import pandas as pd
 
-from zoneinfo import ZoneInfo
-from typing import Mapping, Optional
-from datetime import datetime, date, timedelta
+from typing import Mapping
 
-from backend.utils import constants
-import backend.utils.data_fetching.fetch_metrics as fetch_metrics
 import backend.utils.data_fetching.political_corruption_fetch as political_corruption_fetch
-
-
-def _first_monday(year: int, month: int) -> date:
-    d = date(year, month, 1)
-    return d + timedelta(days=(0 - d.weekday()) % 7)
-
-def _is_first_monday_of_quarter(now: datetime) -> bool:
-    return now.month in (1, 4, 7, 10) and now.date() == _first_monday(now.year, now.month)
 
 
 def ingest_panel_wide(panel: pd.DataFrame, country_code: str, root: pathlib.Path) -> None:
@@ -118,78 +105,3 @@ def merge_extra_indicators(
         panel = panel.copy()
         panel["POL_CORRUPTION"] = pd.NA
     return panel
-
-
-def ingest_panels_for_all_countries(
-    root: pathlib.Path,
-    indicators: Mapping[str, str],
-    *,
-    start: Optional[int] = None,
-    end:   Optional[int] = None
-) -> None:
-    """Build and persist per-country panels for the hardcoded country roster.
-
-    The country universe comes from ``constants.COUNTRY_ROSTER`` (ISO-2 / ISO-3).
-    Each country's World Bank panel is augmented with non-WB indicators (e.g. the
-    OWID Political Corruption Index) via :func:`merge_extra_indicators`.
-
-    On the first Monday of each calendar quarter (Jan, Apr, Jul, Oct; timezone
-    ``America/New_York``), the function deletes the directory at ``root`` using
-    a safety-guarded `shutil.rmtree` and then recreates it to produce a clean
-    snapshot before ingest.
-
-    Args:
-        root (pathlib.Path): Root output directory where per-country panel
-            artifacts are written. On quarterly cleanup days, this directory is
-            deleted and recreated at the start of the run.
-        indicators (Mapping[str, str]): WB indicator col-name -> code map passed
-            to the panel fetcher (e.g. ``constants.INDICATORS``). Must not be empty.
-        start (Optional[int], keyword-only): First calendar year to include
-            (inclusive). If ``None``, the fetcher’s default is used.
-        end (Optional[int], keyword-only): Last calendar year to include
-            (inclusive). If ``None``, the fetcher’s default is used.
-
-    Returns:
-        None
-    """
-    # Quarterly cleanup (first Monday of each quarter, America/New_York)
-    now = datetime.now(ZoneInfo("America/New_York"))
-    if _is_first_monday_of_quarter(now) and root.is_dir():
-        # Safety guard: avoid catastrophic deletes (like '/')
-        root_resolved = root.resolve()
-        if len(root_resolved.parts) <= 3:  # tweak threshold for your project layout
-            raise RuntimeError(f"Refusing to delete suspiciously high-level path: {root_resolved}")
-        shutil.rmtree(root_resolved)
-
-    # Input Validation
-    assert indicators, "`indicators` mapping must not be empty"
-    if start is not None and end is not None:
-        assert start <= end, "`start` year must be ≤ `end` year"
-
-    # Country roster is hardcoded (see constants.COUNTRY_ROSTER); the Excel file
-    # is no longer read.
-    iso3_by_iso2 = constants.ISO3_BY_ISO2
-
-    # Iterate & Ingest
-    for country in constants.COUNTRY_ROSTER:
-        iso_code = country["iso2"]
-
-        # Build the World Bank panel (robust to missing/empty series)
-        panel = fetch_metrics.build_country_panel(
-            iso_code,
-            indicators,
-            start=start,
-            end=end,
-            tidy_fetch=True,
-        )
-
-        # Merge non-WB indicators (e.g. Political Corruption Index from OWID)
-        panel = merge_extra_indicators(panel, iso_code, iso3_by_iso2)
-
-        # Skip countries with no usable rows from any source
-        if panel is None or panel.empty:
-            print(f"[{iso_code}] No rows for selected indicators — skipping write.")
-            continue
-
-        ingest_panel_wide(panel, iso_code, root)
-        print(f"[{iso_code}] Wrote panel with {panel.shape[0]} years × {panel.shape[1]} indicators.")

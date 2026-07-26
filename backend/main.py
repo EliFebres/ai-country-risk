@@ -177,9 +177,7 @@ def _fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict
         items = fetch_links.gnews_rss(
             query=query,
             max_results=15,           # up to ~60 raw before de-dupe
-            expand=True,
             extract_chars=24000,
-            build_summary=True,
             summary_words=240,
         )
 
@@ -210,10 +208,7 @@ def _fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict
 
     return filtered[:max_articles]
 
-def ensure_missing_country_panels(root: pathlib.Path,
-                                  indicators: dict,
-                                  start: int | None = None,
-                                  end: int | None = None) -> None:
+def ensure_missing_country_panels(root: pathlib.Path, indicators: dict) -> None:
     """
     Make sure every country in constants.COUNTRY_ROSTER has a partition under root.
     Only (re)build and write partitions that are missing or empty.
@@ -238,13 +233,7 @@ def ensure_missing_country_panels(root: pathlib.Path,
     print(f"Backfilling {len(missing)} missing panels → {missing}")
     for iso2 in missing:
         try:
-            panel = fetch_metrics.build_country_panel(
-                iso2,
-                indicators,
-                start=start,
-                end=end,
-                tidy_fetch=True,
-            )
+            panel = fetch_metrics.build_country_panel(iso2, indicators)
 
             # Merge non-WB indicators (e.g. Political Corruption Index from OWID)
             panel = country_data_fetch.merge_extra_indicators(panel, iso2, iso3_by_iso2)
@@ -266,12 +255,7 @@ def main() -> None:
     # 0) Ensure/Backfill panels per country (incremental, idempotent)
     #    World Bank indicators are fetched per-country; non-WB indicators
     #    (Political Corruption Index) are merged in via merge_extra_indicators.
-    ensure_missing_country_panels(
-        root=PROCESSED_DATA,
-        indicators=constants.INDICATORS,
-        start=None,
-        end=None,
-    )
+    ensure_missing_country_panels(root=PROCESSED_DATA, indicators=constants.INDICATORS)
 
     # 0b) Economic calendar (FMP) for the front-end Econ Calendar pane. Guarded
     #     so a calendar failure never aborts the country/risk loop below.
@@ -501,7 +485,7 @@ def main() -> None:
                     if not isinstance(link, str) or not link.startswith("http"):
                         continue
 
-                    rec = crawlbase_scrape_one(link, cb_token, respect_robots=True)
+                    rec = crawlbase_scrape_one(link, cb_token)
                     if rec.get("error") or rec.get("skipped"):
                         continue
                     # Fill image if Crawlbase found one

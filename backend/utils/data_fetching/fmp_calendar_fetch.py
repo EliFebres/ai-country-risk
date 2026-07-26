@@ -146,13 +146,12 @@ def _normalize_event(raw: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     }
 
 
-def fetch_economic_calendar(
-    days_ahead: int = constants.FMP_CALENDAR_DAYS_AHEAD,
-) -> List[Dict[str, Any]]:
+def fetch_economic_calendar() -> List[Dict[str, Any]]:
     """Fetch upcoming major economic events from FMP.
 
-    Pulls a rolling window from today through today + ``days_ahead`` (UTC),
-    keeps only High/Medium-impact events in the curated country allowlist, and
+    Pulls a rolling window from today through today +
+    ``constants.FMP_CALENDAR_DAYS_AHEAD`` days (UTC), keeps only
+    High/Medium-impact events in the curated country allowlist, and
     returns normalized, de-duplicated event dicts ready for
     ``data_push.upsert_economic_events``.
 
@@ -167,7 +166,7 @@ def fetch_economic_calendar(
     now = datetime.now(timezone.utc)
     params = {
         "from": now.strftime("%Y-%m-%d"),
-        "to": (now + timedelta(days=days_ahead)).strftime("%Y-%m-%d"),
+        "to": (now + timedelta(days=constants.FMP_CALENDAR_DAYS_AHEAD)).strftime("%Y-%m-%d"),
         "apikey": api_key,
     }
 

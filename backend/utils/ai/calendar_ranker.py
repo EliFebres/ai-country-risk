@@ -112,26 +112,16 @@ def _rank_batch(structured_llm, today: str, period: str, batch: List[Dict[str, s
     return out
 
 
-def rank_calendar_events(
-    events: List[Dict[str, Any]],
-    *,
-    week_days: Optional[int] = None,
-    model: str = "gpt-4o-2024-08-06",
-    temperature: float = 0.0,
-    seed: int = 42,
-    api_key: Optional[str] = None,
-) -> Dict[str, Dict[str, Any]]:
+def rank_calendar_events(events: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     """Score each event's investor importance (US-tilted) with a one-line rationale.
 
-    Events are bucketed into weeks of ``week_days`` (default
-    ``constants.CAL_RANK_WEEK_DAYS``) and each week is ranked **relative to
-    itself**, so a quiet week still uses the full 0-1 range instead of being
-    flattened by a busier adjacent week.
+    Events are bucketed into weeks of ``constants.CAL_RANK_WEEK_DAYS`` days and
+    each week is ranked **relative to itself**, so a quiet week still uses the
+    full 0-1 range instead of being flattened by a busier adjacent week.
 
     Args:
         events: event dicts, each carrying an assigned ``_rank_id`` plus
             ``event_time`` / ``country_name`` / ``event`` / ``importance``.
-        week_days: bucket size in days; defaults to ``CAL_RANK_WEEK_DAYS``.
 
     Returns:
         ``{ _rank_id: {"importance": float 0..1, "rationale": str} }``.
@@ -141,19 +131,19 @@ def rank_calendar_events(
     if not events:
         return {}
 
-    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         logger.warning("OPENAI_API_KEY not set; skipping calendar importance ranking.")
         return {}
 
-    week_days = week_days or constants.CAL_RANK_WEEK_DAYS
+    week_days = constants.CAL_RANK_WEEK_DAYS
 
     llm = ChatOpenAI(
-        model=model,
-        temperature=temperature,
+        model="gpt-4o-2024-08-06",
+        temperature=0.0,
         max_retries=0,
         api_key=api_key,
-        seed=seed,
+        seed=42,
     )
     structured_llm = llm.with_structured_output(schema=ai_constants.CAL_RANK_SCHEMA, strict=True)
 

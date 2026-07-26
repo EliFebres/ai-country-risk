@@ -219,25 +219,6 @@ PRICE_ASSETS: list[dict] = [
 ]
 
 # ---------------------------------------------------------------------------
-# Coverage universe (50 countries: 25 Developed + 25 Emerging)
-# ---------------------------------------------------------------------------
-
-SELECTED_COUNTRIES: list[str] = [
-    # --- Developed Markets ---
-    "United States", "Canada", "Germany", "France", "United Kingdom",
-    "Japan", "Australia", "Austria", "Belgium", "Denmark",
-    "Finland", "Ireland", "Italy", "Netherlands", "New Zealand",
-    "Norway", "Portugal", "Singapore", "Spain", "Sweden",
-    "Switzerland", "Israel", "Hong Kong SAR, China", "Greece", "Luxembourg",
-    # --- Emerging Markets ---
-    "Argentina", "Brazil", "Chile", "China", "Colombia",
-    "Hungary", "India", "Indonesia", "Malaysia", "Mexico",
-    "Pakistan", "Peru", "Philippines", "Poland", "Qatar",
-    "Romania", "Saudi Arabia", "South Africa", "Thailand", "United Arab Emirates",
-    "Ukraine", "Morocco", "Kenya", "Nigeria", "Bangladesh",
-]
-
-# ---------------------------------------------------------------------------
 # Country roster (hardcoded). Source of truth for the run universe — replaces
 # the former backend/data/country_data.xlsx read. Each entry carries the
 # display name, ISO-2 (World Bank / DB key) and ISO-3 (OWID join key).
@@ -303,9 +284,8 @@ COUNTRY_ROSTER: list[dict[str, str]] = [
     {"name": "South Africa",          "iso2": "ZA", "iso3": "ZAF"},
 ]
 
-# Convenience lookups derived from the roster.
+# Convenience lookup derived from the roster.
 ISO3_BY_ISO2: dict[str, str] = {c["iso2"]: c["iso3"] for c in COUNTRY_ROSTER}
-COUNTRY_NAME_BY_ISO2: dict[str, str] = {c["iso2"]: c["name"] for c in COUNTRY_ROSTER}
 
 # ---------------------------------------------------------------------------
 # Display names for indicators

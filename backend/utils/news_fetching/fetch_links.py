@@ -127,16 +127,12 @@ def gnews_rss(
     query: str,
     *,
     max_results: int = 10,
-    expand: bool = True,
     extract_chars: int = 3000,
-    lang: str = "en",
-    country: str = "US",
-    build_summary: bool = True,
     summary_words: int = 240,
-    max_age_days: int | None = 30,   # limit by age (None = no filter)
 ) -> List[Dict]:
     """
-    Return Google News RSS items. If expand=True, also fetch and extract each article's main text.
+    Return Google News RSS items (English/US feed, max 30 days old), each
+    expanded with the article's extracted main text and a plain-text summary.
 
     Each item contains:
       - 'title':          str
@@ -146,19 +142,14 @@ def gnews_rss(
       - 'source':         str (publisher name if available)
       - 'snippet':        str (PLAIN TEXT, links removed)
       - 'snippet_html':   str (original RSS summary with HTML)
-      - ['text','word_count'] present when expand=True and extraction succeeds
-      - ['summary','summary_word_count'] present when build_summary=True
-
-    Args:
-        max_age_days: If set, discard items older than this many days (items
-                      without a publish date are discarded).
+      - 'text', 'word_count'              (extracted body, may be empty)
+      - 'summary', 'summary_word_count'   (first summary_words of text/snippet)
     """
-    url = _gnews_url(query, lang=lang, country=country)
+    url = _gnews_url(query)
     feed = feedparser.parse(url)
 
-    cutoff = None
-    if max_age_days is not None:
-        cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=max_age_days)
+    # Discard items older than 30 days (or with no publish date at all).
+    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=30)
 
     items: List[Dict] = []
     for e in feed.entries:
@@ -168,9 +159,8 @@ def gnews_rss(
             published_dt = dt.datetime(*e.published_parsed[:6], tzinfo=dt.timezone.utc)
 
         # Age filter
-        if cutoff is not None:
-            if (published_dt is None) or (published_dt < cutoff):
-                continue
+        if (published_dt is None) or (published_dt < cutoff):
+            continue
 
         raw_summary = getattr(e, "summary", "") or ""
         plain_summary = _strip_html(raw_summary)
@@ -206,8 +196,8 @@ def gnews_rss(
         if len(items) >= max_results:
             break
 
-    # Optionally expand with article body text (limit to number of kept items)
-    if expand and items:
+    # Expand with article body text (limit to number of kept items)
+    if items:
         try:
             _ = asyncio.get_running_loop()  # raises RuntimeError if none
             # If we're already in an event loop, use sync fallback to avoid nested loop issues
@@ -216,7 +206,7 @@ def gnews_rss(
             items = asyncio.run(_expand_items_async(items, max_articles=len(items), max_chars=extract_chars))
 
     # Build longer plain-text summaries
-    if build_summary and items:
+    if items:
         for e in items:
             base = e.get("text") or e.get("snippet") or ""
             summary = _clip_words(base, summary_words)

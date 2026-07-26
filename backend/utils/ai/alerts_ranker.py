@@ -18,7 +18,7 @@ warning and return ``[]`` so the surrounding run is never blocked.
 import os
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv(), override=False)
@@ -63,15 +63,7 @@ def _compact(articles: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     return out
 
 
-def rank_global_alerts(
-    articles: List[Dict[str, Any]],
-    *,
-    top_n: Optional[int] = None,
-    model: str = "gpt-4o-2024-08-06",
-    temperature: float = 0.0,
-    seed: int = 42,
-    api_key: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+def rank_global_alerts(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Rank pooled country articles by importance to the global economy.
 
     The whole pool is ranked in a SINGLE LLM call so the comparison is truly
@@ -82,21 +74,20 @@ def rank_global_alerts(
         articles: pooled article dicts, each carrying at least ``country_iso2`` /
             ``country_name`` plus ``url`` / ``title`` / ``source`` /
             ``published_at`` / ``summary`` / ``image``.
-        top_n: how many top-ranked alerts to return; defaults to
-            ``constants.ALERTS_TOP_N``.
 
     Returns:
-        The global top-``top_n`` alerts, sorted by importance (desc), each enriched
-        with ``topic`` / ``severity`` / ``importance`` / ``rationale`` / ``global_rank``
-        and the originating ``country_iso2`` / ``country_name``. Empty list if there
-        is nothing to score, the key is missing, or the call failed.
+        The global top-``ALERTS_TOP_N`` alerts, sorted by importance (desc),
+        each enriched with ``topic`` / ``severity`` / ``importance`` /
+        ``rationale`` / ``global_rank`` and the originating ``country_iso2`` /
+        ``country_name``. Empty list if there is nothing to score, the key is
+        missing, or the call failed.
     """
     if not articles:
         return []
 
-    top_n = top_n or constants.ALERTS_TOP_N
+    top_n = constants.ALERTS_TOP_N
 
-    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         logger.warning("OPENAI_API_KEY not set; skipping global alert ranking.")
         return []
@@ -114,11 +105,11 @@ def rank_global_alerts(
         return []
 
     llm = ChatOpenAI(
-        model=model,
-        temperature=temperature,
+        model="gpt-4o-2024-08-06",
+        temperature=0.0,
         max_retries=0,
         api_key=api_key,
-        seed=seed,
+        seed=42,
     )
     structured_llm = llm.with_structured_output(schema=ai_constants.ALERTS_RANK_SCHEMA, strict=True)
 
