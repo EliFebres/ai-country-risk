@@ -93,17 +93,23 @@ python -m pytest backend/tests -q
 
 ## Notebook
 
-`backend/pipeline_walkthrough.ipynb` runs `pipeline._process_country` one step
-at a time for a single country, printing each intermediate as a DataFrame: the
-macro panel, the LLM payload, the article pool, the model's subscores and
-per-article impacts, and the Top-3. Pick the country by editing `ISO2` in the
-second cell.
+`backend/walkthrough.ipynb` runs `pipeline._process_country` one step at a time
+for a single country, printing each intermediate as a DataFrame: the macro
+panel, the LLM payload, the article pool, the stage-1 digests, the model's
+subscores and per-article impacts, and the Top-3. Pick the country by editing
+`ISO2` in the second cell.
 
-It never writes to Postgres — the last step builds the payload
-`data_push.upsert_snapshot` would take and prints it instead. Use
-`tests/live_country_check.py` when you want the write, verification, and
-cleanup. It does hit the network, and the scoring cell costs one OpenAI call
-per run.
+Two cells exist purely to show the division of labor between the models: one
+prints a single article end to end through the mini digest model (text in, JSON
+out), the other prints the exact `ARTICLE_DIGESTS_JSON` and `FULL_TEXT` blocks
+the scoring model receives.
+
+It writes no snapshot — the last step builds the payload
+`data_push.upsert_snapshot` would take and prints it instead. The one thing it
+does write is the stage-1 digest cache (`article_digest`), which nothing else
+reads. Use `tests/live_country_check.py` when you want the snapshot write,
+verification, and cleanup. It hits the network, and costs one cheap digest call
+per uncached article plus one scoring call per run.
 
 ```bash
 pip install ipykernel
