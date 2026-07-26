@@ -4,11 +4,14 @@ from typing import Dict, Any, Optional, List, Tuple
 
 import psycopg2
 import psycopg2.extras as extras
-from dotenv import load_dotenv
 
-load_dotenv()
 
-DB_URL = os.getenv("DATABASE_URL")
+def _require_db_url() -> str:
+    """Read DATABASE_URL at call time (never cached at import)."""
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL is not set in the environment")
+    return db_url
 
 
 def _to_date_from_iso(s: str) -> datetime.date:
@@ -60,8 +63,7 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
       - top_articles: list of dicts with
           {rank, url, title, source, published_at (ISO), impact, summary, image?}
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    db_url = _require_db_url()
     if not isinstance(payload, dict):
         raise TypeError("payload must be a dict")
 
@@ -93,7 +95,7 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
     if not isinstance(top_articles, list):
         top_articles = []
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(db_url)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
@@ -264,8 +266,7 @@ def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, 
 
     No-op if ``country_iso2`` is blank or ``indicators`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    db_url = _require_db_url()
     if not country_iso2 or not indicators:
         return
 
@@ -287,7 +288,7 @@ def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, 
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(db_url)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
@@ -363,8 +364,7 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
 
     No-op if ``events`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    db_url = _require_db_url()
     if not events:
         return
 
@@ -404,7 +404,7 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(db_url)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
@@ -493,8 +493,7 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
 
     No-op if ``rows`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    db_url = _require_db_url()
     if not rows:
         return
 
@@ -525,7 +524,7 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
     if not tuples:
         return
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(db_url)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
@@ -570,10 +569,9 @@ def read_price_references() -> Dict[str, Dict[str, Any]]:
     on startup before any write. Each value is
     ``{ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on}``.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    db_url = _require_db_url()
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(db_url)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
@@ -610,8 +608,7 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
     internal symbol). Lets a restarted daemon skip the historical fetch when it
     already ran today. No-op if ``refs`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    db_url = _require_db_url()
     if not refs:
         return
 
@@ -630,7 +627,7 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(db_url)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
@@ -722,8 +719,7 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
 
     No-op if ``alerts`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    db_url = _require_db_url()
     if not alerts:
         return
 
@@ -770,7 +766,7 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
+    conn = psycopg2.connect(db_url)
     try:
         conn.autocommit = False
         with conn.cursor() as cur:

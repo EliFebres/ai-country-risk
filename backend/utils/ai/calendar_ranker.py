@@ -20,9 +20,6 @@ import logging
 from datetime import datetime, date, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv(), override=False)
-
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 

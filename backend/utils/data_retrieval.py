@@ -8,22 +8,9 @@ from datetime import datetime, timezone
 from backend.utils import constants
 
 
-def _discover_backend_dir() -> pathlib.Path:
-    """
-    Walk up from this file until we find the 'backend' directory.
-    This works whether this module is located at backend/ or backend/utils/.
-    """
-    p = pathlib.Path(__file__).resolve()
-    for anc in [p.parent, *p.parents]:
-        if anc.name == "backend":
-            return anc
-    # Fallback: assume parent of current file
-    return p.parent
-
-
-# Anchor all data paths to the real backend/ folder (not backend/utils/)
-BACKEND_DIR = _discover_backend_dir()                   # .../backend
-DATA_DIR    = BACKEND_DIR / "data" / "wb_panel_wide"    # .../backend/data/wb_panel_wide
+# Anchor all data paths to the backend/ folder (this file lives in backend/utils/)
+BACKEND_DIR = pathlib.Path(__file__).resolve().parents[1]   # .../backend
+DATA_DIR    = BACKEND_DIR / "data" / "wb_panel_wide"        # .../backend/data/wb_panel_wide
 
 
 def query_macro_panel(country_iso_code: str) -> pd.DataFrame:

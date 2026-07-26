@@ -29,30 +29,21 @@ from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
 
 # --- Resolve project root so "backend/" is importable (mirrors main.py) -------
-project_root = pathlib.Path.cwd().resolve()
-while not (project_root / "backend").is_dir():
-    if project_root.parent == project_root:
-        # Fall back to this file's location when launched from elsewhere.
-        project_root = pathlib.Path(__file__).resolve().parent.parent
-        break
-    project_root = project_root.parent
-
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 from dotenv import load_dotenv
+
+# Single .env load for the whole daemon process (modules read env at call time).
+load_dotenv(PROJECT_ROOT / "backend" / ".env")
+load_dotenv()  # also pick up a repo-root/cwd .env, without overriding
 
 from backend.utils import constants
 from backend.utils import market_hours
 from backend.utils.data_upsert import data_push
 from backend.utils.data_fetching import fmp_prices_fetch
 
-load_dotenv()
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [prices] %(levelname)s %(message)s",
-)
 logger = logging.getLogger("prices_daemon")
 
 # --- Precomputed asset lookups ----------------------------------------------
@@ -234,6 +225,10 @@ class PricesDaemon:
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [prices] %(levelname)s %(message)s",
+    )
     if not os.getenv("DATABASE_URL"):
         logger.error("DATABASE_URL is not set; cannot run the prices daemon.")
         sys.exit(1)

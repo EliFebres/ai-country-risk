@@ -28,7 +28,6 @@ from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
 
 import requests
-from dotenv import load_dotenv
 from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
 from tenacity import (
     retry,
@@ -38,8 +37,6 @@ from tenacity import (
 )
 
 import backend.utils.constants as constants
-
-load_dotenv()
 
 logger = logging.getLogger(__name__)
 

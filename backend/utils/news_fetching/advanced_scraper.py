@@ -3,19 +3,11 @@ import json
 import requests
 import tldextract
 
-from pathlib import Path
 from bs4 import BeautifulSoup
 from urllib import robotparser
 from urllib.parse import urlparse
 from datetime import datetime, timezone
 from typing import Dict, Any, Optional, Tuple
-
-# --- .env loading (simple & explicit) ---
-from dotenv import load_dotenv
-
-THIS_DIR = Path(__file__).resolve().parent
-load_dotenv(THIS_DIR / ".env")                           # backend/.env (same folder as this file)
-load_dotenv(THIS_DIR.parent / ".env", override=False)    # repo root .env (won't override)
 
 # -------------------- Tuned constants (faster + safer) -------------------- #
 API_BASE = "https://api.crawlbase.com"

@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import pathlib
 import requests
 
@@ -7,15 +8,16 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
-# --- Resolve project root so "backend/" is importable ------------------------
-project_root = pathlib.Path.cwd().resolve()
-while not (project_root / "backend").is_dir():
-    if project_root.parent == project_root:
-        raise RuntimeError("Could not find project root containing 'backend/'")
-    project_root = project_root.parent
+from dotenv import load_dotenv
 
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# --- Resolve project root so "backend/" is importable ------------------------
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+# Single .env load for the whole ETL process (modules read env at call time).
+load_dotenv(PROJECT_ROOT / "backend" / ".env")
+load_dotenv()  # also pick up a repo-root/cwd .env, without overriding
 
 # --- Internal Imports -------------------------------------------
 from backend.utils import constants
@@ -35,8 +37,10 @@ from backend.utils.news_fetching.source_filter import is_blocked_url
 from backend.utils.news_fetching.advanced_scraper import scrape_one as crawlbase_scrape_one
 
 # --- Paths ------------------------------------------------------------------
-BACKEND_DIR    = project_root / "backend"
+BACKEND_DIR    = pathlib.Path(__file__).resolve().parent
 PROCESSED_DATA = BACKEND_DIR / "data" / "wb_panel_wide"
+
+logger = logging.getLogger("main")
 
 
 # --- Helpers ----------------------------------------------------------------
@@ -197,7 +201,7 @@ def _fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict
 
     # If we have very few, relax threshold to ensure >=3 (if possible)
     if len(filtered) < 3:
-        print(f"[{country_name}] Only {len(filtered)} high-relevance items (>=0.3). Relaxing threshold to ensure 3.")
+        logger.info("[%s] Only %d high-relevance items (>=0.3). Relaxing threshold to ensure 3.", country_name, len(filtered))
         relaxed = sorted(
             all_items,
             key=lambda x: (x.get("relevance_score", 0.0), _parse_date_for_sort(x.get("published"))),
@@ -227,10 +231,10 @@ def ensure_missing_country_panels(root: pathlib.Path, indicators: dict) -> None:
             missing.append(iso2)
 
     if not missing:
-        print(f"All {len(roster)} countries already have parquet partitions in {root}.")
+        logger.info("All %d countries already have parquet partitions in %s.", len(roster), root)
         return
 
-    print(f"Backfilling {len(missing)} missing panels → {missing}")
+    logger.info("Backfilling %d missing panels → %s", len(missing), missing)
     for iso2 in missing:
         try:
             panel = fetch_metrics.build_country_panel(iso2, indicators)
@@ -239,18 +243,19 @@ def ensure_missing_country_panels(root: pathlib.Path, indicators: dict) -> None:
             panel = country_data_fetch.merge_extra_indicators(panel, iso2, iso3_by_iso2)
 
             if panel is None or panel.empty:
-                print(f"[{iso2}] No rows for selected indicators — skipping write.")
+                logger.info("[%s] No rows for selected indicators — skipping write.", iso2)
                 continue
 
             country_data_fetch.ingest_panel_wide(panel, iso2, root)
-            print(f"[{iso2}] Wrote panel with {panel.shape[0]} years × {panel.shape[1]} indicators.")
-        except Exception as e:
-            print(f"[{iso2}] ERROR while backfilling panel: {e}")
+            logger.info("[%s] Wrote panel with %d years × %d indicators.", iso2, panel.shape[0], panel.shape[1])
+        except Exception:
+            # One country's failed backfill must not block the others.
+            logger.exception("[%s] ERROR while backfilling panel", iso2)
 
 # --- Main -------------------------------------------------------------------
 def main() -> None:
     """Loop countries → payload → news → LLM score → enrich Top-3 images if missing → DB."""
-    print(f"=== AI Country Risk run started at {_to_utc_iso(datetime.now(timezone.utc))} UTC ===")
+    logger.info("=== AI Country Risk run started at %s UTC ===", _to_utc_iso(datetime.now(timezone.utc)))
 
     # 0) Ensure/Backfill panels per country (incremental, idempotent)
     #    World Bank indicators are fetched per-country; non-WB indicators
@@ -277,16 +282,16 @@ def main() -> None:
                         ev["ai_importance"] = s.get("importance")
                         ev["ai_rationale"]  = s.get("rationale")
                         ev["ai_scored_at"]  = scored_at
-                print(f"[econ-calendar] AI-ranked {len(scores)}/{len(subset)} next-14d events")
-            except Exception as rank_err:
-                print(f"[econ-calendar] ranking ERROR: {rank_err}")
+                logger.info("[econ-calendar] AI-ranked %d/%d next-14d events", len(scores), len(subset))
+            except Exception:
+                logger.exception("[econ-calendar] ranking ERROR")
 
             data_push.upsert_economic_events(events)
-            print(f"[econ-calendar] upserted {len(events)} events")
+            logger.info("[econ-calendar] upserted %d events", len(events))
         else:
-            print("[econ-calendar] no events fetched (skipping upsert)")
-    except Exception as e:
-        print(f"[econ-calendar] ERROR: {e}")
+            logger.info("[econ-calendar] no events fetched (skipping upsert)")
+    except Exception:
+        logger.exception("[econ-calendar] ERROR")
 
     # 0c) Refresh fast-moving indicators (Inflation) from the IMF at monthly
     #     frequency into `recent_indicator`. World Bank values are annual and lag
@@ -301,9 +306,9 @@ def main() -> None:
                 if recent:
                     data_push.upsert_recent_indicators(c["iso2"], recent)
                     refreshed += 1
-            except Exception as e:
-                print(f"[imf-refresh] {c['iso2']} ERROR: {e}")
-        print(f"[imf-refresh] refreshed {refreshed}/{len(constants.COUNTRY_ROSTER)} countries")
+            except Exception:
+                logger.exception("[imf-refresh] %s ERROR", c["iso2"])
+        logger.info("[imf-refresh] refreshed %d/%d countries", refreshed, len(constants.COUNTRY_ROSTER))
 
     # Map "Country_Name" → "iso2" from the hardcoded roster
     country_map = {c["name"]: c["iso2"] for c in constants.COUNTRY_ROSTER}
@@ -329,7 +334,7 @@ def main() -> None:
 
             if items:
                 avg_rel = sum(it.get("relevance_score", 0) for it in items) / len(items)
-                print(f"[{iso2}] Fetched {len(items)} articles (avg relevance: {avg_rel:.2f})")
+                logger.info("[%s] Fetched %d articles (avg relevance: %.2f)", iso2, len(items), avg_rel)
 
             # --- Resolve and do light enrichment using ONLY the simple scraper ---
             with requests.Session() as _sess:
@@ -345,7 +350,7 @@ def main() -> None:
                 items = [it for it in items if not is_blocked_url(it.get("link"))]
                 removed = before - len(items)
                 if removed:
-                    print(f"[{iso2}] Blocked {removed} article(s) from denylisted sources.")
+                    logger.info("[%s] Blocked %d article(s) from denylisted sources.", iso2, removed)
 
                 # b) Ensure summary/content and thumbnail (simple scraper, single GET)
                 for it in items:
@@ -439,7 +444,7 @@ def main() -> None:
 
                     if distinct_topic_count >= 3:
                         top_ids = [aid for aid, _, _ in topic_reps[:3]]
-                        print(f"[{iso2}] AI identified {distinct_topic_count} topics (used 1/article).")
+                        logger.info("[%s] AI identified %d topics (used 1/article).", iso2, distinct_topic_count)
                         return top_ids
 
                     # If topics <=2, still use the best representative(s) then fill to 3
@@ -449,7 +454,7 @@ def main() -> None:
                     ranked_remaining = _rank_ids_by(remaining, items_by_id, imp_map)
                     needed = 3 - len(chosen)
                     chosen += ranked_remaining[:max(0, needed)]
-                    print(f"[{iso2}] Only {distinct_topic_count} topic(s). Backfilled to 3 with best remaining.")
+                    logger.info("[%s] Only %d topic(s). Backfilled to 3 with best remaining.", iso2, distinct_topic_count)
                     return chosen[:3]
 
                 # No topic map at all → fall back to global ranking by impact/recency/relevance
@@ -470,7 +475,7 @@ def main() -> None:
                     reverse=True,
                 )
                 top_ids = ranked_ids[:3]
-                print(f"[{iso2}] No LLM impacts. Used relevance+recency fallback.")
+                logger.info("[%s] No LLM impacts. Used relevance+recency fallback.", iso2)
 
             # 5) Enrich ONLY the Top-3 with missing images using the advanced scraper
             cb_token = _crawlbase_token()
@@ -526,14 +531,13 @@ def main() -> None:
                 country_name=country_name
             )
 
-            # Optional progress print
-            sc = llm_output.get("score")
-            print(f"[{iso2}] score={sc}")
-            print(f"article_url: {[a['url'] for a in top_articles]}")
-            print(f"img_url: {[a['image'] for a in top_articles]}")
+            logger.info("[%s] score=%s", iso2, llm_output.get("score"))
+            logger.info("article_url: %s", [a["url"] for a in top_articles])
+            logger.info("img_url: %s", [a["image"] for a in top_articles])
 
-        except Exception as e:
-            print(f"[{iso2}] ERROR: {e}")
+        except Exception:
+            # Resilience boundary: one country's failure must not kill the run.
+            logger.exception("[%s] ERROR", iso2)
 
     # 8) Global news alerts: rank the pooled Top-3 articles by importance to the
     #    global economy and persist the top-N. Guarded so a failure here never
@@ -544,14 +548,19 @@ def main() -> None:
             data_push.upsert_news_alerts(
                 ranked_alerts, as_of=datetime.now(timezone.utc).date()
             )
-            print(f"[alerts] ranked {len(ranked_alerts)}/{len(global_alert_pool)} pooled articles, stored {len(ranked_alerts)}")
+            logger.info("[alerts] ranked %d/%d pooled articles, stored %d",
+                        len(ranked_alerts), len(global_alert_pool), len(ranked_alerts))
         else:
-            print(f"[alerts] no alerts ranked from {len(global_alert_pool)} pooled articles (skipping upsert)")
-    except Exception as e:
-        print(f"[alerts] ERROR: {e}")
+            logger.info("[alerts] no alerts ranked from %d pooled articles (skipping upsert)", len(global_alert_pool))
+    except Exception:
+        logger.exception("[alerts] ERROR")
 
-    print(f"=== Run finished at {_to_utc_iso(datetime.now(timezone.utc))} UTC ===")
+    logger.info("=== Run finished at %s UTC ===", _to_utc_iso(datetime.now(timezone.utc)))
 
 
 if __name__ == "__main__":
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [etl] %(levelname)s %(message)s",
+    )
     main()

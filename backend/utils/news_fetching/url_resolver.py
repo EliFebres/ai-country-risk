@@ -1,9 +1,12 @@
 import json
+import logging
 import requests
 
 from typing import Optional
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
+
+logger = logging.getLogger(__name__)
 
 
 # Keep a realistic UA; some endpoints return different HTML otherwise
@@ -88,7 +91,8 @@ def resolve_google_news_url(
                 return href
 
     except Exception:
-        # On any error, just return the original URL instead of exploding
-        pass
+        # Documented contract: on any error return the original URL instead of
+        # exploding — but leave a trace so resolver breakage is visible in logs.
+        logger.warning("Could not resolve %s; returning original", gnews_url, exc_info=True)
 
     return gnews_url
