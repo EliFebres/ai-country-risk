@@ -1,3 +1,21 @@
+"""Daily ETL entry point for the AI Country Risk dashboard.
+
+One run, in order: backfill any missing macro panels, refresh the economic
+calendar and the IMF's fresher-than-annual indicators, then for every country
+in the roster assemble a macro payload, gather and rank news, score the
+country with the LLM, and upsert the snapshot plus its Top-3 articles. Finally
+the pooled Top-3s across all countries are ranked once more for the global
+alerts table.
+
+Everything is written to Postgres, which the Next.js frontend reads directly —
+there is no API layer between them.
+
+Resilience is deliberate and layered: each phase and each country runs inside
+its own try/except so a flaky upstream, a missing country, or a bad LLM
+response costs one country's snapshot rather than the whole day's run. Every
+such failure is logged with a full traceback.
+"""
+
 import os
 import sys
 import logging
@@ -46,23 +64,36 @@ logger = logging.getLogger("main")
 
 # --- Helpers ----------------------------------------------------------------
 def _crawlbase_token() -> str:
-    # Prefer JS token, then standard token
+    """Crawlbase token, preferring the JS-rendering one; "" disables enrichment."""
     return os.getenv("CRAWLBASE_JS_TOKEN") or os.getenv("CRAWLBASE_TOKEN") or ""
 
 def _has_country_partition(root: pathlib.Path, iso2: str) -> bool:
-    """
-    Return True if a partition dir like country_code=XX exists and has at least one .parquet file.
+    """True if ``root`` holds a non-empty ``country_code=XX`` Parquet partition.
+
+    Args:
+        root: the ``wb_panel_wide`` directory.
+        iso2: country code naming the partition.
+
+    Returns:
+        True only when the directory exists and contains at least one
+        ``.parquet`` file. An unreadable directory counts as "no partition",
+        which triggers a harmless re-fetch.
     """
     part_dir = root / f"country_code={iso2}"
     if not part_dir.is_dir():
         return False
     try:
         return any(p.suffix == ".parquet" for p in part_dir.glob("*.parquet"))
-    except Exception:
+    except OSError:
         return False
 
-def _parse_date_for_sort(date_str: str | None):
-    """Parse publication date for sorting. Returns datetime(1970-01-01) for invalid/missing dates."""
+def _parse_date_for_sort(date_str: str | None) -> datetime:
+    """Parse a publication date for ranking, tolerating anything.
+
+    Returns:
+        The parsed datetime, or the epoch for missing/unparseable input so such
+        articles sort last instead of breaking the sort.
+    """
     if not date_str:
         return datetime(1970, 1, 1)
     try:
@@ -77,9 +108,20 @@ def _parse_date_for_sort(date_str: str | None):
         return datetime(1970, 1, 1)
 
 def _score_article_relevance(article: Dict, country_name: str) -> float:
-    """
-    Score article relevance (0-1) based on title/summary content.
-    Higher = more relevant to geopolitical risk.
+    """Score how likely an article is to be about this country's risk (0-1).
+
+    A cheap keyword heuristic that runs before the LLM sees anything: Google
+    News returns plenty of sport and entertainment for a bare country query,
+    and paying for tokens to have the model reject those is wasteful.
+
+    Args:
+        article: item with ``title`` and ``summary``/``snippet``.
+        country_name: the country the query was for.
+
+    Returns:
+        0-1. Articles that never name the country floor at 0.1 rather than 0,
+        so they remain available as last-resort backfill when a country has
+        almost no coverage.
     """
     title = (article.get("title") or "").lower()
     summary = (article.get("summary") or article.get("snippet") or "").lower()
@@ -132,13 +174,18 @@ def _rank_ids_by(
     items_by_id: Dict[str, Dict],
     impact_map: Dict[str, float],
 ) -> List[str]:
-    """
-    Rank a list of article IDs by:
-      1) impact DESC
-      2) published recency DESC
-      3) precomputed relevance_score DESC (if present)
+    """Rank article ids by impact, then recency, then pre-LLM relevance.
+
+    Args:
+        ids: article ids to order.
+        items_by_id: id -> article dict (for date and relevance).
+        impact_map: id -> LLM impact score; missing ids count as 0.0.
+
+    Returns:
+        The ids, most significant first.
     """
     def key_fn(aid: str) -> Tuple[float, datetime, float]:
+        """Sort key: (impact, recency, relevance), all descending via reverse."""
         it = items_by_id.get(aid, {})
         impact = float(impact_map.get(aid, 0.0))
         dt = _parse_date_for_sort(it.get("published"))
@@ -147,14 +194,22 @@ def _rank_ids_by(
     return sorted(ids, key=key_fn, reverse=True)
 
 def _fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict]:
-    """
-    Fetch news via 4 queries:
-      - Broad catch-all (country only)
-      - Government/Political
-      - Economic/Central Bank
-      - Security/Military
-    Score by relevance and return up to max_articles. If the filtered set is < 3,
-    relax the threshold and fill from the broader pool to ensure >=3 when possible.
+    """Gather and rank recent news for one country.
+
+    Runs four Google News queries — a broad catch-all plus government,
+    economic, and security angles — because a single query reliably misses
+    whole categories. Results are de-duplicated by URL and scored by
+    ``_score_article_relevance``.
+
+    Args:
+        country_name: country to search for.
+        max_articles: cap on the returned list.
+
+    Returns:
+        Up to ``max_articles`` items, most relevant first. If fewer than 3
+        clear the relevance bar, the bar is dropped and the best of the raw
+        pool are used instead: the snapshot needs 3 articles, and thin
+        coverage is better than an empty pane.
     """
     queries = [
         # NEW: Broad catch-all to maximize recall; noise is filtered by scoring
@@ -209,9 +264,18 @@ def _fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict
     return filtered[:max_articles]
 
 def ensure_missing_country_panels(root: pathlib.Path, indicators: dict) -> None:
-    """
-    Make sure every country in constants.COUNTRY_ROSTER has a partition under root.
-    Only (re)build and write partitions that are missing or empty.
+    """Build Parquet panels for any rostered country that lacks one.
+
+    Incremental and idempotent: countries that already have a partition are
+    skipped, so a normal daily run does no World Bank fetching at all and only
+    a first run (or a newly added country) pays for it.
+
+    Args:
+        root: the ``wb_panel_wide`` directory; created if missing.
+        indicators: World Bank indicator map to fetch per country.
+
+    A country whose build fails is logged with a traceback and skipped — the
+    others still get their panels.
     """
     root.mkdir(parents=True, exist_ok=True)
 

@@ -1,4 +1,13 @@
-# backend/utils/data_fetching/fetch_metrics.py
+"""World Bank indicator fetching.
+
+Pulls the annual macro/governance series that form the backbone of each
+country's panel. The World Bank API is the pipeline's least reliable
+upstream — it sporadically returns spurious 400s under load and simply has no
+data for many (country, indicator) pairs — so every failure mode short of a
+programming error degrades to an empty series rather than an exception: a
+country missing one indicator still gets a panel, and the run continues.
+"""
+
 import logging
 import requests
 import pandas as pd
@@ -14,11 +23,39 @@ from backend.utils import http
 # WB sporadically throws spurious 400s under load, so unlike FMP we retry 400.
 _RETRYABLE_STATUS = frozenset({400, 429, 500, 502, 503, 504})
 _DEFAULT_HEADERS = {"User-Agent": http.PROJECT_UA}
+_TIMEOUT = 20  # seconds
 
 
 def _empty_series(indicator: str) -> pd.Series:
     """The 'no data' return shape for wb_series."""
     return pd.Series(dtype="float64", name=indicator)
+
+
+def _require_non_empty_str(value: object, param: str) -> None:
+    """Raise if ``value`` is not a non-blank string.
+
+    Raises:
+        TypeError: if ``value`` is not a str.
+        ValueError: if it is blank.
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"`{param}` must be a str, got {type(value).__name__}: {value!r}")
+    if not value.strip():
+        raise ValueError(f"`{param}` must be a non-empty str, got {value!r}")
+
+
+def _validate_year_range(start: Optional[int], end: Optional[int]) -> None:
+    """Raise if the optional year bounds are not ints or are inverted.
+
+    Raises:
+        TypeError: if a supplied bound is not an int.
+        ValueError: if ``start`` is later than ``end``.
+    """
+    for name, value in (("start", start), ("end", end)):
+        if value is not None and not isinstance(value, int):
+            raise TypeError(f"`{name}` must be an int or None, got {type(value).__name__}: {value!r}")
+    if start is not None and end is not None and start > end:
+        raise ValueError(f"`start` year must be <= `end` year, got start={start}, end={end}")
 
 
 # ----------------------------- Fetch one series ----------------------------- #
@@ -28,13 +65,19 @@ def _wb_request(
     params: Dict[str, str],
     session: Optional[requests.Session],
 ) -> requests.Response:
+    """GET one World Bank URL, retrying transient failures.
+
+    Args:
+        url: fully-formatted endpoint for one country/indicator pair.
+        params: query string (format, paging, optional date range).
+        session: connection-pooling session to reuse, or None for a bare GET.
+
+    Returns:
+        The response. Transient statuses raise (so tenacity retries); other
+        error statuses are returned for the caller to interpret.
+    """
     req = session or requests
-    # Merge a UA header in a non-destructive way
-    try:
-        resp = req.get(url, params=params, headers=_DEFAULT_HEADERS, timeout=20)
-    except RequestException as e:
-        # Let tenacity decide if we retry
-        raise e
+    resp = req.get(url, params=params, headers=_DEFAULT_HEADERS, timeout=_TIMEOUT)
     # If transient: raise so tenacity retries; if non-transient: we handle in caller.
     if resp.status_code in _RETRYABLE_STATUS:
         try:
@@ -53,29 +96,36 @@ def wb_series(
     end:   Optional[int] = None,
     session: Optional[requests.Session] = None,
 ) -> pd.Series:
-    """
-    Fetch a World Bank indicator time series for a single country.
+    """Fetch one World Bank indicator time series for one country.
+
+    Args:
+        code: ISO-2 country code (case-insensitive; whitespace tolerated).
+        indicator: World Bank series code, e.g. ``'FP.CPI.TOTL.ZG'``.
+        start: earliest year to request (inclusive).
+        end: latest year to request (inclusive).
+        session: session to reuse across indicators for the same country.
 
     Returns:
-        pandas.Series of values indexed by ascending year; empty on 'no data'.
+        Values indexed by ascending year, named after ``indicator``. Empty
+        when the country has no data for this series — a normal outcome, not
+        an error: network failures, 400/404, and unparseable payloads all
+        degrade to empty so one missing indicator never fails a panel.
 
-    Robustness:
-      - Retries only on transient statuses (429/5xx) and network errors.
-      - Treats 200 with empty rows, 400/404 as 'no data' (empty), not as an error.
+    Raises:
+        TypeError: if ``code`` or ``indicator`` is not a string, or a year
+            bound is not an int.
+        ValueError: if either is blank, the year range is inverted, or
+            ``WB_ENDPOINT`` is misconfigured with query parameters.
     """
-    # Input validation
-    assert isinstance(code, str) and code.strip(),  "`code` must be non-empty str"
-    assert isinstance(indicator, str) and indicator.strip(), "`indicator` must be non-empty str"
-    if start is not None:
-        assert isinstance(start, int), "`start` must be int"
-    if end is not None:
-        assert isinstance(end, int),   "`end` must be int"
-    if start is not None and end is not None:
-        assert start <= end, "`start` year must be ≤ `end` year"
-    if session is not None:
-        assert isinstance(session, requests.Session), "`session` must be requests.Session"
+    _require_non_empty_str(code, "code")
+    _require_non_empty_str(indicator, "indicator")
+    _validate_year_range(start, end)
+    if session is not None and not isinstance(session, requests.Session):
+        raise TypeError(
+            f"`session` must be a requests.Session or None, got {type(session).__name__}"
+        )
 
-    norm_code = (code or "").strip().upper()
+    norm_code = code.strip().upper()
 
     if "?" in constants.WB_ENDPOINT:
         raise ValueError("WB_ENDPOINT should not include query parameters")
@@ -149,18 +199,37 @@ def build_country_panel(
     start: Optional[int] = None,
     end:   Optional[int] = None,
 ) -> pd.DataFrame:
+    """Assemble several World Bank indicators for one country into one table.
+
+    Args:
+        code: ISO-2 country code.
+        indicators: panel column name -> World Bank series code, e.g.
+            ``{"INFLATION": "FP.CPI.TOTL.ZG"}``.
+        start: earliest year to request (inclusive).
+        end: latest year to request (inclusive).
+
+    Returns:
+        Year-indexed DataFrame with one column per requested indicator,
+        outer-joined so a country with partial coverage still gets a panel.
+        Columns with no data are present but all-NaN.
+
+    Raises:
+        TypeError: if ``code`` is not a string or ``indicators`` is not a mapping.
+        ValueError: if ``code`` is blank, ``indicators`` is empty or contains
+            blank names/codes, or the year range is inverted.
     """
-    Assemble multiple World Bank indicators for one country into a year-indexed table.
-    More resilient: reuses a single Session and tolerates missing indicators without failing the panel.
-    """
-    assert isinstance(code, str) and code.strip(), "`code` must be non-empty str"
-    assert indicators, "`indicators` mapping must not be empty"
-    assert all(isinstance(k, str) and k.strip() for k in indicators.keys()), \
-        "all indicator names must be non-empty str"
-    assert all(isinstance(v, str) and v.strip() for v in indicators.values()), \
-        "all World-Bank codes must be non-empty str"
-    if start is not None and end is not None:
-        assert start <= end, "`start` year must be ≤ `end` year"
+    _require_non_empty_str(code, "code")
+    if not isinstance(indicators, Mapping):
+        raise TypeError(f"`indicators` must be a mapping, got {type(indicators).__name__}")
+    if not indicators:
+        raise ValueError("`indicators` mapping must not be empty")
+    bad_names = [k for k in indicators if not (isinstance(k, str) and k.strip())]
+    if bad_names:
+        raise ValueError(f"all indicator names must be non-empty str, got {bad_names!r}")
+    bad_codes = [v for v in indicators.values() if not (isinstance(v, str) and v.strip())]
+    if bad_codes:
+        raise ValueError(f"all World-Bank codes must be non-empty str, got {bad_codes!r}")
+    _validate_year_range(start, end)
 
     frames: List[pd.Series] = []
     # Reuse one session per country to avoid excess handshakes
@@ -170,10 +239,7 @@ def build_country_panel(
             try:
                 s = wb_series(code, ind_code, start=start, end=end, session=sess)
                 s.name = col
-            except RequestException as e:
-                logging.warning("WB network error for %s/%s: %s (skipping)", code, ind_code, e)
-                s = pd.Series(dtype="float64", name=col)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - one bad indicator must not fail the panel
                 logging.warning("WB error for %s/%s: %s (skipping)", code, ind_code, e)
                 s = pd.Series(dtype="float64", name=col)
 
@@ -185,6 +251,7 @@ def build_country_panel(
     panel = pd.concat(frames, axis=1, sort=True)  # outer-join on year
     try:
         panel = panel.astype("float64")
-    except Exception:
+    except (TypeError, ValueError):
+        # Mixed dtypes across indicators: leave as-is rather than lose the panel.
         pass
     return panel

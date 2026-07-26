@@ -1,3 +1,11 @@
+"""Write side of the macro panel: assembled DataFrame out to Parquet.
+
+``ingest_panel_wide`` persists one country's panel as a Parquet partition that
+``data_retrieval.query_macro_panel`` reads back with DuckDB;
+``merge_extra_indicators`` folds in the indicators that don't come from the
+World Bank before that write.
+"""
+
 import duckdb
 import pathlib
 import pandas as pd
@@ -17,23 +25,28 @@ def ingest_panel_wide(panel: pd.DataFrame, country_code: str, root: pathlib.Path
     files partitioned by ``country_code`` under ``root``.
 
     Args:
-        panel (pd.DataFrame): Non-empty, wide-form DataFrame whose index are
-            years and whose columns are indicator codes (or similar). The index
-            will be reset to a ``year`` column.
-        country_code (str): ISO-2 (or similar) country code used both as a
-            data column and the Parquet partition key.
-        root (pathlib.Path): Output directory. It will be created if missing,
-            then used as the COPY destination for Parquet output.
+        panel: Non-empty, wide-form DataFrame whose index are years and whose
+            columns are indicator codes. The index becomes a ``year`` column.
+        country_code: ISO-2 country code, used both as a data column and the
+            Parquet partition key.
+        root: Output directory, created if missing.
 
-    Returns:
-        None
+    Raises:
+        TypeError: if ``panel`` is not a DataFrame, ``country_code`` is not a
+            string, or ``root`` is not a Path.
+        ValueError: if ``panel`` is empty or ``country_code`` is blank —
+            writing either would produce an unreadable partition.
     """
-    # Input Validation
-    assert isinstance(panel, pd.DataFrame) and not panel.empty, \
-        "`panel` must be a non-empty DataFrame"
-    assert isinstance(country_code, str) and country_code.strip(), \
-        "`country_code` must be a non-empty str"
-    assert isinstance(root, pathlib.Path), "`root` must be a pathlib.Path"
+    if not isinstance(panel, pd.DataFrame):
+        raise TypeError(f"`panel` must be a pandas DataFrame, got {type(panel).__name__}")
+    if panel.empty:
+        raise ValueError("`panel` must be a non-empty DataFrame, got an empty one")
+    if not isinstance(country_code, str):
+        raise TypeError(f"`country_code` must be a str, got {type(country_code).__name__}")
+    if not country_code.strip():
+        raise ValueError(f"`country_code` must be a non-empty str, got {country_code!r}")
+    if not isinstance(root, pathlib.Path):
+        raise TypeError(f"`root` must be a pathlib.Path, got {type(root).__name__}")
 
     # Tidy Dataframe For Duckdb
     df: pd.DataFrame = (
@@ -80,13 +93,13 @@ def merge_extra_indicators(
     indicators' ``latest`` values).
 
     Args:
-        panel (pd.DataFrame): Wide, year-indexed WB panel (may be empty).
-        iso2 (str): ISO-2 country code.
-        iso3_by_iso2 (Mapping[str, str]): ISO-2 -> ISO-3 map (OWID is ISO-3 keyed).
+        panel: Wide, year-indexed WB panel (may be empty).
+        iso2: ISO-2 country code.
+        iso3_by_iso2: ISO-2 -> ISO-3 map (OWID is ISO-3 keyed).
 
     Returns:
-        pd.DataFrame: The panel with a ``POL_CORRUPTION`` column. Stays empty
-        only if both the WB panel and the corruption series are empty.
+        The panel with a ``POL_CORRUPTION`` column. Stays empty only if both
+        the WB panel and the corruption series are empty.
     """
     has_panel = isinstance(panel, pd.DataFrame) and not panel.empty
     max_year = int(panel.index.max()) if has_panel else None

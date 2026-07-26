@@ -1,4 +1,18 @@
-# backend/utils/ai/langchain_llm.py
+"""Country risk scoring: the LLM call plus the sanctions override around it.
+
+``country_llm_score`` sends one country's macro payload and its top articles to
+the model under ``ai_constants.AI_PROMPT`` / ``RISK_SCHEMA`` and returns the
+calibrated 0-1 risk score and summary.
+
+On top of the model's judgement sits a **legal-investability gate**: countries
+under a US sanctions regime that makes securities exposure unlawful are forced
+to 1.0 regardless of what the model says, because "risk" for a US investor who
+legally cannot hold the asset is total. Those rules live in
+``legal_restrictions.yaml`` (OFAC-derived, each entry dated) rather than in
+code so they can be updated without a deploy. The gate runs *after* the model
+call so the summary still explains the underlying situation.
+"""
+
 import os
 import json
 import logging
@@ -7,6 +21,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
+import yaml
 from langchain_core.messages import SystemMessage
 
 import backend.utils.ai.constants as ai_constants
@@ -14,13 +29,28 @@ from backend.utils.ai import client as ai_client
 
 logger = logging.getLogger(__name__)
 
+# Only the N most relevant articles reach the prompt; the rest still get stored.
+_MAX_PROMPT_ARTICLES = 10
+
+# Matches the maxLength on RISK_SCHEMA.bullet_summary.
+_MAX_SUMMARY_CHARS = 800
+
+
 # -------------------------
 # Helpers for prompt I/O
 # -------------------------
 def _articles_to_json(articles: List[Dict]) -> str:
-    """Normalize article fields used in the prompt."""
+    """Serialize the articles for the prompt, keeping only the fields it uses.
+
+    Args:
+        articles: fetched article dicts, richest first.
+
+    Returns:
+        A JSON array string of at most ``_MAX_PROMPT_ARTICLES`` entries, each
+        with the ``a1``-style id the model must reuse in its per-article scores.
+    """
     norm = []
-    for i, it in enumerate(articles[:10]):
+    for i, it in enumerate(articles[:_MAX_PROMPT_ARTICLES]):
         norm.append({
             "id": f"a{i+1}",
             "source": (it.get("source") or "").strip(),
@@ -30,22 +60,21 @@ def _articles_to_json(articles: List[Dict]) -> str:
         })
     return json.dumps(norm, ensure_ascii=False)
 
+
 # -------------------------
 # Legal-investability gate (YAML-driven)
 # -------------------------
-try:
-    import yaml  # PyYAML
-except Exception:  # pragma: no cover
-    yaml = None  # graceful degrade: gate will be inert if PyYAML missing
-
 LEGAL_RULES_PATH = Path(__file__).with_name("legal_restrictions.yaml")
+
 
 @lru_cache(maxsize=1)
 def _load_legal_rules_index() -> Dict[str, Dict]:
-    """Load YAML and return a dict index by iso2 OR code."""
-    if yaml is None:
-        logger.warning("PyYAML not installed; legal gate disabled.")
-        return {}
+    """Load the sanctions rules once per process, indexed by iso2/code.
+
+    Returns:
+        ``{ISO2: entry}``. Empty if the file is unreadable or malformed — the
+        failure is logged and the gate simply never fires.
+    """
     try:
         with open(LEGAL_RULES_PATH, "r", encoding="utf-8") as f:
             y = yaml.safe_load(f) or {}
@@ -61,12 +90,20 @@ def _load_legal_rules_index() -> Dict[str, Dict]:
         return {}
 
 def _parse_iso_date(s: Optional[str]) -> date:
+    """Parse a YAML ``effective_from`` date.
+
+    Returns ``date.min`` for missing or unparseable values so a rule with a bad
+    date is treated as already in force — the safe direction for a sanctions
+    gate, where failing open would understate risk.
+    """
     if not s:
         return date.min
     try:
         return datetime.fromisoformat(s[:10]).date()
-    except Exception:
+    except ValueError:
+        logger.warning("Unparseable effective_from %r; treating rule as always in force", s)
         return date.min
+
 
 def _extract_iso2_and_asof(payload: Dict) -> Tuple[Optional[str], date]:
     """
@@ -82,8 +119,16 @@ def _extract_iso2_and_asof(payload: Dict) -> Tuple[Optional[str], date]:
     return iso2, date.today()
 
 def _legal_gate_decision(iso2: Optional[str], as_of: date) -> Optional[Dict]:
-    """
-    Returns a dict with gate info if the 1.0 override should fire, else None.
+    """Decide whether the sanctions 1.0 override applies to a country.
+
+    Args:
+        iso2: country code to look up, or None (gate never fires).
+        as_of: date the score is being computed for; a rule applies only from
+            its ``effective_from`` onward.
+
+    Returns:
+        ``{name, rule, sources}`` describing the triggering rule, or None when
+        the country is unrestricted or the rule is not yet in force.
     """
     if not iso2:
         return None
@@ -114,18 +159,40 @@ def country_llm_score(
     payload: Dict,
     articles: List[Dict],
 ) -> Dict[str, object]:
-    """
+    """Score one country's 12-month investor risk, applying the sanctions gate.
+
+    Args:
+        country_display: country name as it should appear in the prompt.
+        payload: macro evidence from
+            ``data_retrieval.prepare_llm_payload_pretty``; its ``country`` key
+            also drives the sanctions lookup.
+        articles: recent articles, richest first; only the top
+            ``_MAX_PROMPT_ARTICLES`` reach the model.
+
     Returns:
-      {
-        "score": float|None,        # final score (after legal gate override)
-        "bullet_summary": str,
-        "subscores": {...},         # model diagnostics only
-        "news_article_scores": [...],  # includes topic_group
-      }
+        ``{"score": float|None, "bullet_summary": str, "subscores": {...},
+        "news_article_scores": [...]}``. ``score`` is 1.0 when the legal gate
+        fires, else the model's calibrated score, or None if the call failed
+        (missing key, network, or a malformed response) — the caller treats a
+        None score as "skip this country", so a failure never writes a bogus
+        number to the database. ``news_article_scores`` carries each article's
+        impact and topic group, which drive Top-3 selection.
+
+    Raises:
+        TypeError: if ``payload``/``articles``/``country_display`` have the
+            wrong type.
+        ValueError: if ``payload`` is empty or ``country_display`` is blank.
     """
-    assert isinstance(payload, dict) and payload, "`payload` must be a non-empty dict"
-    assert isinstance(articles, list), "`articles` must be a list"
-    assert isinstance(country_display, str) and country_display.strip(), "`country_display` must be non-empty"
+    if not isinstance(payload, dict):
+        raise TypeError(f"`payload` must be a dict, got {type(payload).__name__}")
+    if not payload:
+        raise ValueError("`payload` must be a non-empty dict, got an empty one")
+    if not isinstance(articles, list):
+        raise TypeError(f"`articles` must be a list, got {type(articles).__name__}")
+    if not isinstance(country_display, str):
+        raise TypeError(f"`country_display` must be a str, got {type(country_display).__name__}")
+    if not country_display.strip():
+        raise ValueError(f"`country_display` must be non-empty, got {country_display!r}")
 
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -172,7 +239,7 @@ def country_llm_score(
 
     return {
         "score": final_score,
-        "bullet_summary": bullet[:800],
+        "bullet_summary": bullet[:_MAX_SUMMARY_CHARS],
         "subscores": data.get("subscores") or {},
         "news_article_scores": data.get("news_article_scores") or [],
     }

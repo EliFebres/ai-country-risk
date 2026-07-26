@@ -1,3 +1,17 @@
+"""Unwrap Google News RSS links to the publisher's real article URL.
+
+Google News RSS returns opaque ``news.google.com/rss/articles/CBMi...`` links.
+Those are useless downstream: the scraper cannot extract from them, the
+denylist cannot match a publisher host, and storing them means every article
+on the dashboard points at Google rather than the source. This module resolves
+them, preferring Google's own batchexecute endpoint and falling back to
+meta-refresh / first external anchor.
+
+Resolution is best-effort by contract: any failure returns the original URL
+(logged with a traceback) rather than raising, because a single unresolvable
+link must not drop an article from the run.
+"""
+
 import json
 import logging
 import requests
@@ -16,19 +30,23 @@ def resolve_google_news_url(
     session: Optional[requests.Session] = None,
     timeout: float = 8.0,
 ) -> str:
-    """
-    Resolve a Google News RSS link like:
-      https://news.google.com/rss/articles/CBMi...
-    to the publisher's *raw* article URL.
+    """Resolve a Google News RSS link to the publisher's raw article URL.
 
-    Strategy (in order):
-      1) If the link already has ?url=<publisher>, return it.
+    Strategy, in order:
+      1) If the link already carries ``?url=<publisher>``, use that.
       2) Parse the article page and POST to the DotsSplashUi batchexecute
          endpoint to retrieve the final URL.
-      3) Fallbacks: <meta http-equiv="refresh">, or first external <a href>.
-      4) If all else fails, return the original gnews_url.
+      3) Fall back to ``<meta http-equiv="refresh">``, then the first external
+         ``<a href>``.
 
-    Safe to call at scale; returns the original if resolution fails.
+    Args:
+        gnews_url: the Google News link (a non-Google URL is returned as-is).
+        session: session to reuse across calls.
+        timeout: per-request timeout in seconds.
+
+    Returns:
+        The publisher URL, or ``gnews_url`` unchanged if every strategy failed.
+        Safe to call at scale; never raises.
     """
     try:
         parsed = urlparse(gnews_url)

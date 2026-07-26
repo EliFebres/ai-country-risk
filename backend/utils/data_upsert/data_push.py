@@ -1,3 +1,19 @@
+"""The backend's entire Postgres write layer.
+
+Every table the dashboard reads is written here, and the frontend queries
+those tables directly — so this module's SQL *is* the contract between the two
+halves of the project. Change a column name here and the Next.js server
+breaks; there is no API layer in between to absorb it.
+
+The project has no migration tool, so each writer owns its table's DDL and
+issues ``CREATE TABLE IF NOT EXISTS`` before writing. That keeps a fresh
+database self-provisioning at the cost of a cheap no-op statement per call.
+
+All writes go through ``_transaction()``, which owns connect/commit/rollback/
+close. Upserts use ``COALESCE`` where a transient null (a symbol missing from
+one quote batch, an unranked event) must not blank a previously-good value.
+"""
+
 import os
 import datetime
 from contextlib import contextmanager
@@ -49,8 +65,14 @@ def _image_url_or_none(img: Any) -> Optional[str]:
 
 
 def _to_date_from_iso(s: str) -> datetime.date:
-    """
-    Accepts 'YYYY-MM-DD' or ISO 'YYYY-MM-DDTHH:MMZ' and returns date().
+    """Parse the payload's ``generated_at`` into the snapshot's ``as_of`` date.
+
+    Accepts ``'YYYY-MM-DD'`` or a full ISO timestamp (trailing ``Z`` allowed).
+
+    Raises:
+        ValueError: if ``s`` is empty or not an ISO date/datetime. This one is
+            strict on purpose — ``as_of`` is half of the snapshot's primary
+            key, so a bad value would silently write to the wrong day.
     """
     if not s:
         raise ValueError("Empty generated_at timestamp")
@@ -64,8 +86,11 @@ def _to_date_from_iso(s: str) -> datetime.date:
 
 
 def _to_ts_or_none(s: Optional[str]) -> Optional[datetime.datetime]:
-    """
-    Best-effort ISO8601 parser that returns aware UTC timestamps when possible.
+    """Parse an article's publish time, or None if absent/unparseable.
+
+    Lenient by design (unlike ``_to_date_from_iso``): publishers emit all kinds
+    of date formats, and a missing timestamp on one article is not worth
+    failing a snapshot over — the column is nullable.
     """
     if not s:
         return None

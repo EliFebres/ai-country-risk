@@ -1,3 +1,16 @@
+"""Google News RSS search plus article-body extraction.
+
+``gnews_rss`` is the pipeline's news source: it queries Google News RSS,
+unwraps the redirect links to real publisher URLs, drops denylisted
+publishers, and fetches each article's main text with trafilatura so the risk
+prompt sees real content rather than a one-line RSS blurb.
+
+Body fetches run concurrently (httpx + asyncio) because a country's ~15
+articles are otherwise a long serial wait; the synchronous variants exist for
+the case where a caller is already inside an event loop, where
+``asyncio.run`` would fail.
+"""
+
 import re
 import html
 import httpx
@@ -51,6 +64,18 @@ def _clip_words(s: str, max_words: int) -> str:
 
 
 async def _fetch_text_async(url: str, client: httpx.AsyncClient, max_chars: int = 3000) -> str:
+    """Fetch and extract one article's main text (empty string on any failure).
+
+    Args:
+        url: publisher URL, or a Google News link still needing resolution.
+        client: shared async client.
+        max_chars: truncation cap on the extracted text.
+
+    Returns:
+        The extracted body, truncated, or "" if the fetch or extraction failed
+        — a missing body is normal (paywalls, JS-only pages) and must not stop
+        the surrounding batch.
+    """
     try:
         # If somehow still a Google News link, resolve it here too
         if "news.google.com" in urlparse(url).netloc:
@@ -69,6 +94,10 @@ async def _fetch_text_async(url: str, client: httpx.AsyncClient, max_chars: int 
 
 
 def _fetch_text_sync(url: str, client: httpx.Client, max_chars: int = 3000) -> str:
+    """Synchronous twin of ``_fetch_text_async``, same contract.
+
+    Used only when the caller is already inside an event loop.
+    """
     try:
         if "news.google.com" in urlparse(url).netloc:
             try:
@@ -85,6 +114,12 @@ def _fetch_text_sync(url: str, client: httpx.Client, max_chars: int = 3000) -> s
 
 
 async def _expand_items_async(entries: List[Dict], max_articles: int, max_chars: int) -> List[Dict]:
+    """Add ``text``/``word_count`` to the first ``max_articles`` entries.
+
+    Fetches all bodies concurrently. Entries beyond ``max_articles`` are passed
+    through untouched; a per-article failure yields an empty body, never an
+    exception.
+    """
     urls = [
         (e.get("publisher_link") or e.get("link"))
         for e in entries[:max_articles]
@@ -106,6 +141,7 @@ async def _expand_items_async(entries: List[Dict], max_articles: int, max_chars:
 
 
 def _expand_items_sync(entries: List[Dict], max_articles: int, max_chars: int) -> List[Dict]:
+    """Synchronous twin of ``_expand_items_async``, same contract."""
     urls = [
         (e.get("publisher_link") or e.get("link"))
         for e in entries[:max_articles]

@@ -1,3 +1,26 @@
+"""Prompts and JSON schemas for the three LLM calls.
+
+Kept apart from the code that issues those calls because this is the file a
+human edits when tuning model behavior — the prompts are long, and the scoring
+rubric (bands, hard rules, guardrails) is the actual product logic.
+
+Three pairs live here:
+  • ``AI_PROMPT`` / ``RISK_SCHEMA`` — per-country risk scoring.
+  • ``CAL_RANK_PROMPT`` / ``CAL_RANK_SCHEMA`` — economic-calendar importance.
+  • ``ALERTS_RANK_PROMPT`` / ``ALERTS_RANK_SCHEMA`` — global news alerts.
+
+Every schema is used with ``strict=True`` structured output, so the model's
+reply is guaranteed to match or the call fails.
+
+Note that ``subscores`` in ``RISK_SCHEMA`` is not stored anywhere, but is NOT
+dead: the prompt's hard rules bind the overall score to subscore floors (e.g.
+"conflict_war >= 0.90 AND overall >= 0.90"), so asking for them is what makes
+those rules enforceable. Removing them would change the scores.
+
+Literal braces inside the JSON examples are escaped as ``{{ }}`` because these
+strings go through ``str.format()``.
+"""
+
 from typing import Dict
 
 # ---------------------------------------------------------------------------

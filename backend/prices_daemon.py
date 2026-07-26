@@ -69,6 +69,7 @@ class PricesDaemon:
     """Holds the small amount of cross-tick state (daily-refresh bookkeeping)."""
 
     def __init__(self) -> None:
+        """Start with empty references and no refresh recorded for today."""
         # internal_symbol -> {ref_q, ref_ytd, ...}
         self.refs: Dict[str, Dict[str, Any]] = {}
         self.refs_day: Optional[date] = None
@@ -136,8 +137,24 @@ class PricesDaemon:
         logger.info("Yield refresh complete (%d/%d symbols).", len(rows), len(_BOND_ASSETS))
 
     # -- live tick ----------------------------------------------------------
-    def _row(self, asset: Dict[str, Any], *, px, chg, q, ytd) -> Dict[str, Any]:
-        """Build a ``market_price`` upsert row from an asset + its metrics."""
+    def _row(
+        self,
+        asset: Dict[str, Any],
+        *,
+        px: Optional[float],
+        chg: Optional[float],
+        q: Optional[float],
+        ytd: Optional[float],
+    ) -> Dict[str, Any]:
+        """Build a ``market_price`` upsert row from an asset + its metrics.
+
+        Args:
+            asset: a ``constants.PRICE_ASSETS`` entry (symbol, label, class, ...).
+            px: latest price, or yield in points for bond assets.
+            chg: 1-day change; percent for prices, points for yields.
+            q: quarter-to-date change, same units as ``chg``.
+            ytd: year-to-date change, same units as ``chg``.
+        """
         return {
             "symbol": asset["symbol"],
             "label": asset["label"],
@@ -213,7 +230,9 @@ class PricesDaemon:
         logger.info("Prices daemon stopped.")
 
     def _install_signals(self) -> None:
-        def _handler(signum, _frame):
+        """Trap SIGINT/SIGTERM so a stop request ends the loop cleanly."""
+        def _handler(signum: int, _frame: object) -> None:
+            """Signal the run loop to finish its current tick and exit."""
             logger.info("Received signal %s; shutting down.", signum)
             self._stop.set()
 
@@ -225,6 +244,10 @@ class PricesDaemon:
 
 
 def main() -> None:
+    """Entry point: configure logging, then run one tick or the full loop.
+
+    Exits with status 1 if ``DATABASE_URL`` is unset, since every tick writes.
+    """
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [prices] %(levelname)s %(message)s",

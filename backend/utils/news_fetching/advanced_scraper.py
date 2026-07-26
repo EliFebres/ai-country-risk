@@ -1,3 +1,16 @@
+"""Crawlbase-backed metadata scraper for the pages the simple scraper can't read.
+
+Some publishers render their article (and its OpenGraph image) only after
+JavaScript runs, so ``simple_scraper``'s single GET comes back without a
+thumbnail. This module fetches through Crawlbase, which renders the page
+first. It costs an API credit per call, so ``main`` uses it sparingly: only
+for a country's Top-3 articles, and only when no image was found otherwise.
+
+Requests honor robots.txt (parsed once per host, cached for the process), and
+every failure is returned as an ``error``/``skipped`` marker in the result
+dict rather than raised — one unscrapable article must not interrupt the run.
+"""
+
 import json
 
 import requests
@@ -106,7 +119,8 @@ def crawlbase_fetch(url: str, token: str) -> Dict[str, Any]:
 
 
 # -------------------- HTML parsing helpers -------------------- #
-def _first_meta(soup: BeautifulSoup, *names) -> Optional[str]:
+def _first_meta(soup: BeautifulSoup, *names: str) -> Optional[str]:
+    """Content of the first ``<meta>`` matching any of ``names`` (by property or name)."""
     for name in names:
         tag = soup.find("meta", attrs={"property": name}) or soup.find("meta", attrs={"name": name})
         if tag and tag.get("content"):
@@ -154,8 +168,15 @@ def _parse_json_ld(soup: BeautifulSoup) -> Dict[str, Any]:
     return out
 
 def extract_metadata(html: str, url: str) -> Dict[str, Any]:
-    """
-    Generic extractor with domain-aware nudges for Reuters/Bloomberg.
+    """Pull title/description/image/publish-date out of a rendered page.
+
+    Tries OpenGraph and Twitter cards first, then JSON-LD (usually the better
+    source for dates and images), then a per-domain nudge where those fall
+    short.
+
+    Returns:
+        ``{title, description, image_url, published_at, source_domain}``, any
+        value of which may be None if the page didn't expose it.
     """
     soup = BeautifulSoup(html, "html.parser")
     ext = tldextract.extract(url)
@@ -191,12 +212,17 @@ def extract_metadata(html: str, url: str) -> Dict[str, Any]:
 
 # -------------------- Orchestrator -------------------- #
 def scrape_one(url: str, token: str) -> Dict[str, Any]:
-    """
-    Fetch one URL via Crawlbase (single attempt) and extract its metadata.
+    """Fetch one URL via Crawlbase (single attempt) and extract its metadata.
 
-    Respects robots.txt (fetched with short timeouts and cached per host).
-    Returns a dict that carries either the extracted metadata, a "skipped"
-    marker (robots disallow), or an "error" string — it never raises.
+    Args:
+        url: article URL to render and scrape.
+        token: Crawlbase API token.
+
+    Returns:
+        On success, the ``extract_metadata`` fields plus ``url``,
+        ``fetched_at``, ``original_status``, ``html_bytes``. On failure, a dict
+        carrying ``skipped``/``reason`` (robots disallow) or ``error``. Never
+        raises — callers check for those keys and move on.
     """
     if not robots_allowed(url):
         return {

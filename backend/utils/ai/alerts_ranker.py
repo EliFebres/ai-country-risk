@@ -16,6 +16,7 @@ warning and return ``[]`` so the surrounding run is never blocked.
 """
 
 import os
+import json
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
@@ -97,7 +98,6 @@ def rank_global_alerts(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         schema=ai_constants.ALERTS_RANK_SCHEMA, strict=True
     )
 
-    import json
     today = datetime.now(timezone.utc).date().isoformat()
     prompt = ai_constants.ALERTS_RANK_PROMPT.format(
         today=today,

@@ -1,3 +1,18 @@
+"""Single-request article scraper: thumbnail, summary, and body text.
+
+The news pipeline needs three things from an article page — a thumbnail for
+the card, a readable summary, and the body text for the LLM — and it needs
+them without hitting the page more than once, because it runs across ~57
+countries x ~20 articles per day. ``get_article_assets`` is therefore the only
+public entry point: one GET, parsed once, all three returned.
+
+Everything here is publisher-agnostic heuristics (OpenGraph/Twitter/JSON-LD
+metadata for images, densest-paragraph-container for text) rather than
+per-site rules, so it degrades to empty strings instead of breaking when a
+publisher changes its markup. For the handful of pages that defeat it, the
+Top-3 fall back to ``advanced_scraper`` (Crawlbase, JS-rendered).
+"""
+
 import re
 import json
 import requests
@@ -5,6 +20,8 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 from typing import Optional, Tuple, List
+
+from bs4.element import Tag
 
 from backend.utils.http import BROWSER_UA as _UA
 
@@ -90,7 +107,8 @@ def _collect_meta_images(soup: BeautifulSoup, base_url: str) -> List[str]:
             out.append(u)
 
     # JSON-LD (prefer Article/NewsArticle, but accept any object with image/thumbnailUrl)
-    def push_image(val):
+    def push_image(val: object) -> None:
+        """Append any http(s) URL found in a JSON-LD image field (str/dict/list)."""
         if isinstance(val, str):
             u = _absolutize(val, base_url)
             if u:
@@ -173,9 +191,15 @@ def _clean(text: str) -> str:
     """Collapse all whitespace runs to single spaces and strip the ends."""
     return " ".join(text.split())
 
-def _best_container(soup: BeautifulSoup) -> Optional[BeautifulSoup]:
-    """
-    Heuristic: prefer <article>; else role=main/<main>; else largest <div> by <p> text length.
+def _best_container(soup: BeautifulSoup) -> Optional[Tag]:
+    """Find the element most likely to hold the article body.
+
+    Considers ``<article>``, ``<main>``/``role=main``, and any element whose
+    class/id hints at content, then picks whichever contains the most
+    paragraph text — a reliable proxy for "the article" across publishers.
+
+    Returns:
+        The winning tag, or None if no candidate matched.
     """
     candidates = []
 
@@ -206,11 +230,11 @@ def _best_container(soup: BeautifulSoup) -> Optional[BeautifulSoup]:
     if not uniq:
         return None
 
-    def score(node) -> int:
-        ps = node.find_all("p")
-        return sum(len(_clean(p.get_text(" ", strip=True))) for p in ps)
+    def paragraph_text_length(node: Tag) -> int:
+        """Total cleaned <p> text length — the proxy for "this is the article"."""
+        return sum(len(_clean(p.get_text(" ", strip=True))) for p in node.find_all("p"))
 
-    return max(uniq, key=score)
+    return max(uniq, key=paragraph_text_length)
 
 def extract_main_text_from_html(html: str) -> str:
     """Extract the main article text from HTML using lightweight heuristics."""
@@ -232,8 +256,14 @@ def extract_main_text_from_html(html: str) -> str:
         return ""
 
 def summarize_lead(text: str, max_words: int = 160) -> str:
-    """
-    Simple lead summary: take sentences until we hit ~max_words.
+    """Take whole sentences off the top until roughly ``max_words``.
+
+    News writing front-loads the important facts, so the lead is a good
+    extractive summary. Sentence boundaries are respected so the result never
+    ends mid-clause.
+
+    Returns:
+        The summary, hard-capped at 2000 characters; "" for empty input.
     """
     if not text:
         return ""

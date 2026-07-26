@@ -16,11 +16,13 @@ A single failed batch is skipped without losing the others.
 """
 
 import os
+import json
 import logging
 from datetime import datetime, date, timezone, timedelta
 from typing import Any, Dict, List, Optional
 
 from langchain_core.messages import SystemMessage
+from langchain_core.runnables import Runnable
 
 import backend.utils.constants as constants
 import backend.utils.ai.constants as ai_constants
@@ -62,10 +64,24 @@ def _compact(events: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     return out
 
 
-def _rank_batch(structured_llm, today: str, period: str, batch: List[Dict[str, str]]) -> Dict[str, Dict[str, Any]]:
-    """Rank a single batch; returns {} on any error (logged)."""
-    import json
+def _rank_batch(
+    structured_llm: Runnable,
+    today: str,
+    period: str,
+    batch: List[Dict[str, str]],
+) -> Dict[str, Dict[str, Any]]:
+    """Rank one batch of events within its week.
 
+    Args:
+        structured_llm: schema-bound chat model to invoke.
+        today: current date, ISO, for the prompt's sense of "now".
+        period: human-readable week range the batch belongs to.
+        batch: compacted events, each with the ``_rank_id`` to reuse.
+
+    Returns:
+        ``{_rank_id: {"importance", "rationale"}}``, or ``{}`` if the call or
+        the response shape failed — one bad batch must not lose the others.
+    """
     prompt = ai_constants.CAL_RANK_PROMPT.format(
         today=today,
         period=period,
