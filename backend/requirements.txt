@@ -1,5 +1,5 @@
 # Runtime dependencies for the ETL (main.py) and the prices daemon.
-# Fully pinned. Dev-only tooling lives in requirements-dev.txt.
+# Fully pinned. Tests need pytest, installed separately.
 annotated-types==0.7.0
 anyio==4.13.0
 babel==2.18.0

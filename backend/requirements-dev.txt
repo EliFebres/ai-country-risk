@@ -1,2 +1,0 @@
-# Development-only dependencies (not needed to run the ETL or the daemon).
-pytest>=8,<9

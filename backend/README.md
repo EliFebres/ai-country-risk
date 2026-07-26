@@ -85,8 +85,28 @@ relevance scoring, Top-3 selection, external-payload parsing, the sanctions
 gate, and the price math). They touch no network and no database.
 
 ```bash
-pip install -r backend/requirements-dev.txt
+pip install pytest
 python -m pytest backend/tests -q
+```
+
+---
+
+## Notebook
+
+`backend/pipeline_walkthrough.ipynb` runs `pipeline._process_country` one step
+at a time for a single country, printing each intermediate as a DataFrame: the
+macro panel, the LLM payload, the article pool, the model's subscores and
+per-article impacts, and the Top-3. Pick the country by editing `ISO2` in the
+second cell.
+
+It never writes to Postgres — the last step builds the payload
+`data_push.upsert_snapshot` would take and prints it instead. Use
+`tests/live_country_check.py` when you want the write, verification, and
+cleanup. It does hit the network, and the scoring cell costs one OpenAI call
+per run.
+
+```bash
+pip install ipykernel
 ```
 
 ---
