@@ -186,6 +186,24 @@ class _ArticleRow(NamedTuple):
     image_url: Optional[str]
 
 
+def payload_as_of(payload: Dict[str, Any]) -> datetime.date:
+    """The ``as_of`` date this payload's snapshot will be keyed on.
+
+    Public so the pipeline can key other same-run rows (article digests) on
+    exactly the date ``upsert_snapshot`` will use — both read
+    ``payload["_meta"]["generated_at"]``, so the two keys can never disagree.
+
+    Raises:
+        ValueError: if ``payload['_meta']['generated_at']`` is missing, not a
+            string, or not an ISO date/datetime.
+    """
+    meta = payload.get("_meta") or {}
+    gen_at = meta.get("generated_at")
+    if not gen_at or not isinstance(gen_at, str):
+        raise ValueError("payload['_meta']['generated_at'] must be a string ISO timestamp")
+    return _to_date_from_iso(gen_at)
+
+
 def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
     """Validate an upsert_snapshot payload and extract the fields it writes.
 
@@ -199,11 +217,8 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
     if not country or not isinstance(country, str):
         raise ValueError("payload['country'] must be an ISO-2 string")
 
-    meta = payload.get("_meta") or {}
-    gen_at = meta.get("generated_at")
-    if not gen_at or not isinstance(gen_at, str):
-        raise ValueError("payload['_meta']['generated_at'] must be a string ISO timestamp")
-    units = meta.get("units") or {}
+    as_of = payload_as_of(payload)
+    units = (payload.get("_meta") or {}).get("units") or {}
     if not isinstance(units, dict):
         raise ValueError("payload['_meta']['units'] must be a dict of indicator -> unit")
 
@@ -221,7 +236,7 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
 
     return _SnapshotData(
         country=country,
-        as_of=_to_date_from_iso(gen_at),
+        as_of=as_of,
         units=units,
         indicators=indicators,
         llm_out=llm_out,
@@ -878,3 +893,117 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
             rows,
             page_size=100,
         )
+
+
+_ARTICLE_DIGEST_DDL = """
+CREATE TABLE IF NOT EXISTS article_digest (
+  country_iso2    TEXT        NOT NULL,
+  as_of           DATE        NOT NULL,
+  url             TEXT        NOT NULL,
+  published_at    TIMESTAMPTZ,
+  content_sha256  TEXT,
+  digest          JSONB       NOT NULL,
+  stage1_severity DOUBLE PRECISION,
+  model_id        TEXT,
+  PRIMARY KEY (country_iso2, as_of, url)
+);
+"""
+
+
+def upsert_article_digests(digests: List[Dict[str, Any]]) -> None:
+    """Upsert one country/day's stage-1 article digests (the digest cache).
+
+    Self-contained: ensures the ``article_digest`` table exists, then upserts
+    by ``(country_iso2, as_of, url)``. ``content_sha256`` is the hash of the
+    article text the digest was computed from, so a same-day re-run with
+    unchanged text can reuse the row instead of re-calling the model.
+
+    Each digest dict (as built by ``ai.digest_engine``):
+      - country_iso2, as_of (datetime.date), url   (the cache key; required)
+      - digest                                     (the model's extraction dict; required)
+      - published_at                               (ISO string or None)
+      - content_sha256, stage1_severity, model_id  (may be None)
+
+    No-op if ``digests`` is empty. Rows missing a key field are skipped.
+    """
+    _require_db_url()  # fail fast even when there is nothing to write
+    if not digests:
+        return
+
+    rows: List[Tuple] = []
+    for d in digests:
+        if not isinstance(d, dict):
+            continue
+        iso2 = (d.get("country_iso2") or "").strip()
+        as_of = d.get("as_of")
+        url = (d.get("url") or "").strip()
+        digest = d.get("digest")
+        if not iso2 or not isinstance(as_of, datetime.date) or not url or not isinstance(digest, dict):
+            continue
+        try:
+            severity = float(d["stage1_severity"]) if d.get("stage1_severity") is not None else None
+        except (TypeError, ValueError):
+            severity = None
+        rows.append(
+            (
+                iso2,
+                as_of,
+                url,
+                _to_ts_or_none(d.get("published_at")),
+                d.get("content_sha256"),
+                extras.Json(digest),
+                severity,
+                d.get("model_id"),
+            )
+        )
+
+    if not rows:
+        return
+
+    with _transaction() as cur:
+        cur.execute(_ARTICLE_DIGEST_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO article_digest
+              (country_iso2, as_of, url, published_at,
+               content_sha256, digest, stage1_severity, model_id)
+            VALUES %s
+            ON CONFLICT (country_iso2, as_of, url)
+            DO UPDATE SET
+              published_at    = COALESCE(EXCLUDED.published_at, article_digest.published_at),
+              content_sha256  = EXCLUDED.content_sha256,
+              digest          = EXCLUDED.digest,
+              stage1_severity = EXCLUDED.stage1_severity,
+              model_id        = EXCLUDED.model_id
+            """,
+            rows,
+            page_size=20,
+        )
+
+
+def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, Dict[str, Any]]:
+    """Return one country/day's cached digests, keyed by article url.
+
+    Ensures the ``article_digest`` table exists first so the pipeline can call
+    this before the first write ever happens. Each value is
+    ``{content_sha256, digest, stage1_severity}``.
+    """
+    with _transaction() as cur:
+        cur.execute(_ARTICLE_DIGEST_DDL)
+        cur.execute(
+            """
+            SELECT url, content_sha256, digest, stage1_severity
+              FROM article_digest
+             WHERE country_iso2 = %s AND as_of = %s
+            """,
+            (country_iso2, as_of),
+        )
+        out: Dict[str, Dict[str, Any]] = {}
+        for url, sha, digest, severity in cur.fetchall():
+            out[url] = {
+                "content_sha256": sha,
+                "digest": digest,
+                "stage1_severity": severity,
+            }
+    return out

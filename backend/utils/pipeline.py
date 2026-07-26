@@ -2,8 +2,10 @@
 
 Every other module under ``utils/`` owns exactly one concern: ``data_fetching``
 talks to upstream APIs, ``news_fetching`` gathers and ranks articles, ``ai``
-calls the model, ``data_upsert`` writes Postgres. None of them import each
-other, which is what keeps a change in one from destabilizing the rest.
+calls the model, ``data_upsert`` writes Postgres. Dependencies between them
+stay one-way (only ``ai.digest_engine`` reaches down into ``data_upsert``,
+for its digest cache), which is what keeps a change in one from destabilizing
+the rest.
 
 The work of a run, though, is inherently cross-cutting: "fetch the calendar,
 have the model rank it, store the result" touches three of those domains. That
@@ -21,7 +23,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from backend.utils import constants, data_retrieval
-from backend.utils.ai import alerts_ranker, calendar_ranker, langchain_llm
+from backend.utils.ai import alerts_ranker, calendar_ranker, digest_engine, langchain_llm
 from backend.utils.data_fetching import fmp_calendar_fetch, imf_macro_fetch
 from backend.utils.data_upsert import data_push
 from backend.utils.news_fetching import article_enrichment, article_ranking
@@ -128,11 +130,22 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     for i, it in enumerate(items, start=1):
         it["id"] = f"a{i}"
 
+    # 2b) Stage 1: digest every article's full text with the cheap model,
+    #     keyed on the same as_of the snapshot upsert will use, then pick
+    #     which articles the scorer reads in full.
+    as_of = data_push.payload_as_of(payload)
+    items = digest_engine.digest_articles(
+        items, country_display=country_name, iso2=iso2, as_of=as_of
+    )
+    fulltext_ids = digest_engine.select_fulltext_ids(items)
+    logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)
+
     # 3) LLM scoring
     llm_output = langchain_llm.country_llm_score(
         country_display=country_name,
         payload=payload,
         articles=items,
+        fulltext_ids=fulltext_ids,
     )
 
     # 4) Rank and select Top-3 using AI's TOPIC CLUSTERING, with guaranteed length=3

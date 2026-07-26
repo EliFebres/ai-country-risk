@@ -26,39 +26,91 @@ from langchain_core.messages import SystemMessage
 
 import backend.utils.ai.constants as ai_constants
 from backend.utils.ai import client as ai_client
+from backend.utils.ai import digest_engine
 
 logger = logging.getLogger(__name__)
 
-# Only the N most relevant articles reach the prompt; the rest still get stored.
+# Prompt cap for the legacy fallback path only (stage 1 entirely down): the
+# digest path sends every fetched article.
 _MAX_PROMPT_ARTICLES = 10
 
 # Matches the maxLength on RISK_SCHEMA.bullet_summary.
 _MAX_SUMMARY_CHARS = 800
 
+# Per-article cap for the FULL_TEXT block: 3 articles × 12k chars ≈ 9k tokens,
+# which keeps the scoring prompt bounded while covering nearly every article
+# in full (trafilatura bodies are capped upstream at 24k).
+_MAX_FULLTEXT_CHARS = 12_000
+
 
 # -------------------------
 # Helpers for prompt I/O
 # -------------------------
-def _articles_to_json(articles: List[Dict]) -> str:
-    """Serialize the articles for the prompt, keeping only the fields it uses.
+def _legacy_entry(it: Dict) -> Dict:
+    """The pre-digest prompt shape for one article: title + summary only."""
+    return {
+        "id": it.get("id") or "",
+        "source": (it.get("source") or "").strip(),
+        "published_at": (it.get("published") or "")[:10],
+        "title": (it.get("title") or "").strip(),
+        "summary": (it.get("summary") or it.get("text") or it.get("snippet") or "").strip(),
+    }
+
+
+def _digests_to_json(items: List[Dict]) -> str:
+    """Serialize EVERY item for the prompt's ARTICLE_DIGESTS_JSON block.
+
+    Ids are taken verbatim from ``item["id"]`` (single-sourced from the
+    pipeline — never re-derived by position). Items whose stage-1 digest
+    failed (``digest is None``) fall back to the legacy title+summary shape,
+    so the scorer still sees them, just with less depth.
 
     Args:
-        articles: fetched article dicts, richest first.
+        items: article dicts, each carrying ``id`` and (if stage 1 succeeded)
+            ``digest`` and ``stage1_severity``.
 
     Returns:
-        A JSON array string of at most ``_MAX_PROMPT_ARTICLES`` entries, each
-        with the ``a1``-style id the model must reuse in its per-article scores.
+        A JSON array string covering all ``items``.
     """
     norm = []
-    for i, it in enumerate(articles[:_MAX_PROMPT_ARTICLES]):
-        norm.append({
-            "id": f"a{i+1}",
-            "source": (it.get("source") or "").strip(),
-            "published_at": (it.get("published") or "")[:10],
-            "title": (it.get("title") or "").strip(),
-            "summary": (it.get("summary") or it.get("text") or it.get("snippet") or "").strip(),
-        })
+    for it in items:
+        digest = it.get("digest")
+        if isinstance(digest, dict):
+            norm.append({
+                "id": it.get("id") or "",
+                "source": (it.get("source") or "").strip(),
+                "published_at": (it.get("published") or "")[:10],
+                "title": (it.get("title") or "").strip(),
+                "digest": digest,
+                "stage1_severity": it.get("stage1_severity"),
+            })
+        else:
+            norm.append(_legacy_entry(it))
     return json.dumps(norm, ensure_ascii=False)
+
+
+def _fulltext_block(items: List[Dict], fulltext_ids: List[str]) -> str:
+    """Build the prompt's FULL_TEXT section for the chosen article ids.
+
+    Args:
+        items: article dicts, each carrying ``id``.
+        fulltext_ids: ids (from ``digest_engine.select_fulltext_ids``) whose
+            full text the scorer should read, in order.
+
+    Returns:
+        One ``--- id: a3 · <title> ---`` header + capped body per chosen id,
+        or ``"(none)"`` when nothing was selected.
+    """
+    by_id = {it.get("id"): it for it in items if isinstance(it, dict) and it.get("id")}
+    blocks = []
+    for aid in fulltext_ids:
+        it = by_id.get(aid)
+        if not it:
+            continue
+        title = (it.get("title") or "").strip()
+        text = digest_engine.article_input_text(it)[:_MAX_FULLTEXT_CHARS]
+        blocks.append(f"--- id: {aid} · {title} ---\n{text}")
+    return "\n\n".join(blocks) if blocks else "(none)"
 
 
 # -------------------------
@@ -158,6 +210,7 @@ def country_llm_score(
     country_display: str,
     payload: Dict,
     articles: List[Dict],
+    fulltext_ids: Optional[List[str]] = None,
 ) -> Dict[str, object]:
     """Score one country's 12-month investor risk, applying the sanctions gate.
 
@@ -166,8 +219,14 @@ def country_llm_score(
         payload: macro evidence from
             ``data_retrieval.prepare_llm_payload_pretty``; its ``country`` key
             also drives the sanctions lookup.
-        articles: recent articles, richest first; only the top
-            ``_MAX_PROMPT_ARTICLES`` reach the model.
+        articles: recent articles, richest first, each annotated by
+            ``digest_engine.digest_articles``. Every article's digest reaches
+            the model; if stage 1 produced no digests at all, the prompt falls
+            back to the legacy title+summary shape (first
+            ``_MAX_PROMPT_ARTICLES``) so the country still scores.
+        fulltext_ids: ids whose full text the model should read (from
+            ``digest_engine.select_fulltext_ids``); empty/None means no
+            FULL_TEXT section.
 
     Returns:
         ``{"score": float|None, "bullet_summary": str, "subscores": {...},
@@ -193,6 +252,8 @@ def country_llm_score(
         raise TypeError(f"`country_display` must be a str, got {type(country_display).__name__}")
     if not country_display.strip():
         raise ValueError(f"`country_display` must be non-empty, got {country_display!r}")
+    if fulltext_ids is not None and not isinstance(fulltext_ids, list):
+        raise TypeError(f"`fulltext_ids` must be a list or None, got {type(fulltext_ids).__name__}")
 
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -204,11 +265,28 @@ def country_llm_score(
     gate = _legal_gate_decision(iso2, as_of)
 
     evidence_json = json.dumps(payload, ensure_ascii=False)
-    articles_json = _articles_to_json(articles)
+    has_digests = any(isinstance(it.get("digest"), dict) for it in articles if isinstance(it, dict))
+    if has_digests or not articles:
+        # No articles at all is not a stage-1 failure — it serializes to an
+        # empty list and an empty FULL_TEXT block, same as it always did.
+        article_digests_json = _digests_to_json(articles)
+        fulltext_block = _fulltext_block(articles, fulltext_ids or [])
+    else:
+        # Country-level fallback: articles exist but stage 1 produced nothing
+        # (stage down, no API key). Score anyway from the legacy title+summary
+        # prompt — one country's scoring must never die because stage 1 did.
+        logger.error("[%s] no stage-1 digests for %d articles; falling back to the legacy prompt",
+                     iso2 or country_display, len(articles))
+        article_digests_json = json.dumps(
+            [_legacy_entry(it) for it in articles[:_MAX_PROMPT_ARTICLES] if isinstance(it, dict)],
+            ensure_ascii=False,
+        )
+        fulltext_block = "(none)"
     prompt = ai_constants.AI_PROMPT.format(
         country=country_display,
         evidence_json=evidence_json,
-        articles_json=articles_json
+        article_digests_json=article_digests_json,
+        fulltext_block=fulltext_block,
     )
 
     structured_llm = ai_client.build_chat(api_key).with_structured_output(

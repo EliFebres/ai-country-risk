@@ -14,11 +14,27 @@ from langchain_openai import ChatOpenAI
 # run-to-run; bump deliberately, in one place.
 MODEL_NAME = "gpt-4o-2024-08-06"
 
+# The stage-1 digest model. Same pinning rationale: digests are cached by
+# content hash, so an un-dated alias silently changing under us would make
+# cached and fresh digests incomparable.
+DIGEST_MODEL_NAME = "gpt-4o-mini-2024-07-18"
+
 
 def build_chat(api_key: str) -> ChatOpenAI:
     """A ChatOpenAI configured for deterministic, non-retrying scoring calls."""
     return ChatOpenAI(
         model=MODEL_NAME,
+        temperature=0.0,
+        max_retries=0,
+        api_key=api_key,
+        seed=42,
+    )
+
+
+def build_digest_chat(api_key: str) -> ChatOpenAI:
+    """A ChatOpenAI for deterministic, non-retrying stage-1 digest calls."""
+    return ChatOpenAI(
+        model=DIGEST_MODEL_NAME,
         temperature=0.0,
         max_retries=0,
         api_key=api_key,

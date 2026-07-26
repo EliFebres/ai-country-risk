@@ -4,8 +4,9 @@ Kept apart from the code that issues those calls because this is the file a
 human edits when tuning model behavior — the prompts are long, and the scoring
 rubric (bands, hard rules, guardrails) is the actual product logic.
 
-Three pairs live here:
+Four pairs live here:
   • ``AI_PROMPT`` / ``RISK_SCHEMA`` — per-country risk scoring.
+  • ``DIGEST_PROMPT`` / ``DIGEST_SCHEMA`` — stage-1 per-article digestion.
   • ``CAL_RANK_PROMPT`` / ``CAL_RANK_SCHEMA`` — economic-calendar importance.
   • ``ALERTS_RANK_PROMPT`` / ``ALERTS_RANK_SCHEMA`` — global news alerts.
 
@@ -34,10 +35,14 @@ You are a senior geopolitical risk analyst. Rate investor risk for {country} ove
 EVIDENCE_JSON
 {evidence_json}
 
-ARTICLES_JSON
+ARTICLE_DIGESTS_JSON
 # exactly these items only
-# [{{"id":"a1","source":"...","published_at":"YYYY-MM-DD","title":"...","summary":"..."}}]
-{articles_json}
+# [{{"id":"a1","source":"...","published_at":"YYYY-MM-DD","title":"...","digest":{{...}},"stage1_severity":<0-100>}}]
+{article_digests_json}
+
+FULL_TEXT
+# the highest-severity articles in full, same ids
+{fulltext_block}
 
 Scoring bands (guidance; use full 0-1 range):
   • 0.05-0.20 = Low   • 0.20-0.40 = Low-Moderate   • 0.40-0.75 = Moderate
@@ -88,6 +93,8 @@ Examples of SAME TOPIC (should have same topic_group):
 Examples of DIFFERENT TOPICS (different topic_groups):
 - "Australia Rate Decision" (topic_group="australia_rba_rate_decision") vs "Trade Deal with China" (topic_group="australia_china_trade")
 
+Score EVERY id in ARTICLE_DIGESTS_JSON — one entry per id in news_article_scores. Do NOT invent ids.
+
 Return ONLY valid JSON (no prose) exactly:
 
 {{
@@ -99,7 +106,7 @@ Return ONLY valid JSON (no prose) exactly:
     "regulatory_uncertainty": <float 0..1 or null>
   }},
   "news_article_scores": [
-    {{"id": "<id from ARTICLES_JSON>", "impact": <float 0..1>, "topic_group": "<lowercase_topic_identifier>"}}
+    {{"id": "<id from ARTICLE_DIGESTS_JSON>", "impact": <float 0..1>, "topic_group": "<lowercase_topic_identifier>"}}
   ],
   "score": <float 0..1>,  # your single calibrated investor-risk score AFTER applying the hard rules above
   "bullet_summary": "<<=120 words explaining primary drivers and meaningful mitigants>"
@@ -153,6 +160,62 @@ RISK_SCHEMA: Dict = {
     },
     "required": ["subscores", "news_article_scores", "score", "bullet_summary"],
     "additionalProperties": False
+}
+
+
+# ---------------------------------------------------------------------------
+# Stage-1 article digestion (cheap model, one call per article)
+# Used by ai/digest_engine.py. The digest is a factual extraction; its
+# stage1_severity only decides which articles the scorer reads in full.
+# NOTE: literal braces inside JSON examples are escaped as {{ }} for .format().
+# ---------------------------------------------------------------------------
+
+DIGEST_PROMPT = """
+You are an extraction engine. Read the article text below and return JSON.
+Use ONLY the text provided. If the text does not state something, write
+"not stated" — never fill gaps from outside knowledge.
+
+ARTICLE_TEXT
+{article_text}
+
+Return:
+{{
+  "what_happened":  one concrete sentence,
+  "actors":         who did what to whom,
+  "numbers":        every quantity the text states (casualties, %, amounts, dates),
+  "transmission":   the economic or policy channel, if the text states one,
+  "directly_about_country": true only if {country} is the subject, not a passing mention,
+  "stage1_severity": 0-100 —
+      85+   kinetic activity, binding economic measures, or infrastructure
+            sabotage in/against the country
+      60-75 credible mobilization or high-probability binding sanctions
+      40-55 indirect third-country events, unclear transmission
+      0-25  rhetoric, symbolism, routine politics
+}}
+""".strip()
+
+
+DIGEST_SCHEMA: Dict = {
+    "title": "ArticleDigest",
+    "description": "Factual extraction of one article plus a 0-100 severity that decides which articles the scorer reads in full.",
+    "type": "object",
+    "properties": {
+        "what_happened":           {"type": "string"},
+        "actors":                  {"type": "string"},
+        "numbers":                 {"type": "string"},
+        "transmission":            {"type": "string"},
+        "directly_about_country":  {"type": "boolean"},
+        "stage1_severity":         {"type": "number", "minimum": 0, "maximum": 100},
+    },
+    "required": [
+        "what_happened",
+        "actors",
+        "numbers",
+        "transmission",
+        "directly_about_country",
+        "stage1_severity",
+    ],
+    "additionalProperties": False,
 }
 
 

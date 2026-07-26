@@ -274,6 +274,22 @@ CREATE TABLE price_reference (
     reference_refreshed_on DATE,
     updated_at             TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Stage-1 article digests (ai/digest_engine.py): a cheap model's factual
+-- extraction of every fetched article, cached per (country, day, url) with a
+-- hash of the digested text so a same-day re-run makes ~zero stage-1 calls.
+-- Created by code (data_push.upsert_article_digests); not read by the frontend.
+CREATE TABLE article_digest (
+    country_iso2    TEXT        NOT NULL,
+    as_of           DATE        NOT NULL,
+    url             TEXT        NOT NULL,
+    published_at    TIMESTAMPTZ,
+    content_sha256  TEXT,                  -- sha256 of the digested article text
+    digest          JSONB       NOT NULL,  -- DIGEST_SCHEMA output
+    stage1_severity DOUBLE PRECISION,      -- 0-100; picks the full-text articles
+    model_id        TEXT,                  -- pinned digest model release
+    PRIMARY KEY (country_iso2, as_of, url)
+);
 ```
 
 ---
