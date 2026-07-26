@@ -53,6 +53,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# Local agent/tooling config - never commit
+.claude/
+
 # Other
 backend/data/wb_panel_wide
 
