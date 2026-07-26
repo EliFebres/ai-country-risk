@@ -1,6 +1,7 @@
 import os
 import datetime
-from typing import Dict, Any, Optional, List, Tuple
+from contextlib import contextmanager
+from typing import Dict, Any, Iterator, NamedTuple, Optional, List, Tuple
 
 import psycopg2
 import psycopg2.extras as extras
@@ -12,6 +13,39 @@ def _require_db_url() -> str:
     if not db_url:
         raise RuntimeError("DATABASE_URL is not set in the environment")
     return db_url
+
+
+@contextmanager
+def _transaction() -> Iterator["psycopg2.extensions.cursor"]:
+    """One connection, one transaction.
+
+    Yields a cursor; commits when the block finishes, rolls back and re-raises
+    on any exception, and always closes the connection. Every write in this
+    module goes through here so commit/rollback semantics live in one place.
+    """
+    conn = psycopg2.connect(_require_db_url())
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            yield cur
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def _image_url_or_none(img: Any) -> Optional[str]:
+    """Normalize an image value (str or list) to a single http(s) URL, or None."""
+    if isinstance(img, str):
+        u = img.strip()
+        return u if u.startswith(("http://", "https://")) else None
+    if isinstance(img, list):
+        for v in img:
+            if isinstance(v, str) and v.strip().startswith(("http://", "https://")):
+                return v.strip()
+    return None
 
 
 def _to_date_from_iso(s: str) -> datetime.date:
@@ -41,6 +75,99 @@ def _to_ts_or_none(s: Optional[str]) -> Optional[datetime.datetime]:
         return None
 
 
+class _SnapshotData(NamedTuple):
+    """Validated fields pulled out of an upsert_snapshot payload."""
+    country: str
+    as_of: datetime.date
+    units: Dict[str, str]
+    indicators: Dict[str, Any]
+    llm_out: Dict[str, Any]
+    top_articles: List[Dict[str, Any]]
+
+
+class _ArticleRow(NamedTuple):
+    """One risk_snapshot_article row; field order matches the INSERT columns."""
+    country_iso2: str
+    as_of: datetime.date
+    rank: int
+    url: str
+    title: Optional[str]
+    source: Optional[str]
+    published_at: Optional[datetime.datetime]
+    impact: Optional[float]
+    summary: Optional[str]
+    image_url: Optional[str]
+
+
+def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
+    """Validate an upsert_snapshot payload and extract the fields it writes.
+
+    Raises:
+        TypeError/ValueError: describing the missing or malformed field.
+    """
+    if not isinstance(payload, dict):
+        raise TypeError("payload must be a dict")
+
+    country = payload.get("country")
+    if not country or not isinstance(country, str):
+        raise ValueError("payload['country'] must be an ISO-2 string")
+
+    meta = payload.get("_meta") or {}
+    gen_at = meta.get("generated_at")
+    if not gen_at or not isinstance(gen_at, str):
+        raise ValueError("payload['_meta']['generated_at'] must be a string ISO timestamp")
+    units = meta.get("units") or {}
+    if not isinstance(units, dict):
+        raise ValueError("payload['_meta']['units'] must be a dict of indicator -> unit")
+
+    indicators = payload.get("indicators") or {}
+    if not isinstance(indicators, dict) or not indicators:
+        raise ValueError("payload['indicators'] must be a non-empty dict")
+
+    llm_out = payload.get("llm_output") or {}
+    if not (isinstance(llm_out, dict) and {"score", "bullet_summary"} <= set(llm_out.keys())):
+        raise ValueError("payload['llm_output'] must include 'score' and 'bullet_summary'")
+
+    top_articles = payload.get("top_articles") or []
+    if not isinstance(top_articles, list):
+        top_articles = []
+
+    return _SnapshotData(
+        country=country,
+        as_of=_to_date_from_iso(gen_at),
+        units=units,
+        indicators=indicators,
+        llm_out=llm_out,
+        top_articles=top_articles,
+    )
+
+
+def _article_rows(country: str, as_of: datetime.date,
+                  top_articles: List[Dict[str, Any]]) -> List[_ArticleRow]:
+    """Build risk_snapshot_article rows, dropping malformed entries."""
+    rows: List[_ArticleRow] = []
+    for a in top_articles:
+        if not isinstance(a, dict):
+            continue
+        rank = a.get("rank")
+        url = (a.get("url") or "").strip()
+        if not url or rank not in (1, 2, 3):
+            continue
+        rows.append(_ArticleRow(
+            country_iso2=country,
+            as_of=as_of,
+            rank=int(rank),
+            url=url,
+            title=a.get("title"),
+            source=a.get("source"),
+            published_at=_to_ts_or_none(a.get("published_at")),
+            impact=(float(a["impact"]) if (a.get("impact") is not None) else None),
+            summary=a.get("summary"),
+            image_url=_image_url_or_none(a.get("image")),
+        ))
+    return rows
+
+
 def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
     """
     Atomically insert or update a country-level snapshot.
@@ -63,173 +190,99 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
       - top_articles: list of dicts with
           {rank, url, title, source, published_at (ISO), impact, summary, image?}
     """
-    db_url = _require_db_url()
-    if not isinstance(payload, dict):
-        raise TypeError("payload must be a dict")
+    _require_db_url()  # fail fast before any parsing work
+    data = _parse_snapshot_payload(payload)
+    rows_art = _article_rows(data.country, data.as_of, data.top_articles)
 
-    # Required fields
-    country = payload.get("country")
-    if not country or not isinstance(country, str):
-        raise ValueError("payload['country'] must be an ISO-2 string")
+    with _transaction() as cur:
+        # 0) Ensure the parent 'country' row exists for the FK
+        cur.execute(
+            """
+            INSERT INTO country (iso2, name)
+            VALUES (%s, %s)
+            ON CONFLICT (iso2) DO NOTHING
+            """,
+            (data.country, country_name),
+        )
 
-    meta = payload.get("_meta") or {}
-    gen_at = meta.get("generated_at")
-    if not gen_at or not isinstance(gen_at, str):
-        raise ValueError("payload['_meta']['generated_at'] must be a string ISO timestamp")
-    units = meta.get("units") or {}
-    if not isinstance(units, dict):
-        raise ValueError("payload['_meta']['units'] must be a dict of indicator -> unit")
+        # 1) Indicators + yearly series
+        for ind_name, ind_data in data.indicators.items():
+            unit = data.units[ind_name]  # rely on your existing contract; raises if missing
 
-    as_of: datetime.date = _to_date_from_iso(gen_at)
-
-    indicators = payload.get("indicators") or {}
-    if not isinstance(indicators, dict) or not indicators:
-        raise ValueError("payload['indicators'] must be a non-empty dict")
-
-    llm_out = payload.get("llm_output") or {}
-    if not (isinstance(llm_out, dict) and {"score", "bullet_summary"} <= set(llm_out.keys())):
-        raise ValueError("payload['llm_output'] must include 'score' and 'bullet_summary'")
-
-    # Optional: new top-3 article rows
-    top_articles = payload.get("top_articles") or []
-    if not isinstance(top_articles, list):
-        top_articles = []
-
-    conn = psycopg2.connect(db_url)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            # 0) Ensure the parent 'country' row exists for the FK
+            # 1a) Upsert indicator row, capture its id
             cur.execute(
                 """
-                INSERT INTO country (iso2, name)
+                INSERT INTO indicator (name, unit)
                 VALUES (%s, %s)
-                ON CONFLICT (iso2) DO NOTHING
+                ON CONFLICT (name)
+                DO UPDATE SET unit = EXCLUDED.unit
+                RETURNING id;
                 """,
-                (country, country_name),
+                (ind_name, unit),
             )
+            ind_id = cur.fetchone()[0]
 
-            # 1) Indicators + yearly series
-            for ind_name, ind_data in indicators.items():
-                unit = units[ind_name]  # rely on your existing contract; raises if missing
-
-                # 1a) Upsert indicator row, capture its id
-                cur.execute(
-                    """
-                    INSERT INTO indicator (name, unit)
-                    VALUES (%s, %s)
-                    ON CONFLICT (name)
-                    DO UPDATE SET unit = EXCLUDED.unit
-                    RETURNING id;
-                    """,
-                    (ind_name, unit),
-                )
-                ind_id = cur.fetchone()[0]
-
-                # 1b) Prepare yearly rows (skip nulls)
-                series = (ind_data or {}).get("series", {}) or {}
-                rows_yv: List[Tuple[str, int, int, float]] = []
-                for year, val in series.items():
-                    if val is None:
-                        continue
-                    try:
-                        yr_int = int(year)
-                        val_f = float(val)
-                    except Exception:
-                        continue
-                    rows_yv.append((country, ind_id, yr_int, val_f))
-
-                if rows_yv:
-                    extras.execute_values(
-                        cur,
-                        """
-                        INSERT INTO yearly_value (country_iso2, indicator_id, yr, value)
-                        VALUES %s
-                        ON CONFLICT (country_iso2, indicator_id, yr)
-                        DO UPDATE SET value = EXCLUDED.value
-                        """,
-                        rows_yv,
-                        page_size=1000,
-                    )
-
-            # 2) Risk snapshot (latest AI score for the run date)
-            cur.execute(
-                """
-                INSERT INTO risk_snapshot (country_iso2, as_of, score, bullet_summary)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (country_iso2, as_of)
-                DO UPDATE SET
-                  score = EXCLUDED.score,
-                  bullet_summary = EXCLUDED.bullet_summary
-                """,
-                (country, as_of, llm_out["score"], llm_out["bullet_summary"]),
-            )
-
-            # 3) Optional: write the top-3 links for this snapshot (now includes image_url)
-            rows_art: List[Tuple] = []
-            for a in top_articles:
-                if not isinstance(a, dict):
+            # 1b) Prepare yearly rows (skip nulls)
+            series = (ind_data or {}).get("series", {}) or {}
+            rows_yv: List[Tuple[str, int, int, float]] = []
+            for year, val in series.items():
+                if val is None:
                     continue
-                rank = a.get("rank")
-                url = (a.get("url") or "").strip()
-                if not url or rank not in (1, 2, 3):
+                try:
+                    yr_int = int(year)
+                    val_f = float(val)
+                except Exception:
                     continue
+                rows_yv.append((data.country, ind_id, yr_int, val_f))
 
-                # Normalize image value to a single URL string (or None)
-                img = a.get("image")
-                image_url: Optional[str] = None
-                if isinstance(img, str):
-                    u = img.strip()
-                    image_url = u if u.startswith(("http://", "https://")) else None
-                elif isinstance(img, list):
-                    for v in img:
-                        if isinstance(v, str) and v.strip().startswith(("http://", "https://")):
-                            image_url = v.strip()
-                            break
-
-                rows_art.append(
-                    (
-                        country,                                # country_iso2
-                        as_of,                                  # as_of (DATE)
-                        int(rank),                              # rank 1..3
-                        url,                                    # url (TEXT NOT NULL)
-                        a.get("title"),                         # title
-                        a.get("source"),                        # source
-                        _to_ts_or_none(a.get("published_at")),  # published_at TIMESTAMPTZ
-                        (float(a["impact"]) if (a.get("impact") is not None) else None),
-                        a.get("summary"),
-                        image_url,                               # NEW: image_url
-                    )
-                )
-
-            if rows_art:
+            if rows_yv:
                 extras.execute_values(
                     cur,
                     """
-                    INSERT INTO risk_snapshot_article
-                      (country_iso2, as_of, rank, url, title, source, published_at, impact, summary, image_url)
+                    INSERT INTO yearly_value (country_iso2, indicator_id, yr, value)
                     VALUES %s
-                    ON CONFLICT (country_iso2, as_of, rank)
-                    DO UPDATE SET
-                      url          = EXCLUDED.url,
-                      title        = EXCLUDED.title,
-                      source       = EXCLUDED.source,
-                      published_at = EXCLUDED.published_at,
-                      impact       = EXCLUDED.impact,
-                      summary      = EXCLUDED.summary,
-                      image_url    = EXCLUDED.image_url,
-                      updated_at   = now()
+                    ON CONFLICT (country_iso2, indicator_id, yr)
+                    DO UPDATE SET value = EXCLUDED.value
                     """,
-                    rows_art,
-                    page_size=10,
+                    rows_yv,
+                    page_size=1000,
                 )
 
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        # 2) Risk snapshot (latest AI score for the run date)
+        cur.execute(
+            """
+            INSERT INTO risk_snapshot (country_iso2, as_of, score, bullet_summary)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (country_iso2, as_of)
+            DO UPDATE SET
+              score = EXCLUDED.score,
+              bullet_summary = EXCLUDED.bullet_summary
+            """,
+            (data.country, data.as_of, data.llm_out["score"], data.llm_out["bullet_summary"]),
+        )
+
+        # 3) Optional: write the top-3 links for this snapshot (includes image_url)
+        if rows_art:
+            extras.execute_values(
+                cur,
+                """
+                INSERT INTO risk_snapshot_article
+                  (country_iso2, as_of, rank, url, title, source, published_at, impact, summary, image_url)
+                VALUES %s
+                ON CONFLICT (country_iso2, as_of, rank)
+                DO UPDATE SET
+                  url          = EXCLUDED.url,
+                  title        = EXCLUDED.title,
+                  source       = EXCLUDED.source,
+                  published_at = EXCLUDED.published_at,
+                  impact       = EXCLUDED.impact,
+                  summary      = EXCLUDED.summary,
+                  image_url    = EXCLUDED.image_url,
+                  updated_at   = now()
+                """,
+                rows_art,
+                page_size=10,
+            )
 
 
 _RECENT_INDICATOR_DDL = """
@@ -266,7 +319,7 @@ def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, 
 
     No-op if ``country_iso2`` is blank or ``indicators`` is empty.
     """
-    db_url = _require_db_url()
+    _require_db_url()  # fail fast even when there is nothing to write
     if not country_iso2 or not indicators:
         return
 
@@ -288,35 +341,26 @@ def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, 
     if not rows:
         return
 
-    conn = psycopg2.connect(db_url)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_RECENT_INDICATOR_DDL)
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO recent_indicator
-                  (country_iso2, indicator, period, freq, value, unit, source)
-                VALUES %s
-                ON CONFLICT (country_iso2, indicator)
-                DO UPDATE SET
-                  period     = EXCLUDED.period,
-                  freq       = EXCLUDED.freq,
-                  value      = EXCLUDED.value,
-                  unit       = EXCLUDED.unit,
-                  source     = EXCLUDED.source,
-                  updated_at = now()
-                """,
-                rows,
-                page_size=100,
-            )
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    with _transaction() as cur:
+        cur.execute(_RECENT_INDICATOR_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO recent_indicator
+              (country_iso2, indicator, period, freq, value, unit, source)
+            VALUES %s
+            ON CONFLICT (country_iso2, indicator)
+            DO UPDATE SET
+              period     = EXCLUDED.period,
+              freq       = EXCLUDED.freq,
+              value      = EXCLUDED.value,
+              unit       = EXCLUDED.unit,
+              source     = EXCLUDED.source,
+              updated_at = now()
+            """,
+            rows,
+            page_size=100,
+        )
 
 
 _ECON_EVENT_DDL = """
@@ -364,7 +408,7 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
 
     No-op if ``events`` is empty.
     """
-    db_url = _require_db_url()
+    _require_db_url()  # fail fast even when there is nothing to write
     if not events:
         return
 
@@ -404,48 +448,38 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
     if not rows:
         return
 
-    conn = psycopg2.connect(db_url)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_ECON_EVENT_DDL)
+    with _transaction() as cur:
+        cur.execute(_ECON_EVENT_DDL)
 
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO economic_calendar_event
-                  (event_time, country_code, country_name, event, importance,
-                   currency, previous, estimate, actual,
-                   ai_importance, ai_rationale, ai_scored_at)
-                VALUES %s
-                ON CONFLICT (event_time, country_code, event)
-                DO UPDATE SET
-                  country_name  = EXCLUDED.country_name,
-                  importance    = EXCLUDED.importance,
-                  currency      = EXCLUDED.currency,
-                  previous      = EXCLUDED.previous,
-                  estimate      = EXCLUDED.estimate,
-                  actual        = EXCLUDED.actual,
-                  ai_importance = COALESCE(EXCLUDED.ai_importance, economic_calendar_event.ai_importance),
-                  ai_rationale  = COALESCE(EXCLUDED.ai_rationale,  economic_calendar_event.ai_rationale),
-                  ai_scored_at  = COALESCE(EXCLUDED.ai_scored_at,  economic_calendar_event.ai_scored_at),
-                  updated_at    = now()
-                """,
-                rows,
-                page_size=500,
-            )
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO economic_calendar_event
+              (event_time, country_code, country_name, event, importance,
+               currency, previous, estimate, actual,
+               ai_importance, ai_rationale, ai_scored_at)
+            VALUES %s
+            ON CONFLICT (event_time, country_code, event)
+            DO UPDATE SET
+              country_name  = EXCLUDED.country_name,
+              importance    = EXCLUDED.importance,
+              currency      = EXCLUDED.currency,
+              previous      = EXCLUDED.previous,
+              estimate      = EXCLUDED.estimate,
+              actual        = EXCLUDED.actual,
+              ai_importance = COALESCE(EXCLUDED.ai_importance, economic_calendar_event.ai_importance),
+              ai_rationale  = COALESCE(EXCLUDED.ai_rationale,  economic_calendar_event.ai_rationale),
+              ai_scored_at  = COALESCE(EXCLUDED.ai_scored_at,  economic_calendar_event.ai_scored_at),
+              updated_at    = now()
+            """,
+            rows,
+            page_size=500,
+        )
 
-            # Keep the table a rolling forward window.
-            cur.execute(
-                "DELETE FROM economic_calendar_event WHERE event_time < now() - interval '1 day'"
-            )
-
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        # Keep the table a rolling forward window.
+        cur.execute(
+            "DELETE FROM economic_calendar_event WHERE event_time < now() - interval '1 day'"
+        )
 
 
 _MARKET_PRICE_DDL = """
@@ -493,7 +527,7 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
 
     No-op if ``rows`` is empty.
     """
-    db_url = _require_db_url()
+    _require_db_url()  # fail fast even when there is nothing to write
     if not rows:
         return
 
@@ -524,42 +558,32 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
     if not tuples:
         return
 
-    conn = psycopg2.connect(db_url)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_MARKET_PRICE_DDL)
+    with _transaction() as cur:
+        cur.execute(_MARKET_PRICE_DDL)
 
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO market_price
-                  (symbol, label, asset_class, source_symbol, is_yield,
-                   px, chg, q, ytd, sort_order)
-                VALUES %s
-                ON CONFLICT (symbol)
-                DO UPDATE SET
-                  label         = EXCLUDED.label,
-                  asset_class   = EXCLUDED.asset_class,
-                  source_symbol = EXCLUDED.source_symbol,
-                  is_yield      = EXCLUDED.is_yield,
-                  px            = COALESCE(EXCLUDED.px,  market_price.px),
-                  chg           = COALESCE(EXCLUDED.chg, market_price.chg),
-                  q             = COALESCE(EXCLUDED.q,   market_price.q),
-                  ytd           = COALESCE(EXCLUDED.ytd, market_price.ytd),
-                  sort_order    = EXCLUDED.sort_order,
-                  updated_at    = now()
-                """,
-                tuples,
-                page_size=100,
-            )
-
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO market_price
+              (symbol, label, asset_class, source_symbol, is_yield,
+               px, chg, q, ytd, sort_order)
+            VALUES %s
+            ON CONFLICT (symbol)
+            DO UPDATE SET
+              label         = EXCLUDED.label,
+              asset_class   = EXCLUDED.asset_class,
+              source_symbol = EXCLUDED.source_symbol,
+              is_yield      = EXCLUDED.is_yield,
+              px            = COALESCE(EXCLUDED.px,  market_price.px),
+              chg           = COALESCE(EXCLUDED.chg, market_price.chg),
+              q             = COALESCE(EXCLUDED.q,   market_price.q),
+              ytd           = COALESCE(EXCLUDED.ytd, market_price.ytd),
+              sort_order    = EXCLUDED.sort_order,
+              updated_at    = now()
+            """,
+            tuples,
+            page_size=100,
+        )
 
 
 def read_price_references() -> Dict[str, Dict[str, Any]]:
@@ -569,35 +593,24 @@ def read_price_references() -> Dict[str, Dict[str, Any]]:
     on startup before any write. Each value is
     ``{ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on}``.
     """
-    db_url = _require_db_url()
-
-    conn = psycopg2.connect(db_url)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_PRICE_REFERENCE_DDL)
-            cur.execute(
-                """
-                SELECT symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on
-                  FROM price_reference
-                """
-            )
-            out: Dict[str, Dict[str, Any]] = {}
-            for sym, ref_q, ref_q_date, ref_ytd, ref_ytd_date, refreshed_on in cur.fetchall():
-                out[sym] = {
-                    "ref_q": ref_q,
-                    "ref_q_date": ref_q_date,
-                    "ref_ytd": ref_ytd,
-                    "ref_ytd_date": ref_ytd_date,
-                    "reference_refreshed_on": refreshed_on,
-                }
-        conn.commit()
-        return out
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    with _transaction() as cur:
+        cur.execute(_PRICE_REFERENCE_DDL)
+        cur.execute(
+            """
+            SELECT symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on
+              FROM price_reference
+            """
+        )
+        out: Dict[str, Dict[str, Any]] = {}
+        for sym, ref_q, ref_q_date, ref_ytd, ref_ytd_date, refreshed_on in cur.fetchall():
+            out[sym] = {
+                "ref_q": ref_q,
+                "ref_q_date": ref_q_date,
+                "ref_ytd": ref_ytd,
+                "ref_ytd_date": ref_ytd_date,
+                "reference_refreshed_on": refreshed_on,
+            }
+    return out
 
 
 def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datetime.date) -> None:
@@ -608,7 +621,7 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
     internal symbol). Lets a restarted daemon skip the historical fetch when it
     already ran today. No-op if ``refs`` is empty.
     """
-    db_url = _require_db_url()
+    _require_db_url()  # fail fast even when there is nothing to write
     if not refs:
         return
 
@@ -627,35 +640,26 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
     if not rows:
         return
 
-    conn = psycopg2.connect(db_url)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_PRICE_REFERENCE_DDL)
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO price_reference
-                  (symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on)
-                VALUES %s
-                ON CONFLICT (symbol)
-                DO UPDATE SET
-                  ref_q                  = EXCLUDED.ref_q,
-                  ref_q_date             = EXCLUDED.ref_q_date,
-                  ref_ytd                = EXCLUDED.ref_ytd,
-                  ref_ytd_date           = EXCLUDED.ref_ytd_date,
-                  reference_refreshed_on = EXCLUDED.reference_refreshed_on,
-                  updated_at             = now()
-                """,
-                rows,
-                page_size=100,
-            )
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    with _transaction() as cur:
+        cur.execute(_PRICE_REFERENCE_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO price_reference
+              (symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on)
+            VALUES %s
+            ON CONFLICT (symbol)
+            DO UPDATE SET
+              ref_q                  = EXCLUDED.ref_q,
+              ref_q_date             = EXCLUDED.ref_q_date,
+              ref_ytd                = EXCLUDED.ref_ytd,
+              ref_ytd_date           = EXCLUDED.ref_ytd_date,
+              reference_refreshed_on = EXCLUDED.reference_refreshed_on,
+              updated_at             = now()
+            """,
+            rows,
+            page_size=100,
+        )
 
 
 _NEWS_ALERT_DDL = """
@@ -683,16 +687,22 @@ CREATE INDEX IF NOT EXISTS idx_news_alert_as_of ON news_alert (as_of);
 """
 
 
-def _image_url_or_none(img: Any) -> Optional[str]:
-    """Normalize an image value (str or list) to a single http(s) URL, or None."""
-    if isinstance(img, str):
-        u = img.strip()
-        return u if u.startswith(("http://", "https://")) else None
-    if isinstance(img, list):
-        for v in img:
-            if isinstance(v, str) and v.strip().startswith(("http://", "https://")):
-                return v.strip()
-    return None
+class _NewsAlertRow(NamedTuple):
+    """One news_alert row; field order matches the INSERT columns."""
+    as_of: datetime.date
+    global_rank: int
+    country_iso2: str
+    country_name: Optional[str]
+    url: str
+    title: Optional[str]
+    source: Optional[str]
+    published_at: Optional[datetime.datetime]
+    summary: Optional[str]
+    image_url: Optional[str]
+    topic: str
+    severity: str
+    importance: Optional[float]
+    rationale: Optional[str]
 
 
 def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> None:
@@ -719,11 +729,11 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
 
     No-op if ``alerts`` is empty.
     """
-    db_url = _require_db_url()
+    _require_db_url()  # fail fast even when there is nothing to write
     if not alerts:
         return
 
-    rows: List[Tuple] = []
+    rows: List[_NewsAlertRow] = []
     for a in alerts:
         if not isinstance(a, dict):
             continue
@@ -744,52 +754,40 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
         except (TypeError, ValueError):
             importance = None
 
-        rows.append(
-            (
-                as_of,                               # as_of (DATE)
-                rank,                                # global_rank
-                country,                             # country_iso2
-                a.get("country_name"),               # country_name
-                url,                                 # url (TEXT NOT NULL)
-                a.get("title"),                      # title
-                a.get("source"),                     # source
-                _to_ts_or_none(a.get("published_at")),  # published_at TIMESTAMPTZ
-                a.get("summary"),                    # summary
-                _image_url_or_none(a.get("image")),  # image_url
-                topic,                               # topic
-                severity,                            # severity
-                importance,                          # importance
-                a.get("rationale"),                  # rationale
-            )
-        )
+        rows.append(_NewsAlertRow(
+            as_of=as_of,
+            global_rank=rank,
+            country_iso2=country,
+            country_name=a.get("country_name"),
+            url=url,
+            title=a.get("title"),
+            source=a.get("source"),
+            published_at=_to_ts_or_none(a.get("published_at")),
+            summary=a.get("summary"),
+            image_url=_image_url_or_none(a.get("image")),
+            topic=topic,
+            severity=severity,
+            importance=importance,
+            rationale=a.get("rationale"),
+        ))
 
     if not rows:
         return
 
-    conn = psycopg2.connect(db_url)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_NEWS_ALERT_DDL)
+    with _transaction() as cur:
+        cur.execute(_NEWS_ALERT_DDL)
 
-            # Replace-today semantics: clear this run date, then insert the ranked set.
-            cur.execute("DELETE FROM news_alert WHERE as_of = %s", (as_of,))
+        # Replace-today semantics: clear this run date, then insert the ranked set.
+        cur.execute("DELETE FROM news_alert WHERE as_of = %s", (as_of,))
 
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO news_alert
-                  (as_of, global_rank, country_iso2, country_name, url, title, source,
-                   published_at, summary, image_url, topic, severity, importance, rationale)
-                VALUES %s
-                """,
-                rows,
-                page_size=100,
-            )
-
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO news_alert
+              (as_of, global_rank, country_iso2, country_name, url, title, source,
+               published_at, summary, image_url, topic, severity, importance, rationale)
+            VALUES %s
+            """,
+            rows,
+            page_size=100,
+        )
