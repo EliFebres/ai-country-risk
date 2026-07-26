@@ -219,69 +219,89 @@ PRICE_ASSETS: list[dict] = [
 ]
 
 # ---------------------------------------------------------------------------
-# Country roster (hardcoded). Source of truth for the run universe — replaces
-# the former backend/data/country_data.xlsx read. Each entry carries the
-# display name, ISO-2 (World Bank / DB key) and ISO-3 (OWID join key).
+# Country roster — the single source of truth for the run universe.
+# ---------------------------------------------------------------------------
+# The coverage rule, in one sentence: every country in the MSCI Developed and
+# Emerging Markets indices, plus Russia. See COUNTRY_COVERAGE.md at the repo
+# root for the full rationale, including why each excluded country is out.
+#
+# MSCI is the arbiter rather than our own judgement: it maintains the
+# investable-universe classification that the dashboard's audience already
+# thinks in, and it reviews membership annually, so "is this country in scope?"
+# has an answer we do not have to defend.
+#
+# This list is the ONLY place countries are defined. It is seeded into the
+# `country` table on every run (data_push.upsert_countries), and the front-end
+# reads countries, names and map positions from there — so adding or removing a
+# country here requires no front-end change whatsoever.
+#
+# Fields:
+#   name  — display name, also written to country.name
+#   iso2  — World Bank query code and the database primary key
+#   iso3  — OWID / IMF join key
+#   tier  — DM | EM | Special; why the entry is here (documentation)
+#   lat/lng — map marker position, seeded to country.lat/country.lng
 # ---------------------------------------------------------------------------
 
-COUNTRY_ROSTER: list[dict[str, str]] = [
-    {"name": "United Arab Emirates",  "iso2": "AE", "iso3": "ARE"},
-    {"name": "Argentina",             "iso2": "AR", "iso3": "ARG"},
-    {"name": "Australia",             "iso2": "AU", "iso3": "AUS"},
-    {"name": "Austria",               "iso2": "AT", "iso3": "AUT"},
-    {"name": "Belgium",               "iso2": "BE", "iso3": "BEL"},
-    {"name": "Bangladesh",            "iso2": "BD", "iso3": "BGD"},
-    {"name": "Brazil",                "iso2": "BR", "iso3": "BRA"},
-    {"name": "Canada",                "iso2": "CA", "iso3": "CAN"},
-    {"name": "Switzerland",           "iso2": "CH", "iso3": "CHE"},
-    {"name": "Chile",                 "iso2": "CL", "iso3": "CHL"},
-    {"name": "China",                 "iso2": "CN", "iso3": "CHN"},
-    {"name": "Colombia",              "iso2": "CO", "iso3": "COL"},
-    {"name": "Germany",               "iso2": "DE", "iso3": "DEU"},
-    {"name": "Denmark",               "iso2": "DK", "iso3": "DNK"},
-    {"name": "Egypt",                 "iso2": "EG", "iso3": "EGY"},
-    {"name": "Spain",                 "iso2": "ES", "iso3": "ESP"},
-    {"name": "Finland",               "iso2": "FI", "iso3": "FIN"},
-    {"name": "France",                "iso2": "FR", "iso3": "FRA"},
-    {"name": "United Kingdom",        "iso2": "GB", "iso3": "GBR"},
-    {"name": "Greece",                "iso2": "GR", "iso3": "GRC"},
-    {"name": "Hong Kong SAR, China",  "iso2": "HK", "iso3": "HKG"},
-    {"name": "Hungary",               "iso2": "HU", "iso3": "HUN"},
-    {"name": "Indonesia",             "iso2": "ID", "iso3": "IDN"},
-    {"name": "India",                 "iso2": "IN", "iso3": "IND"},
-    {"name": "Ireland",               "iso2": "IE", "iso3": "IRL"},
-    {"name": "Israel",                "iso2": "IL", "iso3": "ISR"},
-    {"name": "Italy",                 "iso2": "IT", "iso3": "ITA"},
-    {"name": "Japan",                 "iso2": "JP", "iso3": "JPN"},
-    {"name": "Kazakhstan",            "iso2": "KZ", "iso3": "KAZ"},
-    {"name": "Kenya",                 "iso2": "KE", "iso3": "KEN"},
-    {"name": "South Korea",           "iso2": "KR", "iso3": "KOR"},
-    {"name": "Luxembourg",            "iso2": "LU", "iso3": "LUX"},
-    {"name": "Morocco",               "iso2": "MA", "iso3": "MAR"},
-    {"name": "Mexico",                "iso2": "MX", "iso3": "MEX"},
-    {"name": "Mongolia",              "iso2": "MN", "iso3": "MNG"},
-    {"name": "Malaysia",              "iso2": "MY", "iso3": "MYS"},
-    {"name": "Nigeria",               "iso2": "NG", "iso3": "NGA"},
-    {"name": "Netherlands",           "iso2": "NL", "iso3": "NLD"},
-    {"name": "Norway",                "iso2": "NO", "iso3": "NOR"},
-    {"name": "New Zealand",           "iso2": "NZ", "iso3": "NZL"},
-    {"name": "Pakistan",              "iso2": "PK", "iso3": "PAK"},
-    {"name": "Peru",                  "iso2": "PE", "iso3": "PER"},
-    {"name": "Philippines",           "iso2": "PH", "iso3": "PHL"},
-    {"name": "Poland",                "iso2": "PL", "iso3": "POL"},
-    {"name": "Portugal",              "iso2": "PT", "iso3": "PRT"},
-    {"name": "Qatar",                 "iso2": "QA", "iso3": "QAT"},
-    {"name": "Romania",               "iso2": "RO", "iso3": "ROU"},
-    {"name": "Russia",                "iso2": "RU", "iso3": "RUS"},
-    {"name": "Saudi Arabia",          "iso2": "SA", "iso3": "SAU"},
-    {"name": "Singapore",             "iso2": "SG", "iso3": "SGP"},
-    {"name": "Sweden",                "iso2": "SE", "iso3": "SWE"},
-    {"name": "Thailand",              "iso2": "TH", "iso3": "THA"},
-    {"name": "Turkey",                "iso2": "TR", "iso3": "TUR"},
-    {"name": "Ukraine",               "iso2": "UA", "iso3": "UKR"},
-    {"name": "United States",         "iso2": "US", "iso3": "USA"},
-    {"name": "Venezuela",             "iso2": "VE", "iso3": "VEN"},
-    {"name": "South Africa",          "iso2": "ZA", "iso3": "ZAF"},
+COUNTRY_ROSTER: list[dict] = [
+    # --- MSCI Developed Markets (23) ---------------------------------------
+    {"name": "Australia",             "iso2": "AU", "iso3": "AUS", "tier": "DM", "lat": -24.6809, "lng": 134.53},
+    {"name": "Austria",               "iso2": "AT", "iso3": "AUT", "tier": "DM", "lat": 47.6082,  "lng": 14.3738},
+    {"name": "Belgium",               "iso2": "BE", "iso3": "BEL", "tier": "DM", "lat": 50.6003,  "lng": 4.7},
+    {"name": "Canada",                "iso2": "CA", "iso3": "CAN", "tier": "DM", "lat": 60.9215,  "lng": -108.007},
+    {"name": "Denmark",               "iso2": "DK", "iso3": "DNK", "tier": "DM", "lat": 55.6761,  "lng": 10.5683},
+    {"name": "Finland",               "iso2": "FI", "iso3": "FIN", "tier": "DM", "lat": 63.3,     "lng": 25.62},
+    {"name": "France",                "iso2": "FR", "iso3": "FRA", "tier": "DM", "lat": 46.6,     "lng": 2.0},
+    {"name": "Germany",               "iso2": "DE", "iso3": "DEU", "tier": "DM", "lat": 51.2,     "lng": 10.5},
+    {"name": "Hong Kong SAR, China",  "iso2": "HK", "iso3": "HKG", "tier": "DM", "lat": 22.3193,  "lng": 114.1694},
+    {"name": "Ireland",               "iso2": "IE", "iso3": "IRL", "tier": "DM", "lat": 52.8,     "lng": -8.0},
+    {"name": "Israel",                "iso2": "IL", "iso3": "ISR", "tier": "DM", "lat": 31.0,     "lng": 35.0},
+    {"name": "Italy",                 "iso2": "IT", "iso3": "ITA", "tier": "DM", "lat": 42.6,     "lng": 12.8},
+    {"name": "Japan",                 "iso2": "JP", "iso3": "JPN", "tier": "DM", "lat": 36.5,     "lng": 139.2},
+    {"name": "Netherlands",           "iso2": "NL", "iso3": "NLD", "tier": "DM", "lat": 52.25,    "lng": 5.7},
+    {"name": "New Zealand",           "iso2": "NZ", "iso3": "NZL", "tier": "DM", "lat": -41.5,    "lng": 173.0},
+    {"name": "Norway",                "iso2": "NO", "iso3": "NOR", "tier": "DM", "lat": 61.2,     "lng": 8.7},
+    {"name": "Portugal",              "iso2": "PT", "iso3": "PRT", "tier": "DM", "lat": 39.7,     "lng": -8.0},
+    {"name": "Singapore",             "iso2": "SG", "iso3": "SGP", "tier": "DM", "lat": 1.3521,   "lng": 103.8198},
+    {"name": "Spain",                 "iso2": "ES", "iso3": "ESP", "tier": "DM", "lat": 39.4,     "lng": -4.8},
+    {"name": "Sweden",                "iso2": "SE", "iso3": "SWE", "tier": "DM", "lat": 59.65,    "lng": 14.5},
+    {"name": "Switzerland",           "iso2": "CH", "iso3": "CHE", "tier": "DM", "lat": 46.75,    "lng": 8.0},
+    {"name": "United Kingdom",        "iso2": "GB", "iso3": "GBR", "tier": "DM", "lat": 54.75,    "lng": -3.5},
+    {"name": "United States",         "iso2": "US", "iso3": "USA", "tier": "DM", "lat": 39.75,    "lng": -100.5},
+
+    # --- MSCI Emerging Markets (24) ----------------------------------------
+    {"name": "Brazil",                "iso2": "BR", "iso3": "BRA", "tier": "EM", "lat": -10.3,    "lng": -53.3},
+    {"name": "Chile",                 "iso2": "CL", "iso3": "CHL", "tier": "EM", "lat": -31.8,    "lng": -71.1},
+    {"name": "China",                 "iso2": "CN", "iso3": "CHN", "tier": "EM", "lat": 35.0,     "lng": 105.0},
+    {"name": "Colombia",              "iso2": "CO", "iso3": "COL", "tier": "EM", "lat": 4.0,      "lng": -73.0},
+    {"name": "Czechia",               "iso2": "CZ", "iso3": "CZE", "tier": "EM", "lat": 49.82,    "lng": 15.47},
+    {"name": "Egypt",                 "iso2": "EG", "iso3": "EGY", "tier": "EM", "lat": 26.2,     "lng": 29.3},
+    {"name": "Greece",                "iso2": "GR", "iso3": "GRC", "tier": "EM", "lat": 39.0,     "lng": 22.3},
+    {"name": "Hungary",               "iso2": "HU", "iso3": "HUN", "tier": "EM", "lat": 47.15,    "lng": 19.5},
+    {"name": "India",                 "iso2": "IN", "iso3": "IND", "tier": "EM", "lat": 22.35,    "lng": 78.5},
+    {"name": "Indonesia",             "iso2": "ID", "iso3": "IDN", "tier": "EM", "lat": -2.5,     "lng": 118.0},
+    {"name": "Kuwait",                "iso2": "KW", "iso3": "KWT", "tier": "EM", "lat": 29.31,    "lng": 47.48},
+    {"name": "Malaysia",              "iso2": "MY", "iso3": "MYS", "tier": "EM", "lat": 4.5,      "lng": 102.2},
+    {"name": "Mexico",                "iso2": "MX", "iso3": "MEX", "tier": "EM", "lat": 23.6,     "lng": -102.0},
+    {"name": "Peru",                  "iso2": "PE", "iso3": "PER", "tier": "EM", "lat": -7.0,     "lng": -75.0},
+    {"name": "Philippines",           "iso2": "PH", "iso3": "PHL", "tier": "EM", "lat": 13.0,     "lng": 122.5},
+    {"name": "Poland",                "iso2": "PL", "iso3": "POL", "tier": "EM", "lat": 52.2297,  "lng": 19.0},
+    {"name": "Qatar",                 "iso2": "QA", "iso3": "QAT", "tier": "EM", "lat": 25.2854,  "lng": 51.031},
+    {"name": "Saudi Arabia",          "iso2": "SA", "iso3": "SAU", "tier": "EM", "lat": 25.56,    "lng": 42.35},
+    {"name": "South Africa",          "iso2": "ZA", "iso3": "ZAF", "tier": "EM", "lat": -28.9,    "lng": 25.0},
+    {"name": "South Korea",           "iso2": "KR", "iso3": "KOR", "tier": "EM", "lat": 36.6,     "lng": 127.83},
+    {"name": "Taiwan",                "iso2": "TW", "iso3": "TWN", "tier": "EM", "lat": 23.7,     "lng": 120.96},
+    {"name": "Thailand",              "iso2": "TH", "iso3": "THA", "tier": "EM", "lat": 15.0,     "lng": 101.0},
+    {"name": "Turkey",                "iso2": "TR", "iso3": "TUR", "tier": "EM", "lat": 39.3,     "lng": 35.3},
+    {"name": "United Arab Emirates",  "iso2": "AE", "iso3": "ARE", "tier": "EM", "lat": 24.0,     "lng": 54.0},
+
+    # --- Outside both indices (1) ------------------------------------------
+    # Russia was removed from MSCI EM in March 2022 and is currently
+    # unclassified. Kept for its weight in energy/commodity markets and its
+    # volume of risk-relevant news. The sanctions gate in
+    # ai/legal_restrictions.yaml forces its score to 1.0 — that is intended,
+    # and is the honest answer for a US investor who cannot legally hold it.
+    {"name": "Russia",                "iso2": "RU", "iso3": "RUS", "tier": "Special", "lat": 64.7, "lng": 97.7},
 ]
 
 # Convenience lookup derived from the roster.

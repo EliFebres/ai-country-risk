@@ -35,7 +35,8 @@ import os
 import pathlib
 import sys
 import time
-from typing import Any, Dict, List, Set, Tuple
+from contextlib import contextmanager
+from typing import Any, Dict, Iterator, List, Set, Tuple
 
 # --- Bootstrap (mirrors main.py; must precede the backend.* imports) ---------
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -51,6 +52,7 @@ import psycopg2
 
 from backend.utils import constants, pipeline
 from backend.utils.data_fetching import country_data_fetch
+from backend.utils.data_upsert import data_push
 
 log = logging.getLogger("live-check")
 
@@ -62,7 +64,9 @@ CORE_SCHEMA: List[Tuple[str, str]] = [
     ("country", """
         CREATE TABLE IF NOT EXISTS country (
             iso2  CHAR(2) PRIMARY KEY,
-            name  TEXT    NOT NULL
+            name  TEXT    NOT NULL,
+            lat   DOUBLE PRECISION,
+            lng   DOUBLE PRECISION
         );"""),
     ("indicator", """
         CREATE TABLE IF NOT EXISTS indicator (
@@ -125,12 +129,30 @@ def setup_logging(log_path: pathlib.Path) -> None:
         root.addHandler(handler)
 
 
-def connect():
-    """Open a psycopg2 connection, or fail loudly."""
+@contextmanager
+def connect() -> Iterator["psycopg2.extensions.connection"]:
+    """Open a short-lived psycopg2 connection, committing on clean exit.
+
+    Deliberately per-step rather than one connection for the whole run: the
+    pipeline phase can take several minutes (a first-time panel build hits the
+    World Bank for every indicator), and a managed Postgres like Neon drops an
+    idle connection well before that. Holding one open across the run made
+    verification fail with "SSL connection has been closed unexpectedly" while
+    the data it was meant to check sat in the database.
+    """
     url = os.getenv("DATABASE_URL")
     if not url:
         raise CheckFailed("DATABASE_URL is not set; cannot run the live check.")
-    return psycopg2.connect(url)
+    conn = psycopg2.connect(url)
+    try:
+        conn.autocommit = False
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def table_exists(cur, name: str) -> bool:
@@ -149,8 +171,7 @@ def ensure_schema(conn) -> List[str]:
             cur.execute(ddl)
             created.append(name)
             log.info("  schema: %-24s CREATED", name)
-    conn.commit()
-    return created
+    return created  # connect() commits on clean exit
 
 
 # --------------------------------------------------------------------------
@@ -213,14 +234,17 @@ def verify(conn, iso2: str, country_name: str, as_of: datetime.date) -> None:
 
     with conn.cursor() as cur:
         # -- country -------------------------------------------------------
-        cur.execute("SELECT iso2, name FROM country WHERE iso2 = %s", (iso2,))
+        cur.execute("SELECT iso2, name, lat, lng FROM country WHERE iso2 = %s", (iso2,))
         row = cur.fetchone()
         if not row:
             problems.append("country row missing")
         else:
-            log.info("  country            : %s / %s", row[0], row[1])
+            log.info("  country            : %s / %s  (lat=%s lng=%s)", *row)
             if row[1] != country_name:
                 problems.append(f"country name {row[1]!r} != expected {country_name!r}")
+            # Without coordinates the front-end drops the country from the map.
+            if row[2] is None or row[3] is None:
+                problems.append("country row has NULL lat/lng - it would not render on the map")
 
         # -- indicators ----------------------------------------------------
         cur.execute("SELECT count(*) FROM indicator")
@@ -363,7 +387,7 @@ def cleanup(conn, iso2: str, as_of: datetime.date, before: Dict[str, Any]) -> No
                 removed += cur.rowcount
         log.info("  deleted %d indicator row(s) (%d pre-existing kept)",
                  removed, len(before["indicator_ids"]))
-    conn.commit()
+    # connect() commits on clean exit
 
 
 def main() -> int:
@@ -393,17 +417,18 @@ def main() -> int:
     log.info("This calls the World Bank, Google News, publisher sites and OpenAI,")
     log.info("and writes to the real database. It costs one LLM call.")
 
-    conn = connect()
-    conn.autocommit = False
     created_tables: List[str] = []
     wrote_data = False
+    before: Dict[str, Any] = {}
     try:
         log.info("\n--- STEP 1: ensure core schema ---")
-        created_tables = ensure_schema(conn)
+        with connect() as conn:
+            created_tables = ensure_schema(conn)
         log.info("  tables created this run: %s", created_tables or "(none)")
 
         log.info("\n--- STEP 2: capture BEFORE state ---")
-        before = capture_state(conn, iso2, as_of)
+        with connect() as conn:
+            before = capture_state(conn, iso2, as_of)
         log_state("before", before)
 
         if before["snapshot_today"]:
@@ -429,6 +454,10 @@ def main() -> int:
             log.info("  panel built")
 
         log.info("\n--- STEP 4: run the real per-country pipeline ---")
+        # Seed this country's reference row (name + map position) exactly as a
+        # real run does, so the map-position path is exercised too.
+        data_push.upsert_countries([entry])
+        log.info("  seeded country row (lat=%s lng=%s)", entry["lat"], entry["lng"])
         pool: List[Dict] = []
         t0 = time.monotonic()
         pipeline._process_country(country_name, iso2, pool)
@@ -437,17 +466,20 @@ def main() -> int:
                  time.monotonic() - t0, len(pool))
 
         log.info("\n--- STEP 5: verify what landed in the database ---")
-        verify(conn, iso2, country_name, as_of)
+        with connect() as conn:
+            verify(conn, iso2, country_name, as_of)
 
         if args.keep:
             log.info("\n--- STEP 6: cleanup SKIPPED (--keep) ---")
             log.info("  %s's data for %s is still in the database.", iso2, as_of)
         else:
             log.info("\n--- STEP 6: delete exactly what this run added ---")
-            cleanup(conn, iso2, as_of, before)
+            with connect() as conn:
+                cleanup(conn, iso2, as_of, before)
 
             log.info("\n--- STEP 7: confirm we are back to the BEFORE state ---")
-            after = capture_state(conn, iso2, as_of)
+            with connect() as conn:
+                after = capture_state(conn, iso2, as_of)
             log_state("after ", after)
             drift = {k: (before[k], after[k]) for k in before if before[k] != after[k]}
             if drift:
@@ -470,13 +502,13 @@ def main() -> int:
         if wrote_data and not args.keep:
             log.warning("Attempting cleanup after failure so nothing is left behind...")
             try:
-                cleanup(conn, iso2, as_of, before)
+                # A fresh connection: the failure may well BE a dead connection.
+                with connect() as conn:
+                    cleanup(conn, iso2, as_of, before)
                 log.info("  post-failure cleanup done")
             except Exception:
                 log.exception("  post-failure cleanup ALSO failed - manual check needed")
         return 1
-    finally:
-        conn.close()
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ The **AI Country Risk Dashboard** is an open‑source web application that quan
 
 ### Features
 
-* **Data ingestion** – Downloads and formats World‑Bank macro‑economic indicators such as inflation, unemployment, political stability and other factors and stores them in per‑country panel datasets. The coverage universe currently includes 57 countries (see `COUNTRY_ROSTER` in `backend/utils/constants.py`). Sub‑annual prints (e.g. monthly/quarterly inflation) are refreshed from the **IMF** (SDMX 2.1) so fast‑moving economies aren't stuck on a year‑old annual figure, and the V‑Dem political‑corruption index is pulled from **Our World in Data (OWID)**.
+* **Data ingestion** – Downloads and formats World‑Bank macro‑economic indicators such as inflation, unemployment, political stability and other factors and stores them in per‑country panel datasets. The coverage universe is the MSCI Developed and Emerging Markets indices plus Russia — 48 countries. See [COUNTRY_COVERAGE.md](COUNTRY_COVERAGE.md) for the rule, the full list, and why other countries are excluded. Sub‑annual prints (e.g. monthly/quarterly inflation) are refreshed from the **IMF** (SDMX 2.1) so fast‑moving economies aren't stuck on a year‑old annual figure, and the V‑Dem political‑corruption index is pulled from **Our World in Data (OWID)**.
 * **Risk scoring** – Uses a large‑language model (OpenAI `gpt-4o-2024-08-06` via LangChain) to combine macro data and recent headlines into a single 0–1 risk score and a bullet‑point explanation. The AI prompt enforces hard rules around war, political stability and macro floors to ensure consistent scoring, and a YAML‑driven **sanctions / investability gate** pins un‑investable jurisdictions (e.g. Russia, Iran, North Korea, Cuba, occupied Ukrainian oblasts) to maximum risk.
 * **Live market & event feeds** – A standalone prices daemon polls **Financial Modeling Prep (FMP)** for live equity, bond‑yield, crypto and commodity quotes, a global **AI Alerts** feed re‑ranks every country's top headlines by importance to the world economy, and an AI‑ranked **economic calendar** surfaces the next ~14 days of major releases.
 * **Persistence** – Persists macro series, risk snapshots, alerts, calendar events and live prices into a Neon‑hosted PostgreSQL database using a transactional upsert strategy.
@@ -130,7 +130,7 @@ The `backend/.env` file is read by the ETL pipeline and the database upsert rout
  python backend/main.py
  ```
 
- The script loops over each country, builds the macro payload, fetches relevant news, calls the LLM to generate a risk score and bullet summary, and upserts the results into Postgres. Running the ETL for the 56‑country roster can take several minutes because the news fetcher throttles requests to stay under Google’s anonymous quota.
+ The script loops over each country, builds the macro payload, fetches relevant news, calls the LLM to generate a risk score and bullet summary, and upserts the results into Postgres. Running the ETL for the 48‑country roster can take several minutes because the news fetcher throttles requests to stay under Google’s anonymous quota.
 
 ### Frontend setup
 

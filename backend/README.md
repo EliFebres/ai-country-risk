@@ -55,7 +55,7 @@ pip install -r backend/requirements.txt
 python backend/main.py
 ```
 
-*Running the full ETL across the 57-country roster can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
+*Running the full ETL across the 48-country roster (see [COUNTRY_COVERAGE.md](../COUNTRY_COVERAGE.md)) can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
 
 ---
 
@@ -94,9 +94,15 @@ python -m pytest backend/tests -q
 ## Database schema (simplified)
 
 ```sql
+-- Seeded from constants.COUNTRY_ROSTER at the start of every run
+-- (data_push.upsert_countries). The front-end reads the country list, display
+-- names AND map marker positions from here, so it holds no country data of its
+-- own: adding a country to the roster is the only edit needed.
 CREATE TABLE country (
     iso2  CHAR(2) PRIMARY KEY,
-    name  TEXT      NOT NULL  -- canonical English name
+    name  TEXT      NOT NULL,  -- canonical English name
+    lat   DOUBLE PRECISION,    -- map marker latitude
+    lng   DOUBLE PRECISION     -- map marker longitude
 );
 
 CREATE TABLE indicator (

@@ -100,6 +100,68 @@ def _to_ts_or_none(s: Optional[str]) -> Optional[datetime.datetime]:
         return None
 
 
+# The `country` table is operator-provisioned (see backend/README.md), but the
+# map-position columns were added later, so bring an existing database up to
+# date without a migration tool.
+_COUNTRY_GEO_DDL = """
+ALTER TABLE country ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION;
+ALTER TABLE country ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION;
+"""
+
+
+def upsert_countries(roster: List[Dict[str, Any]]) -> None:
+    """Seed the `country` table from the roster: names and map positions.
+
+    This is reference data, not per-run output, so it is written once at the
+    start of a run rather than as a side effect of scoring. That matters for
+    two reasons: the front-end reads countries, display names and map marker
+    positions straight from this table (it holds no country list of its own),
+    and a country therefore appears on the map as soon as it is added to
+    ``constants.COUNTRY_ROSTER`` — before it has any risk snapshot.
+
+    Uses DO UPDATE rather than DO NOTHING so a renamed country or a corrected
+    coordinate actually propagates on the next run.
+
+    Args:
+        roster: ``constants.COUNTRY_ROSTER`` entries; each needs ``iso2``,
+            ``name``, ``lat`` and ``lng``.
+
+    Raises:
+        ValueError: if an entry is missing one of those fields — a silent skip
+            here would strand a country off the map with no obvious cause.
+    """
+    _require_db_url()  # fail fast even when there is nothing to write
+    if not roster:
+        return
+
+    rows: List[Tuple] = []
+    for entry in roster:
+        missing = [k for k in ("iso2", "name", "lat", "lng") if entry.get(k) is None]
+        if missing:
+            raise ValueError(
+                f"roster entry {entry.get('iso2') or entry!r} is missing {missing}; "
+                "every country needs iso2/name/lat/lng to render on the map"
+            )
+        rows.append((entry["iso2"], entry["name"], float(entry["lat"]), float(entry["lng"])))
+
+    with _transaction() as cur:
+        cur.execute(_COUNTRY_GEO_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO country (iso2, name, lat, lng)
+            VALUES %s
+            ON CONFLICT (iso2)
+            DO UPDATE SET
+              name = EXCLUDED.name,
+              lat  = EXCLUDED.lat,
+              lng  = EXCLUDED.lng
+            """,
+            rows,
+            page_size=100,
+        )
+
+
 class _SnapshotData(NamedTuple):
     """Validated fields pulled out of an upsert_snapshot payload."""
     country: str

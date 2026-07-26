@@ -38,9 +38,10 @@ load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv()  # also pick up a repo-root/cwd .env, without overriding
 
 # --- Internal Imports --------------------------------------------------------
-from backend.utils import pipeline
+from backend.utils import constants, pipeline
 from backend.utils.dates import utc_minute_iso
 from backend.utils.data_fetching import country_data_fetch
+from backend.utils.data_upsert import data_push
 
 logger = logging.getLogger("main")
 
@@ -49,7 +50,8 @@ def main() -> None:
     """Run the full daily ETL, in order."""
     logger.info("=== AI Country Risk run started at %s UTC ===", utc_minute_iso(datetime.now(timezone.utc)))
 
-    country_data_fetch.backfill_missing_panels()   # 0)  macro panels (incremental)
+    data_push.upsert_countries(constants.COUNTRY_ROSTER)  # 0)  seed the roster
+    country_data_fetch.backfill_missing_panels()   # 0a) macro panels (incremental)
     pipeline.refresh_calendar()                    # 0b) econ calendar + AI ranking
     pipeline.refresh_imf_indicators()              # 0c) fresher-than-annual indicators
     pool = pipeline.process_all_countries()        # 1-7) per-country risk snapshots
