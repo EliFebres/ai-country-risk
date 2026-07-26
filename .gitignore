@@ -56,6 +56,9 @@ venv.bak/
 # Other
 backend/data/wb_panel_wide
 
+# Output of backend/tests/live_country_check.py
+live_check_*.log
+
 # Allow the example env files
 !backend/.env.example
 !frontend/.env.example
