@@ -157,6 +157,10 @@ class PolicyResult(NamedTuple):
     subscores: Dict[str, Optional[float]]
     applied_rules: List[str]
     gate_note: Optional[str]
+    # The triggering rule itself — ``{name, rule, sources}`` — when the gate
+    # fired, so a stored 1.0 carries the instrument that forced it and not just
+    # the country's name in ``applied_rules``. None when no gate applied.
+    legal_gate: Optional[Dict] = None
 
 
 def _as_float(value) -> Optional[float]:
@@ -217,8 +221,10 @@ def apply_policy(
             opinion of it. A missing indicator just means no tier fires.
 
     Returns:
-        A :class:`PolicyResult`. The inputs are never mutated: the caller is
-        persisting the raw dicts alongside these gated ones.
+        A :class:`PolicyResult`, including ``legal_gate`` — the triggering
+        sanctions rule when one fired, for the caller to persist. The inputs are
+        never mutated: the caller is persisting the raw dicts alongside these
+        gated ones.
     """
     # Order matters, and it is:
     #   1. condition-flag floors (war, then internal conflict — highest wins)
@@ -315,4 +321,5 @@ def apply_policy(
         subscores=subs,
         applied_rules=applied,
         gate_note=gate_note,
+        legal_gate=gate,
     )

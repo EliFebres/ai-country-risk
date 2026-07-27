@@ -1,0 +1,234 @@
+"""What the model saw: the input manifest stored with every risk snapshot.
+
+A stored score used to be unreproducible. The row said 0.62 and nothing else —
+not which articles the scorer read, not whether it read them in full, not which
+vintage of the macro panel it was reasoning over. Re-running the same day a week
+later could give a different number for reasons nothing recorded.
+
+This module builds the record that closes that gap: per article, a hash of the
+body we held and a hash of the exact text the prompt carried, plus the macro
+panel's vintage and the model/prompt/policy stamps. Hashes rather than copies —
+the point is to *detect* that an input changed, and the article bodies
+themselves are already in ``article_digest``.
+
+Everything here is a pure function: no database, no network, no clock. Times and
+versions arrive as arguments, so a manifest can be rebuilt for a historical
+``as_of`` and unit-tested without either dependency. That purity is also why the
+content rule below is spelled out rather than imported from ``digest_engine``.
+
+Nothing here may raise into the pipeline: provenance is metadata, not the
+product. Malformed inputs degrade to None fields, and the one caller
+(``pipeline._process_country``) wraps the whole assembly anyway.
+"""
+
+import hashlib
+import json
+import os
+from typing import Any, Dict, Iterable, List, Optional
+
+# Stamped into every manifest. Bump when the manifest's *shape* changes, so a
+# reader can tell a missing field from a field that never existed.
+_SCHEMA_VERSION = 1
+
+# How the macro panel this snapshot consumed relates to real point-in-time data.
+# "as-published-latest" means: latest published values, silently revised by the
+# World Bank over time. Phase B's first-release panel writes "first-release"
+# here, and Phase E can then filter out ratings built on revised numbers — a
+# literal string a query can test, rather than a comment nobody can.
+_VINTAGE_SCHEME = "as-published-latest"
+
+
+def text_sha256(text: Optional[str]) -> Optional[str]:
+    """SHA-256 hex digest of ``text``, UTF-8 encoded.
+
+    Args:
+        text: the string to hash, or None.
+
+    Returns:
+        The hex digest, or None for None/empty input — "no text" and "the hash
+        of the empty string" are different facts, and only the first is true.
+    """
+    if not text:
+        return None
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _canonical_json(value: Any) -> Optional[str]:
+    """Serialize ``value`` for hashing, key order normalized.
+
+    ``sort_keys`` matters: two runs that built the same prompt entry from
+    differently-ordered dicts must hash identically, or every re-run would look
+    like the inputs changed.
+    """
+    if value is None:
+        return None
+    try:
+        return json.dumps(value, sort_keys=True, ensure_ascii=False, default=str)
+    except (TypeError, ValueError):
+        return None
+
+
+def article_manifest_entry(item: Dict,
+                           prompt_entry: Optional[Dict] = None,
+                           *,
+                           in_fulltext: bool = False) -> Dict[str, Any]:
+    """One article's provenance record.
+
+    Two hashes, because "what we had" and "what the model read" are different
+    questions and the gap between them is the interesting one:
+    ``content_sha256`` proves which body was available, ``prompt_text_sha256``
+    proves which bytes reached the prompt.
+
+    Args:
+        item: an article dict at LLM time — carrying ``id`` (assigned in
+            ``pipeline._process_country``), ``link``, ``source``, ``published``,
+            and a body under ``content`` and/or ``text``.
+        prompt_entry: this article's entry from
+            ``langchain_llm.prompt_entries``, or None if the prompt never
+            carried it. Its presence *is* ``in_prompt`` — deriving the flag from
+            the hashed object means the two can never disagree.
+        in_fulltext: whether the prompt carried the article's full text as well
+            as its digest (``digest_engine.select_fulltext_ids``).
+
+    Returns:
+        A JSON-serializable dict. Never raises on a malformed item: missing
+        fields come back as None.
+    """
+    # `content` (fallback scraper) or `text` (trafilatura), whichever exists.
+    # `digest_engine.article_input_text` prefers the *longer* of the two, so on
+    # an article carrying both this hash may cover the shorter body. Accepted:
+    # importing that module would pull langchain and psycopg2 into a module
+    # whose whole value is being dependency-free.
+    body = item.get("content") or item.get("text") or ""
+    if not isinstance(body, str):
+        body = ""
+
+    return {
+        "id": item.get("id") or None,
+        # `link` rather than `publisher_link`: `resolve_and_enrich` overwrites
+        # `link` with the resolved publisher URL, and it is the same value
+        # `risk_snapshot_article.url` stores — so the manifest joins to the
+        # article rows. `publisher_link` is the pre-resolution fallback.
+        "url": item.get("link") or item.get("publisher_link") or None,
+        "source": item.get("source") or None,
+        # The item key is `published`; `published_at` only exists on output rows.
+        "published_at": item.get("published") or None,
+        "content_sha256": text_sha256(body),
+        "prompt_text_sha256": text_sha256(_canonical_json(prompt_entry)),
+        "content_chars": len(body),
+        "in_prompt": prompt_entry is not None,
+        "in_fulltext": bool(in_fulltext),
+    }
+
+
+def build_article_manifest(items: List[Dict],
+                           prompt_entries: Optional[List[Dict]] = None,
+                           fulltext_ids: Iterable[str] = ()) -> List[Dict[str, Any]]:
+    """A manifest entry for every fetched article, in fetch order.
+
+    Every article is recorded, not only the ones the model read: "we had this
+    and did not use it" is itself a fact a later model may want.
+
+    Args:
+        items: the country's article dicts at LLM time.
+        prompt_entries: ``langchain_llm.prompt_entries(items)`` — matched to
+            items by id.
+        fulltext_ids: ids whose full text the prompt carried.
+
+    Returns:
+        One entry per dict in ``items``; non-dict entries are skipped rather
+        than raising.
+    """
+    by_id = {e.get("id"): e for e in (prompt_entries or []) if isinstance(e, dict) and e.get("id")}
+    full = set(fulltext_ids or ())
+    return [
+        article_manifest_entry(it, by_id.get(it.get("id")), in_fulltext=it.get("id") in full)
+        for it in (items or []) if isinstance(it, dict)
+    ]
+
+
+def _latest_year_of(series: Any) -> Optional[int]:
+    """The newest year in one indicator's ``series`` that actually has a value."""
+    if not isinstance(series, dict):
+        return None
+    years = []
+    for year, value in series.items():
+        if value is None:
+            continue
+        try:
+            years.append(int(year))
+        except (TypeError, ValueError):
+            continue
+    return max(years) if years else None
+
+
+def macro_vintages(payload: Dict) -> Dict[str, Any]:
+    """Vintage metadata for the macro panel this snapshot consumed.
+
+    Full point-in-time macro is Phase B. What is knowable now is when the panel
+    was generated and how recent each indicator's last observation is — enough
+    to tell later whether a rating was built on a stale or a fresh panel.
+
+    Args:
+        payload: the dict from ``data_retrieval.prepare_llm_payload_pretty``.
+
+    Returns:
+        A dict that always carries ``vintage_scheme``; the rest degrades to None
+        when the payload has no ``_meta`` (an older or hand-built payload).
+    """
+    payload = payload if isinstance(payload, dict) else {}
+    meta = payload.get("_meta") if isinstance(payload.get("_meta"), dict) else {}
+    indicators = payload.get("indicators") if isinstance(payload.get("indicators"), dict) else {}
+
+    return {
+        "vintage_scheme": _VINTAGE_SCHEME,
+        "panel_source": meta.get("source"),
+        "panel_generated_at": meta.get("generated_at"),
+        # Panel-wide newest year, as the payload reports it.
+        "latest_year": payload.get("latest_year"),
+        # Per indicator, because they lag by different amounts and an average of
+        # 2025 CPI with 2021 governance is not the same evidence as all-2025.
+        "latest_year_by_indicator": {
+            name: _latest_year_of((data or {}).get("series"))
+            for name, data in indicators.items() if isinstance(data, dict)
+        },
+    }
+
+
+def build_input_manifest(*,
+                         items: List[Dict],
+                         prompt_entries: Optional[List[Dict]] = None,
+                         fulltext_ids: Iterable[str] = (),
+                         payload: Dict,
+                         model_id: Optional[str],
+                         prompt_version: Optional[str],
+                         policy_version: Optional[str],
+                         seed: Optional[int]) -> Dict[str, Any]:
+    """Everything one snapshot needs to be reproducible.
+
+    Args:
+        items: the country's article dicts at LLM time.
+        prompt_entries: ``langchain_llm.prompt_entries(items)``.
+        fulltext_ids: ids whose full text the prompt carried.
+        payload: the macro payload the prompt carried.
+        model_id: the scoring model, from the LLM result's own stamp rather than
+            from the client — so the manifest records the model that answered.
+        prompt_version: ``ai.constants.PROMPT_VERSION`` at call time.
+        policy_version: ``ai.policy.POLICY_VERSION`` at call time.
+        seed: the determinism seed (``ai.client.SEED``).
+
+    Returns:
+        The dict stored in ``risk_snapshot.input_manifest``. ``git_sha`` comes
+        from the ``GIT_SHA`` environment variable and is None when unset — this
+        never shells out to git, which would make the module impure and slow.
+    """
+    return {
+        "schema_version": _SCHEMA_VERSION,
+        "articles": build_article_manifest(items, prompt_entries, fulltext_ids),
+        "macro_vintages": macro_vintages(payload),
+        "model_id": model_id,
+        "prompt_version": prompt_version,
+        "policy_version": policy_version,
+        "seed": seed,
+        "git_sha": os.environ.get("GIT_SHA") or None,
+    }

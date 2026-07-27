@@ -22,8 +22,9 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
-from backend.utils import constants, data_retrieval
+from backend.utils import constants, data_retrieval, provenance
 from backend.utils.ai import alerts_ranker, calendar_ranker, digest_engine, langchain_llm
+from backend.utils.ai import client as ai_client
 from backend.utils.data_fetching import fmp_calendar_fetch, imf_macro_fetch
 from backend.utils.data_upsert import data_push
 from backend.utils.news_fetching import article_enrichment, article_ranking
@@ -153,6 +154,25 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         fulltext_ids=fulltext_ids,
     )
 
+    # 3b) Provenance: hash what the model actually saw, so this row can be
+    #     reproduced (or found to be irreproducible) later. Provenance is
+    #     metadata, not the product — a bug in assembling it must never cost the
+    #     country its score, so it degrades to NULL and the snapshot still writes.
+    try:
+        input_manifest = provenance.build_input_manifest(
+            items=items,
+            prompt_entries=langchain_llm.prompt_entries(items),
+            fulltext_ids=fulltext_ids,
+            payload=payload,
+            model_id=llm_output.get("model_id"),
+            prompt_version=llm_output.get("prompt_version"),
+            policy_version=llm_output.get("policy_version"),
+            seed=ai_client.SEED,
+        )
+    except Exception:
+        logger.exception("[%s] provenance manifest failed; writing the snapshot without it", iso2)
+        input_manifest = None
+
     # 4) Rank and select Top-3 using AI's TOPIC CLUSTERING, with guaranteed length=3
     imp_map, topic_map = article_ranking.impact_topic_maps(llm_output)
     items_by_id = {it.get("id"): it for it in items if isinstance(it, dict) and it.get("id")}
@@ -170,7 +190,8 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
 
     # 7) Upsert to DB
     data_push.upsert_snapshot(
-        {**payload, "llm_output": llm_output, "top_articles": top_articles},
+        {**payload, "llm_output": llm_output, "top_articles": top_articles,
+         "input_manifest": input_manifest},
         country_name=country_name
     )
 

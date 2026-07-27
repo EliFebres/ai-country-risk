@@ -19,6 +19,11 @@ MODEL_NAME = "gpt-4o-2024-08-06"
 # cached and fresh digests incomparable.
 DIGEST_MODEL_NAME = "gpt-4o-mini-2024-07-18"
 
+# The determinism seed both models run with. Named so the provenance manifest
+# can stamp the value actually used instead of repeating the literal elsewhere;
+# changing it makes new scores incomparable with every stored one.
+SEED = 42
+
 
 def build_chat(api_key: str) -> ChatOpenAI:
     """A ChatOpenAI configured for deterministic, non-retrying scoring calls."""
@@ -27,7 +32,7 @@ def build_chat(api_key: str) -> ChatOpenAI:
         temperature=0.0,
         max_retries=0,
         api_key=api_key,
-        seed=42,
+        seed=SEED,
     )
 
 
@@ -38,7 +43,7 @@ def build_digest_chat(api_key: str) -> ChatOpenAI:
         temperature=0.0,
         max_retries=0,
         api_key=api_key,
-        seed=42,
+        seed=SEED,
     )
 
 

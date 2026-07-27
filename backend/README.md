@@ -161,11 +161,36 @@ CREATE TABLE recent_indicator (
     PRIMARY KEY (country_iso2, indicator)
 );
 
+-- Only the first four columns need provisioning: `data_push.upsert_snapshot`
+-- issues `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` for the rest once per
+-- process, so an existing database comes up to date on the next run. `score` is
+-- the gated 12-month score (0-1) the front-end reads; everything below it is
+-- additive research detail, all nullable.
 CREATE TABLE risk_snapshot (
     country_iso2   CHAR(2) REFERENCES country(iso2),
     as_of          DATE,
     score          DOUBLE PRECISION,
     bullet_summary TEXT,
+
+    -- Added by the perception/policy split: both horizons, raw and gated.
+    score_3m          DOUBLE PRECISION,
+    raw_score_12m     DOUBLE PRECISION,  -- the model's own score, pre-policy
+    raw_score_3m      DOUBLE PRECISION,
+    subscores         JSONB,             -- gated sub-factor scores
+    raw_subscores     JSONB,
+    subscore_evidence JSONB,
+    condition_flags   JSONB,             -- war / conflict / emergency / stress
+    article_scores    JSONB,             -- EVERY article's impact + topic_group
+    applied_rules     JSONB,             -- which floors/caps/gates fired
+    evidence_coverage DOUBLE PRECISION,
+    legal_gate        JSONB,             -- the sanctions rule that forced a 1.0
+
+    -- Provenance: what produced this row, and what it saw.
+    model_id       TEXT,
+    prompt_version TEXT,
+    policy_version TEXT,
+    input_manifest JSONB,                -- per-article hashes + macro vintage
+
     PRIMARY KEY (country_iso2, as_of)
 );
 

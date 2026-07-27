@@ -22,7 +22,7 @@ import os
 import json
 import logging
 from datetime import date
-from typing import Any, List, Dict, Optional, Tuple
+from typing import Any, List, Dict, Optional, Set, Tuple
 
 from langchain_core.messages import SystemMessage
 
@@ -60,21 +60,36 @@ def _legacy_entry(it: Dict) -> Dict:
     }
 
 
-def _digests_to_json(items: List[Dict]) -> str:
-    """Serialize EVERY item for the prompt's ARTICLE_DIGESTS_JSON block.
+def prompt_entries(articles: List[Dict]) -> List[Dict]:
+    """The per-article dicts the scoring prompt carries, in prompt order.
+
+    The single representation of "which articles reached the model, and as what
+    text". Three consumers read it: the prompt string itself
+    (``_digests_to_json``), ``prompt_article_ids``, and the provenance manifest,
+    which hashes each entry — so the recorded hash is of the bytes the model
+    actually saw, and the recorded id set can never drift from it.
+
+    Every article's digest reaches the model. Items whose stage-1 digest failed
+    (``digest is None``) fall back to the legacy title+summary shape, so the
+    scorer still sees them, just with less depth. If stage 1 produced no digest
+    at all, the whole prompt falls back to that shape and to the first
+    ``_MAX_PROMPT_ARTICLES`` items — the pre-digest behavior, kept so one
+    country still scores when stage 1 is down.
 
     Ids are taken verbatim from ``item["id"]`` (single-sourced from the
-    pipeline — never re-derived by position). Items whose stage-1 digest
-    failed (``digest is None``) fall back to the legacy title+summary shape,
-    so the scorer still sees them, just with less depth.
+    pipeline — never re-derived by position). Non-dict entries are dropped.
 
     Args:
-        items: article dicts, each carrying ``id`` and (if stage 1 succeeded)
-            ``digest`` and ``stage1_severity``.
+        articles: article dicts, each carrying ``id`` and (if stage 1
+            succeeded) ``digest`` and ``stage1_severity``.
 
     Returns:
-        A JSON array string covering all ``items``.
+        One normalized dict per article that reaches the prompt.
     """
+    items = [it for it in articles if isinstance(it, dict)]
+    if not any(isinstance(it.get("digest"), dict) for it in items):
+        return [_legacy_entry(it) for it in items[:_MAX_PROMPT_ARTICLES]]
+
     norm = []
     for it in items:
         digest = it.get("digest")
@@ -89,7 +104,17 @@ def _digests_to_json(items: List[Dict]) -> str:
             })
         else:
             norm.append(_legacy_entry(it))
-    return json.dumps(norm, ensure_ascii=False)
+    return norm
+
+
+def prompt_article_ids(articles: List[Dict]) -> Set[str]:
+    """Ids of the articles that reached the prompt, per ``prompt_entries``."""
+    return {e["id"] for e in prompt_entries(articles) if e.get("id")}
+
+
+def _digests_to_json(items: List[Dict]) -> str:
+    """Serialize the prompt's ARTICLE_DIGESTS_JSON block."""
+    return json.dumps(prompt_entries(items), ensure_ascii=False)
 
 
 def _fulltext_block(items: List[Dict], fulltext_ids: List[str]) -> str:
@@ -180,6 +205,7 @@ def _failure_result() -> Dict[str, object]:
         "condition_flags": {},
         "evidence_coverage": None,
         "applied_rules": [],
+        "legal_gate": None,
         "model_id": ai_client.MODEL_NAME,
         "prompt_version": ai_constants.PROMPT_VERSION,
         "policy_version": policy.POLICY_VERSION,
@@ -229,7 +255,9 @@ def country_llm_score(
         driving Top-3 selection). Alongside them: ``score_3m`` (gated),
         ``raw_score_12m``/``raw_score_3m``/``raw_subscores`` (exactly what the
         model said, before any floor, cap or gate), ``subscore_evidence``,
-        ``condition_flags``, ``evidence_coverage``, ``applied_rules``, and the
+        ``condition_flags``, ``evidence_coverage``, ``applied_rules``,
+        ``legal_gate`` (the triggering sanctions rule — ``{name, rule,
+        sources}`` — or None), and the
         ``model_id``/``prompt_version``/``policy_version`` stamps.
 
         ``score`` is None if the call failed (missing key, network, or a
@@ -264,22 +292,20 @@ def country_llm_score(
     iso2 = _extract_iso2_and_asof(payload)[0]
 
     evidence_json = json.dumps(payload, ensure_ascii=False)
+    article_digests_json = _digests_to_json(articles)
     has_digests = any(isinstance(it.get("digest"), dict) for it in articles if isinstance(it, dict))
     if has_digests or not articles:
         # No articles at all is not a stage-1 failure — it serializes to an
         # empty list and an empty FULL_TEXT block, same as it always did.
-        article_digests_json = _digests_to_json(articles)
         fulltext_block = _fulltext_block(articles, fulltext_ids or [])
     else:
         # Country-level fallback: articles exist but stage 1 produced nothing
-        # (stage down, no API key). Score anyway from the legacy title+summary
-        # prompt — one country's scoring must never die because stage 1 did.
+        # (stage down, no API key). `prompt_entries` has already degraded the
+        # digest block to the legacy title+summary shape; there is no digest to
+        # pick full-text reading from either, so skip that block — one country's
+        # scoring must never die because stage 1 did.
         logger.error("[%s] no stage-1 digests for %d articles; falling back to the legacy prompt",
                      iso2 or country_display, len(articles))
-        article_digests_json = json.dumps(
-            [_legacy_entry(it) for it in articles[:_MAX_PROMPT_ARTICLES] if isinstance(it, dict)],
-            ensure_ascii=False,
-        )
         fulltext_block = "(none)"
     prompt = ai_constants.AI_PROMPT_V2.format(
         country=country_display,
@@ -347,6 +373,7 @@ def country_llm_score(
         "condition_flags": condition_flags,
         "evidence_coverage": evidence_coverage,
         "applied_rules": enforced.applied_rules,
+        "legal_gate": enforced.legal_gate,
         "model_id": ai_client.MODEL_NAME,
         "prompt_version": ai_constants.PROMPT_VERSION,
         "policy_version": policy.POLICY_VERSION,

@@ -67,3 +67,44 @@ class TestExtractIso2AndAsof:
     def test_lowercase_uppercased(self):
         iso2, _ = llm._extract_iso2_and_asof({"country": "de"})
         assert iso2 == "DE"
+
+
+class TestPromptArticleIds:
+    """The one representation of "which articles reached the prompt".
+
+    The provenance manifest hashes the same entries this derives its ids from,
+    so if these two ever disagree a stored manifest would claim the model read
+    something it never saw.
+    """
+
+    def _items(self, count, with_digest):
+        return [
+            {"id": f"a{i}", "title": f"t{i}", "summary": "s",
+             **({"digest": {"facts": []}} if with_digest else {})}
+            for i in range(1, count + 1)
+        ]
+
+    def test_digest_path_sends_every_article(self):
+        items = self._items(15, with_digest=True)
+        assert llm.prompt_article_ids(items) == {f"a{i}" for i in range(1, 16)}
+
+    def test_legacy_fallback_caps_at_max_prompt_articles(self):
+        items = self._items(15, with_digest=False)
+        got = llm.prompt_article_ids(items)
+        assert got == {f"a{i}" for i in range(1, llm._MAX_PROMPT_ARTICLES + 1)}
+        assert len(got) == llm._MAX_PROMPT_ARTICLES
+
+    def test_one_digest_is_enough_to_take_the_digest_path(self):
+        # A single successful stage-1 digest means every article is sent, the
+        # ones without a digest in their legacy shape.
+        items = self._items(12, with_digest=False)
+        items[3]["digest"] = {"facts": []}
+        assert len(llm.prompt_article_ids(items)) == 12
+
+    def test_no_articles(self):
+        assert llm.prompt_article_ids([]) == set()
+
+    def test_matches_the_prompt_entries_it_derives_from(self):
+        items = self._items(4, with_digest=True)
+        entries = llm.prompt_entries(items)
+        assert llm.prompt_article_ids(items) == {e["id"] for e in entries}

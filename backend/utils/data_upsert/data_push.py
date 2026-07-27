@@ -188,10 +188,16 @@ class _SnapshotData(NamedTuple):
     article_scores: Optional[List[Dict[str, Any]]] = None
     applied_rules: Optional[List[str]] = None
     evidence_coverage: Optional[float] = None
+    # The sanctions rule that forced a 1.0, with its citations, or None.
+    legal_gate: Optional[Dict[str, Any]] = None
     # Provenance: which model, prompt and policy produced this row.
     model_id: Optional[str] = None
     prompt_version: Optional[str] = None
     policy_version: Optional[str] = None
+    # What the model saw: per-article hashes and the macro panel's vintage
+    # (``provenance.build_input_manifest``). Payload-level, not part of
+    # ``llm_output`` — it describes the inputs, not the model's answer.
+    input_manifest: Optional[Dict[str, Any]] = None
 
 
 class _ArticleRow(NamedTuple):
@@ -256,6 +262,13 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
     if not isinstance(top_articles, list):
         top_articles = []
 
+    # Optional and non-fatal by design: the pipeline passes None when manifest
+    # assembly failed, and a payload from before provenance existed has no key
+    # at all. Either way the snapshot still writes.
+    input_manifest = payload.get("input_manifest")
+    if not isinstance(input_manifest, dict):
+        input_manifest = None
+
     return _SnapshotData(
         country=country,
         as_of=as_of,
@@ -275,9 +288,11 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
         article_scores=llm_out.get("news_article_scores"),
         applied_rules=llm_out.get("applied_rules"),
         evidence_coverage=llm_out.get("evidence_coverage"),
+        legal_gate=llm_out.get("legal_gate"),
         model_id=llm_out.get("model_id"),
         prompt_version=llm_out.get("prompt_version"),
         policy_version=llm_out.get("policy_version"),
+        input_manifest=input_manifest,
     )
 
 
@@ -299,7 +314,9 @@ ALTER TABLE risk_snapshot
   ADD COLUMN IF NOT EXISTS evidence_coverage DOUBLE PRECISION,
   ADD COLUMN IF NOT EXISTS model_id          TEXT,
   ADD COLUMN IF NOT EXISTS prompt_version    TEXT,
-  ADD COLUMN IF NOT EXISTS policy_version    TEXT;
+  ADD COLUMN IF NOT EXISTS policy_version    TEXT,
+  ADD COLUMN IF NOT EXISTS legal_gate        JSONB,
+  ADD COLUMN IF NOT EXISTS input_manifest    JSONB;
 """
 
 # ALTER TABLE takes an ACCESS EXCLUSIVE lock even when every column already
@@ -361,11 +378,14 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
     Optional:
       - top_articles: list of dicts with
           {rank, url, title, source, published_at (ISO), impact, summary, image?}
+      - input_manifest: ``provenance.build_input_manifest`` output — what the
+        model saw. None (or absent) writes NULL without touching a manifest a
+        previous run of the same day already stored.
       - the rest of ``llm_output`` (score_3m, raw_score_*, raw_subscores,
         subscore_evidence, condition_flags, news_article_scores, applied_rules,
-        evidence_coverage, model_id, prompt_version, policy_version). Absent
-        keys write NULL, so a payload from before the perception/policy split
-        still upserts.
+        evidence_coverage, legal_gate, model_id, prompt_version,
+        policy_version). Absent keys write NULL, so a payload from before the
+        perception/policy split still upserts.
     """
     global _risk_snapshot_ddl_done
 
@@ -434,34 +454,43 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
         #    the gated 12-month score on the 0-1 scale — the front-end reads
         #    it and its meaning has not changed. Everything else is additive:
         #    the raw scores the model gave before policy, the sub-factor detail
-        #    behind them, and which model/prompt/policy produced the row.
+        #    behind them, which model/prompt/policy produced the row, and what
+        #    the model saw when it did (`input_manifest`).
+        #
+        #    `score` and `bullet_summary` overwrite plainly — the newest run's
+        #    assessment is the current one, deliberately. Every detail column
+        #    COALESCEs instead: a re-run that lost a field (LLM failure,
+        #    provenance bug) must not blank the good value a previous run of the
+        #    same day already stored.
         cur.execute(
             """
             INSERT INTO risk_snapshot (
               country_iso2, as_of, score, bullet_summary,
               score_3m, raw_score_12m, raw_score_3m,
               subscores, raw_subscores, subscore_evidence, condition_flags,
-              article_scores, applied_rules, evidence_coverage,
-              model_id, prompt_version, policy_version
+              article_scores, applied_rules, evidence_coverage, legal_gate,
+              model_id, prompt_version, policy_version, input_manifest
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (country_iso2, as_of)
             DO UPDATE SET
               score             = EXCLUDED.score,
               bullet_summary    = EXCLUDED.bullet_summary,
-              score_3m          = EXCLUDED.score_3m,
-              raw_score_12m     = EXCLUDED.raw_score_12m,
-              raw_score_3m      = EXCLUDED.raw_score_3m,
-              subscores         = EXCLUDED.subscores,
-              raw_subscores     = EXCLUDED.raw_subscores,
-              subscore_evidence = EXCLUDED.subscore_evidence,
-              condition_flags   = EXCLUDED.condition_flags,
-              article_scores    = EXCLUDED.article_scores,
-              applied_rules     = EXCLUDED.applied_rules,
-              evidence_coverage = EXCLUDED.evidence_coverage,
-              model_id          = EXCLUDED.model_id,
-              prompt_version    = EXCLUDED.prompt_version,
-              policy_version    = EXCLUDED.policy_version
+              score_3m          = COALESCE(EXCLUDED.score_3m,          risk_snapshot.score_3m),
+              raw_score_12m     = COALESCE(EXCLUDED.raw_score_12m,     risk_snapshot.raw_score_12m),
+              raw_score_3m      = COALESCE(EXCLUDED.raw_score_3m,      risk_snapshot.raw_score_3m),
+              subscores         = COALESCE(EXCLUDED.subscores,         risk_snapshot.subscores),
+              raw_subscores     = COALESCE(EXCLUDED.raw_subscores,     risk_snapshot.raw_subscores),
+              subscore_evidence = COALESCE(EXCLUDED.subscore_evidence, risk_snapshot.subscore_evidence),
+              condition_flags   = COALESCE(EXCLUDED.condition_flags,   risk_snapshot.condition_flags),
+              article_scores    = COALESCE(EXCLUDED.article_scores,    risk_snapshot.article_scores),
+              applied_rules     = COALESCE(EXCLUDED.applied_rules,     risk_snapshot.applied_rules),
+              evidence_coverage = COALESCE(EXCLUDED.evidence_coverage, risk_snapshot.evidence_coverage),
+              legal_gate        = COALESCE(EXCLUDED.legal_gate,        risk_snapshot.legal_gate),
+              model_id          = COALESCE(EXCLUDED.model_id,          risk_snapshot.model_id),
+              prompt_version    = COALESCE(EXCLUDED.prompt_version,    risk_snapshot.prompt_version),
+              policy_version    = COALESCE(EXCLUDED.policy_version,    risk_snapshot.policy_version),
+              input_manifest    = COALESCE(EXCLUDED.input_manifest,    risk_snapshot.input_manifest)
             """,
             (
                 data.country, data.as_of,
@@ -474,7 +503,9 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                 _json_or_none(data.article_scores),
                 _json_or_none(data.applied_rules),
                 data.evidence_coverage,
+                _json_or_none(data.legal_gate),
                 data.model_id, data.prompt_version, data.policy_version,
+                _json_or_none(data.input_manifest),
             ),
         )
 
