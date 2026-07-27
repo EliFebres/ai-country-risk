@@ -19,6 +19,7 @@ key) so a single country's gap or an IMF outage never aborts the surrounding run
 (mirrors ``political_corruption_fetch`` and ``fetch_metrics`` returning empty).
 """
 
+import calendar
 import logging
 import datetime as _dt
 from typing import Optional, Tuple, Dict, Any
@@ -40,6 +41,11 @@ def _localname(tag: str) -> str:
     return tag.rsplit("}", 1)[-1]
 
 
+def _end_of_month(year: int, month: int) -> _dt.date:
+    """Last calendar day of ``month`` in ``year``."""
+    return _dt.date(year, month, calendar.monthrange(year, month)[1])
+
+
 def _period_to_date(time_period: str) -> Optional[_dt.date]:
     """Convert an SDMX ``TIME_PERIOD`` to an end-of-period calendar date.
 
@@ -57,16 +63,13 @@ def _period_to_date(time_period: str) -> Optional[_dt.date]:
             y, m = int(y_str), int(m_str)
             if not 1 <= m <= 12:
                 return None
-            return (_dt.date(y, 12, 31) if m == 12
-                    else _dt.date(y, m + 1, 1) - _dt.timedelta(days=1))
+            return _end_of_month(y, m)
         if "-Q" in tp:
             y_str, q_str = tp.split("-Q")
             y, q = int(y_str), int(q_str)
             if not 1 <= q <= 4:
                 return None
-            end_month = q * 3
-            return (_dt.date(y, 12, 31) if end_month == 12
-                    else _dt.date(y, end_month + 1, 1) - _dt.timedelta(days=1))
+            return _end_of_month(y, q * 3)
         if tp.isdigit():
             return _dt.date(int(tp), 12, 31)
     except Exception:  # noqa: BLE001 - any malformed period degrades to None

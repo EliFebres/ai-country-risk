@@ -91,7 +91,7 @@ Queries live in `app/lib/risk-server.ts` (`server-only`), which uses a process-w
 - `economic_calendar_event` — upcoming events (with AI importance) feeding the Econ Calendar pane
 - `market_price` / `price_reference` — live prices + 1Q/YTD reference closes feeding the Prices pane
 
-Map positions are resolved from the static lookup in `app/lib/country-coords.ts` (by ISO2/name). Countries with no known position are skipped on the map.
+Map positions come from the database (`country.lat` / `country.lng`), seeded from the backend roster in `backend/utils/constants.py`. The frontend holds no country list of its own — adding a country to that roster makes it appear here with no frontend change. A country whose row has no coordinates is skipped on the map.
 
 ## Placeholder / Seed Features
 

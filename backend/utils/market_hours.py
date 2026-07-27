@@ -7,14 +7,23 @@ US equities follow the NYSE regular session; commodity futures follow the CME
 Globex window. Sovereign yields are not gated here — the daemon refreshes them
 once per day.
 
-US Eastern time is derived with a small self-contained DST calculation rather
-than ``zoneinfo`` so this works on Windows without the optional ``tzdata``
-package. DST (EDT, UTC-4) runs from the second Sunday of March to the first
-Sunday of November; otherwise EST (UTC-5). The hour-of-transition ambiguity at
-02:00 ET is irrelevant to trading windows.
+US Eastern time is derived with a small self-contained DST calculation: DST
+(EDT, UTC-4) runs from the second Sunday of March to the first Sunday of
+November; otherwise EST (UTC-5).
 
-Holidays are intentionally not modeled: on a market holiday FMP simply returns
-the prior close, costing a few redundant calls a year — acceptable.
+Two deliberate approximations, both harmless for trading windows but worth
+knowing before anyone "fixes" them:
+
+  • The DST decision keys off the **UTC** calendar date, not the Eastern one,
+    so for roughly one hour on each transition day the offset is applied an
+    hour early/late. No ``is_open`` answer changes (both transitions fall in
+    the weekend/overnight gap when every gated market is shut), but
+    ``eastern_now().date()`` can differ from true Eastern by a day inside that
+    window, nudging the daemon's once-per-day refresh rollover. Swapping in
+    ``zoneinfo.ZoneInfo("America/New_York")`` would change that rollover, so
+    it is intentionally NOT used here.
+  • Holidays are not modeled: on a market holiday FMP simply returns the prior
+    close, costing a few redundant calls a year — acceptable.
 """
 
 from datetime import datetime, timedelta, timezone, date

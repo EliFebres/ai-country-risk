@@ -8,7 +8,6 @@
 import "server-only";
 import { unstable_cache } from "next/cache";
 import { riskRepository } from "@/app/lib/risk-server";
-import { resolveCoords } from "@/app/lib/country-coords";
 import { CACHE_TTL } from "@/app/lib/cache-ttl";
 import type { CountryRisk } from "@/app/lib/risk-client";
 
@@ -37,8 +36,12 @@ export const getRisks = unstable_cache(
     const out: CountryRisk[] = [];
 
     for (const row of joined) {
-      const lngLat = resolveCoords(row.iso2, row.name);
-      if (!lngLat) continue; // no known map position; skip (matches prior behavior)
+      // Map position comes from the DB (seeded by the backend roster), so a
+      // country added to the backend appears here with no frontend change.
+      const lng = Number(row.lng);
+      const lat = Number(row.lat);
+      if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue; // unseeded; skip
+      const lngLat: [number, number] = [lng, lat];
 
       // Zip prior scores with their snapshot dates so the finite-filter keeps the
       // two arrays parallel (a dropped non-finite score drops its date too).

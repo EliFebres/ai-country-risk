@@ -1,19 +1,78 @@
+"""The backend's entire Postgres write layer.
+
+Every table the dashboard reads is written here, and the frontend queries
+those tables directly — so this module's SQL *is* the contract between the two
+halves of the project. Change a column name here and the Next.js server
+breaks; there is no API layer in between to absorb it.
+
+The project has no migration tool, so each writer owns its table's DDL and
+issues ``CREATE TABLE IF NOT EXISTS`` before writing. That keeps a fresh
+database self-provisioning at the cost of a cheap no-op statement per call.
+
+All writes go through ``_transaction()``, which owns connect/commit/rollback/
+close. Upserts use ``COALESCE`` where a transient null (a symbol missing from
+one quote batch, an unranked event) must not blank a previously-good value.
+"""
+
 import os
 import datetime
-from typing import Dict, Any, Optional, List, Tuple
+from contextlib import contextmanager
+from typing import Dict, Any, Iterator, NamedTuple, Optional, List, Tuple
 
 import psycopg2
 import psycopg2.extras as extras
-from dotenv import load_dotenv
 
-load_dotenv()
 
-DB_URL = os.getenv("DATABASE_URL")
+def _require_db_url() -> str:
+    """Read DATABASE_URL at call time (never cached at import)."""
+    db_url = os.getenv("DATABASE_URL")
+    if not db_url:
+        raise RuntimeError("DATABASE_URL is not set in the environment")
+    return db_url
+
+
+@contextmanager
+def _transaction() -> Iterator["psycopg2.extensions.cursor"]:
+    """One connection, one transaction.
+
+    Yields a cursor; commits when the block finishes, rolls back and re-raises
+    on any exception, and always closes the connection. Every write in this
+    module goes through here so commit/rollback semantics live in one place.
+    """
+    conn = psycopg2.connect(_require_db_url())
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            yield cur
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def _image_url_or_none(img: Any) -> Optional[str]:
+    """Normalize an image value (str or list) to a single http(s) URL, or None."""
+    if isinstance(img, str):
+        u = img.strip()
+        return u if u.startswith(("http://", "https://")) else None
+    if isinstance(img, list):
+        for v in img:
+            if isinstance(v, str) and v.strip().startswith(("http://", "https://")):
+                return v.strip()
+    return None
 
 
 def _to_date_from_iso(s: str) -> datetime.date:
-    """
-    Accepts 'YYYY-MM-DD' or ISO 'YYYY-MM-DDTHH:MMZ' and returns date().
+    """Parse the payload's ``generated_at`` into the snapshot's ``as_of`` date.
+
+    Accepts ``'YYYY-MM-DD'`` or a full ISO timestamp (trailing ``Z`` allowed).
+
+    Raises:
+        ValueError: if ``s`` is empty or not an ISO date/datetime. This one is
+            strict on purpose — ``as_of`` is half of the snapshot's primary
+            key, so a bad value would silently write to the wrong day.
     """
     if not s:
         raise ValueError("Empty generated_at timestamp")
@@ -27,8 +86,11 @@ def _to_date_from_iso(s: str) -> datetime.date:
 
 
 def _to_ts_or_none(s: Optional[str]) -> Optional[datetime.datetime]:
-    """
-    Best-effort ISO8601 parser that returns aware UTC timestamps when possible.
+    """Parse an article's publish time, or None if absent/unparseable.
+
+    Lenient by design (unlike ``_to_date_from_iso``): publishers emit all kinds
+    of date formats, and a missing timestamp on one article is not worth
+    failing a snapshot over — the column is nullable.
     """
     if not s:
         return None
@@ -36,6 +98,263 @@ def _to_ts_or_none(s: Optional[str]) -> Optional[datetime.datetime]:
         return datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
     except Exception:
         return None
+
+
+# The `country` table is operator-provisioned (see backend/README.md), but the
+# map-position columns were added later, so bring an existing database up to
+# date without a migration tool.
+_COUNTRY_GEO_DDL = """
+ALTER TABLE country ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION;
+ALTER TABLE country ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION;
+"""
+
+
+def upsert_countries(roster: List[Dict[str, Any]]) -> None:
+    """Seed the `country` table from the roster: names and map positions.
+
+    This is reference data, not per-run output, so it is written once at the
+    start of a run rather than as a side effect of scoring. That matters for
+    two reasons: the front-end reads countries, display names and map marker
+    positions straight from this table (it holds no country list of its own),
+    and a country therefore appears on the map as soon as it is added to
+    ``constants.COUNTRY_ROSTER`` — before it has any risk snapshot.
+
+    Uses DO UPDATE rather than DO NOTHING so a renamed country or a corrected
+    coordinate actually propagates on the next run.
+
+    Args:
+        roster: ``constants.COUNTRY_ROSTER`` entries; each needs ``iso2``,
+            ``name``, ``lat`` and ``lng``.
+
+    Raises:
+        ValueError: if an entry is missing one of those fields — a silent skip
+            here would strand a country off the map with no obvious cause.
+    """
+    _require_db_url()  # fail fast even when there is nothing to write
+    if not roster:
+        return
+
+    rows: List[Tuple] = []
+    for entry in roster:
+        missing = [k for k in ("iso2", "name", "lat", "lng") if entry.get(k) is None]
+        if missing:
+            raise ValueError(
+                f"roster entry {entry.get('iso2') or entry!r} is missing {missing}; "
+                "every country needs iso2/name/lat/lng to render on the map"
+            )
+        rows.append((entry["iso2"], entry["name"], float(entry["lat"]), float(entry["lng"])))
+
+    with _transaction() as cur:
+        cur.execute(_COUNTRY_GEO_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO country (iso2, name, lat, lng)
+            VALUES %s
+            ON CONFLICT (iso2)
+            DO UPDATE SET
+              name = EXCLUDED.name,
+              lat  = EXCLUDED.lat,
+              lng  = EXCLUDED.lng
+            """,
+            rows,
+            page_size=100,
+        )
+
+
+class _SnapshotData(NamedTuple):
+    """Validated fields pulled out of an upsert_snapshot payload.
+
+    Everything from ``score_3m`` down arrived with the perception/policy split
+    and defaults to None, so a payload produced before it still upserts — those
+    columns simply stay NULL for that row.
+    """
+    country: str
+    as_of: datetime.date
+    units: Dict[str, str]
+    indicators: Dict[str, Any]
+    llm_out: Dict[str, Any]
+    top_articles: List[Dict[str, Any]]
+    # Both horizons, before and after policy. `llm_out["score"]` remains the
+    # gated 12-month score, unchanged in name and meaning.
+    score_3m: Optional[float] = None
+    raw_score_12m: Optional[float] = None
+    raw_score_3m: Optional[float] = None
+    # JSONB columns: the model's perception and what policy did with it.
+    subscores: Optional[Dict[str, Any]] = None
+    raw_subscores: Optional[Dict[str, Any]] = None
+    subscore_evidence: Optional[Dict[str, Any]] = None
+    condition_flags: Optional[Dict[str, Any]] = None
+    article_scores: Optional[List[Dict[str, Any]]] = None
+    applied_rules: Optional[List[str]] = None
+    evidence_coverage: Optional[float] = None
+    # The sanctions rule that forced a 1.0, with its citations, or None.
+    legal_gate: Optional[Dict[str, Any]] = None
+    # Provenance: which model, prompt and policy produced this row.
+    model_id: Optional[str] = None
+    prompt_version: Optional[str] = None
+    policy_version: Optional[str] = None
+    # What the model saw: per-article hashes and the macro panel's vintage
+    # (``provenance.build_input_manifest``). Payload-level, not part of
+    # ``llm_output`` — it describes the inputs, not the model's answer.
+    input_manifest: Optional[Dict[str, Any]] = None
+
+
+class _ArticleRow(NamedTuple):
+    """One risk_snapshot_article row; field order matches the INSERT columns."""
+    country_iso2: str
+    as_of: datetime.date
+    rank: int
+    url: str
+    title: Optional[str]
+    source: Optional[str]
+    published_at: Optional[datetime.datetime]
+    impact: Optional[float]
+    summary: Optional[str]
+    image_url: Optional[str]
+
+
+def payload_as_of(payload: Dict[str, Any]) -> datetime.date:
+    """The ``as_of`` date this payload's snapshot will be keyed on.
+
+    Public so the pipeline can key other same-run rows (article digests) on
+    exactly the date ``upsert_snapshot`` will use — both read
+    ``payload["_meta"]["generated_at"]``, so the two keys can never disagree.
+
+    Raises:
+        ValueError: if ``payload['_meta']['generated_at']`` is missing, not a
+            string, or not an ISO date/datetime.
+    """
+    meta = payload.get("_meta") or {}
+    gen_at = meta.get("generated_at")
+    if not gen_at or not isinstance(gen_at, str):
+        raise ValueError("payload['_meta']['generated_at'] must be a string ISO timestamp")
+    return _to_date_from_iso(gen_at)
+
+
+def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
+    """Validate an upsert_snapshot payload and extract the fields it writes.
+
+    Raises:
+        TypeError/ValueError: describing the missing or malformed field.
+    """
+    if not isinstance(payload, dict):
+        raise TypeError("payload must be a dict")
+
+    country = payload.get("country")
+    if not country or not isinstance(country, str):
+        raise ValueError("payload['country'] must be an ISO-2 string")
+
+    as_of = payload_as_of(payload)
+    units = (payload.get("_meta") or {}).get("units") or {}
+    if not isinstance(units, dict):
+        raise ValueError("payload['_meta']['units'] must be a dict of indicator -> unit")
+
+    indicators = payload.get("indicators") or {}
+    if not isinstance(indicators, dict) or not indicators:
+        raise ValueError("payload['indicators'] must be a non-empty dict")
+
+    llm_out = payload.get("llm_output") or {}
+    if not (isinstance(llm_out, dict) and {"score", "bullet_summary"} <= set(llm_out.keys())):
+        raise ValueError("payload['llm_output'] must include 'score' and 'bullet_summary'")
+
+    top_articles = payload.get("top_articles") or []
+    if not isinstance(top_articles, list):
+        top_articles = []
+
+    # Optional and non-fatal by design: the pipeline passes None when manifest
+    # assembly failed, and a payload from before provenance existed has no key
+    # at all. Either way the snapshot still writes.
+    input_manifest = payload.get("input_manifest")
+    if not isinstance(input_manifest, dict):
+        input_manifest = None
+
+    return _SnapshotData(
+        country=country,
+        as_of=as_of,
+        units=units,
+        indicators=indicators,
+        llm_out=llm_out,
+        top_articles=top_articles,
+        score_3m=llm_out.get("score_3m"),
+        raw_score_12m=llm_out.get("raw_score_12m"),
+        raw_score_3m=llm_out.get("raw_score_3m"),
+        subscores=llm_out.get("subscores"),
+        raw_subscores=llm_out.get("raw_subscores"),
+        subscore_evidence=llm_out.get("subscore_evidence"),
+        condition_flags=llm_out.get("condition_flags"),
+        # Every article's impact and topic group, not just the displayed
+        # top-3: the full cross-section is the point of storing it.
+        article_scores=llm_out.get("news_article_scores"),
+        applied_rules=llm_out.get("applied_rules"),
+        evidence_coverage=llm_out.get("evidence_coverage"),
+        legal_gate=llm_out.get("legal_gate"),
+        model_id=llm_out.get("model_id"),
+        prompt_version=llm_out.get("prompt_version"),
+        policy_version=llm_out.get("policy_version"),
+        input_manifest=input_manifest,
+    )
+
+
+# `risk_snapshot` is operator-provisioned (see backend/README.md), but the
+# perception/policy split added columns to it: both horizons raw and gated, the
+# model's sub-factor detail, and the provenance stamps. Additive and idempotent
+# so an existing database comes up to date without a migration tool.
+_RISK_SNAPSHOT_DDL = """
+ALTER TABLE risk_snapshot
+  ADD COLUMN IF NOT EXISTS raw_score_12m     DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS raw_score_3m      DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS score_3m          DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS subscores         JSONB,
+  ADD COLUMN IF NOT EXISTS raw_subscores     JSONB,
+  ADD COLUMN IF NOT EXISTS subscore_evidence JSONB,
+  ADD COLUMN IF NOT EXISTS condition_flags   JSONB,
+  ADD COLUMN IF NOT EXISTS article_scores    JSONB,
+  ADD COLUMN IF NOT EXISTS applied_rules     JSONB,
+  ADD COLUMN IF NOT EXISTS evidence_coverage DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS model_id          TEXT,
+  ADD COLUMN IF NOT EXISTS prompt_version    TEXT,
+  ADD COLUMN IF NOT EXISTS policy_version    TEXT,
+  ADD COLUMN IF NOT EXISTS legal_gate        JSONB,
+  ADD COLUMN IF NOT EXISTS input_manifest    JSONB;
+"""
+
+# ALTER TABLE takes an ACCESS EXCLUSIVE lock even when every column already
+# exists, and the country loop calls upsert_snapshot once per country. Run it
+# once per process instead. Set only after the transaction commits, so a
+# rolled-back run re-issues it.
+_risk_snapshot_ddl_done = False
+
+
+def _json_or_none(value: Any) -> Optional[extras.Json]:
+    """Wrap a value for a JSONB column, leaving None as SQL NULL."""
+    return None if value is None else extras.Json(value)
+
+
+def _article_rows(country: str, as_of: datetime.date,
+                  top_articles: List[Dict[str, Any]]) -> List[_ArticleRow]:
+    """Build risk_snapshot_article rows, dropping malformed entries."""
+    rows: List[_ArticleRow] = []
+    for a in top_articles:
+        if not isinstance(a, dict):
+            continue
+        rank = a.get("rank")
+        url = (a.get("url") or "").strip()
+        if not url or rank not in (1, 2, 3):
+            continue
+        rows.append(_ArticleRow(
+            country_iso2=country,
+            as_of=as_of,
+            rank=int(rank),
+            url=url,
+            title=a.get("title"),
+            source=a.get("source"),
+            published_at=_to_ts_or_none(a.get("published_at")),
+            impact=(float(a["impact"]) if (a.get("impact") is not None) else None),
+            summary=a.get("summary"),
+            image_url=_image_url_or_none(a.get("image")),
+        ))
+    return rows
 
 
 def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
@@ -59,175 +378,162 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
     Optional:
       - top_articles: list of dicts with
           {rank, url, title, source, published_at (ISO), impact, summary, image?}
+      - input_manifest: ``provenance.build_input_manifest`` output — what the
+        model saw. None (or absent) writes NULL without touching a manifest a
+        previous run of the same day already stored.
+      - the rest of ``llm_output`` (score_3m, raw_score_*, raw_subscores,
+        subscore_evidence, condition_flags, news_article_scores, applied_rules,
+        evidence_coverage, legal_gate, model_id, prompt_version,
+        policy_version). Absent keys write NULL, so a payload from before the
+        perception/policy split still upserts.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
-    if not isinstance(payload, dict):
-        raise TypeError("payload must be a dict")
+    global _risk_snapshot_ddl_done
 
-    # Required fields
-    country = payload.get("country")
-    if not country or not isinstance(country, str):
-        raise ValueError("payload['country'] must be an ISO-2 string")
+    _require_db_url()  # fail fast before any parsing work
+    data = _parse_snapshot_payload(payload)
+    rows_art = _article_rows(data.country, data.as_of, data.top_articles)
 
-    meta = payload.get("_meta") or {}
-    gen_at = meta.get("generated_at")
-    if not gen_at or not isinstance(gen_at, str):
-        raise ValueError("payload['_meta']['generated_at'] must be a string ISO timestamp")
-    units = meta.get("units") or {}
-    if not isinstance(units, dict):
-        raise ValueError("payload['_meta']['units'] must be a dict of indicator -> unit")
+    with _transaction() as cur:
+        if not _risk_snapshot_ddl_done:
+            cur.execute(_RISK_SNAPSHOT_DDL)
 
-    as_of: datetime.date = _to_date_from_iso(gen_at)
+        # 0) Ensure the parent 'country' row exists for the FK
+        cur.execute(
+            """
+            INSERT INTO country (iso2, name)
+            VALUES (%s, %s)
+            ON CONFLICT (iso2) DO NOTHING
+            """,
+            (data.country, country_name),
+        )
 
-    indicators = payload.get("indicators") or {}
-    if not isinstance(indicators, dict) or not indicators:
-        raise ValueError("payload['indicators'] must be a non-empty dict")
+        # 1) Indicators + yearly series
+        for ind_name, ind_data in data.indicators.items():
+            unit = data.units[ind_name]  # rely on your existing contract; raises if missing
 
-    llm_out = payload.get("llm_output") or {}
-    if not (isinstance(llm_out, dict) and {"score", "bullet_summary"} <= set(llm_out.keys())):
-        raise ValueError("payload['llm_output'] must include 'score' and 'bullet_summary'")
-
-    # Optional: new top-3 article rows
-    top_articles = payload.get("top_articles") or []
-    if not isinstance(top_articles, list):
-        top_articles = []
-
-    conn = psycopg2.connect(DB_URL)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            # 0) Ensure the parent 'country' row exists for the FK
+            # 1a) Upsert indicator row, capture its id
             cur.execute(
                 """
-                INSERT INTO country (iso2, name)
+                INSERT INTO indicator (name, unit)
                 VALUES (%s, %s)
-                ON CONFLICT (iso2) DO NOTHING
+                ON CONFLICT (name)
+                DO UPDATE SET unit = EXCLUDED.unit
+                RETURNING id;
                 """,
-                (country, country_name),
+                (ind_name, unit),
             )
+            ind_id = cur.fetchone()[0]
 
-            # 1) Indicators + yearly series
-            for ind_name, ind_data in indicators.items():
-                unit = units[ind_name]  # rely on your existing contract; raises if missing
-
-                # 1a) Upsert indicator row, capture its id
-                cur.execute(
-                    """
-                    INSERT INTO indicator (name, unit)
-                    VALUES (%s, %s)
-                    ON CONFLICT (name)
-                    DO UPDATE SET unit = EXCLUDED.unit
-                    RETURNING id;
-                    """,
-                    (ind_name, unit),
-                )
-                ind_id = cur.fetchone()[0]
-
-                # 1b) Prepare yearly rows (skip nulls)
-                series = (ind_data or {}).get("series", {}) or {}
-                rows_yv: List[Tuple[str, int, int, float]] = []
-                for year, val in series.items():
-                    if val is None:
-                        continue
-                    try:
-                        yr_int = int(year)
-                        val_f = float(val)
-                    except Exception:
-                        continue
-                    rows_yv.append((country, ind_id, yr_int, val_f))
-
-                if rows_yv:
-                    extras.execute_values(
-                        cur,
-                        """
-                        INSERT INTO yearly_value (country_iso2, indicator_id, yr, value)
-                        VALUES %s
-                        ON CONFLICT (country_iso2, indicator_id, yr)
-                        DO UPDATE SET value = EXCLUDED.value
-                        """,
-                        rows_yv,
-                        page_size=1000,
-                    )
-
-            # 2) Risk snapshot (latest AI score for the run date)
-            cur.execute(
-                """
-                INSERT INTO risk_snapshot (country_iso2, as_of, score, bullet_summary)
-                VALUES (%s, %s, %s, %s)
-                ON CONFLICT (country_iso2, as_of)
-                DO UPDATE SET
-                  score = EXCLUDED.score,
-                  bullet_summary = EXCLUDED.bullet_summary
-                """,
-                (country, as_of, llm_out["score"], llm_out["bullet_summary"]),
-            )
-
-            # 3) Optional: write the top-3 links for this snapshot (now includes image_url)
-            rows_art: List[Tuple] = []
-            for a in top_articles:
-                if not isinstance(a, dict):
+            # 1b) Prepare yearly rows (skip nulls)
+            series = (ind_data or {}).get("series", {}) or {}
+            rows_yv: List[Tuple[str, int, int, float]] = []
+            for year, val in series.items():
+                if val is None:
                     continue
-                rank = a.get("rank")
-                url = (a.get("url") or "").strip()
-                if not url or rank not in (1, 2, 3):
+                try:
+                    yr_int = int(year)
+                    val_f = float(val)
+                except Exception:
                     continue
+                rows_yv.append((data.country, ind_id, yr_int, val_f))
 
-                # Normalize image value to a single URL string (or None)
-                img = a.get("image")
-                image_url: Optional[str] = None
-                if isinstance(img, str):
-                    u = img.strip()
-                    image_url = u if u.startswith(("http://", "https://")) else None
-                elif isinstance(img, list):
-                    for v in img:
-                        if isinstance(v, str) and v.strip().startswith(("http://", "https://")):
-                            image_url = v.strip()
-                            break
-
-                rows_art.append(
-                    (
-                        country,                                # country_iso2
-                        as_of,                                  # as_of (DATE)
-                        int(rank),                              # rank 1..3
-                        url,                                    # url (TEXT NOT NULL)
-                        a.get("title"),                         # title
-                        a.get("source"),                        # source
-                        _to_ts_or_none(a.get("published_at")),  # published_at TIMESTAMPTZ
-                        (float(a["impact"]) if (a.get("impact") is not None) else None),
-                        a.get("summary"),
-                        image_url,                               # NEW: image_url
-                    )
-                )
-
-            if rows_art:
+            if rows_yv:
                 extras.execute_values(
                     cur,
                     """
-                    INSERT INTO risk_snapshot_article
-                      (country_iso2, as_of, rank, url, title, source, published_at, impact, summary, image_url)
+                    INSERT INTO yearly_value (country_iso2, indicator_id, yr, value)
                     VALUES %s
-                    ON CONFLICT (country_iso2, as_of, rank)
-                    DO UPDATE SET
-                      url          = EXCLUDED.url,
-                      title        = EXCLUDED.title,
-                      source       = EXCLUDED.source,
-                      published_at = EXCLUDED.published_at,
-                      impact       = EXCLUDED.impact,
-                      summary      = EXCLUDED.summary,
-                      image_url    = EXCLUDED.image_url,
-                      updated_at   = now()
+                    ON CONFLICT (country_iso2, indicator_id, yr)
+                    DO UPDATE SET value = EXCLUDED.value
                     """,
-                    rows_art,
-                    page_size=10,
+                    rows_yv,
+                    page_size=1000,
                 )
 
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        # 2) Risk snapshot (latest AI score for the run date). `score` stays
+        #    the gated 12-month score on the 0-1 scale — the front-end reads
+        #    it and its meaning has not changed. Everything else is additive:
+        #    the raw scores the model gave before policy, the sub-factor detail
+        #    behind them, which model/prompt/policy produced the row, and what
+        #    the model saw when it did (`input_manifest`).
+        #
+        #    `score` and `bullet_summary` overwrite plainly — the newest run's
+        #    assessment is the current one, deliberately. Every detail column
+        #    COALESCEs instead: a re-run that lost a field (LLM failure,
+        #    provenance bug) must not blank the good value a previous run of the
+        #    same day already stored.
+        cur.execute(
+            """
+            INSERT INTO risk_snapshot (
+              country_iso2, as_of, score, bullet_summary,
+              score_3m, raw_score_12m, raw_score_3m,
+              subscores, raw_subscores, subscore_evidence, condition_flags,
+              article_scores, applied_rules, evidence_coverage, legal_gate,
+              model_id, prompt_version, policy_version, input_manifest
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (country_iso2, as_of)
+            DO UPDATE SET
+              score             = EXCLUDED.score,
+              bullet_summary    = EXCLUDED.bullet_summary,
+              score_3m          = COALESCE(EXCLUDED.score_3m,          risk_snapshot.score_3m),
+              raw_score_12m     = COALESCE(EXCLUDED.raw_score_12m,     risk_snapshot.raw_score_12m),
+              raw_score_3m      = COALESCE(EXCLUDED.raw_score_3m,      risk_snapshot.raw_score_3m),
+              subscores         = COALESCE(EXCLUDED.subscores,         risk_snapshot.subscores),
+              raw_subscores     = COALESCE(EXCLUDED.raw_subscores,     risk_snapshot.raw_subscores),
+              subscore_evidence = COALESCE(EXCLUDED.subscore_evidence, risk_snapshot.subscore_evidence),
+              condition_flags   = COALESCE(EXCLUDED.condition_flags,   risk_snapshot.condition_flags),
+              article_scores    = COALESCE(EXCLUDED.article_scores,    risk_snapshot.article_scores),
+              applied_rules     = COALESCE(EXCLUDED.applied_rules,     risk_snapshot.applied_rules),
+              evidence_coverage = COALESCE(EXCLUDED.evidence_coverage, risk_snapshot.evidence_coverage),
+              legal_gate        = COALESCE(EXCLUDED.legal_gate,        risk_snapshot.legal_gate),
+              model_id          = COALESCE(EXCLUDED.model_id,          risk_snapshot.model_id),
+              prompt_version    = COALESCE(EXCLUDED.prompt_version,    risk_snapshot.prompt_version),
+              policy_version    = COALESCE(EXCLUDED.policy_version,    risk_snapshot.policy_version),
+              input_manifest    = COALESCE(EXCLUDED.input_manifest,    risk_snapshot.input_manifest)
+            """,
+            (
+                data.country, data.as_of,
+                data.llm_out["score"], data.llm_out["bullet_summary"],
+                data.score_3m, data.raw_score_12m, data.raw_score_3m,
+                _json_or_none(data.subscores),
+                _json_or_none(data.raw_subscores),
+                _json_or_none(data.subscore_evidence),
+                _json_or_none(data.condition_flags),
+                _json_or_none(data.article_scores),
+                _json_or_none(data.applied_rules),
+                data.evidence_coverage,
+                _json_or_none(data.legal_gate),
+                data.model_id, data.prompt_version, data.policy_version,
+                _json_or_none(data.input_manifest),
+            ),
+        )
+
+        # 3) Optional: write the top-3 links for this snapshot (includes image_url)
+        if rows_art:
+            extras.execute_values(
+                cur,
+                """
+                INSERT INTO risk_snapshot_article
+                  (country_iso2, as_of, rank, url, title, source, published_at, impact, summary, image_url)
+                VALUES %s
+                ON CONFLICT (country_iso2, as_of, rank)
+                DO UPDATE SET
+                  url          = EXCLUDED.url,
+                  title        = EXCLUDED.title,
+                  source       = EXCLUDED.source,
+                  published_at = EXCLUDED.published_at,
+                  impact       = EXCLUDED.impact,
+                  summary      = EXCLUDED.summary,
+                  image_url    = EXCLUDED.image_url,
+                  updated_at   = now()
+                """,
+                rows_art,
+                page_size=10,
+            )
+
+    # Committed — the columns are there for the rest of this process.
+    _risk_snapshot_ddl_done = True
 
 
 _RECENT_INDICATOR_DDL = """
@@ -264,8 +570,7 @@ def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, 
 
     No-op if ``country_iso2`` is blank or ``indicators`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    _require_db_url()  # fail fast even when there is nothing to write
     if not country_iso2 or not indicators:
         return
 
@@ -287,35 +592,26 @@ def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, 
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_RECENT_INDICATOR_DDL)
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO recent_indicator
-                  (country_iso2, indicator, period, freq, value, unit, source)
-                VALUES %s
-                ON CONFLICT (country_iso2, indicator)
-                DO UPDATE SET
-                  period     = EXCLUDED.period,
-                  freq       = EXCLUDED.freq,
-                  value      = EXCLUDED.value,
-                  unit       = EXCLUDED.unit,
-                  source     = EXCLUDED.source,
-                  updated_at = now()
-                """,
-                rows,
-                page_size=100,
-            )
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    with _transaction() as cur:
+        cur.execute(_RECENT_INDICATOR_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO recent_indicator
+              (country_iso2, indicator, period, freq, value, unit, source)
+            VALUES %s
+            ON CONFLICT (country_iso2, indicator)
+            DO UPDATE SET
+              period     = EXCLUDED.period,
+              freq       = EXCLUDED.freq,
+              value      = EXCLUDED.value,
+              unit       = EXCLUDED.unit,
+              source     = EXCLUDED.source,
+              updated_at = now()
+            """,
+            rows,
+            page_size=100,
+        )
 
 
 _ECON_EVENT_DDL = """
@@ -363,8 +659,7 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
 
     No-op if ``events`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    _require_db_url()  # fail fast even when there is nothing to write
     if not events:
         return
 
@@ -404,48 +699,38 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_ECON_EVENT_DDL)
+    with _transaction() as cur:
+        cur.execute(_ECON_EVENT_DDL)
 
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO economic_calendar_event
-                  (event_time, country_code, country_name, event, importance,
-                   currency, previous, estimate, actual,
-                   ai_importance, ai_rationale, ai_scored_at)
-                VALUES %s
-                ON CONFLICT (event_time, country_code, event)
-                DO UPDATE SET
-                  country_name  = EXCLUDED.country_name,
-                  importance    = EXCLUDED.importance,
-                  currency      = EXCLUDED.currency,
-                  previous      = EXCLUDED.previous,
-                  estimate      = EXCLUDED.estimate,
-                  actual        = EXCLUDED.actual,
-                  ai_importance = COALESCE(EXCLUDED.ai_importance, economic_calendar_event.ai_importance),
-                  ai_rationale  = COALESCE(EXCLUDED.ai_rationale,  economic_calendar_event.ai_rationale),
-                  ai_scored_at  = COALESCE(EXCLUDED.ai_scored_at,  economic_calendar_event.ai_scored_at),
-                  updated_at    = now()
-                """,
-                rows,
-                page_size=500,
-            )
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO economic_calendar_event
+              (event_time, country_code, country_name, event, importance,
+               currency, previous, estimate, actual,
+               ai_importance, ai_rationale, ai_scored_at)
+            VALUES %s
+            ON CONFLICT (event_time, country_code, event)
+            DO UPDATE SET
+              country_name  = EXCLUDED.country_name,
+              importance    = EXCLUDED.importance,
+              currency      = EXCLUDED.currency,
+              previous      = EXCLUDED.previous,
+              estimate      = EXCLUDED.estimate,
+              actual        = EXCLUDED.actual,
+              ai_importance = COALESCE(EXCLUDED.ai_importance, economic_calendar_event.ai_importance),
+              ai_rationale  = COALESCE(EXCLUDED.ai_rationale,  economic_calendar_event.ai_rationale),
+              ai_scored_at  = COALESCE(EXCLUDED.ai_scored_at,  economic_calendar_event.ai_scored_at),
+              updated_at    = now()
+            """,
+            rows,
+            page_size=500,
+        )
 
-            # Keep the table a rolling forward window.
-            cur.execute(
-                "DELETE FROM economic_calendar_event WHERE event_time < now() - interval '1 day'"
-            )
-
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        # Keep the table a rolling forward window.
+        cur.execute(
+            "DELETE FROM economic_calendar_event WHERE event_time < now() - interval '1 day'"
+        )
 
 
 _MARKET_PRICE_DDL = """
@@ -493,8 +778,7 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
 
     No-op if ``rows`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    _require_db_url()  # fail fast even when there is nothing to write
     if not rows:
         return
 
@@ -525,42 +809,32 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
     if not tuples:
         return
 
-    conn = psycopg2.connect(DB_URL)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_MARKET_PRICE_DDL)
+    with _transaction() as cur:
+        cur.execute(_MARKET_PRICE_DDL)
 
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO market_price
-                  (symbol, label, asset_class, source_symbol, is_yield,
-                   px, chg, q, ytd, sort_order)
-                VALUES %s
-                ON CONFLICT (symbol)
-                DO UPDATE SET
-                  label         = EXCLUDED.label,
-                  asset_class   = EXCLUDED.asset_class,
-                  source_symbol = EXCLUDED.source_symbol,
-                  is_yield      = EXCLUDED.is_yield,
-                  px            = COALESCE(EXCLUDED.px,  market_price.px),
-                  chg           = COALESCE(EXCLUDED.chg, market_price.chg),
-                  q             = COALESCE(EXCLUDED.q,   market_price.q),
-                  ytd           = COALESCE(EXCLUDED.ytd, market_price.ytd),
-                  sort_order    = EXCLUDED.sort_order,
-                  updated_at    = now()
-                """,
-                tuples,
-                page_size=100,
-            )
-
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO market_price
+              (symbol, label, asset_class, source_symbol, is_yield,
+               px, chg, q, ytd, sort_order)
+            VALUES %s
+            ON CONFLICT (symbol)
+            DO UPDATE SET
+              label         = EXCLUDED.label,
+              asset_class   = EXCLUDED.asset_class,
+              source_symbol = EXCLUDED.source_symbol,
+              is_yield      = EXCLUDED.is_yield,
+              px            = COALESCE(EXCLUDED.px,  market_price.px),
+              chg           = COALESCE(EXCLUDED.chg, market_price.chg),
+              q             = COALESCE(EXCLUDED.q,   market_price.q),
+              ytd           = COALESCE(EXCLUDED.ytd, market_price.ytd),
+              sort_order    = EXCLUDED.sort_order,
+              updated_at    = now()
+            """,
+            tuples,
+            page_size=100,
+        )
 
 
 def read_price_references() -> Dict[str, Dict[str, Any]]:
@@ -570,36 +844,24 @@ def read_price_references() -> Dict[str, Dict[str, Any]]:
     on startup before any write. Each value is
     ``{ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on}``.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
-
-    conn = psycopg2.connect(DB_URL)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_PRICE_REFERENCE_DDL)
-            cur.execute(
-                """
-                SELECT symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on
-                  FROM price_reference
-                """
-            )
-            out: Dict[str, Dict[str, Any]] = {}
-            for sym, ref_q, ref_q_date, ref_ytd, ref_ytd_date, refreshed_on in cur.fetchall():
-                out[sym] = {
-                    "ref_q": ref_q,
-                    "ref_q_date": ref_q_date,
-                    "ref_ytd": ref_ytd,
-                    "ref_ytd_date": ref_ytd_date,
-                    "reference_refreshed_on": refreshed_on,
-                }
-        conn.commit()
-        return out
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    with _transaction() as cur:
+        cur.execute(_PRICE_REFERENCE_DDL)
+        cur.execute(
+            """
+            SELECT symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on
+              FROM price_reference
+            """
+        )
+        out: Dict[str, Dict[str, Any]] = {}
+        for sym, ref_q, ref_q_date, ref_ytd, ref_ytd_date, refreshed_on in cur.fetchall():
+            out[sym] = {
+                "ref_q": ref_q,
+                "ref_q_date": ref_q_date,
+                "ref_ytd": ref_ytd,
+                "ref_ytd_date": ref_ytd_date,
+                "reference_refreshed_on": refreshed_on,
+            }
+    return out
 
 
 def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datetime.date) -> None:
@@ -610,8 +872,7 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
     internal symbol). Lets a restarted daemon skip the historical fetch when it
     already ran today. No-op if ``refs`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    _require_db_url()  # fail fast even when there is nothing to write
     if not refs:
         return
 
@@ -630,35 +891,26 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_PRICE_REFERENCE_DDL)
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO price_reference
-                  (symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on)
-                VALUES %s
-                ON CONFLICT (symbol)
-                DO UPDATE SET
-                  ref_q                  = EXCLUDED.ref_q,
-                  ref_q_date             = EXCLUDED.ref_q_date,
-                  ref_ytd                = EXCLUDED.ref_ytd,
-                  ref_ytd_date           = EXCLUDED.ref_ytd_date,
-                  reference_refreshed_on = EXCLUDED.reference_refreshed_on,
-                  updated_at             = now()
-                """,
-                rows,
-                page_size=100,
-            )
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    with _transaction() as cur:
+        cur.execute(_PRICE_REFERENCE_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO price_reference
+              (symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on)
+            VALUES %s
+            ON CONFLICT (symbol)
+            DO UPDATE SET
+              ref_q                  = EXCLUDED.ref_q,
+              ref_q_date             = EXCLUDED.ref_q_date,
+              ref_ytd                = EXCLUDED.ref_ytd,
+              ref_ytd_date           = EXCLUDED.ref_ytd_date,
+              reference_refreshed_on = EXCLUDED.reference_refreshed_on,
+              updated_at             = now()
+            """,
+            rows,
+            page_size=100,
+        )
 
 
 _NEWS_ALERT_DDL = """
@@ -686,16 +938,22 @@ CREATE INDEX IF NOT EXISTS idx_news_alert_as_of ON news_alert (as_of);
 """
 
 
-def _image_url_or_none(img: Any) -> Optional[str]:
-    """Normalize an image value (str or list) to a single http(s) URL, or None."""
-    if isinstance(img, str):
-        u = img.strip()
-        return u if u.startswith(("http://", "https://")) else None
-    if isinstance(img, list):
-        for v in img:
-            if isinstance(v, str) and v.strip().startswith(("http://", "https://")):
-                return v.strip()
-    return None
+class _NewsAlertRow(NamedTuple):
+    """One news_alert row; field order matches the INSERT columns."""
+    as_of: datetime.date
+    global_rank: int
+    country_iso2: str
+    country_name: Optional[str]
+    url: str
+    title: Optional[str]
+    source: Optional[str]
+    published_at: Optional[datetime.datetime]
+    summary: Optional[str]
+    image_url: Optional[str]
+    topic: str
+    severity: str
+    importance: Optional[float]
+    rationale: Optional[str]
 
 
 def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> None:
@@ -722,12 +980,11 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
 
     No-op if ``alerts`` is empty.
     """
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+    _require_db_url()  # fail fast even when there is nothing to write
     if not alerts:
         return
 
-    rows: List[Tuple] = []
+    rows: List[_NewsAlertRow] = []
     for a in alerts:
         if not isinstance(a, dict):
             continue
@@ -748,52 +1005,154 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
         except (TypeError, ValueError):
             importance = None
 
+        rows.append(_NewsAlertRow(
+            as_of=as_of,
+            global_rank=rank,
+            country_iso2=country,
+            country_name=a.get("country_name"),
+            url=url,
+            title=a.get("title"),
+            source=a.get("source"),
+            published_at=_to_ts_or_none(a.get("published_at")),
+            summary=a.get("summary"),
+            image_url=_image_url_or_none(a.get("image")),
+            topic=topic,
+            severity=severity,
+            importance=importance,
+            rationale=a.get("rationale"),
+        ))
+
+    if not rows:
+        return
+
+    with _transaction() as cur:
+        cur.execute(_NEWS_ALERT_DDL)
+
+        # Replace-today semantics: clear this run date, then insert the ranked set.
+        cur.execute("DELETE FROM news_alert WHERE as_of = %s", (as_of,))
+
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO news_alert
+              (as_of, global_rank, country_iso2, country_name, url, title, source,
+               published_at, summary, image_url, topic, severity, importance, rationale)
+            VALUES %s
+            """,
+            rows,
+            page_size=100,
+        )
+
+
+_ARTICLE_DIGEST_DDL = """
+CREATE TABLE IF NOT EXISTS article_digest (
+  country_iso2    TEXT        NOT NULL,
+  as_of           DATE        NOT NULL,
+  url             TEXT        NOT NULL,
+  published_at    TIMESTAMPTZ,
+  content_sha256  TEXT,
+  digest          JSONB       NOT NULL,
+  stage1_severity DOUBLE PRECISION,
+  model_id        TEXT,
+  PRIMARY KEY (country_iso2, as_of, url)
+);
+"""
+
+
+def upsert_article_digests(digests: List[Dict[str, Any]]) -> None:
+    """Upsert one country/day's stage-1 article digests (the digest cache).
+
+    Self-contained: ensures the ``article_digest`` table exists, then upserts
+    by ``(country_iso2, as_of, url)``. ``content_sha256`` is the hash of the
+    article text the digest was computed from, so a same-day re-run with
+    unchanged text can reuse the row instead of re-calling the model.
+
+    Each digest dict (as built by ``ai.digest_engine``):
+      - country_iso2, as_of (datetime.date), url   (the cache key; required)
+      - digest                                     (the model's extraction dict; required)
+      - published_at                               (ISO string or None)
+      - content_sha256, stage1_severity, model_id  (may be None)
+
+    No-op if ``digests`` is empty. Rows missing a key field are skipped.
+    """
+    _require_db_url()  # fail fast even when there is nothing to write
+    if not digests:
+        return
+
+    rows: List[Tuple] = []
+    for d in digests:
+        if not isinstance(d, dict):
+            continue
+        iso2 = (d.get("country_iso2") or "").strip()
+        as_of = d.get("as_of")
+        url = (d.get("url") or "").strip()
+        digest = d.get("digest")
+        if not iso2 or not isinstance(as_of, datetime.date) or not url or not isinstance(digest, dict):
+            continue
+        try:
+            severity = float(d["stage1_severity"]) if d.get("stage1_severity") is not None else None
+        except (TypeError, ValueError):
+            severity = None
         rows.append(
             (
-                as_of,                               # as_of (DATE)
-                rank,                                # global_rank
-                country,                             # country_iso2
-                a.get("country_name"),               # country_name
-                url,                                 # url (TEXT NOT NULL)
-                a.get("title"),                      # title
-                a.get("source"),                     # source
-                _to_ts_or_none(a.get("published_at")),  # published_at TIMESTAMPTZ
-                a.get("summary"),                    # summary
-                _image_url_or_none(a.get("image")),  # image_url
-                topic,                               # topic
-                severity,                            # severity
-                importance,                          # importance
-                a.get("rationale"),                  # rationale
+                iso2,
+                as_of,
+                url,
+                _to_ts_or_none(d.get("published_at")),
+                d.get("content_sha256"),
+                extras.Json(digest),
+                severity,
+                d.get("model_id"),
             )
         )
 
     if not rows:
         return
 
-    conn = psycopg2.connect(DB_URL)
-    try:
-        conn.autocommit = False
-        with conn.cursor() as cur:
-            cur.execute(_NEWS_ALERT_DDL)
+    with _transaction() as cur:
+        cur.execute(_ARTICLE_DIGEST_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO article_digest
+              (country_iso2, as_of, url, published_at,
+               content_sha256, digest, stage1_severity, model_id)
+            VALUES %s
+            ON CONFLICT (country_iso2, as_of, url)
+            DO UPDATE SET
+              published_at    = COALESCE(EXCLUDED.published_at, article_digest.published_at),
+              content_sha256  = EXCLUDED.content_sha256,
+              digest          = EXCLUDED.digest,
+              stage1_severity = EXCLUDED.stage1_severity,
+              model_id        = EXCLUDED.model_id
+            """,
+            rows,
+            page_size=20,
+        )
 
-            # Replace-today semantics: clear this run date, then insert the ranked set.
-            cur.execute("DELETE FROM news_alert WHERE as_of = %s", (as_of,))
 
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO news_alert
-                  (as_of, global_rank, country_iso2, country_name, url, title, source,
-                   published_at, summary, image_url, topic, severity, importance, rationale)
-                VALUES %s
-                """,
-                rows,
-                page_size=100,
-            )
+def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, Dict[str, Any]]:
+    """Return one country/day's cached digests, keyed by article url.
 
-        conn.commit()
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
+    Ensures the ``article_digest`` table exists first so the pipeline can call
+    this before the first write ever happens. Each value is
+    ``{content_sha256, digest, stage1_severity}``.
+    """
+    with _transaction() as cur:
+        cur.execute(_ARTICLE_DIGEST_DDL)
+        cur.execute(
+            """
+            SELECT url, content_sha256, digest, stage1_severity
+              FROM article_digest
+             WHERE country_iso2 = %s AND as_of = %s
+            """,
+            (country_iso2, as_of),
+        )
+        out: Dict[str, Dict[str, Any]] = {}
+        for url, sha, digest, severity in cur.fetchall():
+            out[url] = {
+                "content_sha256": sha,
+                "digest": digest,
+                "stage1_severity": severity,
+            }
+    return out

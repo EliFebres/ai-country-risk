@@ -27,41 +27,10 @@ import logging
 from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
 
-import requests
-from dotenv import load_dotenv
-from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
-from tenacity import (
-    retry,
-    wait_exponential_jitter,
-    stop_after_attempt,
-    retry_if_exception,
-)
-
 import backend.utils.constants as constants
-
-load_dotenv()
+from backend.utils import http
 
 logger = logging.getLogger(__name__)
-
-# Transient statuses worth retrying (mirrors fmp_calendar_fetch._RETRYABLE_STATUS).
-_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
-_DEFAULT_HEADERS = {
-    "User-Agent": "AI-Country-Risk/1.0 (+https://github.com/EliFebres/AI-Country-Risk-Dashboard)"
-}
-_TIMEOUT = 20  # seconds
-
-
-def _is_retryable_exc(exc: BaseException) -> bool:
-    """Retry on network/transient HTTP conditions only."""
-    if isinstance(exc, (Timeout, ConnectionError)):
-        return True
-    if isinstance(exc, HTTPError):
-        resp = getattr(exc, "response", None)
-        return getattr(resp, "status_code", None) in _RETRYABLE_STATUS
-    if isinstance(exc, RequestException):
-        resp = getattr(exc, "response", None)
-        return getattr(resp, "status_code", None) in _RETRYABLE_STATUS
-    return False
 
 
 def _to_float_or_none(v: Any) -> Optional[float]:
@@ -74,21 +43,6 @@ def _to_float_or_none(v: Any) -> Optional[float]:
         return float(v)
     except (TypeError, ValueError):
         return None
-
-
-@retry(
-    wait=wait_exponential_jitter(initial=1, max=30),
-    stop=stop_after_attempt(5),
-    retry=retry_if_exception(_is_retryable_exc),
-    reraise=True,
-)
-def _fmp_get(url: str, params: Dict[str, str]) -> requests.Response:
-    """Single GET to an FMP endpoint, retrying transient errors."""
-    resp = requests.get(url, params=params, headers=_DEFAULT_HEADERS, timeout=_TIMEOUT)
-    if resp.status_code in _RETRYABLE_STATUS:
-        # Raise so tenacity retries; non-transient statuses fall through to the caller.
-        resp.raise_for_status()
-    return resp
 
 
 def fetch_live_quotes(source_symbols: List[str]) -> Dict[str, Dict[str, Optional[float]]]:
@@ -107,7 +61,7 @@ def fetch_live_quotes(source_symbols: List[str]) -> Dict[str, Dict[str, Optional
         return {}
 
     try:
-        resp = _fmp_get(
+        resp = http.fmp_get(
             constants.FMP_QUOTE_ENDPOINT,
             {"symbols": ",".join(source_symbols), "apikey": api_key},
         )
@@ -179,7 +133,7 @@ def fetch_treasury_yields(
         "apikey": api_key,
     }
     try:
-        resp = _fmp_get(constants.FMP_TREASURY_ENDPOINT, params)
+        resp = http.fmp_get(constants.FMP_TREASURY_ENDPOINT, params)
         resp.raise_for_status()
         data = resp.json()
     except Exception as e:  # noqa: BLE001 - graceful degradation by design
@@ -254,7 +208,7 @@ def _fetch_history(symbol: str, api_key: str, year_start: date, today: date) -> 
         "to": today.strftime("%Y-%m-%d"),
         "apikey": api_key,
     }
-    resp = _fmp_get(constants.FMP_HISTORICAL_ENDPOINT, params)
+    resp = http.fmp_get(constants.FMP_HISTORICAL_ENDPOINT, params)
     resp.raise_for_status()
     data = resp.json()
 

@@ -16,7 +16,7 @@ This directory contains the **data-engineering and inference pipeline** that pow
   - fetches each article **once**,
   - extracts a clean **summary**, **full text** (truncated for storage), and a **thumbnail** (OG/Twitter/JSON-LD with fallbacks).
 - The LLM ranks articles by impact.
-- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/utils/news_fetching/advanced_scraper.py`) **when they are from Reuters or Bloomberg** and a Crawlbase token is available. This uses Crawlbase to improve metadata while respecting `robots.txt`.
+- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/utils/news_fetching/advanced_scraper.py`), and only when an article is still missing an image after the simple scraper and a Crawlbase token is available. This uses Crawlbase (JS rendering) to recover metadata while respecting `robots.txt`.
 
 ---
 
@@ -55,7 +55,7 @@ pip install -r backend/requirements.txt
 python backend/main.py
 ```
 
-*Running the full ETL for ~200 countries can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
+*Running the full ETL across the 48-country roster (see [COUNTRY_COVERAGE.md](../COUNTRY_COVERAGE.md)) can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
 
 ---
 
@@ -63,7 +63,7 @@ python backend/main.py
 
 * `backend/main.py` — orchestrates the run: data payload → news → LLM scoring → DB upsert.
 * `backend/utils/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
-* `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata for **Top-3** Reuters/Bloomberg links only.
+* `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata, used only for **Top-3** articles still missing an image.
 * `backend/utils/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
 * `backend/utils/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
 * `backend/utils/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
@@ -72,15 +72,63 @@ python backend/main.py
 * `backend/utils/ai/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
 * `backend/utils/ai/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
 * `backend/utils/data_upsert/data_push.py` — transactional upserts for every table below.
+* `backend/utils/http.py` — shared retry policy, User-Agent strings, and FMP GET wrapper.
+* `backend/utils/ai/client.py` — the scoring model name and its deterministic settings, in one place.
+* `backend/utils/dates.py` — the two datetime formats shared across modules.
+
+---
+
+## Tests
+
+Characterization tests covering the pure logic (market-hours gating, article
+relevance scoring, Top-3 selection, external-payload parsing, the sanctions
+gate, and the price math). They touch no network and no database.
+
+```bash
+pip install pytest
+python -m pytest backend/tests -q
+```
+
+---
+
+## Notebook
+
+`backend/walkthrough.ipynb` runs `pipeline._process_country` one step at a time
+for a single country, printing each intermediate as a DataFrame: the macro
+panel, the LLM payload, the article pool, the stage-1 digests, the model's
+subscores and per-article impacts, and the Top-3. Pick the country by editing
+`ISO2` in the second cell.
+
+Two cells exist purely to show the division of labor between the models: one
+prints a single article end to end through the mini digest model (text in, JSON
+out), the other prints the exact `ARTICLE_DIGESTS_JSON` and `FULL_TEXT` blocks
+the scoring model receives.
+
+It writes no snapshot — the last step builds the payload
+`data_push.upsert_snapshot` would take and prints it instead. The one thing it
+does write is the stage-1 digest cache (`article_digest`), which nothing else
+reads. Use `tests/live_country_check.py` when you want the snapshot write,
+verification, and cleanup. It hits the network, and costs one cheap digest call
+per uncached article plus one scoring call per run.
+
+```bash
+pip install ipykernel
+```
 
 ---
 
 ## Database schema (simplified)
 
 ```sql
+-- Seeded from constants.COUNTRY_ROSTER at the start of every run
+-- (data_push.upsert_countries). The front-end reads the country list, display
+-- names AND map marker positions from here, so it holds no country data of its
+-- own: adding a country to the roster is the only edit needed.
 CREATE TABLE country (
     iso2  CHAR(2) PRIMARY KEY,
-    name  TEXT      NOT NULL  -- canonical English name
+    name  TEXT      NOT NULL,  -- canonical English name
+    lat   DOUBLE PRECISION,    -- map marker latitude
+    lng   DOUBLE PRECISION     -- map marker longitude
 );
 
 CREATE TABLE indicator (
@@ -113,11 +161,36 @@ CREATE TABLE recent_indicator (
     PRIMARY KEY (country_iso2, indicator)
 );
 
+-- Only the first four columns need provisioning: `data_push.upsert_snapshot`
+-- issues `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` for the rest once per
+-- process, so an existing database comes up to date on the next run. `score` is
+-- the gated 12-month score (0-1) the front-end reads; everything below it is
+-- additive research detail, all nullable.
 CREATE TABLE risk_snapshot (
     country_iso2   CHAR(2) REFERENCES country(iso2),
     as_of          DATE,
     score          DOUBLE PRECISION,
     bullet_summary TEXT,
+
+    -- Added by the perception/policy split: both horizons, raw and gated.
+    score_3m          DOUBLE PRECISION,
+    raw_score_12m     DOUBLE PRECISION,  -- the model's own score, pre-policy
+    raw_score_3m      DOUBLE PRECISION,
+    subscores         JSONB,             -- gated sub-factor scores
+    raw_subscores     JSONB,
+    subscore_evidence JSONB,
+    condition_flags   JSONB,             -- war / conflict / emergency / stress
+    article_scores    JSONB,             -- EVERY article's impact + topic_group
+    applied_rules     JSONB,             -- which floors/caps/gates fired
+    evidence_coverage DOUBLE PRECISION,
+    legal_gate        JSONB,             -- the sanctions rule that forced a 1.0
+
+    -- Provenance: what produced this row, and what it saw.
+    model_id       TEXT,
+    prompt_version TEXT,
+    policy_version TEXT,
+    input_manifest JSONB,                -- per-article hashes + macro vintage
+
     PRIMARY KEY (country_iso2, as_of)
 );
 
@@ -231,6 +304,22 @@ CREATE TABLE price_reference (
     ref_ytd_date           DATE,
     reference_refreshed_on DATE,
     updated_at             TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Stage-1 article digests (ai/digest_engine.py): a cheap model's factual
+-- extraction of every fetched article, cached per (country, day, url) with a
+-- hash of the digested text so a same-day re-run makes ~zero stage-1 calls.
+-- Created by code (data_push.upsert_article_digests); not read by the frontend.
+CREATE TABLE article_digest (
+    country_iso2    TEXT        NOT NULL,
+    as_of           DATE        NOT NULL,
+    url             TEXT        NOT NULL,
+    published_at    TIMESTAMPTZ,
+    content_sha256  TEXT,                  -- sha256 of the digested article text
+    digest          JSONB       NOT NULL,  -- DIGEST_SCHEMA output
+    stage1_severity DOUBLE PRECISION,      -- 0-100; picks the full-text articles
+    model_id        TEXT,                  -- pinned digest model release
+    PRIMARY KEY (country_iso2, as_of, url)
 );
 ```
 

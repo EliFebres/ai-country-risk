@@ -1,3 +1,22 @@
+"""Read side of the macro panel: Parquet in, LLM-ready payload out.
+
+``main.py`` writes each country's World Bank panel to
+``backend/data/wb_panel_wide/country_code=XX/*.parquet`` (see
+``data_fetching/country_data_fetch.ingest_panel_wide``); this module reads it
+back with DuckDB and shapes it into the compact JSON payload the risk prompt
+and the database upsert both consume.
+
+The payload is deliberately "pretty": indicators carry their display names and
+units, values are rounded, and only a short recent window plus a couple of
+change horizons are included — enough for the model to reason about trend and
+level without spending context on a full history.
+
+Everything per-indicator is anchored on that indicator's own newest
+observation. The World Bank publishes these on different lags, so the panel's
+last row is populated for the fastest series only, and anchoring on it would
+report a null ``latest`` for the slower half of the set.
+"""
+
 import re
 import duckdb
 import pathlib
@@ -6,36 +25,57 @@ import pandas as pd
 from datetime import datetime, timezone
 
 from backend.utils import constants
+from backend.utils.dates import utc_minute_iso
 
 
-def _discover_backend_dir() -> pathlib.Path:
+# Anchor all data paths to the backend/ folder (this file lives in backend/utils/)
+BACKEND_DIR = pathlib.Path(__file__).resolve().parents[1]   # .../backend
+DATA_DIR    = BACKEND_DIR / "data" / "wb_panel_wide"        # .../backend/data/wb_panel_wide
+
+_ISO_CODE_RE = re.compile(r"[A-Z]{2,3}")
+
+
+def _validate_iso_code(value: object, param: str) -> str:
+    """Return ``value`` if it is a 2- or 3-letter uppercase ISO code.
+
+    Args:
+        value: the candidate code.
+        param: parameter name, used in the error message.
+
+    Returns:
+        The validated code.
+
+    Raises:
+        TypeError: if ``value`` is not a string.
+        ValueError: if it is not 2-3 uppercase letters.
     """
-    Walk up from this file until we find the 'backend' directory.
-    This works whether this module is located at backend/ or backend/utils/.
-    """
-    p = pathlib.Path(__file__).resolve()
-    for anc in [p.parent, *p.parents]:
-        if anc.name == "backend":
-            return anc
-    # Fallback: assume parent of current file
-    return p.parent
-
-
-# Anchor all data paths to the real backend/ folder (not backend/utils/)
-BACKEND_DIR = _discover_backend_dir()                   # .../backend
-DATA_DIR    = BACKEND_DIR / "data" / "wb_panel_wide"    # .../backend/data/wb_panel_wide
+    if not isinstance(value, str):
+        raise TypeError(f"`{param}` must be a str, got {type(value).__name__}: {value!r}")
+    if not _ISO_CODE_RE.fullmatch(value):
+        raise ValueError(
+            f"`{param}` must be a 2- or 3-letter uppercase ISO code, got {value!r}"
+        )
+    return value
 
 
 def query_macro_panel(country_iso_code: str) -> pd.DataFrame:
-    """
-    Load and return World-Bank macro-panel data for *country_iso_code*
-    (years ≥ 2000) from «backend/data/wb_panel_wide/».
-    """
-    # ---- validation --------------------------------------------------------
-    assert isinstance(country_iso_code, str) and country_iso_code, "`country_iso_code` must be a non-empty str"
-    assert re.fullmatch(r"[A-Z]{2,3}", country_iso_code), "`country_iso_code` must be a 2- or 3-letter uppercase ISO code"
+    """Load one country's macro panel (years >= 2000) from Parquet.
 
-    # ---- compose partition path -------------------------------------------
+    Args:
+        country_iso_code: 2- or 3-letter uppercase ISO code naming the
+            partition to read.
+
+    Returns:
+        Year-ordered DataFrame with one column per indicator.
+
+    Raises:
+        TypeError: if ``country_iso_code`` is not a string.
+        ValueError: if it is not a valid ISO code.
+        FileNotFoundError: if the country has no Parquet partition yet — the
+            backfill in ``main.ensure_missing_country_panels`` has not run for it.
+    """
+    _validate_iso_code(country_iso_code, "country_iso_code")
+
     part_dir = DATA_DIR / f"country_code={country_iso_code}"
     parquet_files = sorted(part_dir.glob("*.parquet"))
 
@@ -44,7 +84,8 @@ def query_macro_panel(country_iso_code: str) -> pd.DataFrame:
             f"No parquet files found for {country_iso_code} at {part_dir}/*.parquet\n"
             f"HINTS:\n"
             f"  • Ensure writes go to {DATA_DIR}\n"
-            f"  • Run backfill or confirm the country exists in your Excel map\n"
+            f"  • Run the backfill (main.ensure_missing_country_panels) or confirm\n"
+            f"    the country exists in constants.COUNTRY_ROSTER\n"
             f"  • Check permissions / paths in your runtime environment"
         )
 
@@ -68,54 +109,88 @@ def prepare_llm_payload_pretty(
     lookback: int = 10,
     deltas: tuple[int, ...] = (1, 5),
 ) -> dict:
+    """Build the compact macro payload sent to the risk prompt and the DB.
+
+    Args:
+        country_iso: 2- or 3-letter uppercase ISO code.
+        indicators: raw column name -> World Bank code. Only the keys are used
+            here (to select columns); display names come from
+            ``constants.NICE_NAME``.
+        since: earliest year to include.
+        lookback: how many recent values to keep per indicator series.
+        deltas: change horizons in years, emitted as ``Δ{h}y`` keys. Each is an
+            absolute difference in the indicator's own unit, measured from that
+            indicator's newest observation.
+
+    Returns:
+        ``{country, latest_year, indicators: {pretty_name: {latest, Δ..y,
+        series}}, _meta: {units, source, generated_at, series_lookback,
+        data_dir}}``. ``_meta.generated_at`` is the timestamp
+        ``data_push.upsert_snapshot`` parses back into the snapshot's ``as_of``.
+
+    Raises:
+        TypeError: if ``country_iso`` or ``indicators`` has the wrong type.
+        ValueError: if the ISO code, ``since``, ``lookback``, or ``deltas``
+            are out of range.
+        FileNotFoundError: if the country has no Parquet partition.
     """
-    Build a compact, human-readable payload of recent macro-economic data
-    suitable for an LLM.
-    """
-    # ---- validation --------------------------------------------------------
-    assert isinstance(country_iso, str) and re.fullmatch(r"[A-Z]{2,3}", country_iso), \
-        "`country_iso` must be a 2- or 3-letter uppercase ISO code"
-    assert isinstance(indicators, dict) and indicators, "`indicators` must be a non-empty dict"
-    assert all(isinstance(k, str) and k for k in indicators.keys()), "indicator keys must be non-empty str"
-    assert isinstance(since, int) and 1900 <= since <= datetime.now().year, "`since` must be a reasonable year"
-    assert isinstance(lookback, int) and lookback > 0, "`lookback` must be a positive int"
-    assert all(isinstance(h, int) and h > 0 for h in deltas), "`deltas` must contain positive ints"
+    _validate_iso_code(country_iso, "country_iso")
+
+    if not isinstance(indicators, dict):
+        raise TypeError(f"`indicators` must be a dict, got {type(indicators).__name__}")
+    if not indicators:
+        raise ValueError("`indicators` must not be empty")
+    bad_keys = [k for k in indicators if not (isinstance(k, str) and k)]
+    if bad_keys:
+        raise ValueError(f"indicator keys must be non-empty str, got {bad_keys!r}")
+
+    this_year = datetime.now().year
+    if not isinstance(since, int) or not 1900 <= since <= this_year:
+        raise ValueError(f"`since` must be a year between 1900 and {this_year}, got {since!r}")
+    if not isinstance(lookback, int) or lookback <= 0:
+        raise ValueError(f"`lookback` must be a positive int, got {lookback!r}")
+    bad_deltas = [h for h in deltas if not (isinstance(h, int) and h > 0)]
+    if bad_deltas:
+        raise ValueError(f"`deltas` must contain positive ints, got {bad_deltas!r}")
 
     # ---- load & filter panel ----------------------------------------------
     df = query_macro_panel(country_iso)
     df = df[df.year >= since]
 
-    latest_row  = df.tail(1).squeeze()
-    latest_year = int(latest_row["year"])
+    latest_year = int(df["year"].max())
 
     # ---- per-indicator build ----------------------------------------------
+    year_indexed = df.set_index("year")
     ind_payload: dict[str, dict] = {}
     for raw_col in indicators.keys():
         pretty_name = constants.NICE_NAME.get(raw_col, raw_col)
+        column = year_indexed[raw_col]
+
+        # Anchor on this indicator's own newest observation, not on the panel's
+        # last row: the World Bank publishes these on different lags (WGI
+        # z-scores trail a year, Gini two), so the newest row is populated only
+        # for the fastest of them and reading `latest` off it nulls the rest.
+        observed = column.dropna()
+        latest = None if observed.empty else round(float(observed.iloc[-1]), 2)
 
         # last `lookback` values
-        series = (
-            df.set_index("year")[raw_col]
-              .dropna()
-              .tail(lookback)
-              .round(2)
-              .to_dict()
-        )
+        series = observed.tail(lookback).round(2).to_dict()
 
-        # Δ-changes
-        delta_vals = {}
+        # Δ-changes, as absolute differences in the indicator's own unit. Every
+        # indicator here is a rate, ratio, or index, and percent-change breaks
+        # on the ones that cross zero: PT inflation going -0.01 -> 2.34 is
+        # +2.35pp, but pct_change reports -188.8 (huge, and sign-flipped by the
+        # negative base).
+        delta_vals: dict[str, float | None] = {}
         for h in deltas:
-            pct = (
-                df.set_index("year")[raw_col]
-                  .pct_change(h, fill_method=None)
-                  .round(3)
-                  .tail(1)
-                  .iloc[0]
+            base = None if observed.empty else column.get(int(observed.index[-1]) - h)
+            delta_vals[f"Δ{h}y"] = (
+                None if base is None or pd.isna(base)
+                else round(float(observed.iloc[-1]) - float(base), 3)
             )
-            delta_vals[f"Δ{h}y"] = None if pd.isna(pct) else float(pct)
 
         ind_payload[pretty_name] = {
-            "latest": None if pd.isna(latest_row[raw_col]) else round(float(latest_row[raw_col]), 2),
+            "latest": latest,
             **delta_vals,
             "series": series,
         }
@@ -126,9 +201,28 @@ def prepare_llm_payload_pretty(
         "indicators": ind_payload,
         "_meta": {
             "units": constants.UNITS,
+            "delta_basis": "Δ values are absolute changes in the indicator's own unit, not percent changes",
             "source": "World Bank",
-            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
+            "generated_at": utc_minute_iso(datetime.now(timezone.utc)),
             "series_lookback": lookback,
             "data_dir": str(DATA_DIR),
         },
+    }
+
+
+def macro_latest_facts(payload: dict) -> dict[str, float]:
+    """Flatten a payload to ``{pretty_name: latest_value}`` for the policy layer.
+
+    ``ai.policy`` reads measured numbers (the CPI floors, today) from the macro
+    data rather than from the model's reading of it, so it needs the payload's
+    latest observations without the deltas and series around them.
+
+    Indicators whose ``latest`` is None are dropped — the country has no
+    observation, so no rule keyed on it should fire. The test is ``is not
+    None``, not truthiness: 0.0 is a legitimate reading for a rate or a delta.
+    """
+    return {
+        name: ind["latest"]
+        for name, ind in (payload.get("indicators") or {}).items()
+        if isinstance(ind, dict) and ind.get("latest") is not None
     }

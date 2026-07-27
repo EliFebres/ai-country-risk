@@ -26,61 +26,10 @@ import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
-import requests
-from dotenv import load_dotenv
-from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
-from tenacity import (
-    retry,
-    wait_exponential_jitter,
-    stop_after_attempt,
-    retry_if_exception,
-)
-
 import backend.utils.constants as constants
-
-load_dotenv()
+from backend.utils import http
 
 logger = logging.getLogger(__name__)
-
-# Transient statuses worth retrying (mirrors fetch_metrics._RETRYABLE_STATUS).
-_RETRYABLE_STATUS = {429, 500, 502, 503, 504}
-_DEFAULT_HEADERS = {
-    "User-Agent": "AI-Country-Risk/1.0 (+https://github.com/EliFebres/AI-Country-Risk-Dashboard)"
-}
-_TIMEOUT = 20  # seconds
-
-
-def _is_retryable_exc(exc: BaseException) -> bool:
-    """Retry on network/transient HTTP conditions only."""
-    if isinstance(exc, (Timeout, ConnectionError)):
-        return True
-    if isinstance(exc, HTTPError):
-        resp = getattr(exc, "response", None)
-        return getattr(resp, "status_code", None) in _RETRYABLE_STATUS
-    if isinstance(exc, RequestException):
-        resp = getattr(exc, "response", None)
-        return getattr(resp, "status_code", None) in _RETRYABLE_STATUS
-    return False
-
-
-@retry(
-    wait=wait_exponential_jitter(initial=1, max=30),
-    stop=stop_after_attempt(5),
-    retry=retry_if_exception(_is_retryable_exc),
-    reraise=True,
-)
-def _fmp_request(params: Dict[str, str]) -> requests.Response:
-    """Single GET to the FMP economic-calendar endpoint, retrying transient errors."""
-    resp = requests.get(
-        constants.FMP_ECON_CALENDAR_ENDPOINT,
-        params=params,
-        headers=_DEFAULT_HEADERS,
-        timeout=_TIMEOUT,
-    )
-    if resp.status_code in _RETRYABLE_STATUS:
-        # Raise so tenacity retries; non-transient statuses fall through to the caller.
-        resp.raise_for_status()
-    return resp
 
 
 def _to_float_or_none(v: Any) -> Optional[float]:
@@ -146,13 +95,12 @@ def _normalize_event(raw: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     }
 
 
-def fetch_economic_calendar(
-    days_ahead: int = constants.FMP_CALENDAR_DAYS_AHEAD,
-) -> List[Dict[str, Any]]:
+def fetch_economic_calendar() -> List[Dict[str, Any]]:
     """Fetch upcoming major economic events from FMP.
 
-    Pulls a rolling window from today through today + ``days_ahead`` (UTC),
-    keeps only High/Medium-impact events in the curated country allowlist, and
+    Pulls a rolling window from today through today +
+    ``constants.FMP_CALENDAR_DAYS_AHEAD`` days (UTC), keeps only
+    High/Medium-impact events in the curated country allowlist, and
     returns normalized, de-duplicated event dicts ready for
     ``data_push.upsert_economic_events``.
 
@@ -167,12 +115,12 @@ def fetch_economic_calendar(
     now = datetime.now(timezone.utc)
     params = {
         "from": now.strftime("%Y-%m-%d"),
-        "to": (now + timedelta(days=days_ahead)).strftime("%Y-%m-%d"),
+        "to": (now + timedelta(days=constants.FMP_CALENDAR_DAYS_AHEAD)).strftime("%Y-%m-%d"),
         "apikey": api_key,
     }
 
     try:
-        resp = _fmp_request(params)
+        resp = http.fmp_get(constants.FMP_ECON_CALENDAR_ENDPOINT, params)
         resp.raise_for_status()
         data = resp.json()
     except Exception as e:  # noqa: BLE001 - graceful degradation by design

@@ -57,7 +57,12 @@ export default function WorldMarkets() {
                 <td className="mname" title={`${ex.name} · ${ex.country}`}>
                   <div className="mname-inner">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="mkt-flag" src={`/flags/${ex.iso2}.svg`} alt="" />
+                    <img
+                      className="mkt-flag"
+                      src={`/flags/${ex.iso2}.svg`}
+                      alt=""
+                      onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                    />
                     <span className="name">{ex.code}</span>
                   </div>
                 </td>

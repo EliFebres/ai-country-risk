@@ -1,3 +1,16 @@
+"""Google News RSS search plus article-body extraction.
+
+``gnews_rss`` is the pipeline's news source: it queries Google News RSS,
+unwraps the redirect links to real publisher URLs, drops denylisted
+publishers, and fetches each article's main text with trafilatura so the risk
+prompt sees real content rather than a one-line RSS blurb.
+
+Body fetches run concurrently (httpx + asyncio) because a country's ~15
+articles are otherwise a long serial wait; the synchronous variants exist for
+the case where a caller is already inside an event loop, where
+``asyncio.run`` would fail.
+"""
+
 import re
 import html
 import httpx
@@ -37,8 +50,7 @@ def _strip_html(s: str) -> str:
     s = re.sub(r"<a[^>]*>.*?</a>", "", s, flags=re.S | re.I)  # drop anchors
     s = re.sub(r"<[^>]+>", "", s)                              # drop remaining tags
     s = html.unescape(s)                                       # unescape entities
-    s = re.sub(r"\s+", " ", s).strip()                         # collapse whitespace
-    return s
+    return " ".join(s.split())                                 # collapse whitespace
 
 
 def _clip_words(s: str, max_words: int) -> str:
@@ -52,6 +64,18 @@ def _clip_words(s: str, max_words: int) -> str:
 
 
 async def _fetch_text_async(url: str, client: httpx.AsyncClient, max_chars: int = 3000) -> str:
+    """Fetch and extract one article's main text (empty string on any failure).
+
+    Args:
+        url: publisher URL, or a Google News link still needing resolution.
+        client: shared async client.
+        max_chars: truncation cap on the extracted text.
+
+    Returns:
+        The extracted body, truncated, or "" if the fetch or extraction failed
+        — a missing body is normal (paywalls, JS-only pages) and must not stop
+        the surrounding batch.
+    """
     try:
         # If somehow still a Google News link, resolve it here too
         if "news.google.com" in urlparse(url).netloc:
@@ -70,6 +94,10 @@ async def _fetch_text_async(url: str, client: httpx.AsyncClient, max_chars: int 
 
 
 def _fetch_text_sync(url: str, client: httpx.Client, max_chars: int = 3000) -> str:
+    """Synchronous twin of ``_fetch_text_async``, same contract.
+
+    Used only when the caller is already inside an event loop.
+    """
     try:
         if "news.google.com" in urlparse(url).netloc:
             try:
@@ -86,6 +114,12 @@ def _fetch_text_sync(url: str, client: httpx.Client, max_chars: int = 3000) -> s
 
 
 async def _expand_items_async(entries: List[Dict], max_articles: int, max_chars: int) -> List[Dict]:
+    """Add ``text``/``word_count`` to the first ``max_articles`` entries.
+
+    Fetches all bodies concurrently. Entries beyond ``max_articles`` are passed
+    through untouched; a per-article failure yields an empty body, never an
+    exception.
+    """
     urls = [
         (e.get("publisher_link") or e.get("link"))
         for e in entries[:max_articles]
@@ -107,6 +141,7 @@ async def _expand_items_async(entries: List[Dict], max_articles: int, max_chars:
 
 
 def _expand_items_sync(entries: List[Dict], max_articles: int, max_chars: int) -> List[Dict]:
+    """Synchronous twin of ``_expand_items_async``, same contract."""
     urls = [
         (e.get("publisher_link") or e.get("link"))
         for e in entries[:max_articles]
@@ -127,16 +162,12 @@ def gnews_rss(
     query: str,
     *,
     max_results: int = 10,
-    expand: bool = True,
     extract_chars: int = 3000,
-    lang: str = "en",
-    country: str = "US",
-    build_summary: bool = True,
     summary_words: int = 240,
-    max_age_days: int | None = 30,   # limit by age (None = no filter)
 ) -> List[Dict]:
     """
-    Return Google News RSS items. If expand=True, also fetch and extract each article's main text.
+    Return Google News RSS items (English/US feed, max 30 days old), each
+    expanded with the article's extracted main text and a plain-text summary.
 
     Each item contains:
       - 'title':          str
@@ -146,19 +177,14 @@ def gnews_rss(
       - 'source':         str (publisher name if available)
       - 'snippet':        str (PLAIN TEXT, links removed)
       - 'snippet_html':   str (original RSS summary with HTML)
-      - ['text','word_count'] present when expand=True and extraction succeeds
-      - ['summary','summary_word_count'] present when build_summary=True
-
-    Args:
-        max_age_days: If set, discard items older than this many days (items
-                      without a publish date are discarded).
+      - 'text', 'word_count'              (extracted body, may be empty)
+      - 'summary', 'summary_word_count'   (first summary_words of text/snippet)
     """
-    url = _gnews_url(query, lang=lang, country=country)
+    url = _gnews_url(query)
     feed = feedparser.parse(url)
 
-    cutoff = None
-    if max_age_days is not None:
-        cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=max_age_days)
+    # Discard items older than 30 days (or with no publish date at all).
+    cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=30)
 
     items: List[Dict] = []
     for e in feed.entries:
@@ -168,9 +194,8 @@ def gnews_rss(
             published_dt = dt.datetime(*e.published_parsed[:6], tzinfo=dt.timezone.utc)
 
         # Age filter
-        if cutoff is not None:
-            if (published_dt is None) or (published_dt < cutoff):
-                continue
+        if (published_dt is None) or (published_dt < cutoff):
+            continue
 
         raw_summary = getattr(e, "summary", "") or ""
         plain_summary = _strip_html(raw_summary)
@@ -206,8 +231,8 @@ def gnews_rss(
         if len(items) >= max_results:
             break
 
-    # Optionally expand with article body text (limit to number of kept items)
-    if expand and items:
+    # Expand with article body text (limit to number of kept items)
+    if items:
         try:
             _ = asyncio.get_running_loop()  # raises RuntimeError if none
             # If we're already in an event loop, use sync fallback to avoid nested loop issues
@@ -216,7 +241,7 @@ def gnews_rss(
             items = asyncio.run(_expand_items_async(items, max_articles=len(items), max_chars=extract_chars))
 
     # Build longer plain-text summaries
-    if build_summary and items:
+    if items:
         for e in items:
             base = e.get("text") or e.get("snippet") or ""
             summary = _clip_words(base, summary_words)

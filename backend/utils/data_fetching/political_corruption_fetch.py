@@ -97,8 +97,6 @@ def load_corruption_by_iso3() -> dict[str, pd.Series]:
 def corruption_series_for_iso2(
     iso2: str,
     iso3_by_iso2: Mapping[str, str],
-    *,
-    max_year: Optional[int] = None,
 ) -> pd.Series:
     """Year-indexed Political Corruption Index series for one ISO-2 country.
 
@@ -106,14 +104,12 @@ def corruption_series_for_iso2(
         iso2: ISO-2 country code (the World Bank / DB key).
         iso3_by_iso2: Mapping ISO-2 -> ISO-3 (e.g. ``constants.ISO3_BY_ISO2``);
             the OWID CSV is keyed by ISO-3.
-        max_year: If given, drop years greater than this. Used to clamp the
-            series to the World Bank panel's latest year so adding this indicator
-            never advances the panel's ``latest_year`` and silently nulls the
-            existing indicators' ``latest`` values.
 
     Returns:
         A float64 ``pandas.Series`` indexed by int year (empty if the country is
-        absent from OWID or the CSV could not be fetched).
+        absent from OWID or the CSV could not be fetched). OWID often publishes
+        a year ahead of the World Bank; the series is returned in full and the
+        payload anchors each indicator on its own newest observation.
     """
     iso3 = iso3_by_iso2.get(iso2)
     if not iso3:
@@ -122,8 +118,5 @@ def corruption_series_for_iso2(
     series = load_corruption_by_iso3().get(iso3)
     if series is None or series.empty:
         return pd.Series(dtype="float64")
-
-    if max_year is not None:
-        series = series[series.index <= int(max_year)]
 
     return series.astype("float64")

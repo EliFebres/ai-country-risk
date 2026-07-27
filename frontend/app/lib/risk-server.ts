@@ -8,6 +8,11 @@ import type { Channel } from "./terminal-seed";
 export type JoinedLatestRisk = {
   iso2: string;
   name: string;
+  // Map marker position, seeded from the backend roster
+  // (backend/utils/constants.py -> country.lat/lng). The frontend keeps no
+  // country list or coordinate table of its own.
+  lat: number | null;
+  lng: number | null;
   as_of: string;
   score: number;
   bullet_summary: string;
@@ -202,6 +207,8 @@ export class RiskRepository {
     SELECT
       c.iso2,
       c.name,
+      c.lat,
+      c.lng,
       l.as_of,
       l.score,
       l.bullet_summary,

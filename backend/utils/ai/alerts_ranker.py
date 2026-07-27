@@ -16,32 +16,22 @@ warning and return ``[]`` so the surrounding run is never blocked.
 """
 
 import os
+import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv(), override=False)
-
-from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 
 import backend.utils.constants as constants
 import backend.utils.ai.constants as ai_constants
+from backend.utils import dates
+from backend.utils.ai import client as ai_client
 
 logger = logging.getLogger(__name__)
 
 # Cap how much summary text reaches the prompt (keeps the single call bounded).
 _SUMMARY_CHARS = 300
-
-
-def _published_iso(published_at: Any) -> str:
-    """Best-effort 'YYYY-MM-DD' for the prompt (accepts datetime or string)."""
-    if isinstance(published_at, datetime):
-        return published_at.strftime("%Y-%m-%d")
-    if isinstance(published_at, str):
-        return published_at[:10]
-    return ""
 
 
 def _compact(articles: List[Dict[str, Any]]) -> List[Dict[str, str]]:
@@ -56,22 +46,14 @@ def _compact(articles: List[Dict[str, Any]]) -> List[Dict[str, str]]:
             "id": rid,
             "country": (a.get("country_name") or a.get("country_iso2") or "").strip(),
             "source": (a.get("source") or "").strip(),
-            "published_at": _published_iso(a.get("published_at")),
+            "published_at": dates.date_prefix(a.get("published_at")),
             "title": (a.get("title") or "").strip(),
             "summary": summary[:_SUMMARY_CHARS],
         })
     return out
 
 
-def rank_global_alerts(
-    articles: List[Dict[str, Any]],
-    *,
-    top_n: Optional[int] = None,
-    model: str = "gpt-4o-2024-08-06",
-    temperature: float = 0.0,
-    seed: int = 42,
-    api_key: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+def rank_global_alerts(articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """Rank pooled country articles by importance to the global economy.
 
     The whole pool is ranked in a SINGLE LLM call so the comparison is truly
@@ -82,21 +64,20 @@ def rank_global_alerts(
         articles: pooled article dicts, each carrying at least ``country_iso2`` /
             ``country_name`` plus ``url`` / ``title`` / ``source`` /
             ``published_at`` / ``summary`` / ``image``.
-        top_n: how many top-ranked alerts to return; defaults to
-            ``constants.ALERTS_TOP_N``.
 
     Returns:
-        The global top-``top_n`` alerts, sorted by importance (desc), each enriched
-        with ``topic`` / ``severity`` / ``importance`` / ``rationale`` / ``global_rank``
-        and the originating ``country_iso2`` / ``country_name``. Empty list if there
-        is nothing to score, the key is missing, or the call failed.
+        The global top-``ALERTS_TOP_N`` alerts, sorted by importance (desc),
+        each enriched with ``topic`` / ``severity`` / ``importance`` /
+        ``rationale`` / ``global_rank`` and the originating ``country_iso2`` /
+        ``country_name``. Empty list if there is nothing to score, the key is
+        missing, or the call failed.
     """
     if not articles:
         return []
 
-    top_n = top_n or constants.ALERTS_TOP_N
+    top_n = constants.ALERTS_TOP_N
 
-    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         logger.warning("OPENAI_API_KEY not set; skipping global alert ranking.")
         return []
@@ -113,16 +94,10 @@ def rank_global_alerts(
     if not compact:
         return []
 
-    llm = ChatOpenAI(
-        model=model,
-        temperature=temperature,
-        max_retries=0,
-        api_key=api_key,
-        seed=seed,
+    structured_llm = ai_client.build_chat(api_key).with_structured_output(
+        schema=ai_constants.ALERTS_RANK_SCHEMA, strict=True
     )
-    structured_llm = llm.with_structured_output(schema=ai_constants.ALERTS_RANK_SCHEMA, strict=True)
 
-    import json
     today = datetime.now(timezone.utc).date().isoformat()
     prompt = ai_constants.ALERTS_RANK_PROMPT.format(
         today=today,
@@ -147,11 +122,9 @@ def rank_global_alerts(
         src = by_id.get(r.get("id"))
         if not src:
             continue
-        try:
-            importance = float(r.get("importance"))
-        except (TypeError, ValueError):
+        importance = ai_client.parse_importance(r.get("importance"))
+        if importance is None:
             continue
-        importance = max(0.0, min(1.0, importance))
         topic = (r.get("topic") or "").strip()
         severity = (r.get("severity") or "").strip()
         if topic not in ai_constants.ALERT_TOPICS or severity not in ai_constants.ALERT_SEVERITIES:

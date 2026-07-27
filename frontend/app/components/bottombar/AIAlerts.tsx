@@ -61,7 +61,12 @@ export default function AIAlerts() {
                   <span className="alert-cat">{a.topic}</span>
                   <span className="alert-iso">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img className="alert-flag" src={`/flags/${a.country_iso2}.svg`} alt="" />
+                    <img
+                      className="alert-flag"
+                      src={`/flags/${a.country_iso2}.svg`}
+                      alt=""
+                      onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                    />
                     {a.country_iso2}
                   </span>
                   {meta && <span className="alert-src">{meta}</span>}

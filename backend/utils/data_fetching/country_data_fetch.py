@@ -1,23 +1,32 @@
-import shutil
+"""Write side of the macro panel: World Bank data out to Parquet.
+
+``backfill_missing_panels`` is the ETL's first phase — it builds a panel for
+every rostered country that doesn't have one yet and writes it to the Parquet
+store that ``data_retrieval.query_macro_panel`` reads back with DuckDB.
+``ingest_panel_wide`` does the write, and ``merge_extra_indicators`` folds in
+the indicators that don't come from the World Bank beforehand.
+
+The backfill is incremental by design: World Bank fetches are slow and the
+data is annual, so a country keeps its panel until someone deletes it. A
+normal daily run does no fetching here at all.
+"""
+
+import logging
 import duckdb
 import pathlib
 import pandas as pd
 
-from zoneinfo import ZoneInfo
-from typing import Mapping, Optional
-from datetime import datetime, date, timedelta
+from typing import Mapping
 
 from backend.utils import constants
 import backend.utils.data_fetching.fetch_metrics as fetch_metrics
 import backend.utils.data_fetching.political_corruption_fetch as political_corruption_fetch
 
+logger = logging.getLogger(__name__)
 
-def _first_monday(year: int, month: int) -> date:
-    d = date(year, month, 1)
-    return d + timedelta(days=(0 - d.weekday()) % 7)
-
-def _is_first_monday_of_quarter(now: datetime) -> bool:
-    return now.month in (1, 4, 7, 10) and now.date() == _first_monday(now.year, now.month)
+# Parquet panel store: backend/data/wb_panel_wide (this file is in
+# backend/utils/data_fetching/).
+PANEL_DIR = pathlib.Path(__file__).resolve().parents[2] / "data" / "wb_panel_wide"
 
 
 def ingest_panel_wide(panel: pd.DataFrame, country_code: str, root: pathlib.Path) -> None:
@@ -30,23 +39,28 @@ def ingest_panel_wide(panel: pd.DataFrame, country_code: str, root: pathlib.Path
     files partitioned by ``country_code`` under ``root``.
 
     Args:
-        panel (pd.DataFrame): Non-empty, wide-form DataFrame whose index are
-            years and whose columns are indicator codes (or similar). The index
-            will be reset to a ``year`` column.
-        country_code (str): ISO-2 (or similar) country code used both as a
-            data column and the Parquet partition key.
-        root (pathlib.Path): Output directory. It will be created if missing,
-            then used as the COPY destination for Parquet output.
+        panel: Non-empty, wide-form DataFrame whose index are years and whose
+            columns are indicator codes. The index becomes a ``year`` column.
+        country_code: ISO-2 country code, used both as a data column and the
+            Parquet partition key.
+        root: Output directory, created if missing.
 
-    Returns:
-        None
+    Raises:
+        TypeError: if ``panel`` is not a DataFrame, ``country_code`` is not a
+            string, or ``root`` is not a Path.
+        ValueError: if ``panel`` is empty or ``country_code`` is blank —
+            writing either would produce an unreadable partition.
     """
-    # Input Validation
-    assert isinstance(panel, pd.DataFrame) and not panel.empty, \
-        "`panel` must be a non-empty DataFrame"
-    assert isinstance(country_code, str) and country_code.strip(), \
-        "`country_code` must be a non-empty str"
-    assert isinstance(root, pathlib.Path), "`root` must be a pathlib.Path"
+    if not isinstance(panel, pd.DataFrame):
+        raise TypeError(f"`panel` must be a pandas DataFrame, got {type(panel).__name__}")
+    if panel.empty:
+        raise ValueError("`panel` must be a non-empty DataFrame, got an empty one")
+    if not isinstance(country_code, str):
+        raise TypeError(f"`country_code` must be a str, got {type(country_code).__name__}")
+    if not country_code.strip():
+        raise ValueError(f"`country_code` must be a non-empty str, got {country_code!r}")
+    if not isinstance(root, pathlib.Path):
+        raise TypeError(f"`root` must be a pathlib.Path, got {type(root).__name__}")
 
     # Tidy Dataframe For Duckdb
     df: pd.DataFrame = (
@@ -87,25 +101,25 @@ def merge_extra_indicators(
     """Merge non-World-Bank indicators into a country's wide WB panel.
 
     Currently adds the OWID/V-Dem **Political Corruption Index** as a
-    ``POL_CORRUPTION`` column, aligned on the panel's int year index. The
-    corruption series is clamped to the panel's latest year so this never
-    advances ``latest_year`` downstream (which would null out existing
-    indicators' ``latest`` values).
+    ``POL_CORRUPTION`` column, aligned on the panel's int year index. OWID
+    often publishes a year ahead of the World Bank, so the join is an outer one
+    and the extra year is kept: ``data_retrieval`` anchors each indicator on its
+    own newest observation, so a longer corruption series costs the others
+    nothing.
 
     Args:
-        panel (pd.DataFrame): Wide, year-indexed WB panel (may be empty).
-        iso2 (str): ISO-2 country code.
-        iso3_by_iso2 (Mapping[str, str]): ISO-2 -> ISO-3 map (OWID is ISO-3 keyed).
+        panel: Wide, year-indexed WB panel (may be empty).
+        iso2: ISO-2 country code.
+        iso3_by_iso2: ISO-2 -> ISO-3 map (OWID is ISO-3 keyed).
 
     Returns:
-        pd.DataFrame: The panel with a ``POL_CORRUPTION`` column. Stays empty
-        only if both the WB panel and the corruption series are empty.
+        The panel with a ``POL_CORRUPTION`` column. Stays empty only if both
+        the WB panel and the corruption series are empty.
     """
     has_panel = isinstance(panel, pd.DataFrame) and not panel.empty
-    max_year = int(panel.index.max()) if has_panel else None
 
     series = political_corruption_fetch.corruption_series_for_iso2(
-        iso2, iso3_by_iso2, max_year=max_year
+        iso2, iso3_by_iso2
     ).rename("POL_CORRUPTION")
 
     if not series.empty:
@@ -120,76 +134,69 @@ def merge_extra_indicators(
     return panel
 
 
-def ingest_panels_for_all_countries(
-    root: pathlib.Path,
-    indicators: Mapping[str, str],
-    *,
-    start: Optional[int] = None,
-    end:   Optional[int] = None
-) -> None:
-    """Build and persist per-country panels for the hardcoded country roster.
-
-    The country universe comes from ``constants.COUNTRY_ROSTER`` (ISO-2 / ISO-3).
-    Each country's World Bank panel is augmented with non-WB indicators (e.g. the
-    OWID Political Corruption Index) via :func:`merge_extra_indicators`.
-
-    On the first Monday of each calendar quarter (Jan, Apr, Jul, Oct; timezone
-    ``America/New_York``), the function deletes the directory at ``root`` using
-    a safety-guarded `shutil.rmtree` and then recreates it to produce a clean
-    snapshot before ingest.
+def has_country_partition(root: pathlib.Path, iso2: str) -> bool:
+    """True if ``root`` holds a non-empty ``country_code=XX`` Parquet partition.
 
     Args:
-        root (pathlib.Path): Root output directory where per-country panel
-            artifacts are written. On quarterly cleanup days, this directory is
-            deleted and recreated at the start of the run.
-        indicators (Mapping[str, str]): WB indicator col-name -> code map passed
-            to the panel fetcher (e.g. ``constants.INDICATORS``). Must not be empty.
-        start (Optional[int], keyword-only): First calendar year to include
-            (inclusive). If ``None``, the fetcher’s default is used.
-        end (Optional[int], keyword-only): Last calendar year to include
-            (inclusive). If ``None``, the fetcher’s default is used.
+        root: the ``wb_panel_wide`` directory.
+        iso2: country code naming the partition.
 
     Returns:
-        None
+        True only when the directory exists and contains at least one
+        ``.parquet`` file. An unreadable directory counts as "no partition",
+        which triggers a harmless re-fetch.
     """
-    # Quarterly cleanup (first Monday of each quarter, America/New_York)
-    now = datetime.now(ZoneInfo("America/New_York"))
-    if _is_first_monday_of_quarter(now) and root.is_dir():
-        # Safety guard: avoid catastrophic deletes (like '/')
-        root_resolved = root.resolve()
-        if len(root_resolved.parts) <= 3:  # tweak threshold for your project layout
-            raise RuntimeError(f"Refusing to delete suspiciously high-level path: {root_resolved}")
-        shutil.rmtree(root_resolved)
+    part_dir = root / f"country_code={iso2}"
+    if not part_dir.is_dir():
+        return False
+    try:
+        return any(p.suffix == ".parquet" for p in part_dir.glob("*.parquet"))
+    except OSError:
+        return False
 
-    # Input Validation
-    assert indicators, "`indicators` mapping must not be empty"
-    if start is not None and end is not None:
-        assert start <= end, "`start` year must be ≤ `end` year"
 
-    # Country roster is hardcoded (see constants.COUNTRY_ROSTER); the Excel file
-    # is no longer read.
+def backfill_missing_panels() -> None:
+    """Build Parquet panels for any rostered country that lacks one.
+
+    Incremental and idempotent: countries that already have a partition are
+    skipped, so a normal daily run does no World Bank fetching at all and only
+    a first run (or a newly added country) pays for it.
+
+    A country whose build fails is logged with a traceback and skipped — the
+    others still get their panels.
+    """
+    root = PANEL_DIR
+    root.mkdir(parents=True, exist_ok=True)
+
+    roster = constants.COUNTRY_ROSTER
     iso3_by_iso2 = constants.ISO3_BY_ISO2
 
-    # Iterate & Ingest
-    for country in constants.COUNTRY_ROSTER:
-        iso_code = country["iso2"]
-
-        # Build the World Bank panel (robust to missing/empty series)
-        panel = fetch_metrics.build_country_panel(
-            iso_code,
-            indicators,
-            start=start,
-            end=end,
-            tidy_fetch=True,
-        )
-
-        # Merge non-WB indicators (e.g. Political Corruption Index from OWID)
-        panel = merge_extra_indicators(panel, iso_code, iso3_by_iso2)
-
-        # Skip countries with no usable rows from any source
-        if panel is None or panel.empty:
-            print(f"[{iso_code}] No rows for selected indicators — skipping write.")
+    missing = []
+    for country in roster:
+        iso2 = str(country["iso2"]).strip()
+        if not iso2:
             continue
+        if not has_country_partition(root, iso2):
+            missing.append(iso2)
 
-        ingest_panel_wide(panel, iso_code, root)
-        print(f"[{iso_code}] Wrote panel with {panel.shape[0]} years × {panel.shape[1]} indicators.")
+    if not missing:
+        logger.info("All %d countries already have parquet partitions in %s.", len(roster), root)
+        return
+
+    logger.info("Backfilling %d missing panels → %s", len(missing), missing)
+    for iso2 in missing:
+        try:
+            panel = fetch_metrics.build_country_panel(iso2, constants.INDICATORS)
+
+            # Merge non-WB indicators (e.g. Political Corruption Index from OWID)
+            panel = merge_extra_indicators(panel, iso2, iso3_by_iso2)
+
+            if panel is None or panel.empty:
+                logger.info("[%s] No rows for selected indicators — skipping write.", iso2)
+                continue
+
+            ingest_panel_wide(panel, iso2, root)
+            logger.info("[%s] Wrote panel with %d years × %d indicators.", iso2, panel.shape[0], panel.shape[1])
+        except Exception:
+            # One country's failed backfill must not block the others.
+            logger.exception("[%s] ERROR while backfilling panel", iso2)

@@ -205,7 +205,16 @@ export default function RiskSidebar({
             {flagSrc && (
               <span className="flagBox" aria-hidden="true">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img className="flag" src={flagSrc} alt="" loading="eager" />
+                <img
+                  className="flag"
+                  src={flagSrc}
+                  alt=""
+                  loading="eager"
+                  // A country with no bundled flag hides the image rather than
+                  // showing a broken-image icon, so adding one to the backend
+                  // roster never breaks this view.
+                  onError={(e) => { e.currentTarget.style.visibility = 'hidden'; }}
+                />
               </span>
             )}
             <strong className="countryName">{country?.name ?? '—'}</strong>
