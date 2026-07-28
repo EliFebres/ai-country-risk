@@ -352,8 +352,8 @@ INDICATOR_REGISTRY: dict[str, dict[str, object]] = {
         "panel_col": None, "recent_name": None,
     },
     # The learning-outcome line the prompt reads first. `freq` is "A" for the
-    # period format only — the honest cadence is triennial, and the walkthrough's
-    # cycles-behind chart keys that off `source` rather than off `freq`.
+    # period format only — the honest cadence is triennial, and the country-rating
+    # notebook's cycles-behind chart keys that off `source` rather than off `freq`.
     "OECD.PISA.MEAN": {
         "label": "PISA mean score (math/reading/science)", "unit": "score",
         "ledger": "edge", "source": "OECD PISA", "freq": "A",

@@ -93,11 +93,16 @@ python -m pytest backend/tests -q
 
 ## Notebook
 
-`backend/walkthrough.ipynb` runs `pipeline._process_country` one step at a time
-for a single country, printing each intermediate as a DataFrame: the macro
-panel, the LLM payload, the article pool, the stage-1 digests, the model's
-subscores and per-article impacts, and the Top-3. Pick the country by editing
-`ISO2` in the second cell.
+`backend/notebooks/country_rating_walkthrough.ipynb` rates one country from
+scratch and shows its work — what evidence went in, how stale it is, what the
+news added, what the model decided and why. It runs the same code paths
+`pipeline._process_country` runs, in five steps: the evidence, the news, the
+score, the guardrails, and the Top-3 that reach the dashboard. Charts are inline
+SVG so the notebook adds no plotting dependency.
+
+Pick the country by editing `ISO2` in the *Pick a country* cell, then Run All.
+It makes real network calls and spends OpenAI credits, and it writes no
+snapshot — use `tests/live_country_check.py` when you want the write.
 
 Two cells exist purely to show the division of labor between the models: one
 prints a single article end to end through the mini digest model (text in, JSON

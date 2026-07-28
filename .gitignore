@@ -71,7 +71,7 @@ venv.bak/
 # Local agent/tooling config - never commit.
 .claude/
 
-# Jupyter autosaves of backend/walkthrough.ipynb and friends.
+# Jupyter autosaves of backend/notebooks/*.ipynb and friends.
 .ipynb_checkpoints
 
 # Playwright MCP scratch logs.
@@ -83,7 +83,7 @@ venv.bak/
 # --- Generated and operator-local data under backend/data -------------------
 
 # Fetched World Bank macro panels, one Parquet partition per country. Rebuilt on
-# demand by the Step 0 backfill (walkthrough.ipynb) or by the daily pipeline, so
+# demand by the country-rating notebook or by the daily pipeline, so
 # there is nothing here worth versioning.
 backend/data/wb_panel_wide
 
