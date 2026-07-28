@@ -1,0 +1,18 @@
+# Scheduled national elections — order-uncertainty context. A scheduled transfer
+# of power is a known unknown; an unscheduled one is a different fact, and the
+# model should be able to tell them apart. See README.md section 11.
+#
+# `kind` is one of: legislative | presidential | referendum
+# Dates are ISO `YYYY-MM-DD`. Past entries are harmless; the payload selects the
+# next one on or after the snapshot's as_of.
+#
+# Ships empty on purpose — an unlisted country contributes no election evidence
+# rather than an implied "no election scheduled".
+
+version: 1
+as_of: null
+source: "IFES Election Guide"
+elections: {}
+  # PT:
+  #   - date: "2026-10-04"
+  #     kind: legislative
