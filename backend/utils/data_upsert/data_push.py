@@ -16,11 +16,14 @@ one quote batch, an unranked event) must not blank a previously-good value.
 
 import os
 import datetime
+import logging
 from contextlib import contextmanager
 from typing import Dict, Any, Iterator, NamedTuple, Optional, List, Tuple
 
 import psycopg2
 import psycopg2.extras as extras
+
+logger = logging.getLogger(__name__)
 
 
 def _require_db_url() -> str:
@@ -180,15 +183,22 @@ class _SnapshotData(NamedTuple):
     score_3m: Optional[float] = None
     raw_score_12m: Optional[float] = None
     raw_score_3m: Optional[float] = None
-    # JSONB columns: the model's perception and what policy did with it.
+    # JSONB columns: the model's judgement and the observations beside it.
     subscores: Optional[Dict[str, Any]] = None
-    raw_subscores: Optional[Dict[str, Any]] = None
     subscore_evidence: Optional[Dict[str, Any]] = None
     condition_flags: Optional[Dict[str, Any]] = None
     article_scores: Optional[List[Dict[str, Any]]] = None
     applied_rules: Optional[List[str]] = None
     evidence_coverage: Optional[float] = None
-    # The sanctions rule that forced a 1.0, with its citations, or None.
+    # The four ledger scores, broken out of `subscores` into their own columns
+    # so the front-end and any analysis can read one without parsing JSONB.
+    friction_score: Optional[float] = None
+    order_uncertainty_score: Optional[float] = None
+    information_score: Optional[float] = None
+    edge_vitality: Optional[float] = None
+    # Legal investability. `non_investable` drives the RESTRICTED badge;
+    # `legal_gate` is the rule behind it, with citations. Neither touches `score`.
+    non_investable: Optional[bool] = None
     legal_gate: Optional[Dict[str, Any]] = None
     # Provenance: which model, prompt and policy produced this row.
     model_id: Optional[str] = None
@@ -230,6 +240,18 @@ def payload_as_of(payload: Dict[str, Any]) -> datetime.date:
     if not gen_at or not isinstance(gen_at, str):
         raise ValueError("payload['_meta']['generated_at'] must be a string ISO timestamp")
     return _to_date_from_iso(gen_at)
+
+
+def _ledger(llm_out: Dict[str, Any], name: str) -> Optional[float]:
+    """Read one ledger score out of the model output, or None.
+
+    Already on the 0-1 scale — ``langchain_llm._from_100`` converts every model
+    score the moment the call returns, so these match ``score`` and
+    ``evidence_coverage`` without further arithmetic.
+    """
+    scores = llm_out.get("ledger_scores") or llm_out.get("subscores") or {}
+    value = scores.get(name) if isinstance(scores, dict) else None
+    return value if isinstance(value, (int, float)) and not isinstance(value, bool) else None
 
 
 def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
@@ -279,10 +301,19 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
         score_3m=llm_out.get("score_3m"),
         raw_score_12m=llm_out.get("raw_score_12m"),
         raw_score_3m=llm_out.get("raw_score_3m"),
-        subscores=llm_out.get("subscores"),
-        raw_subscores=llm_out.get("raw_subscores"),
+        # The ledger scores and the evidence ids behind them, stored together —
+        # a score without its citations is not auditable.
+        subscores={
+            "ledger_scores": llm_out.get("subscores") or {},
+            "subscore_evidence": llm_out.get("subscore_evidence") or {},
+        } if llm_out.get("subscores") else None,
         subscore_evidence=llm_out.get("subscore_evidence"),
         condition_flags=llm_out.get("condition_flags"),
+        friction_score=_ledger(llm_out, "friction"),
+        order_uncertainty_score=_ledger(llm_out, "order_uncertainty"),
+        information_score=_ledger(llm_out, "information_capacity"),
+        edge_vitality=_ledger(llm_out, "edge_vitality"),
+        non_investable=llm_out.get("non_investable"),
         # Every article's impact and topic group, not just the displayed
         # top-3: the full cross-section is the point of storing it.
         article_scores=llm_out.get("news_article_scores"),
@@ -316,7 +347,12 @@ ALTER TABLE risk_snapshot
   ADD COLUMN IF NOT EXISTS prompt_version    TEXT,
   ADD COLUMN IF NOT EXISTS policy_version    TEXT,
   ADD COLUMN IF NOT EXISTS legal_gate        JSONB,
-  ADD COLUMN IF NOT EXISTS input_manifest    JSONB;
+  ADD COLUMN IF NOT EXISTS input_manifest    JSONB,
+  ADD COLUMN IF NOT EXISTS friction_score          DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS order_uncertainty_score DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS information_score       DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS edge_vitality           DOUBLE PRECISION,
+  ADD COLUMN IF NOT EXISTS non_investable          BOOLEAN;
 """
 
 # ALTER TABLE takes an ACCESS EXCLUSIVE lock even when every column already
@@ -381,11 +417,19 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
       - input_manifest: ``provenance.build_input_manifest`` output — what the
         model saw. None (or absent) writes NULL without touching a manifest a
         previous run of the same day already stored.
-      - the rest of ``llm_output`` (score_3m, raw_score_*, raw_subscores,
+      - the rest of ``llm_output`` (score_3m, raw_score_*, subscores,
         subscore_evidence, condition_flags, news_article_scores, applied_rules,
-        evidence_coverage, legal_gate, model_id, prompt_version,
-        policy_version). Absent keys write NULL, so a payload from before the
-        perception/policy split still upserts.
+        evidence_coverage, legal_gate, non_investable, model_id,
+        prompt_version, policy_version). Absent keys write NULL, so a payload
+        from an earlier version of the model output still upserts.
+
+    **What ``score`` means changed.** Up to ``policy_version`` p1.0 it was the
+    model's 12-month score after floors, caps and a sanctions override. From
+    p2.0 it is the model's ``score_12m`` and nothing else — no code path in this
+    project writes any other value into it. Sanctioned countries are marked with
+    ``non_investable`` instead of being forced to 1.0. Read ``policy_version``
+    to know which convention a stored row follows; the two are not comparable
+    for a sanctioned country.
     """
     global _risk_snapshot_ddl_done
 
@@ -450,12 +494,13 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                     page_size=1000,
                 )
 
-        # 2) Risk snapshot (latest AI score for the run date). `score` stays
-        #    the gated 12-month score on the 0-1 scale — the front-end reads
-        #    it and its meaning has not changed. Everything else is additive:
-        #    the raw scores the model gave before policy, the sub-factor detail
-        #    behind them, which model/prompt/policy produced the row, and what
-        #    the model saw when it did (`input_manifest`).
+        # 2) Risk snapshot (latest AI score for the run date). `score` is the
+        #    model's own 12-month judgement on the 0-1 scale — same column, same
+        #    scale, same front-end reader, but as of policy_version p2.0 no code
+        #    adjusts it. Everything else is additive: the four ledger scores and
+        #    the evidence ids behind them, the condition flags as observations,
+        #    the sanctions badge, which model/prompt/policy produced the row, and
+        #    what the model saw when it did (`input_manifest`).
         #
         #    `score` and `bullet_summary` overwrite plainly — the newest run's
         #    assessment is the current one, deliberately. Every detail column
@@ -467,11 +512,14 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
             INSERT INTO risk_snapshot (
               country_iso2, as_of, score, bullet_summary,
               score_3m, raw_score_12m, raw_score_3m,
-              subscores, raw_subscores, subscore_evidence, condition_flags,
+              subscores, subscore_evidence, condition_flags,
               article_scores, applied_rules, evidence_coverage, legal_gate,
-              model_id, prompt_version, policy_version, input_manifest
+              model_id, prompt_version, policy_version, input_manifest,
+              friction_score, order_uncertainty_score, information_score,
+              edge_vitality, non_investable
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s)
             ON CONFLICT (country_iso2, as_of)
             DO UPDATE SET
               score             = EXCLUDED.score,
@@ -480,9 +528,13 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
               raw_score_12m     = COALESCE(EXCLUDED.raw_score_12m,     risk_snapshot.raw_score_12m),
               raw_score_3m      = COALESCE(EXCLUDED.raw_score_3m,      risk_snapshot.raw_score_3m),
               subscores         = COALESCE(EXCLUDED.subscores,         risk_snapshot.subscores),
-              raw_subscores     = COALESCE(EXCLUDED.raw_subscores,     risk_snapshot.raw_subscores),
               subscore_evidence = COALESCE(EXCLUDED.subscore_evidence, risk_snapshot.subscore_evidence),
               condition_flags   = COALESCE(EXCLUDED.condition_flags,   risk_snapshot.condition_flags),
+              friction_score          = COALESCE(EXCLUDED.friction_score,          risk_snapshot.friction_score),
+              order_uncertainty_score = COALESCE(EXCLUDED.order_uncertainty_score, risk_snapshot.order_uncertainty_score),
+              information_score       = COALESCE(EXCLUDED.information_score,       risk_snapshot.information_score),
+              edge_vitality           = COALESCE(EXCLUDED.edge_vitality,           risk_snapshot.edge_vitality),
+              non_investable          = COALESCE(EXCLUDED.non_investable,          risk_snapshot.non_investable),
               article_scores    = COALESCE(EXCLUDED.article_scores,    risk_snapshot.article_scores),
               applied_rules     = COALESCE(EXCLUDED.applied_rules,     risk_snapshot.applied_rules),
               evidence_coverage = COALESCE(EXCLUDED.evidence_coverage, risk_snapshot.evidence_coverage),
@@ -497,7 +549,6 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                 data.llm_out["score"], data.llm_out["bullet_summary"],
                 data.score_3m, data.raw_score_12m, data.raw_score_3m,
                 _json_or_none(data.subscores),
-                _json_or_none(data.raw_subscores),
                 _json_or_none(data.subscore_evidence),
                 _json_or_none(data.condition_flags),
                 _json_or_none(data.article_scores),
@@ -506,6 +557,8 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                 _json_or_none(data.legal_gate),
                 data.model_id, data.prompt_version, data.policy_version,
                 _json_or_none(data.input_manifest),
+                data.friction_score, data.order_uncertainty_score,
+                data.information_score, data.edge_vitality, data.non_investable,
             ),
         )
 
@@ -608,6 +661,277 @@ def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, 
               unit       = EXCLUDED.unit,
               source     = EXCLUDED.source,
               updated_at = now()
+            """,
+            rows,
+            page_size=100,
+        )
+
+
+def read_recent_indicators(country_iso2: str) -> Dict[str, Dict[str, Any]]:
+    """Return one country's freshest sub-annual observations, keyed by indicator name.
+
+    The read side of :func:`upsert_recent_indicators`. The evidence payload needs
+    it so the *fresher* monthly print wins over the World Bank annual value for
+    the same indicator — until this existed, only the front-end saw the monthly
+    number and the model scored on a figure up to two years stale.
+
+    Args:
+        country_iso2: ISO-2 country code.
+
+    Returns:
+        ``{indicator_name: {value, period (date), freq, unit, source}}``. Empty
+        when the country has no rows, or when the table does not exist yet — a
+        payload must still build on a database where the IMF refresh has never
+        run, so the missing-table case degrades to "no fresh values" rather than
+        raising.
+    """
+    _require_db_url()
+    if not country_iso2:
+        return {}
+
+    out: Dict[str, Dict[str, Any]] = {}
+    with _transaction() as cur:
+        cur.execute(_RECENT_INDICATOR_DDL)
+        cur.execute(
+            """
+            SELECT indicator, value, period, freq, unit, source
+            FROM recent_indicator
+            WHERE country_iso2 = %s
+            """,
+            (country_iso2,),
+        )
+        for indicator, value, period, freq, unit, source in cur.fetchall():
+            out[indicator] = {
+                "value": float(value) if value is not None else None,
+                "period": period,
+                "freq": freq,
+                "unit": unit,
+                "source": source,
+            }
+    return out
+
+
+# The generic series store: one row per (country, indicator, freq, period), with
+# the date we learned the value alongside the period it describes. Every source
+# added by the friction framework — the new World Bank codes, the IMF monthly
+# series, the curated drop folder — writes here.
+#
+# Why a second table rather than an extension of `recent_indicator`: that one is
+# keyed (country, indicator) and holds exactly the latest print, which is what
+# the front-end wants. Volatility and trend need the *history*, so this table is
+# keyed by period too. The parquet panel and `recent_indicator` are left exactly
+# as they are; nothing is migrated.
+#
+# `as_of` is when the value became known to us, which is not the period it
+# describes: a 2024 annual figure first published in mid-2025 is stale by a year
+# on the day we fetch it, and the payload can only say so if both dates are
+# stored. `vintage_scheme` records which revision policy produced the value,
+# reserving room for a first-release series later without a column rename.
+_INDICATOR_SERIES_DDL = """
+CREATE TABLE IF NOT EXISTS indicator_series (
+  country_iso2   TEXT NOT NULL,
+  indicator_code TEXT NOT NULL,
+  freq           TEXT NOT NULL,          -- 'M' | 'Q' | 'A'
+  period         TEXT NOT NULL,          -- '2026-06' | '2026Q1' | '2025'
+  value          DOUBLE PRECISION,
+  as_of          DATE NOT NULL,          -- when this value became known to us
+  source         TEXT NOT NULL,
+  vintage_scheme TEXT NOT NULL DEFAULT 'as-published-latest',
+  PRIMARY KEY (country_iso2, indicator_code, freq, period)
+);
+"""
+
+_SERIES_FREQS = ("M", "Q", "A")
+
+
+def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
+    """Upsert observations into the generic ``indicator_series`` store.
+
+    Args:
+        rows: dicts with ``country_iso2``, ``indicator_code``, ``freq``
+            (``'M'``/``'Q'``/``'A'``), ``period``, ``as_of`` (a ``date``), and
+            ``source``. ``value`` may be None — an explicitly-published null is
+            worth storing, since it distinguishes "reported as unavailable" from
+            "we never asked". ``vintage_scheme`` defaults to
+            ``'as-published-latest'``.
+
+            Rows missing any required field, or carrying an unknown ``freq``, are
+            skipped with a count logged rather than failing the batch: one
+            malformed row from one source must not cost a whole run its data.
+
+    No-op on an empty list.
+    """
+    _require_db_url()  # fail fast even when there is nothing to write
+    if not rows:
+        return
+
+    prepared: List[Tuple] = []
+    skipped = 0
+    for row in rows:
+        if not isinstance(row, dict):
+            skipped += 1
+            continue
+        iso2 = row.get("country_iso2")
+        code = row.get("indicator_code")
+        freq = row.get("freq")
+        period = row.get("period")
+        as_of = row.get("as_of")
+        source = row.get("source")
+        if not (iso2 and code and period and source) or freq not in _SERIES_FREQS:
+            skipped += 1
+            continue
+        if not isinstance(as_of, datetime.date):
+            skipped += 1
+            continue
+
+        value = row.get("value")
+        if value is not None:
+            try:
+                value = float(value)
+            except (TypeError, ValueError):
+                skipped += 1
+                continue
+
+        prepared.append((
+            str(iso2), str(code), freq, str(period), value, as_of, str(source),
+            str(row.get("vintage_scheme") or "as-published-latest"),
+        ))
+
+    if skipped:
+        logger.warning("indicator_series: skipped %d malformed row(s) of %d", skipped, len(rows))
+    if not prepared:
+        return
+
+    with _transaction() as cur:
+        cur.execute(_INDICATOR_SERIES_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO indicator_series
+              (country_iso2, indicator_code, freq, period, value, as_of, source, vintage_scheme)
+            VALUES %s
+            ON CONFLICT (country_iso2, indicator_code, freq, period)
+            DO UPDATE SET
+              value          = EXCLUDED.value,
+              as_of          = EXCLUDED.as_of,
+              source         = EXCLUDED.source,
+              vintage_scheme = EXCLUDED.vintage_scheme
+            """,
+            prepared,
+            page_size=500,
+        )
+
+
+def read_indicator_series(country_iso2: str) -> Dict[str, List[Dict[str, Any]]]:
+    """Return one country's stored series, grouped by indicator code.
+
+    Args:
+        country_iso2: ISO-2 country code.
+
+    Returns:
+        ``{indicator_code: [{period, freq, value, as_of, source, vintage_scheme},
+        ...]}`` with each list in ascending period order, so the last entry is the
+        newest and a rolling window is a plain tail slice. Empty when the country
+        has nothing stored yet.
+
+        Ordering is lexicographic on ``period``, which is correct for all three
+        zero-padded formats this table stores (``'2026-06'``, ``'2026Q1'``,
+        ``'2025'``) as long as a single indicator sticks to one of them — which
+        the ``freq`` half of the primary key enforces in practice.
+    """
+    _require_db_url()
+    if not country_iso2:
+        return {}
+
+    out: Dict[str, List[Dict[str, Any]]] = {}
+    with _transaction() as cur:
+        cur.execute(_INDICATOR_SERIES_DDL)
+        cur.execute(
+            """
+            SELECT indicator_code, freq, period, value, as_of, source, vintage_scheme
+            FROM indicator_series
+            WHERE country_iso2 = %s
+            ORDER BY indicator_code, period
+            """,
+            (country_iso2,),
+        )
+        for code, freq, period, value, as_of, source, scheme in cur.fetchall():
+            out.setdefault(code, []).append({
+                "period": period,
+                "freq": freq,
+                "value": float(value) if value is not None else None,
+                "as_of": as_of,
+                "source": source,
+                "vintage_scheme": scheme,
+            })
+    return out
+
+
+# Lint findings: contradictions between what the model flagged and what it
+# scored. Advisory — nothing reads this table to change a score, and the
+# pipeline does not block on a finding. It exists so the disagreements the old
+# enforcement layer used to silently overwrite are visible instead.
+_RISK_LINT_DDL = """
+CREATE TABLE IF NOT EXISTS risk_lint (
+  country_iso2 TEXT NOT NULL,
+  as_of        DATE NOT NULL,
+  rule         TEXT NOT NULL,
+  detail       JSONB,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (country_iso2, as_of, rule)
+);
+"""
+
+
+def upsert_lint_findings(findings: List[Dict[str, Any]]) -> None:
+    """Record one run's lint findings.
+
+    Keyed (country, as_of, rule), so re-running a day replaces that day's
+    findings for the same rule rather than accumulating duplicates. ``detail``
+    overwrites plainly — unlike the snapshot columns, a fresher finding is
+    always the better one, and there is no partial-failure case where an older
+    detail is worth keeping.
+
+    Args:
+        findings: ``{country_iso2, as_of, rule, detail}`` dicts from
+            ``utils.lint.check``. Malformed entries are skipped.
+
+    No-op on an empty list.
+    """
+    _require_db_url()  # fail fast even when there is nothing to write
+    if not findings:
+        return
+
+    # Deduplicated by primary key before the insert. Postgres rejects an
+    # ON CONFLICT statement that proposes the same key twice ("cannot affect row
+    # a second time"), and lint is supposed to be the non-blocking part of the
+    # run — a duplicate rule must not raise where a contradiction was the whole
+    # point. Last one wins, matching the DO UPDATE below.
+    by_key: Dict[Tuple[str, datetime.date, str], Tuple] = {}
+    for finding in findings:
+        if not isinstance(finding, dict):
+            continue
+        iso2 = finding.get("country_iso2")
+        as_of = finding.get("as_of")
+        rule = finding.get("rule")
+        if not iso2 or not rule or not isinstance(as_of, datetime.date):
+            continue
+        key = (str(iso2), as_of, str(rule))
+        by_key[key] = (*key, _json_or_none(finding.get("detail")))
+
+    rows = list(by_key.values())
+    if not rows:
+        return
+
+    with _transaction() as cur:
+        cur.execute(_RISK_LINT_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO risk_lint (country_iso2, as_of, rule, detail)
+            VALUES %s
+            ON CONFLICT (country_iso2, as_of, rule)
+            DO UPDATE SET detail = EXCLUDED.detail, created_at = now()
             """,
             rows,
             page_size=100,
