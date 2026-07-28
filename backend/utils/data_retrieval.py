@@ -17,15 +17,21 @@ last row is populated for the fastest series only, and anchoring on it would
 report a null ``latest`` for the slower half of the set.
 """
 
+import calendar
+import json
+import logging
 import re
 import duckdb
 import pathlib
 import pandas as pd
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
+from typing import Dict, List, NamedTuple, Optional
 
-from backend.utils import constants
+from backend.utils import constants, metrics, provenance
 from backend.utils.dates import utc_minute_iso
+
+logger = logging.getLogger(__name__)
 
 
 # Anchor all data paths to the backend/ folder (this file lives in backend/utils/)
@@ -210,19 +216,466 @@ def prepare_llm_payload_pretty(
     }
 
 
-def macro_latest_facts(payload: dict) -> dict[str, float]:
-    """Flatten a payload to ``{pretty_name: latest_value}`` for the policy layer.
+# ---------------------------------------------------------------------------
+# Evidence payload v2 — the three-ledger view the scoring model receives
+# ---------------------------------------------------------------------------
+# This is a *second* payload, deliberately not a replacement for
+# ``prepare_llm_payload_pretty``. That one is still the panel/DB payload:
+# ``data_push.upsert_snapshot`` reads its ``indicators`` and ``_meta.units`` to
+# write the ``indicator`` and ``yearly_value`` tables the front-end's indicator
+# pane reads, and ``provenance.macro_vintages`` reads its ``series``. Reshaping
+# it into ledgers would have broken both.
+#
+# So: the panel payload keeps its job, and this builds the evidence the model
+# sees. They share the same parquet read.
 
-    ``ai.policy`` reads measured numbers (the CPI floors, today) from the macro
-    data rather than from the model's reading of it, so it needs the payload's
-    latest observations without the deltas and series around them.
+# Long history is expensive in context and only two indicators earn it — the two
+# whose *path* matters as much as their level.
+_LONG_HISTORY_CODES = ("CPI.YOY", "NY.GDP.PCAP.KD.ZG")
+_LONG_HISTORY_YEARS = 10
 
-    Indicators whose ``latest`` is None are dropped — the country has no
-    observation, so no rule keyed on it should fire. The test is ``is not
-    None``, not truthiness: 0.0 is a legitimate reading for a rate or a delta.
+# Rolling windows, in observations.
+_CPI_VOL_MONTHS = 36
+_FX_VOL_MONTHS = 24
+_RESERVES_TREND_MONTHS = 6
+
+# Roughly four characters per token. Deliberately an estimate rather than a real
+# tokenizer: `tiktoken` is pinned but downloads a BPE file on first use, and a
+# payload builder that reaches the network to count its own tokens is a payload
+# builder that fails offline.
+_CHARS_PER_TOKEN = 4
+_TOKEN_BUDGET = 2500
+
+
+def _period_to_date(period: str, freq: str) -> Optional[date]:
+    """End-of-period date for an ``indicator_series`` period string.
+
+    Args:
+        period: ``'2025'``, ``'2026Q1'`` or ``'2026-06'``.
+        freq: the declared frequency, used to pick the parse.
+
+    Returns:
+        The last day of the period, or None if it does not parse.
     """
-    return {
-        name: ind["latest"]
-        for name, ind in (payload.get("indicators") or {}).items()
-        if isinstance(ind, dict) and ind.get("latest") is not None
+    try:
+        if freq == "M":
+            year, month = period.split("-")
+            return _end_of_month(int(year), int(month))
+        if freq == "Q":
+            year, quarter = period.split("Q")
+            return _end_of_month(int(year), int(quarter) * 3)
+        if freq == "A":
+            return date(int(period), 12, 31)
+    except (TypeError, ValueError):
+        return None
+    return None
+
+
+def _end_of_month(year: int, month: int) -> date:
+    """Last calendar day of ``month`` in ``year``."""
+    return date(year, month, calendar.monthrange(year, month)[1])
+
+
+class _Observation(NamedTuple):
+    """One resolved reading, with everything needed to stamp its provenance."""
+    value: float
+    period: str
+    freq: str
+    period_end: date
+    as_of: date
+    source: str
+
+
+def _panel_observations(panel: pd.DataFrame, panel_col: str) -> List[_Observation]:
+    """Read one indicator's annual history out of the parquet panel.
+
+    ``as_of`` for a panel value is the end of its own year: the panel carries no
+    record of when the World Bank published it, and claiming the fetch date
+    would understate the staleness the model is supposed to see.
+    """
+    if panel_col not in panel.columns:
+        return []
+    observations: List[_Observation] = []
+    for year, value in panel.set_index("year")[panel_col].dropna().items():
+        try:
+            period = str(int(year))
+            numeric = float(value)
+        except (TypeError, ValueError):
+            continue
+        period_end = date(int(year), 12, 31)
+        observations.append(_Observation(
+            value=numeric, period=period, freq="A", period_end=period_end,
+            as_of=period_end, source="World Bank panel",
+        ))
+    return observations
+
+
+def _series_observations(rows: List[dict]) -> List[_Observation]:
+    """Convert ``indicator_series`` rows into observations, dropping unusable ones."""
+    observations: List[_Observation] = []
+    for row in rows or []:
+        value, period, freq = row.get("value"), row.get("period"), row.get("freq")
+        if value is None or not period or not freq:
+            continue
+        period_end = _period_to_date(str(period), str(freq))
+        as_of = row.get("as_of")
+        if period_end is None or not isinstance(as_of, date):
+            continue
+        observations.append(_Observation(
+            value=float(value), period=str(period), freq=str(freq),
+            period_end=period_end, as_of=as_of, source=str(row.get("source") or "unknown"),
+        ))
+    return observations
+
+
+def _recent_observation(entry: Optional[dict]) -> Optional[_Observation]:
+    """Convert a ``recent_indicator`` row into an observation, or None."""
+    if not isinstance(entry, dict):
+        return None
+    value, period, freq = entry.get("value"), entry.get("period"), entry.get("freq")
+    if value is None or not isinstance(period, date) or freq not in ("M", "Q", "A"):
+        return None
+    label = (period.strftime("%Y-%m") if freq == "M"
+             else f"{period.year}Q{(period.month - 1) // 3 + 1}" if freq == "Q"
+             else str(period.year))
+    return _Observation(
+        value=float(value), period=label, freq=str(freq), period_end=period,
+        as_of=period, source=str(entry.get("source") or "IMF"),
+    )
+
+
+def _resolve(observations: List[_Observation]) -> List[_Observation]:
+    """Merge one indicator's copies from every store, freshest copy winning.
+
+    An indicator can live in three places at once — the annual panel, the
+    monthly latest print, and the series store. Same-period duplicates are
+    collapsed to the copy with the newer ``as_of``; the result is sorted oldest
+    first so the last entry is the freshest and a rolling window is a tail slice.
+
+    This is what puts a monthly CPI print in front of the model instead of an
+    annual average up to two years stale.
+    """
+    best: Dict[str, _Observation] = {}
+    for obs in observations:
+        key = f"{obs.freq}:{obs.period}"
+        current = best.get(key)
+        if current is None or obs.as_of > current.as_of:
+            best[key] = obs
+
+    # Sort by the period the value describes, not by when we learned it: an
+    # annual 2025 figure and a monthly 2026-06 print must order by coverage.
+    return sorted(best.values(), key=lambda o: (o.period_end, o.freq))
+
+
+def _trend(observations: List[_Observation], years: int) -> Optional[float]:
+    """Change over ``years``, in the indicator's own unit.
+
+    Absolute difference, not percent change: every indicator here is a rate,
+    ratio, or index, and percent change breaks on the ones that cross zero.
+
+    Returns None when no observation sits near enough to the target date — the
+    tolerance is half a year, so a gappy annual series still yields a trend but
+    a five-year gap does not silently become a one-year one.
+    """
+    if not observations:
+        return None
+    latest = observations[-1]
+    target = latest.period_end.replace(year=latest.period_end.year - years)
+
+    tolerance = timedelta(days=183)
+    candidates = [o for o in observations if abs((o.period_end - target).days) <= tolerance.days]
+    if not candidates:
+        return None
+    base = min(candidates, key=lambda o: abs((o.period_end - target).days))
+    return round(latest.value - base.value, 4)
+
+
+def _stamp(observations: List[_Observation], code: str, as_of: date) -> Optional[dict]:
+    """Build one indicator's payload entry: value plus its full provenance.
+
+    Returns None when there is nothing to report, so the caller can omit the key
+    entirely. Absent indicators are absent from the payload rather than padded
+    with nulls — a null the model has to interpret is noise, and a missing key
+    is unambiguous.
+    """
+    if not observations:
+        return None
+    spec = constants.INDICATOR_REGISTRY.get(code, {})
+    latest = observations[-1]
+    entry = {
+        "value": round(latest.value, 4),
+        "period": latest.period,
+        "freq": latest.freq,
+        # Two different dates, and conflating them is what makes a stale reading
+        # look fresh. `as_of` is when the value became known to us — provenance,
+        # matching `indicator_series.as_of`. `staleness_days` measures from the
+        # end of the period the value *describes*, which is what "how old is
+        # this reading" actually means.
+        #
+        # The difference is not cosmetic: a 2021 patent count fetched today has
+        # as_of = today, and reporting staleness against that would tell the
+        # model a five-year-old number is current.
+        "as_of": latest.as_of.isoformat(),
+        "staleness_days": (as_of - latest.period_end).days,
+        "source": latest.source,
+        "unit": spec.get("unit"),
     }
+    for years, key in ((1, "trend_1y"), (5, "trend_5y")):
+        trend = _trend(observations, years)
+        if trend is not None:
+            entry[key] = trend
+    if code in _LONG_HISTORY_CODES:
+        # The two indicators whose path matters as much as their level.
+        cutoff = as_of.replace(year=as_of.year - _LONG_HISTORY_YEARS)
+        entry["history"] = {
+            o.period: round(o.value, 2) for o in observations if o.period_end >= cutoff
+        }
+    return entry
+
+
+def _values(observations: List[_Observation], freq: Optional[str] = None) -> List[float]:
+    """Just the numbers, oldest first — what the metrics functions consume.
+
+    Args:
+        observations: a resolved series.
+        freq: keep only observations at this frequency. **Required for anything
+            windowed.** A resolved series deliberately mixes frequencies — an
+            annual history behind a monthly print is exactly what
+            freshest-value-wins produces — and a "36-month volatility" computed
+            over ten annual values and six monthly ones is a number with no
+            meaning. Passing None keeps everything and is only correct for
+            consumers that do not care about the spacing.
+    """
+    return [o.value for o in observations if freq is None or o.freq == freq]
+
+
+def build_evidence_payload(
+    country_iso2: str,
+    *,
+    as_of: date,
+    panel: Optional[pd.DataFrame] = None,
+    series: Optional[Dict[str, List[dict]]] = None,
+    recent: Optional[Dict[str, dict]] = None,
+    fx_regimes: Optional[Dict[str, str]] = None,
+    elections: Optional[Dict[str, List[dict]]] = None,
+    reference_constants: Optional[Dict[str, object]] = None,
+    weo_revisions: Optional[Dict[str, List[float]]] = None,
+) -> dict:
+    """Build the three-ledger evidence payload the scoring model receives.
+
+    Every store is passed in rather than read here, so this function is
+    testable without a database and re-runnable over history: the caller decides
+    which snapshot of the world it sees.
+
+    Args:
+        country_iso2: the country being scored.
+        as_of: the date being scored. Staleness is measured against this, never
+            against the clock, so re-running an old date reports the staleness
+            that was true then.
+        panel: the parquet macro panel, from :func:`query_macro_panel`.
+        series: ``indicator_series`` rows, from ``data_push.read_indicator_series``.
+        recent: latest prints, from ``data_push.read_recent_indicators``.
+        fx_regimes: currency regimes, from ``curated_loader.load_fx_regimes``.
+        elections: election calendar, from ``curated_loader.load_election_calendar``.
+        reference_constants: frozen scalars, from
+            ``curated_loader.load_reference_constants``.
+        weo_revisions: ``{iso2: [revision, ...]}``, from
+            ``curated_loader.load_weo_revisions``.
+
+    Returns:
+        ``{_meta, friction_inputs, uncertainty_inputs, information_inputs,
+        edge_inputs, computed}``. Indicators with no observation are omitted
+        entirely. Every present value carries ``period``, ``freq``, ``as_of``,
+        ``staleness_days`` and ``source`` so the model can weigh a fresh reading
+        differently from a stale one.
+    """
+    panel = panel if panel is not None else pd.DataFrame()
+    series = series or {}
+    recent = recent or {}
+
+    # --- resolve every registry indicator across all three stores ------------
+    resolved: Dict[str, List[_Observation]] = {}
+    for code, spec in constants.INDICATOR_REGISTRY.items():
+        observations: List[_Observation] = []
+        panel_col = spec.get("panel_col")
+        if panel_col and not panel.empty:
+            observations += _panel_observations(panel, str(panel_col))
+        observations += _series_observations(series.get(code, []))
+        recent_name = spec.get("recent_name")
+        if recent_name:
+            fresh = _recent_observation(recent.get(str(recent_name)))
+            if fresh:
+                observations.append(fresh)
+        merged = _resolve(observations)
+        if merged:
+            resolved[code] = merged
+
+    def latest_value(code: str) -> Optional[float]:
+        """The freshest number for one indicator, or None."""
+        observations = resolved.get(code)
+        return observations[-1].value if observations else None
+
+    # --- ledger sections -----------------------------------------------------
+    sections: Dict[str, Dict[str, dict]] = {
+        "friction_inputs": {}, "uncertainty_inputs": {},
+        "information_inputs": {}, "edge_inputs": {},
+    }
+    ledger_to_section = {
+        "friction": "friction_inputs", "uncertainty": "uncertainty_inputs",
+        "information": "information_inputs", "edge": "edge_inputs",
+    }
+    for code, observations in resolved.items():
+        ledger = constants.INDICATOR_REGISTRY[code].get("ledger")
+        section = ledger_to_section.get(str(ledger))
+        if not section:
+            continue  # population is a denominator, not evidence
+        entry = _stamp(observations, code, as_of)
+        if entry:
+            sections[section][str(constants.INDICATOR_REGISTRY[code]["label"])] = entry
+
+    # --- computed metrics ----------------------------------------------------
+    computed: Dict[str, object] = {}
+
+    loss = metrics.conversion_loss(
+        latest_value("GOV_WGI_GE.EST"), latest_value("POL_CORRUPTION")
+    )
+    extraction = metrics.frictional_extraction(latest_value("GC.TAX.TOTL.GD.ZS"), loss)
+    if loss is not None:
+        computed["conversion_loss"] = loss
+    if extraction is not None:
+        computed["frictional_extraction"] = extraction
+
+    # The doom loop needs the same two five-year deltas, one of which is the
+    # conversion quality — the complement of the loss, so it is differenced from
+    # the two underlying trends rather than re-derived from a single number.
+    tax_trend = _trend(resolved.get("GC.TAX.TOTL.GD.ZS", []), 5)
+    ge_trend = _trend(resolved.get("GOV_WGI_GE.EST", []), 5)
+    corruption_trend = _trend(resolved.get("POL_CORRUPTION", []), 5)
+    if ge_trend is not None and corruption_trend is not None:
+        # Both mapped onto the same [0,1] quality scale conversion_loss uses.
+        quality_trend = round((ge_trend / 5.0 + -corruption_trend) / 2.0, 4)
+        loop = metrics.doom_loop(tax_trend, quality_trend)
+        if loop:
+            computed["doom_loop"] = loop
+
+    gap = metrics.rome_gap(
+        latest_value("STAT.TAX.TOP.RATE"), latest_value("GC.TAX.TOTL.GD.ZS"),
+        (reference_constants or {}).get("rome_reference_ratio"),
+    )
+    if gap:
+        computed["rome_gap"] = gap
+
+    dilution = metrics.monetary_dilution(
+        latest_value("FM.LBL.BMNY.ZG"), latest_value("NY.GDP.PCAP.KD.ZG")
+    )
+    if dilution is not None:
+        computed["monetary_dilution"] = dilution
+
+    real_rate = metrics.real_policy_rate(
+        latest_value("BIS.POLICY.RATE"), latest_value("CPI.YOY")
+    )
+    if real_rate is not None:
+        computed["real_policy_rate"] = real_rate
+
+    # Monthly observations only: the resolved CPI series carries an annual
+    # history behind its monthly prints, and a stdev over both would measure the
+    # frequency change rather than the inflation.
+    cpi_vol = metrics.rolling_vol(_values(resolved.get("CPI.YOY", []), "M"), _CPI_VOL_MONTHS)
+    if cpi_vol is not None:
+        computed["cpi_volatility_36m"] = cpi_vol
+
+    fx_returns = metrics.fx_monthly_returns(_values(resolved.get("BIS.FX.USD", []), "M"))
+    fx_vol = metrics.rolling_vol(fx_returns, _FX_VOL_MONTHS)
+    if fx_vol is not None:
+        computed["fx_volatility_24m"] = fx_vol
+
+    precommitted = metrics.precommitted_share(
+        latest_value("GC.XPN.INTP.RV.ZS"),
+        # No free source for social protection as a share of revenue; the metric
+        # reports the interest-only figure marked partial rather than imputing.
+        None,
+    )
+    if precommitted:
+        computed["precommitted_share"] = precommitted
+
+    quality = metrics.instrument_quality(
+        latest_value("IQ.SPI.OVRL"), latest_value("RSF.PRESS.SCORE"),
+        latest_value("OBS.SCORE"), latest_value("UN.EGDI"),
+    )
+    if quality:
+        computed["instrument_quality"] = quality
+
+    dependency = metrics.dependency_trajectory(
+        latest_value("SP.POP.DPND.OL"), latest_value("UNWPP.DPND.OL.PROJ")
+    )
+    if dependency:
+        computed["dependency_trajectory"] = dependency
+
+    instability = metrics.forecast_instability((weo_revisions or {}).get(country_iso2))
+    if instability is not None:
+        computed["forecast_instability"] = instability
+
+    # Suppressed volatility: reported under uncertainty because it is evidence
+    # the model weighs, not a computed score. `regime: None` is not `float` —
+    # an absent regime file and a genuine free float are different facts.
+    # Monthly only, for the same reason the volatilities are: a six-month trend
+    # must be six months, not six observations of mixed spacing.
+    reserves = _values(resolved.get("RESERVES.USD", []), "M")
+    reserves_trend = None
+    if len(reserves) > _RESERVES_TREND_MONTHS:
+        reserves_trend = round(reserves[-1] - reserves[-1 - _RESERVES_TREND_MONTHS], 4)
+    regime = (fx_regimes or {}).get(country_iso2)
+    flag = metrics.suppressed_vol_flag(regime, fx_vol, reserves_trend)
+    sections["uncertainty_inputs"]["suppressed_vol_flag"] = {
+        "value": flag,
+        "regime": regime,
+        "fx_volatility_24m": fx_vol,
+        "reserves_trend_6m": reserves_trend,
+        "note": (
+            "True means measured calm is being bought with reserves under a managed "
+            "or pegged regime. null means one of the three inputs is unavailable — "
+            "not that the flag is false."
+        ),
+    }
+
+    # Patents per capita: the count alone is unreadable across country sizes.
+    patents, population = latest_value("IP.PAT.RESD"), latest_value("SP.POP.TOTL")
+    if patents is not None and population:
+        sections["edge_inputs"]["Patent applications per million residents"] = {
+            "value": round(patents / population * 1_000_000, 3),
+            "period": resolved["IP.PAT.RESD"][-1].period,
+            "freq": "A",
+            "as_of": resolved["IP.PAT.RESD"][-1].as_of.isoformat(),
+            "staleness_days": (as_of - resolved["IP.PAT.RESD"][-1].period_end).days,
+            "source": "World Bank WDI",
+            "unit": "applications per million residents",
+        }
+
+    next_election = None
+    for entry in (elections or {}).get(country_iso2, []):
+        if entry["date"] >= as_of.isoformat():
+            next_election = entry
+            break
+
+    payload = {
+        "_meta": {
+            "country": country_iso2,
+            "as_of": as_of.isoformat(),
+            "vintage_scheme": provenance._VINTAGE_SCHEME,
+            "staleness_basis": (
+                "staleness_days counts from the end of the period a value describes "
+                "to as_of: how old the reading is. `as_of` on each value is a "
+                "separate fact — when it became known to us. A large "
+                "staleness_days means the reading is old, not that it is wrong."
+            ),
+            "next_scheduled_election": next_election,
+        },
+        **sections,
+        "computed": computed,
+    }
+
+    estimated_tokens = len(json.dumps(payload, ensure_ascii=False)) // _CHARS_PER_TOKEN
+    log = logger.warning if estimated_tokens > _TOKEN_BUDGET else logger.info
+    log("[%s] evidence payload ~%d tokens (budget %d)",
+        country_iso2, estimated_tokens, _TOKEN_BUDGET)
+    return payload

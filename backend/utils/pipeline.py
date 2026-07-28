@@ -20,24 +20,58 @@ costs a single phase rather than the whole day.
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Dict, List
+from typing import Any, Callable, Dict, List, Optional
 
-from backend.utils import constants, data_retrieval, provenance
+from backend.utils import constants, data_retrieval, lint, provenance
 from backend.utils.ai import alerts_ranker, calendar_ranker, digest_engine, langchain_llm
 from backend.utils.ai import client as ai_client
-from backend.utils.data_fetching import fmp_calendar_fetch, imf_macro_fetch
+from backend.utils.data_fetching import (
+    bis_bulk_fetch, curated_loader, fmp_calendar_fetch, imf_macro_fetch, wb_series_fetch,
+)
 from backend.utils.data_upsert import data_push
 from backend.utils.news_fetching import article_enrichment, article_ranking
 
 logger = logging.getLogger(__name__)
 
-# Macro payload window handed to the LLM.
+# Macro payload window handed to the panel/DB payload.
 _PAYLOAD_SINCE_YEAR = 2015
 _PAYLOAD_LOOKBACK_YEARS = 10
 _PAYLOAD_DELTA_HORIZONS = (1, 5)
 
 # Articles fetched per country before Top-3 selection.
 _MAX_ARTICLES_PER_COUNTRY = 20
+
+# The curated drop folder, read once per run rather than once per country: the
+# files are small, global, and do not change mid-run. Populated by
+# `load_curated_reference`; empty until then, which is also the correct reading
+# if that load fails.
+_CURATED: Dict[str, Any] = {
+    "fx_regimes": {}, "elections": {}, "reference_constants": {}, "weo_revisions": {},
+}
+
+
+def _safe(read: Callable[[], Any], iso2: str, what: str) -> Any:
+    """Run one evidence read, degrading a failure to None with a warning.
+
+    Evidence is additive: a country missing its series store still scores on its
+    panel, and one that lost every store still scores on its articles. Only the
+    absence of an assessment is fatal, and that is decided by the model call.
+    """
+    try:
+        return read()
+    except Exception as exc:  # noqa: BLE001 - any read failure degrades to absent
+        logger.warning("[%s] %s unavailable: %s", iso2, what, exc)
+        return None
+
+
+def _to_100(value: Optional[float]) -> Optional[int]:
+    """Convert a stored 0-1 score back to the 0-100 grid lint's tripwires use."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return round(float(value) * 100)
+    except (TypeError, ValueError):
+        return None
 
 
 def refresh_calendar() -> None:
@@ -96,9 +130,71 @@ def refresh_imf_indicators() -> None:
             if recent:
                 data_push.upsert_recent_indicators(c["iso2"], recent)
                 refreshed += 1
+            # The same source as a full history, for the volatility windows.
+            # `recent_indicator` holds one row per country and cannot carry it.
+            rows = imf_macro_fetch.fetch_series_rows(c["iso2"], c["iso3"])
+            if rows:
+                data_push.upsert_indicator_series(rows)
         except Exception:
             logger.exception("[imf-refresh] %s ERROR", c["iso2"])
     logger.info("[imf-refresh] refreshed %d/%d countries", refreshed, len(constants.COUNTRY_ROSTER))
+
+
+def refresh_ledger_sources() -> None:
+    """Refresh the friction framework's own sources into ``indicator_series``.
+
+    Three independent upstreams — the extra World Bank annual codes, the BIS
+    bulk files (policy rates and USD exchange rates), and the curated drop
+    folder. Each is guarded separately: BIS being down must not cost the run its
+    World Bank series, and a typo in one curated file must not cost it either.
+
+    Run once per day before the country loop, since every source is a
+    whole-roster fetch rather than a per-country one.
+    """
+    for label, refresh in (
+        ("wb-series", wb_series_fetch.refresh_wb_series),
+        ("bis", bis_bulk_fetch.refresh_bis_series),
+    ):
+        try:
+            refresh()
+        except Exception:
+            logger.exception("[%s] ERROR", label)
+
+    try:
+        rows = curated_loader.load_curated_series()
+        if rows:
+            data_push.upsert_indicator_series(rows)
+        logger.info("[curated] loaded %d series row(s)", len(rows))
+    except Exception:
+        # Loud on purpose in the loader; isolated here so a malformed curated
+        # file is surfaced without costing the run its scores.
+        logger.exception("[curated] series load ERROR")
+
+
+def load_curated_reference() -> None:
+    """Read the curated lookup files once per run into :data:`_CURATED`.
+
+    These are not numeric series — currency regimes, election dates, the frozen
+    reference ratio, WEO revisions — so they are held in memory and handed to
+    each country's payload rather than round-tripped through the database.
+
+    Each file degrades independently to its empty value, which the payload
+    reports as an absence rather than a default.
+    """
+    for key, load in (
+        ("fx_regimes", curated_loader.load_fx_regimes),
+        ("elections", curated_loader.load_election_calendar),
+        ("reference_constants", curated_loader.load_reference_constants),
+        ("weo_revisions", curated_loader.load_weo_revisions),
+    ):
+        try:
+            _CURATED[key] = load()
+        except Exception:
+            logger.exception("[curated] %s unreadable; treating as absent", key)
+            _CURATED[key] = {}
+    logger.info("[curated] %d fx regimes, %d election calendars, %d weo series",
+                len(_CURATED["fx_regimes"]), len(_CURATED["elections"]),
+                len(_CURATED["weo_revisions"]))
 
 
 def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]) -> None:
@@ -141,18 +237,61 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     fulltext_ids = digest_engine.select_fulltext_ids(items)
     logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)
 
-    # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it
-    #    anchors the prompt and the policy layer's sanctions lookup on the same
-    #    day the row is keyed on. `macro_facts` lets policy read the measured
-    #    CPI instead of the model's opinion of it.
+    # 2c) The three-ledger evidence the model actually scores on. Separate from
+    #     the panel payload above, which stays the DB-facing one: `upsert_snapshot`
+    #     reads its `indicators`/`_meta.units` to write the `indicator` and
+    #     `yearly_value` tables the front-end reads, and `provenance` reads its
+    #     `series`. Reading every store here (rather than inside the builder)
+    #     keeps the builder pure and testable without a database.
+    #
+    #     Each read degrades independently: a database or curated-file failure
+    #     costs the country that evidence, not its score.
+    evidence = data_retrieval.build_evidence_payload(
+        iso2,
+        as_of=as_of,
+        panel=_safe(lambda: data_retrieval.query_macro_panel(iso2), iso2, "panel"),
+        series=_safe(lambda: data_push.read_indicator_series(iso2), iso2, "series") or {},
+        recent=_safe(lambda: data_push.read_recent_indicators(iso2), iso2, "recent") or {},
+        fx_regimes=_CURATED["fx_regimes"],
+        elections=_CURATED["elections"],
+        reference_constants=_CURATED["reference_constants"],
+        weo_revisions=_CURATED["weo_revisions"],
+    )
+
+    # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it anchors
+    #    the prompt and the sanctions lookup on the same day the row is keyed on.
     llm_output = langchain_llm.country_llm_score(
         country_display=country_name,
-        payload=payload,
+        payload=evidence,
         articles=items,
         as_of=as_of,
-        macro_facts=data_retrieval.macro_latest_facts(payload),
         fulltext_ids=fulltext_ids,
     )
+
+    # 3a) Lint: record contradictions between what the model flagged and what it
+    #     scored. Advisory and non-blocking — nothing here changes a score, and a
+    #     lint failure must not cost the country its snapshot.
+    try:
+        findings = lint.check(
+            country_iso2=iso2,
+            as_of=as_of,
+            condition_flags=llm_output.get("condition_flags"),
+            # lint's tripwires are on the model's 0-100 scale; the stored values
+            # are already 0-1, so convert back at this one call site.
+            score_3m=_to_100(llm_output.get("score_3m")),
+            score_12m=_to_100(llm_output.get("score")),
+            ledger_scores={
+                k: _to_100(v) for k, v in (llm_output.get("ledger_scores") or {}).items()
+            },
+            suppressed_vol_flag=(
+                evidence.get("uncertainty_inputs", {}).get("suppressed_vol_flag", {}).get("value")
+            ),
+            non_investable=bool(llm_output.get("non_investable")),
+        )
+        lint.log_findings(findings)
+        data_push.upsert_lint_findings(findings)
+    except Exception:
+        logger.exception("[%s] lint pass failed; the snapshot still writes", iso2)
 
     # 3b) Provenance: hash what the model actually saw, so this row can be
     #     reproduced (or found to be irreproducible) later. Provenance is

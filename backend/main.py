@@ -1,11 +1,12 @@
 """Daily ETL entry point for the AI Country Risk dashboard.
 
 One run, in order: backfill any missing macro panels, refresh the economic
-calendar and the IMF's fresher-than-annual indicators, then for every country
-in the roster assemble a macro payload, gather and rank news, score the
-country with the LLM, and upsert the snapshot plus its Top-3 articles. Finally
-the pooled Top-3s across all countries are ranked once more for the global
-alerts table.
+calendar, the IMF's fresher-than-annual indicators and the three-ledger sources
+(extra World Bank codes, BIS policy rates and exchange rates, the curated drop
+folder), then for every country in the roster assemble the evidence payload,
+gather and rank news, score the country with the LLM, and upsert the snapshot
+plus its Top-3 articles. Finally the pooled Top-3s across all countries are
+ranked once more for the global alerts table.
 
 Everything is written to Postgres, which the Next.js frontend reads directly —
 there is no API layer between them.
@@ -54,6 +55,8 @@ def main() -> None:
     country_data_fetch.backfill_missing_panels()            # 0a) macro panels (incremental)
     pipeline.refresh_calendar()                             # 0b) econ calendar + AI ranking
     pipeline.refresh_imf_indicators()                       # 0c) fresher-than-annual indicators
+    pipeline.refresh_ledger_sources()                       # 0d) WB extras, BIS, curated series
+    pipeline.load_curated_reference()                       # 0e) regimes, elections, WEO revisions
     pool = pipeline.process_all_countries()                 # 1-7) per-country risk snapshots
     pipeline.publish_global_alerts(pool)                    # 8)  global news alerts
 
