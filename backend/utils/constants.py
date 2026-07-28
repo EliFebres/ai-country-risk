@@ -439,16 +439,17 @@ FMP_CALENDAR_COUNTRIES: dict[str, str] = {
 # ---------------------------------------------------------------------------
 # Prices feed (bottom-bar "Prices" pane)
 # ---------------------------------------------------------------------------
-# A standalone long-running daemon (backend/prices_daemon.py) polls these assets
-# on PRICES_POLL_SECONDS and upserts them to the `market_price` table. Live
-# prices (stocks/crypto/commodities) come from FMP's batch-quote endpoint; US
-# Treasury yields come from FMP's treasury-rates endpoint. To minimize API hits,
-# FMP quote classes are fetched only while their market is open (see
+# backend/main.py polls these assets once per scheduler tick (backend/utils/
+# prices.py) and upserts them to the `market_price` table. Live prices
+# (stocks/crypto/commodities) come from FMP's batch-quote endpoint; US Treasury
+# yields come from FMP's treasury-rates endpoint. To minimize API hits, FMP
+# quote classes are fetched only while their market is open (see
 # backend/utils/market_hours.py); the yields and the 1Q/YTD reference closes
 # refresh at most once per (ET) day.
 
-# How often the daemon polls live FMP quotes (seconds).
-PRICES_POLL_SECONDS: int = 300
+# The scheduler's tick interval, and so how often live FMP quotes refresh
+# (seconds). Also the shortest cadence main.py schedules anything on.
+PRICES_POLL_SECONDS: int = 1800
 
 # Market-hours windows in US Eastern decimal hours (DST handled in market_hours).
 # NYSE regular session (stocks/ETFs).

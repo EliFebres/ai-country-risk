@@ -1,4 +1,4 @@
-# Runtime dependencies for the ETL (main.py) and the prices daemon.
+# Runtime dependencies for the backend scheduler (main.py) and every job it runs.
 # Fully pinned. Tests need pytest, installed separately.
 annotated-types==0.7.0
 anyio==4.13.0

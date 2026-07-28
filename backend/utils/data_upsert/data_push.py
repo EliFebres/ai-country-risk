@@ -1096,7 +1096,7 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
     never blanks a previously-populated cell — the daemon simply omits whole
     rows for markets it didn't poll this tick, leaving their last values intact.
 
-    Each row dict (as built by ``prices_daemon``):
+    Each row dict (as built by ``utils.prices``):
       - symbol, label, asset_class, source_symbol, is_yield, sort_order  (metadata)
       - px, chg, q, ytd                                                  (metrics; may be None)
 
@@ -1480,3 +1480,44 @@ def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, D
                 "stage1_severity": severity,
             }
     return out
+
+
+# --- Scheduler bookkeeping ---------------------------------------------------
+# The one place the process records "this job finished". main.py reads it on
+# every tick to decide what is overdue, so a restart or a week of downtime
+# catches up instead of silently skipping a run.
+
+_JOB_RUN_DDL = """
+CREATE TABLE IF NOT EXISTS job_run (
+    job      TEXT PRIMARY KEY,
+    last_run TIMESTAMPTZ NOT NULL
+);
+"""
+
+
+def read_job_runs() -> Dict[str, datetime.datetime]:
+    """Return ``{job: last_run}`` for every scheduled job that has ever run.
+
+    Ensures the ``job_run`` table exists first, so the first boot against a
+    fresh database works without anyone provisioning it. Values are
+    timezone-aware (Postgres ``TIMESTAMPTZ``), safe to compare against
+    ``datetime.now(timezone.utc)``.
+    """
+    with _transaction() as cur:
+        cur.execute(_JOB_RUN_DDL)
+        cur.execute("SELECT job, last_run FROM job_run")
+        return {job: last_run for job, last_run in cur.fetchall()}
+
+
+def mark_job_run(job: str) -> None:
+    """Stamp ``job`` as having just finished successfully."""
+    with _transaction() as cur:
+        cur.execute(_JOB_RUN_DDL)
+        cur.execute(
+            """
+            INSERT INTO job_run (job, last_run)
+            VALUES (%s, now())
+            ON CONFLICT (job) DO UPDATE SET last_run = EXCLUDED.last_run
+            """,
+            (job,),
+        )

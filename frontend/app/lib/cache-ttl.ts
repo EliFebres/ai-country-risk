@@ -31,10 +31,10 @@ export const CACHE_TTL = {
   // fresh run within hours while keeping Neon hits cheap (matches RISK).
   AI_ALERTS: 12 * HOUR,     // daily generation
 
-  // Live market snapshot written by the prices daemon every ~5 min; the Prices
-  // pane polls /api/prices on the same cadence, so a 5-min TTL serves cached
+  // Live market snapshot written once per scheduler tick (~30 min); the Prices
+  // pane polls /api/prices on the same cadence, so a 30-min TTL serves cached
   // rows between writes and hits Neon at most once per window.
-  PRICES: 5 * 60,
+  PRICES: 30 * 60,
 
   // Live TV channel list (the `live_tv_channel` table). Edited by hand via SQL
   // when a stream dies, so a short 10-min TTL lets a fix propagate quickly while

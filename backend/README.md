@@ -34,7 +34,7 @@ This directory contains the **data-engineering and inference pipeline** that pow
 | --------------------- | ----------------------------------------------------------------------- |
 | `DATABASE_URL`        | Postgres connection string (Neon or local)                              |
 | `OPENAI_API_KEY`      | OpenAI key used by `langchain_openai`                                   |
-| `FMP_API_KEY`         | Financial Modeling Prep key — economic calendar in `main.py` and the live prices daemon |
+| `FMP_API_KEY`         | Financial Modeling Prep key — economic calendar and the live prices tick |
 | `CRAWLBASE_JS_TOKEN`  | *(optional)* Crawlbase JS token for advanced Reuters/Bloomberg enrichment |
 | `CRAWLBASE_TOKEN`     | *(optional)* Crawlbase standard token (used if JS token not provided)   |
 
@@ -51,17 +51,34 @@ pip install -r backend/requirements.txt
 
 # Add .env in backend/ with DATABASE_URL, OPENAI_API_KEY, and optional Crawlbase token(s)
 
-# Run the end-to-end ETL (fetch headlines → rank → LLM → DB)
+# Run the scheduler — the only process. Ticks every 30 min, runs what is overdue.
 python backend/main.py
+
+# Or a single pass over every due job, then exit (verification)
+python backend/main.py --once
 ```
 
-*Running the full ETL across the 48-country roster (see [COUNTRY_COVERAGE.md](../COUNTRY_COVERAGE.md)) can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
+`main.py` schedules three jobs and records each success in the `job_run` table, so the
+schedule survives a restart or redeploy instead of living in memory:
+
+| Job | Cadence | What it does |
+| -------- | ----------------- | ------------ |
+| `prices` | every tick (30 m) | Live FMP quotes for whichever markets are open — a no-op outside session hours |
+| `etl` | first tick of a new ISO week | Roster, econ calendar, IMF indicators, ledger sources, all 48 risk snapshots, global alerts |
+| `panels` | every 30 days | `backfill_missing_panels(force=True)` — rebuilds every `wb_panel_wide` partition so World Bank revisions and new years land |
+
+A job that has never run is always due, so a fresh database bootstraps itself on first
+boot. A job is stamped **only when it succeeds**, so a failure retries on the next tick
+rather than waiting out its whole interval. To force one, delete its `job_run` row.
+
+*Running the full ETL across the 48-country roster (see [COUNTRY_COVERAGE.md](../COUNTRY_COVERAGE.md)) can take several minutes due to polite pacing of feed resolution and per-article fetches. It runs on the same thread as the prices tick, so prices do not refresh while it works.*
 
 ---
 
 ## Key modules
 
-* `backend/main.py` — orchestrates the run: data payload → news → LLM scoring → DB upsert.
+* `backend/main.py` — the scheduler loop and the job cadences; the weekly job orchestrates data payload → news → LLM scoring → DB upsert.
+* `backend/utils/prices.py` — one prices poll cycle (`PricesDaemon.tick`), called by `main.py`.
 * `backend/utils/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
 * `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata, used only for **Top-3** articles still missing an image.
 * `backend/utils/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
@@ -279,8 +296,8 @@ CREATE TABLE economic_calendar_event (
     UNIQUE (event_time, country_code, event)
 );
 
--- Live "Prices" pane. Maintained by the standalone prices_daemon.py (NOT main.py):
--- one row per tracked asset, upserted in place every few minutes. Stocks/crypto/
+-- Live "Prices" pane. Maintained by main.py's prices tick (utils/prices.py): one
+-- row per tracked asset, upserted in place every 30 minutes. Stocks/crypto/
 -- commodities come from FMP batch-quote; US Treasury yields from FMP treasury-
 -- rates. is_yield rows carry POINT changes (shown as %); others carry % moves.
 CREATE TABLE market_price (
@@ -326,14 +343,23 @@ CREATE TABLE article_digest (
     model_id        TEXT,                  -- pinned digest model release
     PRIMARY KEY (country_iso2, as_of, url)
 );
+
+-- Scheduler bookkeeping (data_push.read_job_runs / mark_job_run). One row per
+-- job in main.py's JOBS table, stamped only on success, so main.py can tell on
+-- every tick what is overdue and catch up after downtime. Not read by the
+-- frontend; `DELETE FROM job_run WHERE job = '...'` forces a re-run.
+CREATE TABLE job_run (
+    job      TEXT PRIMARY KEY,      -- 'etl' | 'panels'
+    last_run TIMESTAMPTZ NOT NULL
+);
 ```
 
 ---
 
-## IMF & economic-calendar refresh (inside `main.py`)
+## IMF & economic-calendar refresh (inside the weekly `etl` job)
 
-Unlike the standalone prices daemon, these two refreshes run **as part of the daily
-`main.py` ETL**:
+Unlike the prices tick, which runs every 30 minutes, these two refreshes run **once a
+week as phases of the `etl` job**:
 
 * **IMF higher-frequency macro.** `utils/data_fetching/imf_macro_fetch.py` pulls the
   freshest sub-annual prints (e.g. monthly/quarterly inflation) from the IMF SDMX 2.1
@@ -411,11 +437,11 @@ getting a row nobody will fill:
 If you later find a usable source for either, add one `INDICATOR_REGISTRY` entry and the
 rows go in `curated.csv` with no loader change.
 
-## Live prices feed (`prices_daemon.py`)
+## Live prices feed (`utils/prices.py`)
 
-A standalone, long-running daemon — **separate from the daily `main.py` ETL** — keeps
-the bottom-bar "Prices" pane fresh. It polls every `PRICES_POLL_SECONDS` (default 300)
-and upserts the latest snapshot into `market_price`.
+`PricesDaemon.tick` keeps the bottom-bar "Prices" pane fresh. `main.py` calls it once
+per scheduler tick (`PRICES_POLL_SECONDS`, default 1800) and it upserts the latest
+snapshot into `market_price`.
 
 * **Sources.** Equity indices, the MSCI ETF proxies (ACWI/ACWX/EEM, relabeled), crypto,
   and commodities come from **FMP batch-quote** in one call per tick. US Treasury yields
@@ -427,17 +453,10 @@ and upserts the latest snapshot into `market_price`.
   the Globex window). The yields and the 1Q/YTD reference closes refresh at most once per
   ET day.
 
-```bash
-# One-shot tick (verification): fetch once, upsert, exit
-python backend/prices_daemon.py --once
-
-# Continuous loop: runs until stopped (Ctrl-C)
-python backend/prices_daemon.py
-```
-
-Point a boot-time Task Scheduler entry (or any process supervisor) at
-`python backend/prices_daemon.py` so the feed runs continuously alongside the `main.py`
-cron. Reuses `FMP_API_KEY` + `DATABASE_URL` — no other secret needed.
+Reuses `FMP_API_KEY` + `DATABASE_URL` — no other secret needed. `python backend/main.py
+--once` runs a single tick for verification. The daemon holds its per-day state in
+memory and rehydrates it from `price_reference` in `load_state`, so a restart never pays
+for a same-day refetch.
 
 ---
 

@@ -1,4 +1,4 @@
-"""Characterization tests for the price math in ``backend.prices_daemon`` and
+"""Characterization tests for the price math in ``backend.utils.prices`` and
 ``backend.utils.data_fetching.fmp_prices_fetch``.
 
 The 1D/1Q/YTD numbers on the Prices pane come straight from these helpers;
@@ -9,28 +9,28 @@ from datetime import date
 
 import pytest
 
-from backend import prices_daemon
+from backend.utils import prices
 from backend.utils.data_fetching import fmp_prices_fetch as fp
 
 
 class TestPct:
     def test_basic_gain(self):
-        assert prices_daemon._pct(110.0, 100.0) == 10.0
+        assert prices._pct(110.0, 100.0) == 10.0
 
     def test_basic_loss(self):
-        assert prices_daemon._pct(90.0, 100.0) == -10.0
+        assert prices._pct(90.0, 100.0) == -10.0
 
     def test_rounding_to_two_places(self):
-        assert prices_daemon._pct(100.567, 100.0) == 0.57
+        assert prices._pct(100.567, 100.0) == 0.57
 
     def test_none_price(self):
-        assert prices_daemon._pct(None, 100.0) is None
+        assert prices._pct(None, 100.0) is None
 
     def test_none_reference(self):
-        assert prices_daemon._pct(100.0, None) is None
+        assert prices._pct(100.0, None) is None
 
     def test_zero_reference(self):
-        assert prices_daemon._pct(100.0, 0) is None
+        assert prices._pct(100.0, 0) is None
 
 
 class TestQuarterStart:
