@@ -41,14 +41,6 @@ _PAYLOAD_DELTA_HORIZONS = (1, 5)
 # Articles fetched per country before Top-3 selection.
 _MAX_ARTICLES_PER_COUNTRY = 20
 
-# The curated drop folder, read once per run rather than once per country: the
-# files are small, global, and do not change mid-run. Populated by
-# `load_curated_reference`; empty until then, which is also the correct reading
-# if that load fails.
-_CURATED: Dict[str, Any] = {
-    "fx_regimes": {}, "elections": {}, "reference_constants": {}, "weo_revisions": {},
-}
-
 
 def _safe(read: Callable[[], Any], iso2: str, what: str) -> Any:
     """Run one evidence read, degrading a failure to None with a warning.
@@ -171,32 +163,6 @@ def refresh_ledger_sources() -> None:
         logger.exception("[curated] series load ERROR")
 
 
-def load_curated_reference() -> None:
-    """Read the curated lookup files once per run into :data:`_CURATED`.
-
-    These are not numeric series — currency regimes, election dates, the frozen
-    reference ratio, WEO revisions — so they are held in memory and handed to
-    each country's payload rather than round-tripped through the database.
-
-    Each file degrades independently to its empty value, which the payload
-    reports as an absence rather than a default.
-    """
-    for key, load in (
-        ("fx_regimes", curated_loader.load_fx_regimes),
-        ("elections", curated_loader.load_election_calendar),
-        ("reference_constants", curated_loader.load_reference_constants),
-        ("weo_revisions", curated_loader.load_weo_revisions),
-    ):
-        try:
-            _CURATED[key] = load()
-        except Exception:
-            logger.exception("[curated] %s unreadable; treating as absent", key)
-            _CURATED[key] = {}
-    logger.info("[curated] %d fx regimes, %d election calendars, %d weo series",
-                len(_CURATED["fx_regimes"]), len(_CURATED["elections"]),
-                len(_CURATED["weo_revisions"]))
-
-
 def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]) -> None:
     """Run the full pipeline for one country: macro payload → news → LLM score
     → Top-3 selection/enrichment → DB upsert. Appends the country's Top-3 to
@@ -252,10 +218,8 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         panel=_safe(lambda: data_retrieval.query_macro_panel(iso2), iso2, "panel"),
         series=_safe(lambda: data_push.read_indicator_series(iso2), iso2, "series") or {},
         recent=_safe(lambda: data_push.read_recent_indicators(iso2), iso2, "recent") or {},
-        fx_regimes=_CURATED["fx_regimes"],
-        elections=_CURATED["elections"],
-        reference_constants=_CURATED["reference_constants"],
-        weo_revisions=_CURATED["weo_revisions"],
+        fx_regimes=constants.FX_REGIMES,
+        elections=constants.ELECTIONS,
     )
 
     # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it anchors

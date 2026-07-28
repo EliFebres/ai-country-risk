@@ -14,3 +14,4 @@
 # Changes take effect on the next backend run.
 
 whalesbook.com
+latimes.com

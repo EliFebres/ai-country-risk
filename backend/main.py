@@ -55,8 +55,7 @@ def main() -> None:
     country_data_fetch.backfill_missing_panels()            # 0a) macro panels (incremental)
     pipeline.refresh_calendar()                             # 0b) econ calendar + AI ranking
     pipeline.refresh_imf_indicators()                       # 0c) fresher-than-annual indicators
-    pipeline.refresh_ledger_sources()                       # 0d) WB extras, BIS, curated series
-    pipeline.load_curated_reference()                       # 0e) regimes, elections, WEO revisions
+    pipeline.refresh_ledger_sources()                       # 0d) WB extras, BIS, curated.csv
     pool = pipeline.process_all_countries()                 # 1-7) per-country risk snapshots
     pipeline.publish_global_alerts(pool)                    # 8)  global news alerts
 

@@ -87,14 +87,10 @@ venv.bak/
 # there is nothing here worth versioning.
 backend/data/wb_panel_wide
 
-# The curated drop folder: CSVs an operator downloads by hand for the sources
-# with no free, stable, no-auth API. Untracked deliberately, which also keeps
-# the schema templates and their README out of a fresh clone - `curated_loader`
-# will load zero rows there and every curated indicator reports as absent until
-# someone recreates the folder. The last tracked copy of the README, which
-# documents each file's schema and where to download it, is in git history at
-# commit 66eae2b (backend/data/curated/README.md).
-backend/data/curated
+# backend/data/curated.csv is TRACKED on purpose: it is public reference data an
+# operator types in by hand, its `as_of` is a column rather than the file mtime,
+# and a clone that reproduces scores is worth more than keeping the drops out of
+# the repo. Do not add it here.
 
 # Output of backend/tests/live_country_check.py.
 live_check_*.log

@@ -198,9 +198,9 @@ def rome_gap(
     reported against a frozen reference level.
 
     The reference is deliberately **not** a live roster median. It is computed
-    once from a filled ``statutory_rates.csv``, then stored as a versioned
-    constant in ``backend/data/curated/reference_constants.yaml``, so the same
-    country-year always produces the same gap no matter which peers reported.
+    once from filled ``STAT.TAX.TOP.RATE`` rows, then frozen as
+    ``constants.ROME_REFERENCE_RATIO``, so the same country-year always produces
+    the same gap no matter which peers reported.
 
     Args:
         top_statutory_rate: top statutory rate, in percent.
@@ -469,31 +469,6 @@ def suppressed_vol_flag(
     if regime.strip().lower() not in _MANAGED_REGIMES:
         return False
     return vol < _SUPPRESSED_FX_VOL_MAX and trend < 0.0
-
-
-def forecast_instability(
-    weo_revisions: Optional[Sequence[Optional[float]]],
-) -> Optional[float]:
-    """Mean absolute revision across available forecast vintages.
-
-    A forecaster who keeps changing their mind about the same year is telling
-    you the country is hard to see, which is uncertainty about the order rather
-    than about the forecast.
-
-    Args:
-        weo_revisions: revisions between consecutive WEO vintages for one
-            country-year, in percentage points. Signs are ignored; None entries
-            are dropped.
-
-    Returns:
-        The mean absolute revision, or None if no revision is present.
-    """
-    if not weo_revisions:
-        return None
-    observed = [abs(v) for v in (_num(x) for x in weo_revisions) if v is not None]
-    if not observed:
-        return None
-    return round(sum(observed) / len(observed), 4)
 
 
 # --- Information ledger -----------------------------------------------------

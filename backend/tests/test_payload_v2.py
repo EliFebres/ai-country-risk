@@ -85,11 +85,14 @@ class TestShape:
             series={**series_rows("IQ.SPI.OVRL", [64.0], freq="A", start="2024",
                                   source="World Bank SPI"),
                     **series_rows("IC.BUS.NDNS.ZS", [5.1], freq="A", start="2024",
+                                  source="World Bank WDI"),
+                    **series_rows("SE.XPD.TOTL.GD.ZS", [4.9], freq="A", start="2024",
                                   source="World Bank WDI")},
         )
         assert "Inflation (% y/y)" in payload["uncertainty_inputs"]
         assert "Statistical performance (0–100)" in payload["information_inputs"]
         assert "New business density (per 1,000 working-age)" in payload["edge_inputs"]
+        assert "Government education spending (% GDP)" in payload["edge_inputs"]
 
 
 class TestFreshestValueWins:
@@ -159,17 +162,24 @@ class TestStalenessStamps:
 
     def test_staleness_measures_the_reading_not_the_fetch(self):
         # The bug this guards: `indicator_series.as_of` is the FETCH date, so a
-        # 2021 patent count pulled today has as_of = today. Measuring staleness
-        # against that would tell the model a five-year-old number is current.
+        # 2020 HCI vintage pulled today has as_of = today. Measuring staleness
+        # against that would tell the model a six-year-old number is current.
         # Staleness must come from the period the value describes.
+        #
+        # HCI is also the reason a large staleness must never mean "drop it":
+        # the index updates on an irregular multi-year cadence and enters as
+        # slow structure. Old is the honest reading, not a defect.
         payload = build(series=series_rows(
-            "IP.PAT.RESD", [711.0], freq="A", start="2021",
-            as_of=AS_OF, source="World Bank WDI",
+            "HD.HCI.OVRL", [0.78], freq="A", start="2020",
+            as_of=AS_OF, source="World Bank Human Capital Project",
         ))
-        entry = payload["edge_inputs"]["Patent applications, residents"]
+        entry = payload["edge_inputs"]["Human Capital Index (0–1)"]
+        assert entry["value"] == 0.78                  # present, not filtered out
         assert entry["as_of"] == "2026-07-27"          # when we learned it
-        assert entry["staleness_days"] > 1600          # how old the reading is
-        assert entry["staleness_days"] == (AS_OF - _dt.date(2021, 12, 31)).days
+        assert entry["staleness_days"] > 2000          # how old the reading is
+        assert entry["staleness_days"] == (AS_OF - _dt.date(2020, 12, 31)).days
+        # One vintage in the window: no neighbour close enough to trend against.
+        assert "trend_1y" not in entry and "trend_5y" not in entry
 
     def test_a_monthly_print_is_stale_by_its_period_end(self):
         payload = build(series=series_rows("CPI.YOY", [3.8], start="2026-06"))
@@ -200,13 +210,18 @@ class TestMissingSeriesAreOmitted:
             for entry in payload[section].values():
                 assert entry.get("value") is not None
 
-    def test_population_is_a_denominator_not_evidence(self):
-        # SP.POP.TOTL has no ledger; it must not surface as an indicator.
-        payload = build(series=series_rows("SP.POP.TOTL", [10_600_000.0],
+    def test_an_unregistered_code_is_ignored_entirely(self):
+        # Rows outlive their registry entry: retiring an indicator leaves its
+        # history in `indicator_series` until someone deletes it, and the
+        # resolver walks the registry rather than the store precisely so an
+        # orphan cannot surface. Also covers the ledger-less denominator case.
+        payload = build(series=series_rows("ZZ.NOT.REGISTERED", [10_600_000.0],
                                            freq="A", start="2024", source="World Bank WDI"))
-        for section in ("friction_inputs", "uncertainty_inputs",
-                        "information_inputs", "edge_inputs"):
-            assert "Population" not in payload[section]
+        assert payload["friction_inputs"] == {}
+        assert payload["information_inputs"] == {}
+        assert payload["edge_inputs"] == {}
+        # Uncertainty always carries the computed flag; nothing else got in.
+        assert set(payload["uncertainty_inputs"]) == {"suppressed_vol_flag"}
 
 
 class TestComputedBlock:

@@ -412,9 +412,9 @@ def _stamp(observations: List[_Observation], code: str, as_of: date) -> Optional
         # end of the period the value *describes*, which is what "how old is
         # this reading" actually means.
         #
-        # The difference is not cosmetic: a 2021 patent count fetched today has
-        # as_of = today, and reporting staleness against that would tell the
-        # model a five-year-old number is current.
+        # The difference is not cosmetic: a 2020 Human Capital Index reading
+        # fetched today has as_of = today, and reporting staleness against that
+        # would tell the model a six-year-old number is current.
         "as_of": latest.as_of.isoformat(),
         "staleness_days": (as_of - latest.period_end).days,
         "source": latest.source,
@@ -458,8 +458,6 @@ def build_evidence_payload(
     recent: Optional[Dict[str, dict]] = None,
     fx_regimes: Optional[Dict[str, str]] = None,
     elections: Optional[Dict[str, List[dict]]] = None,
-    reference_constants: Optional[Dict[str, object]] = None,
-    weo_revisions: Optional[Dict[str, List[float]]] = None,
 ) -> dict:
     """Build the three-ledger evidence payload the scoring model receives.
 
@@ -475,12 +473,8 @@ def build_evidence_payload(
         panel: the parquet macro panel, from :func:`query_macro_panel`.
         series: ``indicator_series`` rows, from ``data_push.read_indicator_series``.
         recent: latest prints, from ``data_push.read_recent_indicators``.
-        fx_regimes: currency regimes, from ``curated_loader.load_fx_regimes``.
-        elections: election calendar, from ``curated_loader.load_election_calendar``.
-        reference_constants: frozen scalars, from
-            ``curated_loader.load_reference_constants``.
-        weo_revisions: ``{iso2: [revision, ...]}``, from
-            ``curated_loader.load_weo_revisions``.
+        fx_regimes: currency regimes, from ``constants.FX_REGIMES``.
+        elections: election calendar, from ``constants.ELECTIONS``.
 
     Returns:
         ``{_meta, friction_inputs, uncertainty_inputs, information_inputs,
@@ -528,7 +522,7 @@ def build_evidence_payload(
         ledger = constants.INDICATOR_REGISTRY[code].get("ledger")
         section = ledger_to_section.get(str(ledger))
         if not section:
-            continue  # population is a denominator, not evidence
+            continue  # no ledger: a denominator or a helper, not evidence
         entry = _stamp(observations, code, as_of)
         if entry:
             sections[section][str(constants.INDICATOR_REGISTRY[code]["label"])] = entry
@@ -560,7 +554,7 @@ def build_evidence_payload(
 
     gap = metrics.rome_gap(
         latest_value("STAT.TAX.TOP.RATE"), latest_value("GC.TAX.TOTL.GD.ZS"),
-        (reference_constants or {}).get("rome_reference_ratio"),
+        constants.ROME_REFERENCE_RATIO,
     )
     if gap:
         computed["rome_gap"] = gap
@@ -611,10 +605,6 @@ def build_evidence_payload(
     if dependency:
         computed["dependency_trajectory"] = dependency
 
-    instability = metrics.forecast_instability((weo_revisions or {}).get(country_iso2))
-    if instability is not None:
-        computed["forecast_instability"] = instability
-
     # Suppressed volatility: reported under uncertainty because it is evidence
     # the model weighs, not a computed score. `regime: None` is not `float` —
     # an absent regime file and a genuine free float are different facts.
@@ -637,19 +627,6 @@ def build_evidence_payload(
             "not that the flag is false."
         ),
     }
-
-    # Patents per capita: the count alone is unreadable across country sizes.
-    patents, population = latest_value("IP.PAT.RESD"), latest_value("SP.POP.TOTL")
-    if patents is not None and population:
-        sections["edge_inputs"]["Patent applications per million residents"] = {
-            "value": round(patents / population * 1_000_000, 3),
-            "period": resolved["IP.PAT.RESD"][-1].period,
-            "freq": "A",
-            "as_of": resolved["IP.PAT.RESD"][-1].as_of.isoformat(),
-            "staleness_days": (as_of - resolved["IP.PAT.RESD"][-1].period_end).days,
-            "source": "World Bank WDI",
-            "unit": "applications per million residents",
-        }
 
     next_election = None
     for entry in (elections or {}).get(country_iso2, []):

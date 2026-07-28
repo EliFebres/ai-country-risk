@@ -382,23 +382,6 @@ class TestSuppressedVolFlag:
         assert metrics.suppressed_vol_flag("crawling-band", 0.1, -1.0) is False
 
 
-class TestForecastInstability:
-    def test_mean_absolute_revision_ignores_sign(self):
-        # |+1.2| + |-0.8| + |+0.4| = 2.4 over 3 vintages = 0.8
-        _approx(metrics.forecast_instability([1.2, -0.8, 0.4]), 0.8)
-
-    def test_gaps_are_dropped_from_the_mean(self):
-        # Only two usable revisions: (1.0 + 3.0) / 2 = 2.0
-        _approx(metrics.forecast_instability([1.0, None, -3.0]), 2.0)
-
-    def test_no_revisions_is_zero_instability(self):
-        _approx(metrics.forecast_instability([0.0, 0.0]), 0.0)
-
-    @pytest.mark.parametrize("revisions", [None, [], [None, None], ["x"]])
-    def test_nothing_usable_is_none(self, revisions):
-        assert metrics.forecast_instability(revisions) is None
-
-
 class TestInstrumentQuality:
     """Core pair required; supplements sharpen but cannot substitute."""
 

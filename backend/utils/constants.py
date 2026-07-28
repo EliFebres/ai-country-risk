@@ -117,7 +117,7 @@ IMF_RECENT_INDICATORS: dict[str, dict[str, str]] = {
 # `IRFCL` publishes ~800 monthly series per country whose reserve-asset line
 # cannot be identified without domain spelunking. Picking the wrong IRFCL line
 # would silently produce a wrong reserves trend, which is worse than an absent
-# one, so reserves are curated (see backend/data/curated/README.md).
+# one, so reserves are curated (see "Curated inputs" in backend/README.md).
 IMF_SERIES_INDICATORS: dict[str, dict[str, str]] = {
     "CPI.YOY": {
         "dataflow": "CPI",
@@ -137,7 +137,7 @@ IMF_SERIES_INDICATORS: dict[str, dict[str, str]] = {
 #
 #   * data_fetching/wb_series_fetch  — which World Bank codes to fetch
 #   * data_fetching/bis_bulk_fetch   — which BIS datasets map to which id
-#   * data_upsert/curated_loader     — which id each curated file fills
+#   * data_fetching/curated_loader   — the freq and source for each curated row
 #   * data_retrieval.build_evidence_payload — label, unit, ledger, and where to
 #     look for the freshest value
 #
@@ -172,6 +172,13 @@ IMF_SERIES_INDICATORS: dict[str, dict[str, str]] = {
 #     economies (no short-term external debt reporting; no national broad money
 #     inside the euro area). That is a real absence, not a broken code, and the
 #     payload reports it as absent.
+#   * `HD.HCI.OVRL` covers 47 of the 48 roster countries, with vintages in 2017,
+#     2018 and 2020 only — the World Bank has no Taiwan data for any indicator,
+#     and the index is published on an irregular multi-year cadence rather than
+#     annually. `SE.XPD.TOTL.GD.ZS` is annual and covers 46 (Egypt and Taiwan
+#     absent). `OECD.PISA.MEAN` fills the learning-outcome gap on a fixed
+#     triennial calendar and covers 44 of the 48: China, Egypt and Kuwait did not
+#     sit the 2022 round, and the payload reports them absent, not padded.
 #
 # TODO: prime-age (25-54) labour-force participation via the ILO would be a
 # sharper read on the friction ledger than the headline total below, which moves
@@ -325,21 +332,39 @@ INDICATOR_REGISTRY: dict[str, dict[str, object]] = {
     },
 
     # --- edge: the system learning. Reported, never penalized ----------------
+    # Patents and high-tech exports were removed from this ledger deliberately.
+    # A patent is public disclosure: the serious end of the frontier defects to
+    # trade secrets, while filing subsidies inflate junk applications. High-tech
+    # exports bend to export controls. Both flip meaning with strategic context,
+    # and a metric that changes sign under policy cannot be a rank input.
+    # What replaced them measures the edge's fuel directly — learning outcomes
+    # leading, education spending alongside. The gap between the two is read in
+    # the prompt, not computed here: a numeric wedge would need a normalization
+    # reference, and there isn't an honest one.
     "IC.BUS.NDNS.ZS": {
         "label": "New business density (per 1,000 working-age)", "unit": "per 1,000 working-age adults",
         "ledger": "edge", "source": "World Bank WDI", "freq": "A",
         "panel_col": None, "recent_name": None,
     },
-    "IP.PAT.RESD": {
-        "label": "Patent applications, residents", "unit": "count",
+    "SE.XPD.TOTL.GD.ZS": {
+        "label": "Government education spending (% GDP)", "unit": "% of GDP",
         "ledger": "edge", "source": "World Bank WDI", "freq": "A",
         "panel_col": None, "recent_name": None,
     },
-    # Not evidence in its own right — the denominator that turns the patent count
-    # into the per-capita figure the payload reports.
-    "SP.POP.TOTL": {
-        "label": "Population", "unit": "people",
-        "ledger": None, "source": "World Bank WDI", "freq": "A",
+    # The learning-outcome line the prompt reads first. `freq` is "A" for the
+    # period format only — the honest cadence is triennial, and the walkthrough's
+    # cycles-behind chart keys that off `source` rather than off `freq`.
+    "OECD.PISA.MEAN": {
+        "label": "PISA mean score (math/reading/science)", "unit": "score",
+        "ledger": "edge", "source": "OECD PISA", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    # Updated on an irregular multi-year cadence — it enters as slow structure,
+    # not as a current reading, and a large staleness_days on it is honest rather
+    # than a defect. Never filter it for age.
+    "HD.HCI.OVRL": {
+        "label": "Human Capital Index (0–1)", "unit": "index 0–1",
+        "ledger": "edge", "source": "World Bank Human Capital Project", "freq": "A",
         "panel_col": None, "recent_name": None,
     },
 }
@@ -557,6 +582,49 @@ COUNTRY_ROSTER: list[dict] = [
 
 # Convenience lookup derived from the roster.
 ISO3_BY_ISO2: dict[str, str] = {c["iso2"]: c["iso3"] for c in COUNTRY_ROSTER}
+
+# ---------------------------------------------------------------------------
+# Curated reference lookups — hand-maintained, roster-sized, not time series
+# ---------------------------------------------------------------------------
+# The numeric curated series live in `backend/data/curated.csv` and flow into
+# `indicator_series`. These three are not series: they are a handful of reference
+# facts per country that change once a year at most, so they live here beside the
+# roster rather than in a file or a table. Being in git means they survive a
+# clone and an edit shows up in review.
+#
+# All three ship empty, which is the correct shipped state, not a default.
+
+# Currency regime per country: the input that lets `metrics.suppressed_vol_flag`
+# tell a credibly calm currency from a defended one. Source: IMF AREAER, the
+# de-facto classification table — collapse its categories onto three values
+# (hard pegs, currency boards and conventional pegs -> `peg`; crawling
+# arrangements, bands and "other managed" -> `managed`; floating and free
+# floating -> `float`).
+#
+# An absent entry is NOT `float`. A country with no regime here makes the flag
+# return None — "we do not know" — rather than asserting a free float.
+FX_REGIMES: dict[str, str] = {
+    # "PT": "float",
+    # "SA": "peg",
+    # "CN": "managed",
+}
+
+# Scheduled national elections, `iso2 -> [{"date": "YYYY-MM-DD", "kind": str}]`
+# sorted by date. A scheduled transfer of power is a known unknown, and the model
+# weighs it differently from an unscheduled one. `kind` is legislative |
+# presidential | referendum. Source: IFES Election Guide or IPU Parline; worth a
+# refresh quarterly.
+ELECTIONS: dict[str, list[dict]] = {
+    # "PT": [{"date": "2026-10-04", "kind": "legislative"}],
+}
+
+# The `rome_gap` reference: the median of (top statutory rate / tax revenue % GDP)
+# across the roster, computed ONCE from a filled curated.csv and then frozen.
+# It is deliberately not recomputed each run — a live roster median would make a
+# country's own gap history move whenever its peers' data did, so the same
+# country-year would report differently on two days its own numbers never
+# changed. None until computed; `rome_gap` reports its raw ratio meanwhile.
+ROME_REFERENCE_RATIO: float | None = None
 
 # ---------------------------------------------------------------------------
 # Display names for indicators

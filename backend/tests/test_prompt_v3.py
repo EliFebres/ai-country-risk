@@ -33,6 +33,17 @@ def lower() -> str:
     return PROMPT.lower()
 
 
+def flat() -> str:
+    """Lowercased, with every run of whitespace collapsed to a single space.
+
+    The prompt is hard-wrapped at 79 columns, so any pinned phrase longer than a
+    few words can straddle a newline and a plain substring check on `lower()`
+    fails for a reason that has nothing to do with the wording. Sentence-length
+    assertions read this instead; short ones can keep using `lower()`.
+    """
+    return " ".join(PROMPT.lower().split())
+
+
 class TestFormatting:
     def test_formats_with_its_exact_placeholder_set(self):
         rendered = PROMPT.format(
@@ -96,9 +107,10 @@ class TestScoreDirectionIsStated:
 
 
 class TestEdgeProtection:
-    def test_names_churn_formation_failure_and_patents(self):
-        text = lower()
-        for term in ("churn", "startup formation", "failure", "patent"):
+    def test_names_churn_formation_failure_and_human_capital(self):
+        text = flat()
+        for term in ("churn", "startup formation", "failure",
+                     "human-capital formation", "learning outcomes"):
             assert term in text
 
     def test_states_it_must_not_raise_a_score(self):
@@ -108,6 +120,13 @@ class TestEdgeProtection:
         text = lower()
         assert "do not let a high value raise friction" in text
 
+    def test_the_spend_versus_learning_gap_reads_as_friction(self):
+        # The pair is carried in the payload without a computed wedge; this
+        # sentence is the only place the model is told how to read the gap.
+        text = flat()
+        assert "wedge made visible inside a school system" in text
+        assert "friction evidence, not as edge credit" in text
+
 
 class TestThreeDoorEventTest:
     def test_all_three_doors_are_present(self):
@@ -116,6 +135,13 @@ class TestThreeDoorEventTest:
                      "U — it destabilizes the order",
                      "I — it changes the instruments"):
             assert door in PROMPT
+
+    def test_door_f_covers_skilled_emigration(self):
+        # There is deliberately no data series for departure, so the digests are
+        # the only instrument — the prompt has to say which door they enter by.
+        text = flat()
+        assert "skilled departure" in text
+        assert "grading the wedge with their feet" in text
 
     def test_names_the_noise_it_replaces(self):
         text = lower()
@@ -216,6 +242,10 @@ class TestForbiddenLanguage:
         # The framing v3 replaced
         "no post-processing will alter your score",
         "enforcement happens downstream",
+        # The edge metrics v3.1 replaced. Both flip meaning with strategic
+        # context — see the edge block in utils/constants.py.
+        "patent",
+        "high-technology exports",
     ])
     def test_absent(self, phrase):
         assert phrase not in lower(), f"prompt must not contain {phrase!r}"
@@ -299,8 +329,10 @@ class TestSchemaV3:
 
 
 class TestVersionStamp:
-    def test_prompt_version_names_the_framework(self):
-        assert ai_constants.PROMPT_VERSION == "v3.0-friction-framework"
+    def test_prompt_version_is_the_human_capital_revision(self):
+        # Bumped from "v3.0-friction-framework" when patents left the edge
+        # ledger: a snapshot had already been scored under that wording.
+        assert ai_constants.PROMPT_VERSION == "v3.1"
 
     def test_deleted_generations_are_really_gone(self):
         for name in ("AI_PROMPT", "RISK_SCHEMA", "AI_PROMPT_V2", "RISK_SCHEMA_V2"):

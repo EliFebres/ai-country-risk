@@ -55,7 +55,10 @@ from typing import Dict
 # behind "v1.0" and "v2.0" was deleted when v3 landed and lives at the git tag
 # `prompts-pre-v3` (commit 7604fcb) — so a stored prompt_version still resolves
 # to the exact wording that produced it.
-PROMPT_VERSION = "v3.0-friction-framework"
+# "v3.0-friction-framework" is the patents-in-the-edge-ledger wording; a snapshot
+# was scored under it, so the human-capital swap gets its own stamp rather than
+# rewriting history under the old one.
+PROMPT_VERSION = "v3.1"
 
 # ---------------------------------------------------------------------------
 # v3 — the friction framework. The model judges; nothing downstream edits it.
@@ -111,18 +114,30 @@ rather than mean-reverting — a state that cannot see itself does not self-corr
 
 # --- Edge vitality: report it, never penalize it ---
 
-High business churn, startup formation AND startup failure, and patent activity
-are the system learning. They MUST NOT raise any risk score. A country where
-firms are born and die quickly is discovering what works; a country where
-nothing is created and nothing fails is not stable, it is inert. Score
-`edge_vitality` as an independent reading of that adaptive capacity — higher
-means more vitality — and do not let a high value raise friction,
-order-uncertainty, or either horizon score. Failure counts as vitality here.
+Entry-and-exit churn — startup formation AND startup failure — and human-capital
+formation are the system learning. They MUST NOT raise any risk score. A country
+where firms are born and die quickly is discovering what works; a country where
+nothing is created and nothing fails is not stable, it is inert. Failure counts
+as vitality here.
+
+Learning outcomes lead; education spending is the effort line. Read them
+together, never the spending alone. High spending with weak learning outcomes is
+the wedge made visible inside a school system — money extracted and not
+converted into capability. Read that gap as friction evidence, not as edge
+credit.
+
+Score `edge_vitality` as an independent reading of that adaptive capacity —
+higher means more vitality — and do not let a high value raise friction,
+order-uncertainty, or either horizon score.
 
 # --- The three-door event test (apply to every article) ---
 
 An event matters only if it passes through one of three doors:
-  F — it changes the wedge (extraction, or how well extraction converts)
+  F — it changes the wedge (extraction, or how well extraction converts).
+      Reported waves of skilled departure — doctors, engineers and founders
+      leaving the country — pass through this door: the population grading the
+      wedge with their feet. There is deliberately no data series for this, so
+      these articles are its only instrument.
   U — it destabilizes the order (contracts, currency, statistics, succession)
   I — it changes the instruments (statistics office, auditors, courts, press)
 Everything else is noise, however dramatic the headline. Natural disasters with
