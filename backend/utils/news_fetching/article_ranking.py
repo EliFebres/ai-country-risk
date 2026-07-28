@@ -20,11 +20,33 @@ from backend.utils.dates import parse_date_for_sort
 
 logger = logging.getLogger(__name__)
 
-# HIGH relevance keywords (government/policy/economy/security)
+# HIGH relevance keywords, grouped by the ledger they speak to. The grouping is
+# documentation only — the scorer treats them as one flat list — but it is what
+# keeps this list and `article_enrichment._QUERY_THEMES` from drifting apart. An
+# article a theme query retrieved but this list does not recognise scores at the
+# 0.3 base and loses every tiebreak, which would leave the per-theme floor and
+# the open fill disagreeing about what matters.
+#
+# ponytail: naive substring matching, so 'tax' also matches 'taxi' and 'audit'
+# matches 'auditorium'. Upgrade to word-boundary regex if false positives ever
+# show up in practice; for a pre-LLM triage heuristic they cost one wasted slot.
 _HIGH_KEYWORDS = [
+    # order / government
     'government', 'ministry', 'parliament', 'president', 'prime minister',
-    'central bank', 'interest rate', 'monetary policy', 'inflation', 'gdp',
-    'election', 'cabinet', 'policy', 'budget', 'fiscal', 'trade',
+    'election', 'cabinet', 'policy', 'central bank', 'interest rate',
+    'monetary policy', 'inflation', 'gdp',
+    # friction — what is taken, and how well it converts
+    'tax', 'customs', 'permit', 'bureaucracy', 'corruption', 'court',
+    'budget', 'fiscal', 'trade',
+    # information — can the country's own instruments be trusted
+    'judiciary', 'press freedom', 'journalist', 'censorship', 'audit',
+    'statistics',
+    # edge — is the system still learning. 'university' is deliberately NOT here
+    # despite being in the edge query: it retrieves well but scores badly, and
+    # promoted a university orienteering championship over real evidence in
+    # testing. The query is ANDed with the country name; this list is not.
+    'startup', 'entrepreneur', 'emigration', 'brain drain',
+    # security
     'military', 'defense', 'conflict', 'sanctions', 'war', 'coup', 'security'
 ]
 
@@ -40,6 +62,12 @@ _NOISE_KEYWORDS = [
     'music', 'entertainment', 'celebrity', 'festival', 'award',
     'movie', 'film', 'actor', 'singer', 'concert'
 ]
+
+# Ceiling for an article that names the country only in its body, never its
+# title. Above the 0.3 relevance threshold, so nothing is discarded, and below
+# the weakest score a genuinely-about-the-country story reaches in practice, so
+# incidental mentions sort underneath them.
+_BODY_MENTION_CAP = 0.55
 
 # How many articles reach the dashboard per country. The DB enforces this too
 # (risk_snapshot_article.rank has a BETWEEN 1 AND 3 constraint).
@@ -84,6 +112,17 @@ def score_relevance(article: Dict, country_name: str) -> float:
     # Bonus for high keywords in the title
     if any(kw in title for kw in _HIGH_KEYWORDS):
         score += 0.15
+
+    # A country named only in the body is usually the venue, not the subject.
+    # The keyword counts measure "is this risk-relevant news", not "is this news
+    # about THIS country", so a dense policy story that merely happens in the
+    # country outranks the country's own news: five US Federal Reserve stories
+    # scored a perfect 1.00 for Portugal because the ECB forum meets in Sintra.
+    # Capping below the weakest titled story restores the ordering without
+    # discarding anything — these stay available as backfill for a country whose
+    # own coverage is thin, which is the same reason the 0.1 floor exists.
+    if country_lower not in title:
+        score = min(score, _BODY_MENTION_CAP)
 
     return max(0.0, min(1.0, score))
 
