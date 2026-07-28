@@ -103,6 +103,257 @@ IMF_RECENT_INDICATORS: dict[str, dict[str, str]] = {
     },
 }
 
+# The same IMF series, fetched as a full history into `indicator_series` rather
+# than as a single latest print into `recent_indicator`. Keyed by registry id.
+#
+# `recent_indicator` stores exactly one row per (country, indicator), which is
+# what the front-end wants and is useless for a 36-month volatility. Rather than
+# widen that table, the history lands in the generic series store and the latest
+# print keeps flowing where it always did.
+#
+# Only CPI is wired. IMF exchange rates and reserves were both investigated and
+# rejected for now: the SDMX `ER` dataflow returns no series for the roster's
+# country keys (BIS covers FX instead — see data_fetching/bis_bulk_fetch), and
+# `IRFCL` publishes ~800 monthly series per country whose reserve-asset line
+# cannot be identified without domain spelunking. Picking the wrong IRFCL line
+# would silently produce a wrong reserves trend, which is worse than an absent
+# one, so reserves are curated (see backend/data/curated/README.md).
+IMF_SERIES_INDICATORS: dict[str, dict[str, str]] = {
+    "CPI.YOY": {
+        "dataflow": "CPI",
+        "key": "{iso3}.CPI._T.YOY_PCH_PA_PT.M",
+        "freq": "M",
+        "source": "IMF CPI",
+    },
+}
+
+# ---------------------------------------------------------------------------
+# Indicator registry — the friction framework's single source of indicator truth
+# ---------------------------------------------------------------------------
+# Everything above this line describes the ANNUAL parquet panel and the
+# latest-print `recent_indicator` table, both of which predate the three-ledger
+# framework and are left exactly as they are. This registry describes the wider
+# set the ledgers need, and is the one map every new consumer reads:
+#
+#   * data_fetching/wb_series_fetch  — which World Bank codes to fetch
+#   * data_fetching/bis_bulk_fetch   — which BIS datasets map to which id
+#   * data_upsert/curated_loader     — which id each curated file fills
+#   * data_retrieval.build_evidence_payload — label, unit, ledger, and where to
+#     look for the freshest value
+#
+# It lives here rather than beside the payload builder because `constants` is
+# import-free by design: the fetchers and the loader can read it without pulling
+# in duckdb and pandas. There is exactly one copy; anything needing a label
+# imports it from here.
+#
+# Entry fields:
+#   label        display name shown to the model. Also the join key into UNITS
+#                for the nine legacy panel indicators.
+#   unit         unit string, for the payload.
+#   ledger       friction | uncertainty | information | edge — which section of
+#                the evidence payload this indicator appears under.
+#   source       where the value comes from, for the payload's provenance stamp.
+#   freq         the frequency this indicator is stored at ('A'|'Q'|'M').
+#   panel_col    raw column in the parquet panel, when the indicator also lives
+#                there. None means the panel has no copy.
+#   recent_name  key in the `recent_indicator` table, when a latest-print copy
+#                exists. None means there is none.
+#
+# The three location fields are what make "freshest value wins" possible: an
+# indicator present in more than one store resolves to a single entry here, and
+# the payload builder picks whichever copy carries the newest period.
+#
+# Codes were verified against the live World Bank API before being listed. Two
+# gotchas found and worked around, not papered over:
+#   * The WGI z-scores need the database-prefixed form. Bare `GE.EST` returns an
+#     empty series; `GOV_WGI_GE.EST` returns the full history, matching the
+#     `GOV_WGI_PV.EST` form INDICATORS already uses.
+#   * `DT.DOD.DSTC.IR.ZS` and `FM.LBL.BMNY.ZG` have no data for several advanced
+#     economies (no short-term external debt reporting; no national broad money
+#     inside the euro area). That is a real absence, not a broken code, and the
+#     payload reports it as absent.
+#
+# TODO: prime-age (25-54) labour-force participation via the ILO would be a
+# sharper read on the friction ledger than the headline total below, which moves
+# with the retirement bulge as much as with discouragement. ILOSTAT is a separate
+# client and is out of scope here.
+INDICATOR_REGISTRY: dict[str, dict[str, object]] = {
+    # --- friction: what is taken, and how well it converts -------------------
+    "GOV_WGI_GE.EST": {
+        "label": "Government effectiveness (z-score)", "unit": "z-score",
+        "ledger": "friction", "source": "World Bank WGI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "GC.TAX.TOTL.GD.ZS": {
+        "label": "Tax revenue (% GDP)", "unit": "% GDP",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "POL_CORRUPTION": {
+        "label": "Political corruption index (0–1, higher = more corrupt)", "unit": "index (0–1)",
+        "ledger": "friction", "source": "V-Dem via OWID", "freq": "A",
+        "panel_col": "POL_CORRUPTION", "recent_name": None,
+    },
+    "GC.XPN.INTP.RV.ZS": {
+        "label": "Interest payments (% revenue)", "unit": "% revenue",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "INT_PAYM_PCT_REV", "recent_name": None,
+    },
+    "SI.POV.GINI": {
+        "label": "Income inequality (Gini)", "unit": "index",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "GINI_INDEX", "recent_name": None,
+    },
+    "SP.POP.DPND.OL": {
+        "label": "Old-age dependency ratio", "unit": "% working-age population",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "SL.TLF.CACT.ZS": {
+        "label": "Labour-force participation (% 15+)", "unit": "%",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "FM.LBL.BMNY.ZG": {
+        "label": "Broad money growth (% y/y)", "unit": "% y/y",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "STAT.TAX.TOP.RATE": {
+        "label": "Top statutory tax rate (%)", "unit": "%",
+        "ledger": "friction", "source": "OECD Corporate Tax Statistics", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "INFORMAL.PCT.GDP": {
+        "label": "Informal economy (% GDP)", "unit": "% GDP",
+        "ledger": "friction", "source": "IMF WP/18/17 informal economy", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "OECD.TAX.WEDGE": {
+        "label": "Labour tax wedge (% labour cost)", "unit": "% labour cost",
+        "ledger": "friction", "source": "OECD Taxing Wages", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "UNWPP.DPND.OL.PROJ": {
+        "label": "Old-age dependency, projected 10y", "unit": "% working-age population",
+        "ledger": "friction", "source": "UN WPP medium variant", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+
+    # --- order-uncertainty: doubt about the load-bearing rules ---------------
+    # CPI carries a neutral id rather than its World Bank code because three
+    # stores hold it — the annual panel, the monthly latest print, and the IMF
+    # monthly series — and they must resolve to one logical indicator for
+    # freshest-value-wins to work. The `source` column on each stored row keeps
+    # the actual provenance.
+    "CPI.YOY": {
+        "label": "Inflation (% y/y)", "unit": "% y/y",
+        "ledger": "uncertainty", "source": "World Bank WDI / IMF CPI", "freq": "M",
+        "panel_col": "INFLATION", "recent_name": "Inflation (% y/y)",
+    },
+    "GOV_WGI_PV.EST": {
+        "label": "Political stability (z-score)", "unit": "z-score",
+        "ledger": "uncertainty", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "POL_STABILITY", "recent_name": None,
+    },
+    "GOV_WGI_RL.EST": {
+        "label": "Rule of law (z-score)", "unit": "z-score",
+        "ledger": "uncertainty", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "RULE_OF_LAW", "recent_name": None,
+    },
+    "NY.GDP.PCAP.KD.ZG": {
+        "label": "GDP per-capita growth (% y/y)", "unit": "% y/y",
+        "ledger": "uncertainty", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "GDP_PC_GROWTH", "recent_name": None,
+    },
+    "SL.UEM.TOTL.ZS": {
+        "label": "Unemployment (% labour force)", "unit": "%",
+        "ledger": "uncertainty", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "UNEMPLOYMENT", "recent_name": None,
+    },
+    "BX.KLT.DINV.WD.GD.ZS": {
+        "label": "FDI inflow (% GDP)", "unit": "% GDP",
+        "ledger": "uncertainty", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "FDI_PCT_GDP", "recent_name": None,
+    },
+    "DT.DOD.DSTC.IR.ZS": {
+        "label": "Short-term external debt (% reserves)", "unit": "% reserves",
+        "ledger": "uncertainty", "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "BIS.FX.USD": {
+        "label": "Exchange rate vs USD", "unit": "local currency per USD",
+        "ledger": "uncertainty", "source": "BIS XRU", "freq": "M",
+        "panel_col": None, "recent_name": None,
+    },
+    "BIS.POLICY.RATE": {
+        "label": "Policy rate (%)", "unit": "% per year",
+        "ledger": "uncertainty", "source": "BIS CBPOL", "freq": "M",
+        "panel_col": None, "recent_name": None,
+    },
+    "RESERVES.USD": {
+        "label": "Total reserves (USD)", "unit": "USD",
+        "ledger": "uncertainty", "source": "IMF IRFCL (manual)", "freq": "M",
+        "panel_col": None, "recent_name": None,
+    },
+    "WUI.INDEX": {
+        "label": "World Uncertainty Index", "unit": "index",
+        "ledger": "uncertainty", "source": "World Uncertainty Index", "freq": "Q",
+        "panel_col": None, "recent_name": None,
+    },
+
+    # --- information: can the country's own instruments be trusted -----------
+    "IQ.SPI.OVRL": {
+        "label": "Statistical performance (0–100)", "unit": "score 0–100",
+        "ledger": "information", "source": "World Bank SPI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "RSF.PRESS.SCORE": {
+        "label": "Press freedom (0–100, higher = freer)", "unit": "score 0–100",
+        "ledger": "information", "source": "RSF World Press Freedom Index", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "OBS.SCORE": {
+        "label": "Open Budget Survey (0–100)", "unit": "score 0–100",
+        "ledger": "information", "source": "IBP Open Budget Survey", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "UN.EGDI": {
+        "label": "E-government index (0–100)", "unit": "score 0–100",
+        "ledger": "information", "source": "UN EGDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+
+    # --- edge: the system learning. Reported, never penalized ----------------
+    "IC.BUS.NDNS.ZS": {
+        "label": "New business density (per 1,000 working-age)", "unit": "per 1,000 working-age adults",
+        "ledger": "edge", "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "IP.PAT.RESD": {
+        "label": "Patent applications, residents", "unit": "count",
+        "ledger": "edge", "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    # Not evidence in its own right — the denominator that turns the patent count
+    # into the per-capita figure the payload reports.
+    "SP.POP.TOTL": {
+        "label": "Population", "unit": "people",
+        "ledger": None, "source": "World Bank WDI", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+}
+
+# The World Bank codes `wb_series_fetch` pulls into `indicator_series`. Derived
+# from the registry so a new WB-sourced entry is fetched by adding one line
+# above, with no second list to keep in step. The nine legacy panel indicators
+# are excluded: they already arrive through the parquet path and re-fetching
+# them here would give the same annual number two homes.
+WB_SERIES_CODES: tuple[str, ...] = tuple(
+    code for code, spec in INDICATOR_REGISTRY.items()
+    if str(spec["source"]).startswith("World Bank") and spec["panel_col"] is None
+)
+
 # ---------------------------------------------------------------------------
 # Economic calendar (FMP) — major global decisions/releases for the front-end
 # "Econ Calendar" pane.
