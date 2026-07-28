@@ -1,16 +1,22 @@
-"""Tests for ``backend.utils.ai.policy`` — the enforcement layer.
+"""Characterization tests for ``backend.utils.ai.policy`` — legal investability.
 
-These rules used to be prose inside the scoring prompt, which meant the only
-way to check one was to spend an API call and hope. Now they are code, and this
-is the file that proves a threshold does what the YAML says: floors raise both
-horizons, the cap lowers one subscore, the sanctions gate overrides everything,
-and none of it fabricates a score for a country the model failed to assess.
+This file used to prove that floors raised scores, that a cap lowered a
+subscore, and that a sanctions gate overrode everything. None of those rules
+exist any more; the enforcement layer was deleted, and what is left is a lookup
+that answers one question: may an investor lawfully hold this country's
+securities on this date?
 
-Non-mutation matters as much as the arithmetic: the caller persists the raw
-dicts next to the gated ones, so a rule that edited its input in place would
-silently destroy the raw record it was meant to preserve.
+So the load-bearing property inverted, and it is the first thing tested below:
+**this module cannot change a score.** There is no score in its inputs and none
+in its outputs. Everything else here is the date arithmetic that decides when a
+rule is in force, plus the malformed-input behavior that keeps a bad YAML file
+from taking down a run.
+
+No network, no database, no clock — ``as_of`` is always passed in, which is what
+makes a backfill of an old date get that date's rules.
 """
 
+import inspect
 from datetime import date
 
 import pytest
@@ -18,297 +24,134 @@ import pytest
 from backend.utils.ai import policy
 
 
-INFLATION = "Inflation (% y/y)"
-
 # After Russia's effective_from (2022-06-06) in the real legal_restrictions.yaml.
 GATED_DAY = date(2023, 1, 1)
-# Any date works for the non-gate rules; DE is not a sanctioned country.
+# Before it.
+PRE_GATE_DAY = date(2022, 1, 1)
+# DE is not a sanctioned country.
 PLAIN_DAY = date(2026, 1, 1)
 
 
-def subs(**overrides) -> dict:
-    """A full set of mid-range subscores, so a floor visibly moves one."""
-    base = {
-        "conflict_war": 0.20,
-        "political_stability": 0.30,
-        "governance_corruption": 0.25,
-        "macroeconomic_volatility": 0.30,
-        "regulatory_uncertainty": 0.25,
-    }
-    base.update(overrides)
-    return base
+class TestCannotTouchAScore:
+    """The property the whole rewrite exists to guarantee."""
+
+    def test_result_carries_no_score(self):
+        result = policy.assess_investability(iso2="RU", as_of=GATED_DAY)
+        assert set(result._fields) == {"non_investable", "legal_gate", "note", "applied_rules"}
+
+    def test_takes_no_score_argument(self):
+        # A score it cannot receive is a score it cannot change.
+        params = set(inspect.signature(policy.assess_investability).parameters)
+        assert params == {"iso2", "as_of"}
+
+    def test_enforcement_symbols_are_gone(self):
+        # Their absence is the contract; a re-added apply_policy would restore
+        # the exact ambiguity (model number or rule number?) this removed.
+        for name in ("apply_policy", "PolicyResult", "_floor", "_conflict_level",
+                     "POLICY_PATH", "_load_policy"):
+            assert not hasattr(policy, name), f"{name} should not exist any more"
+
+    def test_risk_policy_yaml_is_gone(self):
+        # The thresholds file went with the rules it configured. A stray copy
+        # would read like live configuration to the next person editing it.
+        assert not (policy.LEGAL_RULES_PATH.with_name("risk_policy.yaml")).exists()
 
 
-def flags(**overrides) -> dict:
-    """The condition_flags object as the schema defines it, all-clear."""
-    base = {
-        "war_on_territory": False,
-        "internal_conflict_level": "none",
-        "emergency_rule": False,
-        "sovereign_stress": False,
-    }
-    base.update(overrides)
-    return base
+class TestSanctionsBadge:
+    def test_fires_for_a_sanctioned_country_in_force(self):
+        result = policy.assess_investability(iso2="RU", as_of=GATED_DAY)
+        assert result.non_investable is True
+        assert result.legal_gate is not None
+        assert set(result.legal_gate) == {"name", "rule", "sources"}
 
-
-def run(iso2="DE", as_of=PLAIN_DAY, s12=0.40, s3=0.35,
-        subscores=None, condition_flags=None, macro=None):
-    return policy.apply_policy(
-        iso2=iso2,
-        as_of=as_of,
-        raw_score_12m=s12,
-        raw_score_3m=s3,
-        raw_subscores=subs() if subscores is None else subscores,
-        condition_flags=flags() if condition_flags is None else condition_flags,
-        macro_facts={} if macro is None else macro,
-    )
-
-
-class TestNoRules:
-    def test_scores_pass_through_untouched(self):
-        got = run(s12=0.42, s3=0.37)
-        assert got.score_12m == 0.42
-        assert got.score_3m == 0.37
-        assert got.applied_rules == []
-        assert got.gate_note is None
-
-    def test_subscores_pass_through(self):
-        got = run()
-        assert got.subscores == subs()
-
-
-class TestWarOnTerritory:
-    def test_floors_both_horizons(self):
-        got = run(condition_flags=flags(war_on_territory=True))
-        # A war is not a 12-month-only problem.
-        assert got.score_12m == 0.90
-        assert got.score_3m == 0.90
-
-    def test_floors_conflict_war_subscore(self):
-        got = run(condition_flags=flags(war_on_territory=True))
-        assert got.subscores["conflict_war"] == 0.90
-
-    def test_records_the_rule(self):
-        got = run(condition_flags=flags(war_on_territory=True))
-        assert "war_on_territory" in got.applied_rules
-
-    def test_higher_raw_score_is_left_alone(self):
-        # Floors raise; they never pull a genuinely worse assessment down.
-        got = run(s12=0.97, s3=0.95, condition_flags=flags(war_on_territory=True))
-        assert got.score_12m == 0.97
-        assert got.score_3m == 0.95
-
-    def test_untouched_subscores_stay_put(self):
-        got = run(condition_flags=flags(war_on_territory=True))
-        assert got.subscores["governance_corruption"] == 0.25
-
-
-class TestInternalConflict:
-    @pytest.mark.parametrize("level,overall,conflict", [
-        ("A", 0.70, 0.80),
-        ("B", 0.80, 0.88),
-        # C sets no conflict_war floor of its own — B's is already 0.88 and C is
-        # about nationwide effects, so the raw subscore stands.
-        ("C", 0.90, 0.20),
-    ])
-    def test_levels_floor_correctly(self, level, overall, conflict):
-        got = run(condition_flags=flags(internal_conflict_level=level))
-        assert got.score_12m == overall
-        assert got.score_3m == overall
-        assert got.subscores["conflict_war"] == conflict
-        assert f"internal_conflict_{level}" in got.applied_rules
-
-    def test_c_beats_b_beats_a(self):
-        a = run(condition_flags=flags(internal_conflict_level="A")).score_12m
-        b = run(condition_flags=flags(internal_conflict_level="B")).score_12m
-        c = run(condition_flags=flags(internal_conflict_level="C")).score_12m
-        assert a < b < c
-
-    def test_highest_floor_wins_when_combined_with_war(self):
-        # War floors overall to 0.90 and conflict_war to 0.90; level A would
-        # only reach 0.70/0.80. The stricter of the two must survive.
-        got = run(condition_flags=flags(war_on_territory=True, internal_conflict_level="A"))
-        assert got.score_12m == 0.90
-        assert got.subscores["conflict_war"] == 0.90
-        assert "war_on_territory" in got.applied_rules
-        assert "internal_conflict_A" in got.applied_rules
-
-    def test_none_level_is_inert(self):
-        got = run(condition_flags=flags(internal_conflict_level="none"))
-        assert got.applied_rules == []
-
-
-class TestPoliticalStabilityCap:
-    def test_caps_at_045(self):
-        got = run(subscores=subs(political_stability=0.80))
-        assert got.subscores["political_stability"] == 0.45
-        assert "political_stability_cap" in got.applied_rules
-
-    def test_below_the_cap_is_untouched(self):
-        got = run(subscores=subs(political_stability=0.30))
-        assert got.subscores["political_stability"] == 0.30
-        assert got.applied_rules == []
-
-    def test_released_by_emergency_rule(self):
-        got = run(subscores=subs(political_stability=0.80),
-                  condition_flags=flags(emergency_rule=True))
-        assert got.subscores["political_stability"] == 0.80
-        assert "political_stability_cap" not in got.applied_rules
-
-    def test_released_by_sovereign_stress(self):
-        got = run(subscores=subs(political_stability=0.80),
-                  condition_flags=flags(sovereign_stress=True))
-        assert got.subscores["political_stability"] == 0.80
-
-    def test_cap_does_not_touch_the_overall_score(self):
-        got = run(s12=0.60, subscores=subs(political_stability=0.80))
-        assert got.score_12m == 0.60
-
-
-class TestInflationFloors:
-    def test_below_lowest_tier_does_nothing(self):
-        got = run(macro={INFLATION: 24.0})
-        assert got.score_12m == 0.40
-        assert got.applied_rules == []
-
-    def test_boundary_is_inclusive(self):
-        got = run(macro={INFLATION: 25.0})
-        assert got.score_12m == 0.55
-        assert got.score_3m == 0.55
-        assert got.subscores["macroeconomic_volatility"] == 0.70
-        assert "inflation>=25" in got.applied_rules
-
-    def test_middle_tier(self):
-        got = run(macro={INFLATION: 41.2})
-        assert got.score_12m == 0.65
-        assert got.subscores["macroeconomic_volatility"] == 0.80
-
-    def test_top_tier(self):
-        got = run(macro={INFLATION: 85.0})
-        assert got.score_12m == 0.80
-        # The top tier sets no macro_vol floor, so the raw subscore stands.
-        assert got.subscores["macroeconomic_volatility"] == 0.30
-
-    def test_only_one_tier_fires(self):
-        got = run(macro={INFLATION: 85.0})
-        infl_rules = [r for r in got.applied_rules if r.startswith("inflation")]
-        assert infl_rules == ["inflation>=80"]
-
-    def test_missing_indicator_is_inert(self):
-        got = run(macro={"GDP growth (%)": 3.1})
-        assert got.applied_rules == []
-
-    def test_non_numeric_value_is_inert(self):
-        got = run(macro={INFLATION: "n/a"})
-        assert got.applied_rules == []
-
-
-class TestSanctionsGate:
-    def test_overrides_both_horizons(self):
-        got = run(iso2="RU", as_of=GATED_DAY, s12=0.30, s3=0.20)
-        assert got.score_12m == 1.0
-        assert got.score_3m == 1.0
-
-    def test_populates_gate_note(self):
-        got = run(iso2="RU", as_of=GATED_DAY)
-        assert got.gate_note is not None
-        assert "Russia" in got.gate_note
-        assert any(r.startswith("sanctions_gate:") for r in got.applied_rules)
-
-    def test_not_yet_in_force_does_not_fire(self):
+    def test_does_not_fire_before_effective_from(self):
         # effective_from is 2022-06-06.
-        got = run(iso2="RU", as_of=date(2022, 1, 1), s12=0.30)
-        assert got.score_12m == 0.30
-        assert got.gate_note is None
+        result = policy.assess_investability(iso2="RU", as_of=PRE_GATE_DAY)
+        assert result.non_investable is False
+        assert result.legal_gate is None
+        assert result.note is None
+        assert result.applied_rules == []
 
-    def test_unsanctioned_country_unaffected(self):
-        got = run(iso2="DE", as_of=GATED_DAY, s12=0.30)
-        assert got.score_12m == 0.30
-        assert got.gate_note is None
+    def test_unsanctioned_country_is_clean(self):
+        result = policy.assess_investability(iso2="DE", as_of=PLAIN_DAY)
+        assert result.non_investable is False
+        assert result.legal_gate is None
 
-    def test_beats_everything_below_it(self):
-        got = run(iso2="RU", as_of=GATED_DAY, s12=0.10, s3=0.10,
-                  condition_flags=flags(internal_conflict_level="A"),
-                  macro={INFLATION: 90.0})
-        assert got.score_12m == 1.0
-        assert got.score_3m == 1.0
+    def test_none_iso2_never_fires(self):
+        assert policy.assess_investability(iso2=None, as_of=GATED_DAY).non_investable is False
 
-    def test_does_not_mutate_the_callers_dicts(self):
-        # The caller persists these raw dicts next to the gated ones; a rule
-        # that edited them in place would destroy the record it exists to keep.
-        raw_subscores = subs(political_stability=0.80)
-        condition_flags = flags(war_on_territory=True)
-        macro_facts = {INFLATION: 90.0}
-        before_subs = dict(raw_subscores)
-        before_flags = dict(condition_flags)
-        before_macro = dict(macro_facts)
+    def test_lowercase_iso2_still_matches(self):
+        assert policy.assess_investability(iso2="ru", as_of=GATED_DAY).non_investable is True
 
-        policy.apply_policy(
-            iso2="RU",
-            as_of=GATED_DAY,
-            raw_score_12m=0.30,
-            raw_score_3m=0.25,
-            raw_subscores=raw_subscores,
-            condition_flags=condition_flags,
-            macro_facts=macro_facts,
+    def test_applied_rules_is_an_observation(self):
+        result = policy.assess_investability(iso2="RU", as_of=GATED_DAY)
+        assert result.applied_rules == [f"sanctions_badge:{result.legal_gate['name']}"]
+
+    def test_note_states_the_score_is_unadjusted(self):
+        # The badge shows in the sidebar, but the map tooltip and the rail show
+        # only score + summary. The note is what carries the fact there — and it
+        # must not repeat the old "forced to 1.0" claim, which is no longer true.
+        note = policy.assess_investability(iso2="RU", as_of=GATED_DAY).note
+        assert note and "not adjusted" in note
+        assert "1.0" not in note
+        assert "forced" not in note
+
+
+class TestEffectiveFromParsing:
+    @pytest.mark.parametrize(
+        ("raw", "expected"),
+        [
+            ("2022-06-06", date(2022, 6, 6)),
+            ("2022-06-06T00:00:00Z", date(2022, 6, 6)),
+        ],
+    )
+    def test_parses_iso_dates(self, raw, expected):
+        assert policy._parse_iso_date(raw) == expected
+
+    @pytest.mark.parametrize("raw", [None, "", "not-a-date", "06/06/2022"])
+    def test_unparseable_is_always_in_force(self, raw):
+        # Fail-closed: a rule with a broken date is treated as already active,
+        # because failing open would understate a legal restriction.
+        assert policy._parse_iso_date(raw) == date.min
+
+
+class TestMalformedRulesFile:
+    def test_unreadable_file_degrades_to_no_badge(self, monkeypatch, tmp_path):
+        monkeypatch.setattr(policy, "LEGAL_RULES_PATH", tmp_path / "missing.yaml")
+        policy._load_legal_rules_index.cache_clear()
+        try:
+            assert policy._load_legal_rules_index() == {}
+            assert policy.assess_investability(iso2="RU", as_of=GATED_DAY).non_investable is False
+        finally:
+            policy._load_legal_rules_index.cache_clear()
+
+    def test_entry_without_the_trigger_does_not_fire(self, monkeypatch, tmp_path):
+        path = tmp_path / "legal.yaml"
+        path.write_text(
+            "entries:\n"
+            "  - iso2: XX\n"
+            "    name: Example\n"
+            "    rule: Something short of a prohibition\n"
+            "    trigger: {set_score_1_0: false}\n",
+            encoding="utf-8",
         )
-
-        assert raw_subscores == before_subs
-        assert condition_flags == before_flags
-        assert macro_facts == before_macro
-
-
-class TestFailedCallPassesThrough:
-    def test_none_scores_stay_none(self):
-        got = run(s12=None, s3=None, condition_flags=flags(war_on_territory=True),
-                  macro={INFLATION: 90.0})
-        assert got.score_12m is None
-        assert got.score_3m is None
-
-    def test_gate_does_not_resurrect_a_failed_call(self):
-        # A None score means the caller skips the country; forcing it to 1.0
-        # would write a score with no assessment behind it.
-        got = run(iso2="RU", as_of=GATED_DAY, s12=None, s3=None)
-        assert got.score_12m is None
-        assert got.score_3m is None
-
-    def test_none_subscore_is_not_manufactured_by_a_floor(self):
-        got = run(subscores=subs(conflict_war=None),
-                  condition_flags=flags(war_on_territory=True))
-        assert got.subscores["conflict_war"] is None
+        monkeypatch.setattr(policy, "LEGAL_RULES_PATH", path)
+        policy._load_legal_rules_index.cache_clear()
+        try:
+            assert policy.assess_investability(iso2="XX", as_of=PLAIN_DAY).non_investable is False
+        finally:
+            policy._load_legal_rules_index.cache_clear()
 
 
-class TestMalformedInput:
-    def test_missing_flag_keys(self):
-        got = run(condition_flags={})
-        assert got.applied_rules == []
-        assert got.score_12m == 0.40
+class TestVersionStamp:
+    def test_policy_version_marks_the_regime_change(self):
+        # Stored rows are split on this: a p1.0 score went through floors and a
+        # sanctions override, a p2.0 score is the model's own.
+        assert policy.POLICY_VERSION == "p2.0-observe-only"
 
-    def test_wrong_types_are_inert(self):
-        # "true" is not True: only a real boolean fires a flag.
-        got = run(condition_flags={"war_on_territory": "true",
-                                   "internal_conflict_level": 7,
-                                   "emergency_rule": None,
-                                   "sovereign_stress": []})
-        assert got.applied_rules == []
-
-    def test_unknown_level_string_is_inert(self):
-        got = run(condition_flags=flags(internal_conflict_level="Z"))
-        assert got.applied_rules == []
-        assert got.score_12m == 0.40
-
-    def test_condition_flags_not_a_dict(self):
-        got = run(condition_flags="nope")
-        assert got.applied_rules == []
-
-    def test_empty_subscores(self):
-        got = run(subscores={}, condition_flags=flags(war_on_territory=True))
-        # Nothing to floor, but the overall floors still apply.
-        assert got.score_12m == 0.90
-        assert got.subscores["conflict_war"] is None
-
-
-class TestPolicyVersion:
-    def test_is_stamped_from_the_yaml(self):
-        # Stamped on every snapshot, so it must never silently become "unknown".
-        assert policy.POLICY_VERSION.startswith("p")
+    def test_is_a_plain_constant_not_read_from_yaml(self):
+        # risk_policy.yaml was deleted with the rules it configured; reading a
+        # version out of a file that no longer exists would silently stamp
+        # every row "unknown".
+        assert isinstance(policy.POLICY_VERSION, str)
+        assert "_load_policy" not in inspect.getsource(policy)

@@ -22,7 +22,7 @@ key) so a single country's gap or an IMF outage never aborts the surrounding run
 import calendar
 import logging
 import datetime as _dt
-from typing import Optional, Tuple, Dict, Any
+from typing import Optional, Tuple, Dict, Any, List
 from xml.etree import ElementTree as ET
 
 import requests
@@ -77,26 +77,44 @@ def _period_to_date(time_period: str) -> Optional[_dt.date]:
     return None
 
 
-def _fetch_latest_obs(dataflow: str, key: str, *, start_period: str) -> Optional[Tuple[str, float]]:
-    """Return ``(time_period, value)`` of the latest non-null observation, or ``None``.
+def fetch_obs_series(
+    dataflow: str,
+    key: str,
+    *,
+    start_period: str,
+) -> List[Tuple[str, float]]:
+    """Return every non-null observation of one SDMX series, oldest first.
 
-    Queries one SDMX series (``dataflow``/``key``) from ``start_period`` onward and
-    scans every ``<Obs>`` for the chronologically-latest numeric value. SDMX period
-    strings are zero-padded (``2026-M03``), so a plain string ``max`` orders them
-    correctly within a single frequency.
+    Volatility and trend need the history, not just the latest print, so this is
+    the general form; :func:`_fetch_latest_obs` is the one-line special case of
+    it. Both share this single parse so the two paths cannot drift.
+
+    SDMX period strings are zero-padded (``2026-M03``), so a plain string sort
+    orders them correctly within a single frequency.
+
+    Args:
+        dataflow: SDMX dataflow id, e.g. ``'CPI'``.
+        key: dot-separated series key, already formatted with the country code.
+        start_period: earliest period to request, e.g. ``'2019'``.
+
+    Returns:
+        ``[(time_period, value), ...]`` in ascending period order. Empty on any
+        network error, non-200, malformed XML, or genuinely empty series —
+        every failure mode degrades to "no observations" so one country's gap
+        never aborts the surrounding run.
     """
     url = f"{constants.IMF_DATA_ENDPOINT}/{dataflow}/{key}"
     try:
         resp = requests.get(url, headers=_HEADERS, params={"startPeriod": start_period}, timeout=_TIMEOUT)
         if resp.status_code != 200 or not resp.text:
             logger.warning("IMF %s/%s -> HTTP %s (no data)", dataflow, key, resp.status_code)
-            return None
+            return []
         root = ET.fromstring(resp.text)
-    except Exception as e:  # noqa: BLE001 - network/parse errors degrade to None
+    except Exception as e:  # noqa: BLE001 - network/parse errors degrade to empty
         logger.warning("IMF fetch failed for %s/%s: %s", dataflow, key, e)
-        return None
+        return []
 
-    best: Optional[Tuple[str, float]] = None
+    out: List[Tuple[str, float]] = []
     for el in root.iter():
         if _localname(el.tag) != "Obs":
             continue
@@ -108,9 +126,16 @@ def _fetch_latest_obs(dataflow: str, key: str, *, start_period: str) -> Optional
             val = float(raw)
         except (TypeError, ValueError):
             continue
-        if best is None or tp > best[0]:
-            best = (tp, val)
-    return best
+        out.append((tp, val))
+
+    out.sort(key=lambda pair: pair[0])
+    return out
+
+
+def _fetch_latest_obs(dataflow: str, key: str, *, start_period: str) -> Optional[Tuple[str, float]]:
+    """Return ``(time_period, value)`` of the latest non-null observation, or ``None``."""
+    observations = fetch_obs_series(dataflow, key, start_period=start_period)
+    return observations[-1] if observations else None
 
 
 def fetch_recent_indicators(iso3: str) -> Dict[str, Dict[str, Any]]:
@@ -151,7 +176,79 @@ def fetch_recent_indicators(iso3: str) -> Dict[str, Dict[str, Any]]:
     return out
 
 
+def _period_to_series_key(time_period: str, freq: str) -> Optional[str]:
+    """Convert an SDMX ``TIME_PERIOD`` to the ``indicator_series`` period format.
+
+    ``indicator_series`` stores periods as sortable strings — ``'2026-06'``,
+    ``'2026Q1'``, ``'2025'`` — rather than the SDMX ``'2026-M06'`` spelling, so
+    one lexicographic ORDER BY works for every frequency in the table.
+
+    Returns ``None`` for anything that does not parse or does not match ``freq``.
+    """
+    tp = (time_period or "").strip()
+    try:
+        if freq == "M" and "-M" in tp:
+            year, month = tp.split("-M")
+            return f"{int(year):04d}-{int(month):02d}"
+        if freq == "Q" and "-Q" in tp:
+            year, quarter = tp.split("-Q")
+            return f"{int(year):04d}Q{int(quarter)}"
+        if freq == "A" and tp.isdigit():
+            return str(int(tp))
+    except (TypeError, ValueError):
+        return None
+    return None
+
+
+def fetch_series_rows(
+    iso2: str,
+    iso3: str,
+    *,
+    as_of: Optional[_dt.date] = None,
+    lookback_years: int = 5,
+) -> list:
+    """Fetch one country's IMF history as ``indicator_series`` rows.
+
+    The counterpart to :func:`fetch_recent_indicators`: same source and same
+    client, but keeping the whole series instead of only its last point, because
+    volatility needs the history.
+
+    Args:
+        iso2: ISO-2 code, used as the storage key.
+        iso3: ISO-3 code, used for the IMF query.
+        as_of: date to stamp values with. Defaults to today.
+        lookback_years: how far back to request. Five years comfortably covers
+            the 36-month CPI volatility window even for a gappy reporter.
+
+    Returns:
+        Rows ready for ``data_push.upsert_indicator_series``. Empty when the IMF
+        returns nothing for this country.
+    """
+    stamp = as_of or _dt.date.today()
+    start_period = str(stamp.year - lookback_years)
+
+    rows = []
+    for code, spec in constants.IMF_SERIES_INDICATORS.items():
+        freq = spec.get("freq", "M")
+        key = spec["key"].format(iso3=iso3)
+        for time_period, value in fetch_obs_series(spec["dataflow"], key, start_period=start_period):
+            period = _period_to_series_key(time_period, freq)
+            if period is None:
+                continue
+            rows.append({
+                "country_iso2": iso2,
+                "indicator_code": code,
+                "freq": freq,
+                "period": period,
+                "value": round(value, 4),
+                "as_of": stamp,
+                "source": spec.get("source", "IMF"),
+            })
+    return rows
+
+
 if __name__ == "__main__":  # pragma: no cover - manual smoke test
     logging.basicConfig(level=logging.INFO)
     for code in ("ARG", "NGA", "PAK", "USA", "DEU"):
         print(code, fetch_recent_indicators(code))
+    print("PT series rows:", len(fetch_series_rows("PT", "PRT")))

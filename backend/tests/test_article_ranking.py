@@ -142,6 +142,37 @@ class TestScoreRelevance:
         art = {"title": "x", "snippet": "Germany inflation policy"}
         assert article_ranking.score_relevance(art, "Germany") > 0.1
 
+    def test_body_only_mention_is_capped(self):
+        # The live failure this fixes: five US Federal Reserve stories scored a
+        # perfect 1.00 for Portugal because the ECB's forum meets in Sintra. The
+        # keyword counts say "risk-relevant news", not "news about Portugal".
+        art = {
+            "title": "Fed chief says inflation still too high",
+            "summary": "The central bank chair told the forum in Sintra, Portugal that "
+                       "monetary policy and interest rate decisions remain data-dependent. "
+                       "government budget fiscal trade",
+        }
+        assert article_ranking.score_relevance(art, "Portugal") == article_ranking._BODY_MENTION_CAP
+
+    def test_capped_articles_still_clear_the_relevance_bar(self):
+        # Capped, not discarded: they remain available as backfill for a country
+        # whose own coverage is thin, the same reason the 0.1 floor exists.
+        from backend.utils.news_fetching import article_enrichment
+        assert article_ranking._BODY_MENTION_CAP > article_enrichment._RELEVANCE_THRESHOLD
+
+    def test_a_titled_story_outranks_an_incidental_one(self):
+        incidental = {"title": "Fed chief speaks on inflation and interest rate policy",
+                      "summary": "at the forum in Sintra, Portugal"}
+        about = {"title": "Portugal budget passes parliament", "summary": ""}
+        assert (article_ranking.score_relevance(about, "Portugal")
+                > article_ranking.score_relevance(incidental, "Portugal"))
+
+    def test_title_mention_is_unaffected_by_the_cap(self):
+        # 0.3 base + 0.5 high cap + 0.15 title bonus, no medium keywords.
+        art = {"title": "Portugal war sanctions election government",
+               "summary": "military conflict coup security budget fiscal trade policy"}
+        assert article_ranking.score_relevance(art, "Portugal") == pytest.approx(0.95)
+
     def test_case_insensitive(self):
         art = {"title": "GERMANY ELECTION", "summary": ""}
         assert article_ranking.score_relevance(art, "germany") == pytest.approx(0.6)

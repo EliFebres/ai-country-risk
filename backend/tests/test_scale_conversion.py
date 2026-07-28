@@ -75,10 +75,12 @@ class TestFailureResult:
         # upsert instead of cleanly skipping the country.
         got = llm._failure_result()
         assert got["score"] is None
-        for key in ("bullet_summary", "subscores", "news_article_scores", "score_3m",
-                    "raw_score_12m", "raw_score_3m", "raw_subscores",
+        for key in ("bullet_summary", "subscores", "ledger_scores",
+                    "news_article_scores", "score_3m",
+                    "raw_score_12m", "raw_score_3m",
                     "subscore_evidence", "condition_flags", "evidence_coverage",
-                    "applied_rules", "model_id", "prompt_version", "policy_version"):
+                    "applied_rules", "legal_gate", "non_investable",
+                    "model_id", "prompt_version", "policy_version"):
             assert key in got
 
     def test_stamps_are_populated(self):

@@ -50,8 +50,9 @@ class TestHostOf:
 
 
 class TestIsBlockedUrl:
-    # These run against the real blocked_sources.txt, whose one live entry is
-    # whalesbook.com — the same data production uses.
+    # These run against the real blocked_sources.txt — the same data production
+    # uses. They assert on whalesbook.com, the first entry; the file gains
+    # entries over time, so nothing here counts them.
 
     def test_blocked_domain(self):
         assert source_filter.is_blocked_url("https://whalesbook.com/article") is True

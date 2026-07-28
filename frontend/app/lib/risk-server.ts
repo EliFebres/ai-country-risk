@@ -16,6 +16,10 @@ export type JoinedLatestRisk = {
   as_of: string;
   score: number;
   bullet_summary: string;
+  // True when a sanctions regime makes securities exposure unlawful. Drives the
+  // RESTRICTED badge. It does NOT affect `score`: as of backend policy_version
+  // p2.0 the score is the model's own judgement and no code adjusts it.
+  non_investable?: boolean | null;
   prev_as_of?: string | null;
   prev_score?: number | null;
   // arrays of all prior observations (excluding the latest), newest→oldest
@@ -180,6 +184,7 @@ export class RiskRepository {
         rs.as_of,
         rs.score,
         rs.bullet_summary,
+        rs.non_investable,
         ROW_NUMBER() OVER (
           PARTITION BY rs.country_iso2
           ORDER BY rs.as_of DESC
@@ -187,7 +192,7 @@ export class RiskRepository {
       FROM risk_snapshot rs
     ),
     latest AS (
-      SELECT country_iso2, as_of, score, bullet_summary
+      SELECT country_iso2, as_of, score, bullet_summary, non_investable
       FROM ranked
       WHERE rn = 1
     ),
@@ -212,6 +217,7 @@ export class RiskRepository {
       l.as_of,
       l.score,
       l.bullet_summary,
+      l.non_investable,
       ps.prev_as_of,
       ps.prev_score,
       pl.prev_scores,

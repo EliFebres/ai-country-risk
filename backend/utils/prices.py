@@ -1,10 +1,10 @@
 """
-Prices daemon — long-running market-data poller for the bottom-bar "Prices" pane.
+Market-data poller for the bottom-bar "Prices" pane.
 
-Runs SEPARATELY from the daily ``main.py`` ETL: a persistent loop (run it
-directly, e.g. under Task Scheduler at boot) that, every ``PRICES_POLL_SECONDS``,
-pulls live prices from FMP and upserts the latest snapshot into the
-``market_price`` table the frontend reads.
+``PricesDaemon.tick`` is one poll cycle: pull live prices from FMP and upsert
+the latest snapshot into the ``market_price`` table the frontend reads. The
+loop that calls it lives in ``backend/main.py`` — this module owns the work,
+not the schedule.
 
 Cost control:
   • FMP live quotes are fetched in ONE batched call per tick, and only for asset
@@ -14,37 +14,21 @@ Cost control:
     treasury-rates) refresh at most once per (ET) day; both are skipped on every
     other tick.
 
-Resilience: each tick is wrapped so a failure never kills the loop, and SIGINT/
-SIGTERM trigger a clean shutdown. Run ``python backend/prices_daemon.py --once``
-to execute a single tick (used for verification).
+The daemon holds its own cross-tick state (today's references, whether the
+daily refreshes have run) and rehydrates it from ``price_reference`` in
+``load_state``, so a restart does not pay for a same-day refetch.
 """
 
-import os
-import sys
-import signal
 import logging
-import pathlib
-import threading
 from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
-
-# --- Resolve project root so "backend/" is importable (mirrors main.py) -------
-PROJECT_ROOT = pathlib.Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from dotenv import load_dotenv
-
-# Single .env load for the whole daemon process (modules read env at call time).
-load_dotenv(PROJECT_ROOT / "backend" / ".env")
-load_dotenv()  # also pick up a repo-root/cwd .env, without overriding
 
 from backend.utils import constants
 from backend.utils import market_hours
 from backend.utils.data_upsert import data_push
 from backend.utils.data_fetching import fmp_prices_fetch
 
-logger = logging.getLogger("prices_daemon")
+logger = logging.getLogger("prices")
 
 # --- Precomputed asset lookups ----------------------------------------------
 _FMP_ASSETS: List[Dict[str, Any]] = [a for a in constants.PRICE_ASSETS if a["source"] == "fmp"]
@@ -74,7 +58,6 @@ class PricesDaemon:
         self.refs: Dict[str, Dict[str, Any]] = {}
         self.refs_day: Optional[date] = None
         self.yields_day: Optional[date] = None
-        self._stop = threading.Event()
 
     # -- startup ------------------------------------------------------------
     def load_state(self) -> None:
@@ -207,62 +190,3 @@ class PricesDaemon:
         logger.info(
             "Tick done: %d open assets, %d rows upserted.", len(open_assets), len(rows)
         )
-
-    # -- loop ---------------------------------------------------------------
-    def run(self) -> None:
-        """Run the poll loop until a stop signal is received."""
-        self._install_signals()
-        self.load_state()
-        poll = constants.PRICES_POLL_SECONDS
-        logger.info("Prices daemon started (poll=%ss). Running until stopped - press Ctrl-C to quit.", poll)
-        while not self._stop.is_set():
-            started = datetime.now(timezone.utc)
-            try:
-                self.tick(started)
-            except Exception as e:  # noqa: BLE001 - never let one tick kill the loop
-                logger.exception("Tick failed: %s", e)
-            # Sleep to the next wall-clock boundary; wake early on a stop signal.
-            elapsed = (datetime.now(timezone.utc) - started).total_seconds()
-            sleep_s = max(1.0, poll - elapsed)
-            if not self._stop.is_set():
-                logger.info("Idle - next refresh in %ds (Ctrl-C to stop).", round(sleep_s))
-            self._stop.wait(sleep_s)
-        logger.info("Prices daemon stopped.")
-
-    def _install_signals(self) -> None:
-        """Trap SIGINT/SIGTERM so a stop request ends the loop cleanly."""
-        def _handler(signum: int, _frame: object) -> None:
-            """Signal the run loop to finish its current tick and exit."""
-            logger.info("Received signal %s; shutting down.", signum)
-            self._stop.set()
-
-        for sig in (signal.SIGINT, signal.SIGTERM):
-            try:
-                signal.signal(sig, _handler)
-            except (ValueError, OSError):
-                pass  # not in main thread / unsupported on this platform
-
-
-def main() -> None:
-    """Entry point: configure logging, then run one tick or the full loop.
-
-    Exits with status 1 if ``DATABASE_URL`` is unset, since every tick writes.
-    """
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [prices] %(levelname)s %(message)s",
-    )
-    if not os.getenv("DATABASE_URL"):
-        logger.error("DATABASE_URL is not set; cannot run the prices daemon.")
-        sys.exit(1)
-
-    daemon = PricesDaemon()
-    if "--once" in sys.argv[1:]:
-        daemon.load_state()
-        daemon.tick()
-    else:
-        daemon.run()
-
-
-if __name__ == "__main__":
-    main()

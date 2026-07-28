@@ -34,7 +34,7 @@ This directory contains the **data-engineering and inference pipeline** that pow
 | --------------------- | ----------------------------------------------------------------------- |
 | `DATABASE_URL`        | Postgres connection string (Neon or local)                              |
 | `OPENAI_API_KEY`      | OpenAI key used by `langchain_openai`                                   |
-| `FMP_API_KEY`         | Financial Modeling Prep key — economic calendar in `main.py` and the live prices daemon |
+| `FMP_API_KEY`         | Financial Modeling Prep key — economic calendar and the live prices tick |
 | `CRAWLBASE_JS_TOKEN`  | *(optional)* Crawlbase JS token for advanced Reuters/Bloomberg enrichment |
 | `CRAWLBASE_TOKEN`     | *(optional)* Crawlbase standard token (used if JS token not provided)   |
 
@@ -51,17 +51,34 @@ pip install -r backend/requirements.txt
 
 # Add .env in backend/ with DATABASE_URL, OPENAI_API_KEY, and optional Crawlbase token(s)
 
-# Run the end-to-end ETL (fetch headlines → rank → LLM → DB)
+# Run the scheduler — the only process. Ticks every 30 min, runs what is overdue.
 python backend/main.py
+
+# Or a single pass over every due job, then exit (verification)
+python backend/main.py --once
 ```
 
-*Running the full ETL across the 48-country roster (see [COUNTRY_COVERAGE.md](../COUNTRY_COVERAGE.md)) can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
+`main.py` schedules three jobs and records each success in the `job_run` table, so the
+schedule survives a restart or redeploy instead of living in memory:
+
+| Job | Cadence | What it does |
+| -------- | ----------------- | ------------ |
+| `prices` | every tick (30 m) | Live FMP quotes for whichever markets are open — a no-op outside session hours |
+| `etl` | first tick of a new ISO week | Roster, econ calendar, IMF indicators, ledger sources, all 48 risk snapshots, global alerts |
+| `panels` | every 30 days | `backfill_missing_panels(force=True)` — rebuilds every `wb_panel_wide` partition so World Bank revisions and new years land |
+
+A job that has never run is always due, so a fresh database bootstraps itself on first
+boot. A job is stamped **only when it succeeds**, so a failure retries on the next tick
+rather than waiting out its whole interval. To force one, delete its `job_run` row.
+
+*Running the full ETL across the 48-country roster (see [COUNTRY_COVERAGE.md](../COUNTRY_COVERAGE.md)) can take several minutes due to polite pacing of feed resolution and per-article fetches. It runs on the same thread as the prices tick, so prices do not refresh while it works.*
 
 ---
 
 ## Key modules
 
-* `backend/main.py` — orchestrates the run: data payload → news → LLM scoring → DB upsert.
+* `backend/main.py` — the scheduler loop and the job cadences; the weekly job orchestrates data payload → news → LLM scoring → DB upsert.
+* `backend/utils/prices.py` — one prices poll cycle (`PricesDaemon.tick`), called by `main.py`.
 * `backend/utils/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
 * `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata, used only for **Top-3** articles still missing an image.
 * `backend/utils/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
@@ -93,11 +110,16 @@ python -m pytest backend/tests -q
 
 ## Notebook
 
-`backend/walkthrough.ipynb` runs `pipeline._process_country` one step at a time
-for a single country, printing each intermediate as a DataFrame: the macro
-panel, the LLM payload, the article pool, the stage-1 digests, the model's
-subscores and per-article impacts, and the Top-3. Pick the country by editing
-`ISO2` in the second cell.
+`backend/notebooks/country_rating_walkthrough.ipynb` rates one country from
+scratch and shows its work — what evidence went in, how stale it is, what the
+news added, what the model decided and why. It runs the same code paths
+`pipeline._process_country` runs, in five steps: the evidence, the news, the
+score, the guardrails, and the Top-3 that reach the dashboard. Charts are inline
+SVG so the notebook adds no plotting dependency.
+
+Pick the country by editing `ISO2` in the *Pick a country* cell, then Run All.
+It makes real network calls and spends OpenAI credits, and it writes no
+snapshot — use `tests/live_country_check.py` when you want the write.
 
 Two cells exist purely to show the division of labor between the models: one
 prints a single article end to end through the mini digest model (text in, JSON
@@ -274,8 +296,8 @@ CREATE TABLE economic_calendar_event (
     UNIQUE (event_time, country_code, event)
 );
 
--- Live "Prices" pane. Maintained by the standalone prices_daemon.py (NOT main.py):
--- one row per tracked asset, upserted in place every few minutes. Stocks/crypto/
+-- Live "Prices" pane. Maintained by main.py's prices tick (utils/prices.py): one
+-- row per tracked asset, upserted in place every 30 minutes. Stocks/crypto/
 -- commodities come from FMP batch-quote; US Treasury yields from FMP treasury-
 -- rates. is_yield rows carry POINT changes (shown as %); others carry % moves.
 CREATE TABLE market_price (
@@ -321,14 +343,23 @@ CREATE TABLE article_digest (
     model_id        TEXT,                  -- pinned digest model release
     PRIMARY KEY (country_iso2, as_of, url)
 );
+
+-- Scheduler bookkeeping (data_push.read_job_runs / mark_job_run). One row per
+-- job in main.py's JOBS table, stamped only on success, so main.py can tell on
+-- every tick what is overdue and catch up after downtime. Not read by the
+-- frontend; `DELETE FROM job_run WHERE job = '...'` forces a re-run.
+CREATE TABLE job_run (
+    job      TEXT PRIMARY KEY,      -- 'etl' | 'panels'
+    last_run TIMESTAMPTZ NOT NULL
+);
 ```
 
 ---
 
-## IMF & economic-calendar refresh (inside `main.py`)
+## IMF & economic-calendar refresh (inside the weekly `etl` job)
 
-Unlike the standalone prices daemon, these two refreshes run **as part of the daily
-`main.py` ETL**:
+Unlike the prices tick, which runs every 30 minutes, these two refreshes run **once a
+week as phases of the `etl` job**:
 
 * **IMF higher-frequency macro.** `utils/data_fetching/imf_macro_fetch.py` pulls the
   freshest sub-annual prints (e.g. monthly/quarterly inflation) from the IMF SDMX 2.1
@@ -340,11 +371,77 @@ Unlike the standalone prices daemon, these two refreshes run **as part of the da
   investor importance (`ai_importance` / `ai_rationale`) before the rows are upserted into
   `economic_calendar_event`.
 
-## Live prices feed (`prices_daemon.py`)
+## Curated inputs (`backend/data/curated.csv`)
 
-A standalone, long-running daemon — **separate from the daily `main.py` ETL** — keeps
-the bottom-bar "Prices" pane fresh. It polls every `PRICES_POLL_SECONDS` (default 300)
-and upserts the latest snapshot into `market_price`.
+Some of what the three ledgers need has no free, stable, no-auth API. Those values are
+typed by hand into one CSV, which `utils/data_fetching/curated_loader.py` reads during
+step 0d of the ETL and upserts into `indicator_series`.
+
+```csv
+country_iso2,indicator_code,period,value,as_of
+PT,RSF.PRESS.SCORE,2025,75.6,2026-07-28
+SA,RESERVES.USD,2026-05,410000000000,2026-07-15
+```
+
+| Column | Meaning |
+|---|---|
+| `country_iso2` | ISO-3166-1 alpha-2. Must be in `constants.COUNTRY_ROSTER`; off-roster rows are skipped with a logged count, not an error. |
+| `indicator_code` | A key in `constants.INDICATOR_REGISTRY`, which supplies `freq` and `source`. An unknown code raises. |
+| `period` | `YYYY` (annual), `YYYYQn` (quarterly) or `YYYY-MM` (monthly). Must match the indicator's registered frequency. |
+| `value` | A number. **Blank means "reported as unavailable"** and is stored as NULL — a different fact from the row being absent. |
+| `as_of` | `YYYY-MM-DD`: when this value became known to us, not the period it describes. Per row, because these sources refresh on different cadences. |
+
+**The file ships with a header row and nothing else.** That is deliberate: a template with
+plausible-looking sample rows loads silently, reaches the model as evidence, and produces
+a confident score built on invented numbers. An empty file loads to nothing and the
+payload honestly says the indicator is absent.
+
+The loader is loud about malformed rows and silent about an absent file — a row that is
+present is a row someone meant to be used, so a typo must not degrade into missing
+evidence that looks identical to "never filled". It raises behind a `try` in the
+pipeline, so a bad row is surfaced in the log without costing the run its scores.
+
+### Sources, ranked by impact
+
+Fill them in this order. The first two unlock the most.
+
+| # | `indicator_code` | What it unlocks | Where to get it |
+|---|---|---|---|
+| 1 | `RESERVES.USD` | With `constants.FX_REGIMES`, turns on `suppressed_vol_flag` — the only input telling the model that measured calm may be manufactured. Monthly, total reserve assets in USD. | IMF IRFCL, table I.A line 1. Manual because IRFCL publishes ~800 series per country and the reserve-assets line can't be identified from the codes; picking the wrong one would silently produce a plausible but wrong trend. |
+| 2 | `STAT.TAX.TOP.RATE` | `rome_gap` — the gap between what the statute claims and what the state collects. Annual, top combined statutory corporate rate in percent. | OECD Corporate Tax Statistics, table II.1. After filling, compute `constants.ROME_REFERENCE_RATIO` once. |
+| 3 | `RSF.PRESS.SCORE` | Half of `instrument_quality`'s required core pair (`IQ.SPI.OVRL` arrives automatically). Annual score 0–100, higher = freer. | RSF World Press Freedom Index — the score column, not the rank. Published each May. |
+| 4 | `BIS.POLICY.RATE` | `real_policy_rate`. Only needed as a fallback: `bis_bulk_fetch.py` covers 41 of the 48 roster countries automatically. Use this for the seven euro-area members with no national series. | BIS `WS_CBPOL`, monthly, percent. |
+| 5 | `INFORMAL.PCT.GDP` | Context for `rome_gap`: a large collection gap means something different when a third of the economy is informal. Annual, percent of GDP. | IMF WP/18/17 (Medina & Schneider) or the World Bank Informal Economy Database. Irregular. |
+| 6 | `WUI.INDEX` | Order-uncertainty evidence that is measured rather than inferred from articles. Quarterly. | worlduncertaintyindex.com, per-country panel. |
+| 7 | `UNWPP.DPND.OL.PROJ` | The projection half of `dependency_trajectory` (the current level arrives from the World Bank). `period` is the year being projected *to*. | UN World Population Prospects, medium variant. Revised every two years. |
+| 8 | `OECD.PISA.MEAN` | The edge ledger's learning-outcome line, and the one the prompt reads before education spending. `period` is the round year (`2022`), `value` the mean of the three domain means. | OECD Data Explorer → Education → PISA. Triennial. 44 of 48 roster countries sat 2022; China, Egypt and Kuwait did not — leave them out rather than substituting another assessment. |
+| 9 | `OBS.SCORE` | Optional supplement to `instrument_quality`; sharpens it, cannot substitute for the core pair. Biennial, 0–100. | International Budget Partnership, Open Budget Survey. |
+| 10 | `UN.EGDI` | Optional supplement to `instrument_quality`. Biennial. **Rescale to 0–100** (the UN publishes 0–1) so it shares a scale with the other components. | UN E-Government Survey. |
+| 11 | `OECD.TAX.WEDGE` | Supplementary friction evidence: the wedge on labour specifically. Annual, percent of labour cost, single average worker. OECD members only — absent for most of the EM roster by construction. | OECD Taxing Wages, table 0.1. |
+
+Three curated inputs are **not** series and live in `utils/constants.py` instead:
+`FX_REGIMES`, `ELECTIONS` and `ROME_REFERENCE_RATIO`. Each carries its source and its
+update cadence in a comment there.
+
+### Metrics with no source, and why
+
+Two metrics have no free source worth the plumbing, so they degrade honestly rather than
+getting a row nobody will fill:
+
+* `wage_productivity_gap` needs real wage growth and output-per-worker growth. Returns
+  `None`; supplementary by design.
+* `precommitted_share` needs social protection as a percent of revenue for its second
+  half. It returns the interest-only figure marked `partial: true`, which is the behaviour
+  the function was written for. It never imputes the missing half.
+
+If you later find a usable source for either, add one `INDICATOR_REGISTRY` entry and the
+rows go in `curated.csv` with no loader change.
+
+## Live prices feed (`utils/prices.py`)
+
+`PricesDaemon.tick` keeps the bottom-bar "Prices" pane fresh. `main.py` calls it once
+per scheduler tick (`PRICES_POLL_SECONDS`, default 1800) and it upserts the latest
+snapshot into `market_price`.
 
 * **Sources.** Equity indices, the MSCI ETF proxies (ACWI/ACWX/EEM, relabeled), crypto,
   and commodities come from **FMP batch-quote** in one call per tick. US Treasury yields
@@ -356,17 +453,10 @@ and upserts the latest snapshot into `market_price`.
   the Globex window). The yields and the 1Q/YTD reference closes refresh at most once per
   ET day.
 
-```bash
-# One-shot tick (verification): fetch once, upsert, exit
-python backend/prices_daemon.py --once
-
-# Continuous loop: runs until stopped (Ctrl-C)
-python backend/prices_daemon.py
-```
-
-Point a boot-time Task Scheduler entry (or any process supervisor) at
-`python backend/prices_daemon.py` so the feed runs continuously alongside the `main.py`
-cron. Reuses `FMP_API_KEY` + `DATABASE_URL` — no other secret needed.
+Reuses `FMP_API_KEY` + `DATABASE_URL` — no other secret needed. `python backend/main.py
+--once` runs a single tick for verification. The daemon holds its per-day state in
+memory and rehydrates it from `price_reference` in `load_state`, so a restart never pays
+for a same-day refetch.
 
 ---
 

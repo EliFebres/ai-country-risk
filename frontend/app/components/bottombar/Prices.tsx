@@ -8,8 +8,8 @@ import {
   type PriceCategory,
 } from '../../lib/prices-client';
 
-/** Refresh cadence — matches the prices daemon's ~5-minute write cadence. */
-const POLL_MS = 5 * 60 * 1000;
+/** Refresh cadence — matches the scheduler's ~30-minute price write cadence. */
+const POLL_MS = 30 * 60 * 1000;
 
 function fmtPx(a: MarketPrice) {
   if (a.px == null) return '—';

@@ -7,8 +7,9 @@ store that ``data_retrieval.query_macro_panel`` reads back with DuckDB.
 the indicators that don't come from the World Bank beforehand.
 
 The backfill is incremental by design: World Bank fetches are slow and the
-data is annual, so a country keeps its panel until someone deletes it. A
-normal daily run does no fetching here at all.
+data is annual, so a country keeps its panel until it is rebuilt on purpose.
+A normal run does no fetching here at all; ``main.py`` passes ``force=True``
+on its monthly cadence to pick up revisions and newly published years.
 """
 
 import logging
@@ -155,7 +156,7 @@ def has_country_partition(root: pathlib.Path, iso2: str) -> bool:
         return False
 
 
-def backfill_missing_panels() -> None:
+def backfill_missing_panels(force: bool = False) -> None:
     """Build Parquet panels for any rostered country that lacks one.
 
     Incremental and idempotent: countries that already have a partition are
@@ -164,6 +165,12 @@ def backfill_missing_panels() -> None:
 
     A country whose build fails is logged with a traceback and skipped — the
     others still get their panels.
+
+    Args:
+        force: rebuild every rostered country's panel, not just the missing
+            ones, to pick up World Bank revisions and newly published years.
+            Each country is overwritten in place once its fetch succeeds, so a
+            failed one keeps the panel it already had.
     """
     root = PANEL_DIR
     root.mkdir(parents=True, exist_ok=True)
@@ -176,14 +183,14 @@ def backfill_missing_panels() -> None:
         iso2 = str(country["iso2"]).strip()
         if not iso2:
             continue
-        if not has_country_partition(root, iso2):
+        if force or not has_country_partition(root, iso2):
             missing.append(iso2)
 
     if not missing:
         logger.info("All %d countries already have parquet partitions in %s.", len(roster), root)
         return
 
-    logger.info("Backfilling %d missing panels → %s", len(missing), missing)
+    logger.info("Backfilling %d panels (force=%s) → %s", len(missing), force, missing)
     for iso2 in missing:
         try:
             panel = fetch_metrics.build_country_panel(iso2, constants.INDICATORS)

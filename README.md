@@ -108,7 +108,7 @@ Create the following `.env` files before running:
 
 | Location | File | Keys & purpose |
 |------------|--------------|---------------------------------------------------------------------|
-| `backend` | `.env` | `DATABASE_URL` – PostgreSQL connection string; `OPENAI_API_KEY` – OpenAI API key; `FMP_API_KEY` – Financial Modeling Prep key (economic calendar + prices daemon); optional `CRAWLBASE_JS_TOKEN` / `CRAWLBASE_TOKEN` for Reuters/Bloomberg enrichment |
+| `backend` | `.env` | `DATABASE_URL` – PostgreSQL connection string; `OPENAI_API_KEY` – OpenAI API key; `FMP_API_KEY` – Financial Modeling Prep key (economic calendar + prices); optional `CRAWLBASE_JS_TOKEN` / `CRAWLBASE_TOKEN` for Reuters/Bloomberg enrichment |
 | `frontend` | `.env` | `DATABASE_URL` – Postgres URL with `sslmode=require` |
 
 The `backend/.env` file is read by the ETL pipeline and the database upsert routines. The `frontend/.env` is read by the Next.js server‑side API routes that serve the dashboard data.
@@ -124,13 +124,20 @@ The `backend/.env` file is read by the ETL pipeline and the database upsert rout
 
 2. **Seed macro data:** No separate step is needed — the first run of the ETL automatically downloads World Bank panels for every country that does not already have one, and skips the rest.
 
-3. **Run the end‑to‑end ETL:** This computes risk scores and persists them to the database.
+3. **Run the backend:** `main.py` is the only process. It runs forever, ticking every 30 minutes and running whatever is overdue.
 
  ```bash
- python backend/main.py
+ python backend/main.py          # run forever
+ python backend/main.py --once   # one pass over every due job, then exit
  ```
 
- The script loops over each country, builds the macro payload, fetches relevant news, calls the LLM to generate a risk score and bullet summary, and upserts the results into Postgres. Running the ETL for the 48‑country roster can take several minutes because the news fetcher throttles requests to stay under Google’s anonymous quota.
+ | Job | Cadence | What it does |
+ |----------|-------------------|--------------|
+ | `prices` | every tick (30 m) | Live FMP quotes for whichever markets are open; a no‑op outside session hours |
+ | `etl` | first tick of a new ISO week | Roster, econ calendar, IMF indicators, ledger sources, then a risk score for all 48 countries and the global alerts |
+ | `panels` | every 30 days | Rebuilds every `wb_panel_wide` partition so World Bank revisions land |
+
+ "When did this last run" lives in the `job_run` table, not in memory, so a restart or redeploy picks up where it left off — a box that was down for ten days comes back and immediately catches up on the week it missed. A job is stamped only when it succeeds, so a failure retries next tick. The weekly run takes several minutes because the news fetcher throttles requests to stay under Google's anonymous quota; prices do not refresh while it runs.
 
 ### Frontend setup
 
@@ -147,30 +154,23 @@ npm run dev
 
 The app reads live from Postgres through cached API routes — the map loads risk markers from `/api/risk`, and clicking a country opens the sidebar, which loads its details from `/api/dashboard`. There is no static seed file to populate. See `frontend/README.md` for the full route, caching and component breakdown.
 
-### Live prices feed (optional)
+### Deployment
 
-The bottom‑bar **Prices** pane is fed by a standalone, long‑running daemon — `backend/prices_daemon.py` — that is **separate from the daily `main.py` ETL**. Point a process supervisor (or boot‑time Task Scheduler entry) at it so the feed stays fresh:
-
- ```bash
-python backend/prices_daemon.py        # continuous loop (Ctrl‑C to stop)
-python backend/prices_daemon.py --once # one‑shot tick for verification
- ```
-
-It reuses `FMP_API_KEY` + `DATABASE_URL`. See `backend/README.md` for details.
+There is one process to deploy. On Railway (or any host), point the build at `pip install -r backend/requirements.txt` and the start command at `python backend/main.py`, then set `DATABASE_URL`, `OPENAI_API_KEY` and `FMP_API_KEY`. Nothing else needs a scheduler — `main.py` is the scheduler, and `SIGTERM` shuts it down cleanly between ticks.
 
 ### Directory Structure
 ```bash
 AI-Country-Risk-Dashboard/
 ├── backend/                    # Python ETL, LLM scoring and DB interface
-│   ├── main.py                 # Entry point for the end‑to‑end daily ETL
-│   ├── prices_daemon.py        # Standalone live‑prices poller (separate process)
+│   ├── main.py                 # The only process: scheduler loop + job cadences
 │   ├── utils/
+│   │   ├── prices.py           # Live‑prices poller (one tick, called by main.py)
 │   │   ├── ai/                 # LangChain LLM wrapper, prompt constants, alert/calendar rankers, legal_restrictions.yaml (sanctions gate)
 │   │   ├── data_fetching/      # World Bank, IMF, OWID (political corruption), FMP (calendar/prices) fetchers
 │   │   ├── news_fetching/      # Google News RSS, URL resolver, simple/advanced scrapers
 │   │   ├── data_upsert/        # Transactional upserts into PostgreSQL (data_push.py)
 │   │   ├── data_retrieval.py   # Reads panels and builds the LLM payload
-│   │   ├── market_hours.py     # Market‑open gating for the prices daemon
+│   │   ├── market_hours.py     # Market‑open gating for the prices tick
 │   │   ├── http.py             # Shared retry policy, User‑Agents, FMP GET wrapper
 │   │   ├── dates.py            # Datetime formats shared across modules
 │   │   └── constants.py        # Indicator definitions, asset universe, LLM prompt
@@ -188,7 +188,7 @@ AI-Country-Risk-Dashboard/
 ```
 
 ### Database Schema
-The schema is created idempotently by the ETL (and the prices daemon) — there is no separate migration tool. See `backend/README.md` for the full DDL.
+The schema is created idempotently by the ETL — there is no separate migration tool. See `backend/README.md` for the full DDL.
 
 | Table | Description |
 |-------|-------------|

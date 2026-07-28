@@ -53,20 +53,31 @@ class TestLegalGateDecision:
         assert got is not None and got["name"] == "Iran"
 
 
-class TestExtractIso2AndAsof:
-    def test_country_key_with_iso2_value(self):
-        # This is the shape prepare_llm_payload_pretty actually emits.
-        iso2, as_of = llm._extract_iso2_and_asof({"country": "DE"})
-        assert iso2 == "DE"
-        assert as_of == date.today()
+class TestExtractIso2:
+    """Both payload shapes resolve to the same code.
+
+    The evidence payload nests the country under `_meta`; the older panel
+    payload has it at the top level. The sanctions lookup keys off whichever is
+    present, and a miss means the badge silently never applies — so this is
+    worth pinning for both shapes.
+    """
+
+    def test_top_level_country_key(self):
+        # The shape prepare_llm_payload_pretty emits.
+        assert llm._extract_iso2({"country": "DE"}) == "DE"
+
+    def test_meta_country_key(self):
+        # The shape build_evidence_payload emits.
+        assert llm._extract_iso2({"_meta": {"country": "DE"}}) == "DE"
 
     def test_no_usable_key_gives_none(self):
-        iso2, _ = llm._extract_iso2_and_asof({"country": "Germany"})
-        assert iso2 is None  # 2-char check fails on a full name
+        assert llm._extract_iso2({"country": "Germany"}) is None  # 2-char check
+        assert llm._extract_iso2({}) is None
+        assert llm._extract_iso2({"_meta": {}}) is None
 
     def test_lowercase_uppercased(self):
-        iso2, _ = llm._extract_iso2_and_asof({"country": "de"})
-        assert iso2 == "DE"
+        assert llm._extract_iso2({"country": "de"}) == "DE"
+        assert llm._extract_iso2({"_meta": {"country": "de"}}) == "DE"
 
 
 class TestPromptArticleIds:

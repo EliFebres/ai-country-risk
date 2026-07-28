@@ -1,9 +1,19 @@
-# Byte-compiled / optimized / DLL files
+# Repository ignore rules.
+#
+# Grouped by what the files are, not by the tool that made them. Two ordering
+# rules matter and are easy to break by tidying:
+#   * Comments must be on their own line. Git treats a trailing "# ..." as part
+#     of the pattern, so an inline comment silently changes what is ignored.
+#   * Re-includes ("!pattern") only win when they are the LAST matching line in
+#     the file, so the negations live at the bottom. Do not move them up.
+
+
+# --- Python bytecode and build artifacts -----------------------------------
+
 __pycache__/
 *.py[codz]
 *$py.class
 
-# Distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -22,7 +32,9 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Unit test / coverage reports
+
+# --- Test and coverage output ----------------------------------------------
+
 htmlcov/
 .tox/
 .nox/
@@ -37,13 +49,13 @@ coverage.xml
 .pytest_cache/
 cover/
 
-# Scrapy stuff:
-.scrapy
 
-# Jupyter Notebook
-.ipynb_checkpoints
+# --- Virtualenvs and secrets ------------------------------------------------
+#
+# `.env*` is deliberately broad: every real env file stays out, including
+# `.env.local` and `.env.production`. The committed `.env.example` templates are
+# re-admitted by the negations at the bottom of this file.
 
-# Environments
 .env*
 .envrc
 .venv
@@ -53,18 +65,38 @@ ENV/
 env.bak/
 venv.bak/
 
-# Local agent/tooling config - never commit
+
+# --- Local tooling, not part of the project ---------------------------------
+
+# Local agent/tooling config - never commit.
 .claude/
 
-# Other
+# Jupyter autosaves of backend/notebooks/*.ipynb and friends.
+.ipynb_checkpoints
+
+# Playwright MCP scratch logs.
+.playwright-mcp/
+
+.scrapy
+
+
+# --- Generated and operator-local data under backend/data -------------------
+
+# Fetched World Bank macro panels, one Parquet partition per country. Rebuilt on
+# demand by the country-rating notebook or by the daily pipeline, so
+# there is nothing here worth versioning.
 backend/data/wb_panel_wide
 
-# Output of backend/tests/live_country_check.py
+# backend/data/curated.csv is TRACKED on purpose: it is public reference data an
+# operator types in by hand, its `as_of` is a column rather than the file mtime,
+# and a clone that reproduces scores is worth more than keeping the drops out of
+# the repo. Do not add it here.
+
+# Output of backend/tests/live_country_check.py.
 live_check_*.log
 
-# Allow the example env files
+
+# --- Re-includes: must stay last (see the header) ---------------------------
+
 !backend/.env.example
 !frontend/.env.example
-
-# Playwright MCP scratch logs
-.playwright-mcp/

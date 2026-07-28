@@ -74,15 +74,23 @@ class TestPromptTemplates:
     # templates format cleanly with their exact placeholder sets.
 
     def test_ai_prompt_placeholders(self):
-        prompt = ai_constants.AI_PROMPT.format(
+        # v3's placeholder set. The subject changed when v1/v2 were deleted;
+        # the check did not — .format() is still where brace-escaping bugs in a
+        # prompt full of JSON examples show up.
+        prompt = ai_constants.AI_PROMPT_V3.format(
             country="Portugal",
+            as_of_date="2026-07-27",
             evidence_json="{}",
-            article_digests_json="[]",
-            fulltext_block="(none)",
+            articles_json="[]",
+            full_text_block="(none)",
         )
-        assert "ARTICLE_DIGESTS_JSON" in prompt
+        assert "EVIDENCE_JSON" in prompt
+        assert "ARTICLES_JSON" in prompt
         assert "FULL_TEXT" in prompt
-        assert "ARTICLES_JSON" not in prompt
+        assert "Portugal" in prompt
+        assert "2026-07-27" in prompt
+        # No unsubstituted placeholder survived.
+        assert "{country}" not in prompt and "{evidence_json}" not in prompt
 
     def test_digest_prompt_placeholders(self):
         prompt = ai_constants.DIGEST_PROMPT.format(

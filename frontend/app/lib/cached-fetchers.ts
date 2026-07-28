@@ -71,6 +71,7 @@ export const getRisks = unstable_cache(
         risk: Number(row.score),
         iso2: row.iso2,
       };
+      if (row.non_investable) entry.nonInvestable = true;
       if (row.as_of) entry.asOf = asIsoDate(row.as_of);
       if (list.length > 0) {
         entry.prevRiskSeries = list; // newest→oldest, excluding current

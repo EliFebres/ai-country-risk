@@ -14,6 +14,7 @@ export type CountryRisk = {
   asOf?: string;            // latest snapshot date (ISO 'YYYY-MM-DD')
   prevAsOfs?: string[];     // prior snapshot dates, newest→oldest (parallel to prevRiskSeries)
   iso2?: string;            // populated by weekly refresh
+  nonInvestable?: boolean;  // sanctions badge; independent of `risk`
 };
 
 let RISK_CACHE: CountryRisk[] | null = null;

@@ -12,7 +12,8 @@ import { calendarDaysAgo } from '../lib/format';
 type Props = {
   open: boolean;
   onClose: () => void;
-  country: { name: string; risk: number; prevRisk?: number; iso2?: string } | null;
+  country: { name: string; risk: number; prevRisk?: number; iso2?: string;
+             nonInvestable?: boolean } | null;
   /** When the current risk data was generated/pulled. Accepts Date, ISO string, or epoch ms. */
   dataTimestamp?: Date | string | number | null;
   durationMs?: number;
@@ -219,6 +220,19 @@ export default function RiskSidebar({
             )}
             <strong className="countryName">{country?.name ?? '—'}</strong>
 
+            {country?.nonInvestable && (
+              // Legal status, not a risk reading: a sanctions regime makes
+              // securities exposure unlawful for US persons. The score beside it
+              // is the analyst assessment and is deliberately not adjusted for
+              // this — see backend policy_version p2.0.
+              <span
+                className="restrictedBadge"
+                title="Sanctions make securities exposure unlawful for US persons. The risk score is not adjusted for this."
+              >
+                Restricted
+              </span>
+            )}
+
             {typeof daysOld === 'number' && (
               <span className="dataTracker" title={ageTitle} aria-label={ageTitle}>
                 <span className="ageBox">Updated {daysOld}d ago</span>
@@ -402,6 +416,23 @@ export default function RiskSidebar({
           object-fit: cover;
           display: block;
         }
+        .restrictedBadge {
+          display: inline-flex;
+          align-items: center;
+          flex: 0 0 auto;
+          margin-inline-start: 0.6em;
+          padding: 0.3em 0.55em;
+          border-radius: 3px;
+          background: var(--crit);
+          color: #fff;
+          font-size: 0.62em;
+          font-weight: 800;
+          line-height: 1;
+          letter-spacing: 0.07em;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+
         .dataTracker {
           display: inline-flex;
           align-items: center;

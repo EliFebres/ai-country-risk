@@ -157,6 +157,7 @@ export default function TerminalDashboard() {
                 risk: selected.risk,
                 prevRisk: selected.prevRisk,
                 iso2: selected.iso2,
+                nonInvestable: selected.nonInvestable,
               }
             : null
         }
