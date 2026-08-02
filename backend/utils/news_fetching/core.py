@@ -75,6 +75,12 @@ THEME_QUERIES: dict[str, str] = {
 # answer `classify_themes` gives when no specific theme fires.
 BROAD_THEME = "broad"
 
+# How much of one article's body any path keeps. Shared so a historical body and
+# a live one are the same size of evidence: a harvester storing 100k characters
+# where the daily run stores 24k would be scoring history on a different
+# instrument, which is the whole thing the History Machine is trying not to do.
+MAX_BODY_CHARS = 24000
+
 
 def _terms_of(template: str) -> tuple[str, ...]:
     """The OR-terms inside one theme's query template, lowercased.

@@ -37,7 +37,9 @@ logger = logging.getLogger(__name__)
 _RELEVANCE_THRESHOLD = 0.3
 
 # Body text stored per article; also the cap requested from the feed expander.
-_MAX_CONTENT_CHARS = 24000
+# Shared with the historical harvesters, so both paths hold the same size of
+# evidence per article.
+_MAX_CONTENT_CHARS = core.MAX_BODY_CHARS
 
 # The query themes, the theme-floor selection, and the two dedupe keys now live
 # in `news_fetching.core`, because the historical harvesters need exactly the
