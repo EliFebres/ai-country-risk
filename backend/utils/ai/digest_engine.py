@@ -30,6 +30,7 @@ from langchain_core.messages import SystemMessage
 import backend.utils.ai.constants as ai_constants
 from backend.utils.ai import client as ai_client
 from backend.utils.data_upsert import data_push
+from backend.utils.news_fetching import core as news_core
 
 logger = logging.getLogger(__name__)
 
@@ -126,7 +127,7 @@ def digest_articles(
     cached = 0
     for i, it in enumerate(items):
         text = article_input_text(it)
-        url = ((it.get("publisher_link") or it.get("link")) or "").strip()
+        url = news_core.dedupe_key(it)
         urls.append(url)
         texts.append(text)
 
