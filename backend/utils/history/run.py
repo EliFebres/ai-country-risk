@@ -1,0 +1,144 @@
+"""CLI for the History Machine's harvest phase.
+
+``main.py`` is the only *process* the backend runs — the weekly ETL, the prices
+tick, the panel rebuild. None of that is this. Harvesting ten years of articles
+is a one-off backfill that takes days of somebody else's rate limit, so it gets
+its own entry point rather than a job in the scheduler's tuple.
+
+Nothing here scores anything. It fills the article store and reports on what it
+filled.
+
+Usage:
+    python -m backend.utils.history.run guardian     # step 2
+    python -m backend.utils.history.run gdelt        # step 3
+    python -m backend.utils.history.run wayback      # step 4 (asks before spending)
+    python -m backend.utils.history.run report       # counts, evenness, recovery curve
+"""
+
+import argparse
+import logging
+import os
+import pathlib
+import sys
+
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[3]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from dotenv import load_dotenv  # noqa: E402
+
+load_dotenv(PROJECT_ROOT / "backend" / ".env")
+load_dotenv()
+
+from backend.utils.history import config, store, wayback  # noqa: E402
+from backend.utils.history.adapters import gdelt, guardian  # noqa: E402
+
+logger = logging.getLogger("history")
+
+
+def _report() -> None:
+    """Print every deliverable the harvest steps owe."""
+    print("\n=== articles by source x country x year ===")
+    for row in store.counts_by_year():
+        print(f"  {row['source_system']:<9} {row['country_iso2']}  {row['year']}  {row['n']:>6}")
+
+    print("\n=== evenness check: months with no articles ===")
+    months = store.counts_by_month()
+    have = {(r["country_iso2"], r["month"]) for r in months if r["n"] > 0}
+    holes = 0
+    for iso2 in config.PILOT_ROSTER:
+        seen = sorted(m for c, m in have if c == iso2)
+        if not seen:
+            print(f"  {iso2}: nothing harvested")
+            continue
+        cursor = seen[0]
+        while cursor <= seen[-1]:
+            if (iso2, cursor) not in have:
+                print(f"  {iso2} {cursor:%Y-%m}: 0 articles")
+                holes += 1
+            cursor = cursor.replace(year=cursor.year + cursor.month // 12,
+                                    month=cursor.month % 12 + 1)
+    print(f"  {holes} hole(s) — each one is an empty snapshot later")
+
+    print("\n=== recovery curve: body outcomes by source x year ===")
+    totals: dict = {}
+    for row in store.recovery_curve():
+        key = (row["source_system"], row["year"])
+        totals.setdefault(key, {})
+        label = f"{row['body_status']}/{row['body_vintage'] or '-'}"
+        totals[key][label] = totals[key].get(label, 0) + row["n"]
+    for (source, year), buckets in sorted(totals.items()):
+        total = sum(buckets.values())
+        recovered = sum(n for k, n in buckets.items() if k.startswith("recovered"))
+        live = sum(n for k, n in buckets.items() if k.endswith("live-refetch"))
+        degraded = sum(n for k, n in buckets.items() if k.startswith("degraded"))
+        print(f"  {source:<9} {year}  n={total:<6} recovered={100*recovered/total:5.1f}%  "
+              f"live-refetch={100*live/total:5.1f}%  flagged={100*degraded/total:5.1f}%")
+
+
+def _wayback(args) -> None:
+    """Drain the recovery queue, asking before any billable scan."""
+    pending = store.read_pending(limit=args.limit)
+    if not pending:
+        print("Nothing pending.")
+        return
+
+    if args.no_scan:
+        print(f"{len(pending)} pending; live refetches will be skipped "
+              f"(--no-scan), so uncaptured articles will be marked failed.")
+        wayback.drain(limit=args.limit, api_key=None)
+        return
+
+    # A rough upper bound: every article needing a live refetch, at a full-size
+    # body. The real spend is far lower — most articles have a capture and never
+    # reach the scan — but a projection should overstate, not understate.
+    worst_case = wayback.scan_cost_usd(["x" * 24000] * len(pending))
+    capped = min(worst_case, config.LEAKAGE_SCAN_BUDGET_USD)
+    print(f"\n{len(pending)} pending article(s).")
+    print(f"Leakage scan worst case: ${worst_case:.2f} (every one needing a live "
+          f"refetch at full body size).")
+    print(f"Hard cap: ${config.LEAKAGE_SCAN_BUDGET_USD:.2f} — the drain aborts there, "
+          f"so at most ${capped:.2f} is spent.")
+    if input("Proceed with the billable leakage scan? [y/N] ").strip().lower() != "y":
+        print("Not scanning. Re-run with --no-scan to recover captures only.")
+        return
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("OPENAI_API_KEY is not set; cannot scan.")
+        return
+    wayback.drain(limit=args.limit, api_key=api_key)
+
+
+def main() -> None:
+    """Dispatch one harvest command."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    for name in ("guardian", "gdelt"):
+        p = sub.add_parser(name)
+        p.add_argument("--since", help="ISO date overriding the configured floor")
+        p.add_argument("--country", action="append", dest="roster",
+                       help="ISO2 code; repeatable. Defaults to PILOT_ROSTER.")
+
+    p = sub.add_parser("wayback")
+    p.add_argument("--limit", type=int, help="stop after this many articles")
+    p.add_argument("--no-scan", action="store_true",
+                   help="recover archive captures only; never refetch live pages")
+
+    sub.add_parser("report")
+    args = parser.parse_args()
+
+    if args.command == "guardian":
+        guardian.harvest(roster=args.roster, since=args.since)
+    elif args.command == "gdelt":
+        gdelt.harvest(roster=args.roster, since=args.since)
+    elif args.command == "wayback":
+        _wayback(args)
+    _report()
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO,
+                        format="%(asctime)s [history] %(levelname)s %(message)s")
+    main()
