@@ -99,9 +99,19 @@ def _wayback(args) -> None:
           f"refetch at full body size).")
     print(f"Hard cap: ${config.LEAKAGE_SCAN_BUDGET_USD:.2f} — the drain aborts there, "
           f"so at most ${capped:.2f} is spent.")
-    if input("Proceed with the billable leakage scan? [y/N] ").strip().lower() != "y":
-        print("Not scanning. Re-run with --no-scan to recover captures only.")
-        return
+    # --scan-approved is the same consent given ahead of time, for a run whose
+    # stdin is not a terminal. It is deliberately not a default: nothing here
+    # spends money without someone having said so once.
+    if not args.scan_approved:
+        try:
+            answer = input("Proceed with the billable leakage scan? [y/N] ")
+        except EOFError:
+            print("No terminal to ask on. Re-run with --scan-approved to consent "
+                  "up front, or --no-scan to recover captures only.")
+            return
+        if answer.strip().lower() != "y":
+            print("Not scanning. Re-run with --no-scan to recover captures only.")
+            return
 
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
@@ -125,6 +135,9 @@ def main() -> None:
     p.add_argument("--limit", type=int, help="stop after this many articles")
     p.add_argument("--no-scan", action="store_true",
                    help="recover archive captures only; never refetch live pages")
+    p.add_argument("--scan-approved", action="store_true",
+                   help="consent to the billable leakage scan up front, for a "
+                        "run with no terminal to ask on")
 
     sub.add_parser("report")
     args = parser.parse_args()
