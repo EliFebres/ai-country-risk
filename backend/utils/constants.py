@@ -499,8 +499,8 @@ PRICE_ASSETS: list[dict] = [
 # Country roster — the single source of truth for the run universe.
 # ---------------------------------------------------------------------------
 # The coverage rule, in one sentence: every country in the MSCI Developed and
-# Emerging Markets indices, plus Russia. See COUNTRY_COVERAGE.md at the repo
-# root for the full rationale, including why each excluded country is out.
+# Emerging Markets indices, plus Russia. Anything outside those indices is out,
+# however newsworthy — the rule decides membership, not case-by-case judgement.
 #
 # MSCI is the arbiter rather than our own judgement: it maintains the
 # investable-universe classification that the dashboard's audience already
