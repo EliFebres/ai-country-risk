@@ -203,8 +203,15 @@ class TestBodyBeatsStub:
         assert body.startswith("The central bank")
         assert status == "recovered" and vintage == "api-native" and source == "guardian"
 
-    def test_order_does_not_matter(self, db):
-        db.upsert_articles([row(), self._stub()])
+    def test_order_does_not_matter_within_one_batch(self, db):
+        # Postgres refuses an ON CONFLICT that touches one row twice in a single
+        # command, so the rule has to hold inside the batch too — and it must
+        # hold whichever way round the two copies happen to be listed.
+        assert db.upsert_articles([row(), self._stub()]) == 1
+        assert one()[0].startswith("The central bank")
+
+    def test_order_does_not_matter_within_one_batch_reversed(self, db):
+        assert db.upsert_articles([self._stub(), row()]) == 1
         assert one()[0].startswith("The central bank")
 
 

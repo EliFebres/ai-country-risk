@@ -182,13 +182,25 @@ def upsert_articles(rows: Sequence[Dict[str, Any]]) -> int:
         rows: dicts from :func:`article_row`.
 
     Returns:
-        How many rows were sent. No-op returning 0 on an empty sequence.
+        How many distinct rows were written — fewer than ``len(rows)`` when the
+        batch itself held two copies of one story. No-op returning 0 on empty.
     """
     data_push._require_db_url()   # fail fast even when there is nothing to write
     if not rows:
         return 0
 
-    values = [tuple(r[c] for c in _ROW_COLUMNS) for r in rows]
+    # Postgres refuses an ON CONFLICT that would touch one row twice in a single
+    # command, so the same body-wins rule has to be applied inside the batch as
+    # well as against the table. Doing it here rather than asking every caller to
+    # de-duplicate first: a batch that raises does so half way through a harvest,
+    # hours in, and the adapters are the wrong place to remember a storage rule.
+    best: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        incumbent = best.get(row["url"])
+        if incumbent is None or (row.get("body") and not incumbent.get("body")):
+            best[row["url"]] = row
+
+    values = [tuple(r[c] for c in _ROW_COLUMNS) for r in best.values()]
     with _transaction() as cur:
         cur.execute(_HISTORICAL_ARTICLE_DDL)
         extras.execute_values(
