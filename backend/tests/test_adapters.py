@@ -21,7 +21,7 @@ import re
 import pytest
 
 from backend.utils.history import config
-from backend.utils.history.adapters import guardian
+from backend.utils.history.adapters import gdelt, guardian
 from backend.utils.news_fetching import core
 
 # One result exactly as the Content API returns it, fields and all.
@@ -37,6 +37,19 @@ GUARDIAN_RESULT = {
     "fields": {"bodyText": "The central bank left interest rates unchanged on Wednesday."},
     "isHosted": False,
     "pillarName": "News",
+}
+
+
+# One record exactly as the DOC 2.0 artlist mode returns it.
+GDELT_RECORD = {
+    "url": "https://www.reuters.com/article/turkey-lira-idUSKCN1GQ0X1",
+    "url_mobile": "",
+    "title": "Turkish lira slides to a record low against the dollar",
+    "seendate": "20180314T093000Z",
+    "socialimage": "https://s.reutersmedia.net/x.jpg",
+    "domain": "reuters.com",
+    "language": "English",
+    "sourcecountry": "Turkey",
 }
 
 
@@ -130,6 +143,55 @@ class TestGuardianWindows:
             assert b == a + datetime.timedelta(days=1)
 
 
+class TestGdeltPayload:
+    def test_a_record_becomes_a_valid_item(self):
+        assert core.validate_item(gdelt.to_item(GDELT_RECORD, "order"))
+
+    def test_the_compact_stamp_becomes_iso(self):
+        assert gdelt.to_item(GDELT_RECORD, "order")["published"] == "2018-03-14T09:30:00Z"
+
+    def test_a_record_carries_no_body(self):
+        # The whole reason step 4 exists.
+        assert gdelt.to_item(GDELT_RECORD, "order")["text"] == ""
+
+    def test_the_domain_becomes_the_source(self):
+        assert gdelt.to_item(GDELT_RECORD, "order")["source"] == "reuters.com"
+
+    def test_a_record_with_no_url_is_dropped(self):
+        assert gdelt.to_item({**GDELT_RECORD, "url": ""}, "order") is None
+
+    def test_a_truncated_stamp_is_dropped(self):
+        assert gdelt.to_item({**GDELT_RECORD, "seendate": "2018"}, "order") is None
+
+    def test_the_english_filter_is_on_every_query(self):
+        for theme in core.THEME_QUERIES:
+            assert "sourcelang:english" in gdelt.gdelt_query(theme, "Brazil")
+
+    def test_month_windows_tile_the_range(self):
+        got = gdelt.month_windows(datetime.date(2016, 11, 15), datetime.date(2017, 2, 3))
+        assert got[0] == (datetime.date(2016, 11, 15), datetime.date(2016, 11, 30))
+        assert got[-1] == (datetime.date(2017, 1, 1), datetime.date(2017, 1, 31)) or \
+            got[-1] == (datetime.date(2017, 2, 1), datetime.date(2017, 2, 3))
+        for (_, a), (b, _) in zip(got, got[1:]):
+            assert b == a + datetime.timedelta(days=1)
+
+
+class TestBothAdaptersAgree:
+    """Two sources, one story: the keys must collide or the store cannot
+    de-duplicate them and the body-wins rule never fires."""
+
+    def test_one_url_gives_one_key(self):
+        url = "https://www.reuters.com/article/x"
+        g = guardian.to_item({**GUARDIAN_RESULT, "webUrl": url}, "order")
+        d = gdelt.to_item({**GDELT_RECORD, "url": url}, "security")
+        assert core.dedupe_key(g) == core.dedupe_key(d) == url
+
+    def test_both_emit_the_same_shape(self):
+        g = guardian.to_item(GUARDIAN_RESULT, "order")
+        d = gdelt.to_item(GDELT_RECORD, "order")
+        assert set(core._ITEM_KEYS) <= set(g) and set(core._ITEM_KEYS) <= set(d)
+
+
 class TestNoAdapterForksTheCore:
     """The reuse rule, checked two ways.
 
@@ -138,7 +200,7 @@ class TestNoAdapterForksTheCore:
     the shared core exists to prevent, and exactly the kind that looks fine in
     every count."""
 
-    MODULES = (guardian,)
+    MODULES = (guardian, gdelt)
     FORBIDDEN = ("_HIGH_KEYWORDS", "score_relevance", "select_with_theme_floor",
                  "_select_with_theme_floor", "headline_key", "_by_relevance")
 
