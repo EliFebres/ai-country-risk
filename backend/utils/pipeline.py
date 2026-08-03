@@ -252,6 +252,10 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         recent=_safe(lambda: data_push.read_recent_indicators(iso2), iso2, "recent") or {},
         fx_regimes=constants.FX_REGIMES,
         elections=constants.ELECTIONS,
+        # Only a historical run restricts the data vintage. The daily run passes
+        # None and behaves exactly as before — handing it today's date would
+        # drop the current year's annual figures, whose period ends in December.
+        vintage_as_of=as_of if historical else None,
     )
 
     # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it anchors

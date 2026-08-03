@@ -344,7 +344,8 @@ def _recent_observation(entry: Optional[dict]) -> Optional[_Observation]:
     )
 
 
-def _resolve(observations: List[_Observation]) -> List[_Observation]:
+def _resolve(observations: List[_Observation],
+             as_of: Optional[date] = None) -> List[_Observation]:
     """Merge one indicator's copies from every store, freshest copy winning.
 
     An indicator can live in three places at once — the annual panel, the
@@ -354,7 +355,20 @@ def _resolve(observations: List[_Observation]) -> List[_Observation]:
 
     This is what puts a monthly CPI print in front of the model instead of an
     annual average up to two years stale.
+
+    Args:
+        as_of: when scoring a past date, the newest vintage that may be used.
+            "Freshest wins" becomes "freshest that existed yet wins", and both
+            observations *published* after the date and periods *covering* time
+            after it are dropped. Without this a 2018 snapshot is scored on
+            2026's revisions of 2018 — the macro twin of reading tomorrow's
+            news, and quieter, because a revised number looks exactly like an
+            unrevised one.
     """
+    if as_of is not None:
+        observations = [o for o in observations
+                        if o.as_of <= as_of and o.period_end <= as_of]
+
     best: Dict[str, _Observation] = {}
     for obs in observations:
         key = f"{obs.freq}:{obs.period}"
@@ -458,6 +472,7 @@ def build_evidence_payload(
     recent: Optional[Dict[str, dict]] = None,
     fx_regimes: Optional[Dict[str, str]] = None,
     elections: Optional[Dict[str, List[dict]]] = None,
+    vintage_as_of: Optional[date] = None,
 ) -> dict:
     """Build the three-ledger evidence payload the scoring model receives.
 
@@ -475,6 +490,13 @@ def build_evidence_payload(
         recent: latest prints, from ``data_push.read_recent_indicators``.
         fx_regimes: currency regimes, from ``constants.FX_REGIMES``.
         elections: election calendar, from ``constants.ELECTIONS``.
+        vintage_as_of: for a historical backfill, the newest data vintage this
+            snapshot is allowed to see. Deliberately separate from ``as_of``
+            and defaulting to None, so the daily run is unaffected: passing
+            today's date would drop the current year's annual figures, whose
+            period ends in December. Only a historical run wants that, and a
+            historical run wants it badly — otherwise a 2018 score is built on
+            2026's revisions of 2018.
 
     Returns:
         ``{_meta, friction_inputs, uncertainty_inputs, information_inputs,
@@ -500,7 +522,7 @@ def build_evidence_payload(
             fresh = _recent_observation(recent.get(str(recent_name)))
             if fresh:
                 observations.append(fresh)
-        merged = _resolve(observations)
+        merged = _resolve(observations, vintage_as_of)
         if merged:
             resolved[code] = merged
 

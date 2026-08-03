@@ -13,6 +13,7 @@ Usage:
     python -m backend.utils.history.run gdelt        # step 3
     python -m backend.utils.history.run wayback      # step 4 (asks before spending)
     python -m backend.utils.history.run nyt          # step 5
+    python -m backend.utils.history.run weo          # step 7 (per-edition macro)
     python -m backend.utils.history.run report       # counts, evenness, recovery curve
 """
 
@@ -31,8 +32,10 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv()
 
+from backend.utils.data_upsert import data_push  # noqa: E402
 from backend.utils.history import config, store, wayback  # noqa: E402
 from backend.utils.history.adapters import gdelt, guardian, nyt  # noqa: E402
+from backend.utils.history.vintage import weo  # noqa: E402
 
 logger = logging.getLogger("history")
 
@@ -140,6 +143,7 @@ def main() -> None:
                    help="consent to the billable leakage scan up front, for a "
                         "run with no terminal to ask on")
 
+    sub.add_parser("weo")
     sub.add_parser("report")
     args = parser.parse_args()
 
@@ -151,6 +155,14 @@ def main() -> None:
         nyt.harvest(roster=args.roster, since=args.since)
     elif args.command == "wayback":
         _wayback(args)
+    elif args.command == "weo":
+        rows = weo.load_all()
+        written = data_push.upsert_indicator_series(rows) if rows else 0
+        print(f"\n{written} WEO vintage row(s) written to indicator_series.")
+        if not rows:
+            print("Drop the editions into backend/data/curated/weo_vintages/ "
+                  "— see the README there.")
+        return
     _report()
 
 
