@@ -83,7 +83,16 @@ def _rows(path: pathlib.Path) -> Iterator[Dict[str, str]]:
                     continue
                 yield from reader
                 return
-        except (UnicodeDecodeError, UnicodeError):
+        except (UnicodeDecodeError, UnicodeError, csv.Error):
+            # csv.Error belongs here and its absence cost the newer half of the
+            # archive. Decoding a single-byte edition as UTF-16 does not raise:
+            # it succeeds and yields characters that contain no newline at all,
+            # so csv sees one field of eight million characters and raises
+            # "field larger than field limit" — from the csv module, not the
+            # codec. That escaped this loop, so the file never reached latin-1,
+            # and every edition the IMF ships in a single-byte encoding was
+            # reported as unreadable. The UTF-16 ones parsed on the first try
+            # and hid it.
             continue
     logger.warning("[weo] %s: no encoding produced a WEO table; skipping", path.name)
 
