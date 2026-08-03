@@ -176,6 +176,41 @@ class TestGdeltPayload:
             assert b == a + datetime.timedelta(days=1)
 
 
+class TestGdeltFailureIsolation:
+    """GDELT is one flaky free service answering thousands of queries.
+
+    It rate-limits at one request every five seconds and says so in the body of
+    the 429 it returns. A harvest that dies on a bad window throws away hours of
+    polite waiting, so a failed window is checkpointed as failed — which also
+    means the next run retries it, since only 'done' windows are skipped.
+    """
+
+    def test_one_bad_window_does_not_end_the_harvest(self, monkeypatch):
+        seen, checkpoints = [], []
+
+        def boom(iso2, name, start, end):
+            seen.append((iso2, start))
+            if len(seen) == 1:
+                raise RuntimeError("429 Too Many Requests")
+            return 3, 0
+
+        monkeypatch.setattr(gdelt, "harvest_window", boom)
+        monkeypatch.setattr(gdelt.store, "completed_windows", lambda *a: set())
+        monkeypatch.setattr(gdelt.store, "write_checkpoint",
+                            lambda *a, **kw: checkpoints.append(kw.get("status", "done")))
+
+        written = gdelt.harvest(roster=["PT"], since="2017-01-01")
+
+        assert len(seen) > 1, "the harvest stopped at the first failure"
+        assert checkpoints[0] == "failed"
+        assert written == 3 * (len(seen) - 1)
+
+    def test_gdelt_waits_five_seconds_between_calls(self):
+        # Quoted from GDELT's own 429 body. One per second is five times too
+        # fast and every retry inside the backoff window 429s as well.
+        assert config.GDELT_REQUEST_INTERVAL_SECONDS >= 5.0
+
+
 class TestBothAdaptersAgree:
     """Two sources, one story: the keys must collide or the store cannot
     de-duplicate them and the body-wins rule never fires."""

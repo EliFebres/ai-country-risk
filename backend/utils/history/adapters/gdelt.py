@@ -140,7 +140,7 @@ def harvest_window(iso2: str, country_name: str, start: datetime.date,
     """
     seen: Dict[str, Dict] = {}
     for theme in core.THEME_QUERIES:
-        time.sleep(config.REQUEST_INTERVAL_SECONDS)
+        time.sleep(config.GDELT_REQUEST_INTERVAL_SECONDS)
         for record in _articles(gdelt_query(theme, country_name), start, end):
             item = to_item(record, theme)
             if item:
@@ -164,8 +164,13 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
     """Harvest every pilot country from ``GDELT_START`` to today.
 
     Resumable per (country, month). No quota to manage — the only discipline is
-    politeness, one request a second, which is what makes this an hour rather
-    than a minute.
+    politeness, one request every five seconds, which is what makes this five
+    hours rather than a minute.
+
+    A window that fails is logged and checkpointed as failed, and the harvest
+    moves on. GDELT is one flaky free service answering thousands of queries;
+    losing five hours of progress to its worst minute would be the machine's
+    fault, not GDELT's.
 
     Returns:
         Rows written this run.
@@ -181,20 +186,30 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
     logger.info("[gdelt] %d country-months x %d themes = %d calls, ~%d minutes at "
                 "%.1fs each (%d country-months already done)",
                 len(todo), len(core.THEME_QUERIES), calls,
-                round(calls * config.REQUEST_INTERVAL_SECONDS / 60),
-                config.REQUEST_INTERVAL_SECONDS,
+                round(calls * config.GDELT_REQUEST_INTERVAL_SECONDS / 60),
+                config.GDELT_REQUEST_INTERVAL_SECONDS,
                 len(roster) * len(windows) - len(todo))
 
-    written = overlapped = 0
+    written = overlapped = failed = 0
     for iso2, (window_start, window_end) in todo:
         name = config.country_name(iso2)
-        n, overlap = harvest_window(iso2, name, window_start, window_end)
+        try:
+            n, overlap = harvest_window(iso2, name, window_start, window_end)
+        except Exception:  # noqa: BLE001
+            # Checkpointed as failed rather than left unwritten, so the next run
+            # retries it (only 'done' windows are skipped) and the report can
+            # say which months are thin because GDELT would not answer.
+            logger.exception("[gdelt] %s %s failed; continuing", iso2, window_start)
+            store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
+                                   status="failed", note="request error")
+            failed += 1
+            continue
         store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
                                items_written=n, note=f"overlap={overlap}")
         written += n
         overlapped += overlap
 
     logger.info("[gdelt] done: %d rows, %d of them already known to another "
-                "source (%.0f%% overlap)", written, overlapped,
-                100.0 * overlapped / written if written else 0.0)
+                "source (%.0f%% overlap), %d window(s) failed", written, overlapped,
+                100.0 * overlapped / written if written else 0.0, failed)
     return written
