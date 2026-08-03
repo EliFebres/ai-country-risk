@@ -58,7 +58,15 @@ from typing import Dict
 # "v3.0-friction-framework" is the patents-in-the-edge-ledger wording; a snapshot
 # was scored under it, so the human-capital swap gets its own stamp rather than
 # rewriting history under the old one.
-PROMPT_VERSION = "v3.1"
+# "v4.0-masked-production" is the cutover: masked scoring stopped being a pilot
+# experiment and became the regime every row is written under, so the prompt now
+# says out loud that the country is unnamed and that the structural block
+# carries the facts identity used to imply. Everything else in v3.1 — the three
+# ledgers, the three-door event test, edge protection, the learning-outcomes
+# wedge, door F, observation-only flags, the calibration anchors — is unchanged,
+# which is the point: the wording is the same instrument, pointed at evidence
+# with the name taken out.
+PROMPT_VERSION = "v4.0-masked-production"
 
 # ---------------------------------------------------------------------------
 # v3 — the friction framework. The model judges; nothing downstream edits it.
@@ -78,6 +86,30 @@ became known and how old it is on {as_of_date}. Weigh a fresh reading more than
 a stale one, and say so when a stale one is carrying an argument. A missing
 indicator is absent from the evidence entirely; treat absence as absence, never
 as zero and never as reassurance.
+
+# --- The country is not named, deliberately ---
+This evidence describes a real country whose identity has been withheld from
+you. Country names, cities, people, parties, currencies and institutions have
+been replaced by the roles they play: "the country", "the capital", "the central
+bank", "the finance minister", "the local currency". Every NUMBER is untouched —
+inflation prints, rates, counts and dates are exactly as published.
+
+Reason only from what is on the page. Do not try to work out which country this
+is, and do not let a guess do any work in your reasoning: an inference that
+depends on having identified the country is unsound here even when the guess
+happens to be right, because you cannot check it and neither can anyone reading
+your output.
+
+The priors a name would have carried are supplied instead. When EVIDENCE_JSON
+contains a `structural` block, it states what identity used to imply — whether
+the government borrows in a currency it can issue, whether it can devalue at
+all, its income group, its coarse region, whether it depends on commodity
+exports. Use those facts directly. A debt burden means one thing for a
+`monetary_sovereignty: full` issuer of a `reserve_currency: major` and something
+different for a `constrained` borrower whose debt is in money it cannot print;
+read the block, do not reconstruct it from a hunch about the name. When the
+block is absent, that structure is simply unknown — treat it as absent, the same
+as any missing indicator, and do not substitute a guess.
 
 EVIDENCE_JSON
 {evidence_json}
@@ -262,6 +294,12 @@ Return JSON exactly per the response schema: condition_flags, ledger_scores,
 subscore_evidence, news_article_scores, score_3m, score_12m,
 evidence_coverage, bullet_summary (at most 120 words: primary drivers and
 meaningful mitigants).
+
+bullet_summary must use role language throughout — "the country", "the central
+bank", "the governing party" — and must never name a country, guess one, or hint
+at which one it might be. A reader is shown this text beside the country's real
+name, so a wrong guess is worse than no guess and a right one is still an
+inference you were not entitled to make.
 """.strip()
 
 

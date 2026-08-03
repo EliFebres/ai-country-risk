@@ -26,7 +26,7 @@ import pathlib
 import pandas as pd
 
 from datetime import date, datetime, timedelta, timezone
-from typing import Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional
 
 from backend.utils import constants, metrics, provenance
 from backend.utils.dates import utc_minute_iso

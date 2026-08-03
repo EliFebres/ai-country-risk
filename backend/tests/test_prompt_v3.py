@@ -328,11 +328,49 @@ class TestSchemaV3:
         assert SCHEMA["properties"]["bullet_summary"]["maxLength"] == langchain_llm._MAX_SUMMARY_CHARS
 
 
+class TestTheCountryIsUnnamed:
+    """v4: the prompt has to say the identity is withheld, or the model spends
+    its reasoning trying to work out what has been taken from it."""
+
+    def test_the_prompt_says_the_identity_is_withheld(self):
+        assert "identity has been withheld" in ai_constants.AI_PROMPT_V3
+
+    def test_the_prompt_promises_the_numbers_are_intact(self):
+        # The one thing that makes a masked score comparable to a named one. A
+        # model that suspects the figures were altered too will discount them.
+        assert "Every NUMBER is untouched" in ai_constants.AI_PROMPT_V3
+
+    def test_the_prompt_forbids_reasoning_from_a_guess(self):
+        assert "do not let a guess do any work" in ai_constants.AI_PROMPT_V3
+
+    def test_the_prompt_points_at_the_structural_block(self):
+        for phrase in ("`structural` block", "monetary_sovereignty", "reserve_currency"):
+            assert phrase in ai_constants.AI_PROMPT_V3
+
+    def test_an_absent_structural_block_is_absence_not_a_default(self):
+        assert "do not substitute a guess" in ai_constants.AI_PROMPT_V3
+
+    def test_the_summary_must_use_role_language(self):
+        assert "bullet_summary must use role language" in ai_constants.AI_PROMPT_V3
+        assert "never name a country" in ai_constants.AI_PROMPT_V3
+
+    def test_v3_survived_the_bump_intact(self):
+        """v4 is v3.1 plus the masking preamble, not a rewrite. If these went
+        missing, the masked series would not be comparable to anything."""
+        for phrase in ("three-door event test", "edge_vitality",
+                       "skilled departure", "MUST NOT raise any risk score",
+                       "Condition flags: observations only",
+                       "Localization & Materiality"):
+            assert phrase in ai_constants.AI_PROMPT_V3, phrase
+
+
 class TestVersionStamp:
-    def test_prompt_version_is_the_human_capital_revision(self):
-        # Bumped from "v3.0-friction-framework" when patents left the edge
-        # ledger: a snapshot had already been scored under that wording.
-        assert ai_constants.PROMPT_VERSION == "v3.1"
+    def test_prompt_version_is_the_masked_production_regime(self):
+        # v3.0-friction-framework -> v3.1 (patents left the edge ledger) ->
+        # v4.0-masked-production (the cutover). Every one of those had snapshots
+        # scored under it, so each gets its own stamp rather than rewriting
+        # history under the previous wording.
+        assert ai_constants.PROMPT_VERSION == "v4.0-masked-production"
 
     def test_deleted_generations_are_really_gone(self):
         for name in ("AI_PROMPT", "RISK_SCHEMA", "AI_PROMPT_V2", "RISK_SCHEMA_V2"):
