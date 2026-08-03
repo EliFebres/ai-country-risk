@@ -32,6 +32,7 @@ import psycopg2.extras as extras
 
 from backend.utils import provenance
 from backend.utils.data_upsert import data_push
+from backend.utils.history import config
 from backend.utils.news_fetching import core
 
 # The project's one connect/commit/rollback/close helper. Private to data_push
@@ -358,6 +359,205 @@ def write_checkpoint(
             (source_system, country_iso2, window_start, window_end,
              status, items_written, note),
         )
+
+
+# ---------------------------------------------------------------------------
+# The run ledger — what has been scored, at what cost, and where it landed
+# ---------------------------------------------------------------------------
+# `harvest_checkpoint` above tracks collection; this tracks scoring. They stay
+# separate tables because they answer different questions and fail differently:
+# a harvest window is re-runnable for free, a scored snapshot costs money and
+# must never be paid for twice.
+
+_RUN_LEDGER_DDL = """
+CREATE TABLE IF NOT EXISTS history_run_ledger (
+  as_of        DATE NOT NULL,
+  country_iso2 TEXT NOT NULL,
+  mode         TEXT NOT NULL,
+  status       TEXT NOT NULL,
+  spend_usd    DOUBLE PRECISION,
+  manifest     JSONB,
+  result       JSONB,
+  updated_at   TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (as_of, country_iso2, mode)
+);
+"""
+
+
+def write_run(
+    as_of: datetime.date,
+    country_iso2: str,
+    mode: str,
+    *,
+    status: str,
+    spend_usd: float = 0.0,
+    manifest: Optional[Dict[str, Any]] = None,
+    result: Optional[Dict[str, Any]] = None,
+) -> None:
+    """Record the outcome of scoring one country on one date. Idempotent.
+
+    Args:
+        mode: ``'masked'`` or ``'named'`` — see :data:`config.SCORING_MODES`.
+        status: ``'complete'`` | ``'failed'`` | ``'skipped'``. Only
+            ``'complete'`` makes a re-run skip the date.
+        manifest: the provenance manifest — ``scoring_mode``, ``mask_map_version``,
+            and per-article ``source_system`` + ``body_vintage`` — so a row can
+            be rebuilt, or found to be unrebuildable.
+        result: the model output. Populated for ``'named'`` runs, whose scores
+            have nowhere else to live; ``None`` for ``'masked'`` runs, which are
+            in ``risk_snapshot`` where the front end can read them.
+
+    Raises:
+        ValueError: on a mode outside :data:`config.SCORING_MODES` — a typo here
+            would quietly split a series in two.
+    """
+    if mode not in config.SCORING_MODES:
+        raise ValueError(f"mode must be one of {config.SCORING_MODES}, got {mode!r}")
+
+    with _transaction() as cur:
+        cur.execute(_RUN_LEDGER_DDL)
+        cur.execute(
+            """
+            INSERT INTO history_run_ledger
+              (as_of, country_iso2, mode, status, spend_usd, manifest, result, updated_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, now())
+            ON CONFLICT (as_of, country_iso2, mode) DO UPDATE SET
+              status     = EXCLUDED.status,
+              spend_usd  = EXCLUDED.spend_usd,
+              manifest   = COALESCE(EXCLUDED.manifest, history_run_ledger.manifest),
+              result     = COALESCE(EXCLUDED.result, history_run_ledger.result),
+              updated_at = EXCLUDED.updated_at
+            """,
+            (as_of, country_iso2, mode, status, spend_usd,
+             data_push._json_or_none(manifest), data_push._json_or_none(result)),
+        )
+
+
+def completed_runs(mode: str, country_iso2: Optional[str] = None) -> set:
+    """Anchor dates already scored in this mode. The pilot's resume point.
+
+    Only ``status = 'complete'`` counts, so a run that died half way through a
+    country is retried rather than silently skipped — the same rule
+    :func:`completed_windows` uses for harvests.
+    """
+    sql = ["SELECT as_of FROM history_run_ledger WHERE mode = %s AND status = 'complete'"]
+    params: List[Any] = [mode]
+    if country_iso2:
+        sql.append("AND country_iso2 = %s")
+        params.append(country_iso2)
+    with _transaction() as cur:
+        cur.execute(_RUN_LEDGER_DDL)
+        cur.execute(" ".join(sql), tuple(params))
+        return {row[0] for row in cur.fetchall()}
+
+
+def total_spend_usd() -> float:
+    """Every dollar the pilot has metered so far, across runs and processes.
+
+    The budget governor's memory. Held in the ledger rather than in the runner
+    so that stopping and resuming a multi-hour pilot cannot reset the budget to
+    zero and quietly spend it twice.
+    """
+    with _transaction() as cur:
+        cur.execute(_RUN_LEDGER_DDL)
+        cur.execute("SELECT COALESCE(SUM(spend_usd), 0) FROM history_run_ledger")
+        return float(cur.fetchone()[0])
+
+
+def read_runs(mode: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Ledger rows, oldest first — what ``reports.py`` renders its meters from."""
+    where = "WHERE mode = %s" if mode else ""
+    with _transaction() as cur:
+        cur.execute(_RUN_LEDGER_DDL)
+        cur.execute(f"""
+            SELECT as_of, country_iso2, mode, status, spend_usd, manifest, result
+              FROM history_run_ledger {where}
+             ORDER BY country_iso2, as_of, mode
+        """, (mode,) if mode else ())
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+# ---------------------------------------------------------------------------
+# The digest cache — the one that makes a weekly cadence affordable
+# ---------------------------------------------------------------------------
+# Weekly anchors with a 30-day window overlap about four times, so without a
+# cache the pilot would pay to digest each article four times over. Keyed on
+# content rather than on (country, as_of) like the daily run's `article_digest`,
+# because the same article appears in four different snapshots and its digest is
+# identical in all of them.
+#
+# `mode` is in the key because the masked and named digests of one article are
+# genuinely different texts, and must never be served for each other.
+
+_DIGEST_CACHE_DDL = """
+CREATE TABLE IF NOT EXISTS history_digest_cache (
+  content_sha256  TEXT NOT NULL,
+  digest_model    TEXT NOT NULL,
+  mode            TEXT NOT NULL,
+  digest          JSONB NOT NULL,
+  stage1_severity DOUBLE PRECISION,
+  created_at      TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (content_sha256, digest_model, mode)
+);
+"""
+
+
+def read_digest_cache(hashes: Sequence[str], digest_model: str, mode: str) -> Dict[str, Dict[str, Any]]:
+    """Cached digests for these content hashes, keyed by hash.
+
+    A miss is an absent key, never a null row: the caller re-digests whatever is
+    missing, which is also what happens the first time a mask map changes and
+    every masked hash is new.
+    """
+    if not hashes:
+        return {}
+    with _transaction() as cur:
+        cur.execute(_DIGEST_CACHE_DDL)
+        cur.execute(
+            """
+            SELECT content_sha256, digest, stage1_severity
+              FROM history_digest_cache
+             WHERE content_sha256 = ANY(%s) AND digest_model = %s AND mode = %s
+            """,
+            (list(hashes), digest_model, mode),
+        )
+        return {r[0]: {"digest": r[1], "stage1_severity": r[2]} for r in cur.fetchall()}
+
+
+def write_digest_cache(rows: Sequence[Dict[str, Any]], digest_model: str, mode: str) -> int:
+    """Cache digests by content hash.
+
+    Args:
+        rows: dicts with ``content_sha256``, ``digest`` and ``stage1_severity``.
+            Rows without a hash or without a digest are dropped — a failed
+            digest must be retried next time, not cached as a failure.
+
+    Returns:
+        How many rows were written.
+    """
+    values = [
+        (r["content_sha256"], digest_model, mode,
+         data_push._json_or_none(r["digest"]), r.get("stage1_severity"))
+        for r in rows
+        if r.get("content_sha256") and isinstance(r.get("digest"), dict)
+    ]
+    if not values:
+        return 0
+    with _transaction() as cur:
+        cur.execute(_DIGEST_CACHE_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO history_digest_cache
+              (content_sha256, digest_model, mode, digest, stage1_severity, created_at)
+            VALUES %s
+            ON CONFLICT (content_sha256, digest_model, mode) DO NOTHING
+            """,
+            [v + (datetime.datetime.now(datetime.timezone.utc),) for v in values],
+            page_size=200,
+        )
+    return len(values)
 
 
 # ---------------------------------------------------------------------------

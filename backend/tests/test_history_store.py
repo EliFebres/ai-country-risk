@@ -150,8 +150,12 @@ def db(monkeypatch):
     with store._transaction() as cur:
         cur.execute(store._HISTORICAL_ARTICLE_DDL)
         cur.execute(store._HARVEST_CHECKPOINT_DDL)
+        cur.execute(store._RUN_LEDGER_DDL)
+        cur.execute(store._DIGEST_CACHE_DDL)
         cur.execute("DELETE FROM historical_article")
         cur.execute("DELETE FROM harvest_checkpoint")
+        cur.execute("DELETE FROM history_run_ledger")
+        cur.execute("DELETE FROM history_digest_cache")
     return store
 
 
@@ -287,3 +291,88 @@ class TestExistingUrls:
 
     def test_an_empty_ask_does_not_query(self, db):
         assert db.existing_urls([]) == set()
+
+
+@needs_db
+class TestRunLedger:
+    """The scoring-phase ledger. Every rule here exists to stop paying twice."""
+
+    AS_OF = datetime.date(2019, 3, 4)
+
+    def test_a_run_round_trips_with_its_manifest_and_result(self, db):
+        db.write_run(self.AS_OF, "PT", "named", status="complete", spend_usd=0.031,
+                     manifest={"scoring_mode": "named", "mask_map_version": None},
+                     result={"score": 0.42})
+        rows = db.read_runs("named")
+        assert len(rows) == 1
+        assert rows[0]["result"] == {"score": 0.42}
+        assert rows[0]["manifest"]["scoring_mode"] == "named"
+
+    def test_writing_twice_writes_one_row(self, db):
+        for spend in (0.01, 0.02):
+            db.write_run(self.AS_OF, "PT", "masked", status="complete", spend_usd=spend)
+        assert len(db.read_runs()) == 1
+        assert db.total_spend_usd() == pytest.approx(0.02)
+
+    def test_the_two_modes_are_two_rows_on_the_same_date(self, db):
+        """A masked and a named score for one week must coexist — that pair *is*
+        the divergence meter."""
+        db.write_run(self.AS_OF, "PT", "masked", status="complete")
+        db.write_run(self.AS_OF, "PT", "named", status="complete")
+        assert len(db.read_runs()) == 2
+
+    def test_a_rerun_does_not_blank_a_manifest_it_lacks(self, db):
+        db.write_run(self.AS_OF, "PT", "masked", status="complete",
+                     manifest={"scoring_mode": "masked"})
+        db.write_run(self.AS_OF, "PT", "masked", status="complete")
+        assert db.read_runs()[0]["manifest"] == {"scoring_mode": "masked"}
+
+    def test_only_complete_runs_are_skipped_on_resume(self, db):
+        db.write_run(self.AS_OF, "PT", "masked", status="complete")
+        db.write_run(datetime.date(2019, 3, 11), "PT", "masked", status="failed")
+        assert db.completed_runs("masked") == {self.AS_OF}
+        assert db.completed_runs("masked", "BR") == set()
+
+    def test_spend_survives_a_restart(self, db):
+        """The budget governor's memory lives here, not in the runner."""
+        db.write_run(self.AS_OF, "PT", "masked", status="complete", spend_usd=1.25)
+        db.write_run(self.AS_OF, "BR", "masked", status="failed", spend_usd=0.75)
+        assert db.total_spend_usd() == pytest.approx(2.00)
+
+    def test_an_unknown_mode_is_refused(self, db):
+        with pytest.raises(ValueError):
+            db.write_run(self.AS_OF, "PT", "unmasked", status="complete")
+
+
+@needs_db
+class TestDigestCache:
+    """Weekly windows overlap about fourfold; this is what stops paying 4x."""
+
+    def test_a_digest_round_trips_by_content_hash(self, db):
+        db.write_digest_cache(
+            [{"content_sha256": "abc", "digest": {"summary": "s"}, "stage1_severity": 0.6}],
+            "gpt-4o-mini-2024-07-18", "named")
+        hit = db.read_digest_cache(["abc"], "gpt-4o-mini-2024-07-18", "named")
+        assert hit["abc"]["digest"] == {"summary": "s"}
+        assert hit["abc"]["stage1_severity"] == pytest.approx(0.6)
+
+    def test_a_miss_is_an_absent_key(self, db):
+        assert db.read_digest_cache(["nope"], "gpt-4o-mini-2024-07-18", "named") == {}
+
+    def test_the_masked_digest_is_never_served_for_the_named_one(self, db):
+        """Same article, same model, different text. Serving one for the other
+        would silently un-mask the masked run."""
+        db.write_digest_cache([{"content_sha256": "abc", "digest": {"m": "masked"}}],
+                              "gpt-4o-mini-2024-07-18", "masked")
+        assert db.read_digest_cache(["abc"], "gpt-4o-mini-2024-07-18", "named") == {}
+        assert db.read_digest_cache(["abc"], "gpt-4o-mini-2024-07-18", "masked")
+
+    def test_a_failed_digest_is_not_cached_as_a_failure(self, db):
+        written = db.write_digest_cache(
+            [{"content_sha256": "abc", "digest": None},
+             {"content_sha256": None, "digest": {"summary": "s"}}],
+            "gpt-4o-mini-2024-07-18", "named")
+        assert written == 0
+
+    def test_an_empty_ask_does_not_query(self, db):
+        assert db.read_digest_cache([], "gpt-4o-mini-2024-07-18", "named") == {}
