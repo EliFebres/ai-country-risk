@@ -233,7 +233,8 @@ def refresh_ledger_sources() -> None:
 def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict],
                      *, as_of: Optional[date] = None,
                      items: Optional[List[Dict]] = None,
-                     scoring_mode: str = "masked") -> None:
+                     scoring_mode: str = "masked",
+                     upsert: bool = True) -> tuple:
     """Run the full pipeline for one country: macro payload → news → LLM score
     → Top-3 selection/enrichment → DB upsert. Appends the country's Top-3 to
     ``global_alert_pool`` for the post-loop global alert ranking.
@@ -247,13 +248,30 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         items: pre-assembled articles, from ``history.snapshot_select``. Supplying
             them is the *only* difference between a historical run and a live
             one: the article source changes and nothing else does.
-        scoring_mode: ``'masked'`` or ``'named'``, stamped onto the snapshot row.
-            Masked is the default and the production regime: the model is shown
-            the evidence with the identity removed and every number intact.
-            Backfilling 2016 and scoring tomorrow have to be the same
-            instrument, and the only way that is true is if the live run and
-            the backfill present the model with the same anonymized structure.
-            ``'named'`` is the diagnostic twin, for measuring the divergence.
+        scoring_mode: which regime scored this row.
+
+            ``'masked'`` is the default and the production regime: the model is
+            shown the evidence with the identity removed and every number
+            intact. Backfilling 2016 and scoring tomorrow have to be the same
+            instrument, and the only way that is true is if the live run and the
+            backfill present the model with the same anonymized structure.
+
+            ``'named'`` is the diagnostic twin, for measuring what identity was
+            worth.
+
+            ``'masked_nostructural'`` is the same masked payload with the
+            ``structural`` block withheld. It exists because divergence between
+            masked and named is ambiguous on its own: a small gap could mean the
+            structural facts recovered what the name carried, or that the name
+            never mattered. Only the third arm separates those.
+        upsert: write to ``risk_snapshot``. False for the diagnostic modes,
+            which land in ``history_run_ledger`` instead — they share
+            ``(country, as_of)`` with their masked twin and would overwrite the
+            production series on its own primary key.
+
+    Returns:
+        ``(llm_output, input_manifest)``, so a caller that suppressed the upsert
+        still has something to record.
     """
     historical = as_of is not None
 
@@ -302,7 +320,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     #     `scored`; everything the database and the front end read stays on
     #     `items`, unmasked. Masking is a transform at the scoring boundary and
     #     nowhere else — the same rule the harvest follows for stored bodies.
-    masked = scoring_mode == "masked"
+    masked = scoring_mode.startswith("masked")
     scored = rewrite.mask_items(items, iso2) if masked else items
     display = langchain_llm.MASKED_COUNTRY_LABEL if masked else country_name
 
@@ -343,7 +361,12 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         # Static, so it needs no vintage bound and is read the same way for a
         # 2016 anchor and for today. Degrades like every other store: a
         # malformed file costs the structural block, not the score.
-        structural=_safe(curated_loader.load_structural_facts, iso2, "structural") or {},
+        #
+        # Withheld entirely for the no-structural arm, which is the one thing
+        # that tells "the structural facts worked" apart from "identity never
+        # mattered".
+        structural={} if scoring_mode == "masked_nostructural" else
+        (_safe(curated_loader.load_structural_facts, iso2, "structural") or {}),
         # Only a historical run restricts the data vintage. The daily run passes
         # None and behaves exactly as before — handing it today's date would
         # drop the current year's annual figures, whose period ends in December.
@@ -447,16 +470,21 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     for a in top_articles:
         global_alert_pool.append({**a, "country_iso2": iso2, "country_name": country_name})
 
-    # 7) Upsert to DB
-    data_push.upsert_snapshot(
-        {**payload, "llm_output": llm_output, "top_articles": top_articles,
-         "input_manifest": input_manifest, "scoring_mode": scoring_mode},
-        country_name=country_name
-    )
+    # 7) Upsert to DB — unless this is a diagnostic arm, which shares
+    #    (country, as_of) with its masked twin and would overwrite the
+    #    production series on its own primary key. Those land in
+    #    `history_run_ledger` instead, which the caller writes.
+    if upsert:
+        data_push.upsert_snapshot(
+            {**payload, "llm_output": llm_output, "top_articles": top_articles,
+             "input_manifest": input_manifest, "scoring_mode": scoring_mode},
+            country_name=country_name
+        )
 
-    logger.info("[%s] score=%s", iso2, llm_output.get("score"))
+    logger.info("[%s] score=%s (%s)", iso2, llm_output.get("score"), scoring_mode)
     logger.info("article_url: %s", [a["url"] for a in top_articles])
     logger.info("img_url: %s", [a["image"] for a in top_articles])
+    return llm_output, input_manifest
 
 
 def process_all_countries() -> List[Dict]:

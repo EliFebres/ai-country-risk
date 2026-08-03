@@ -114,7 +114,20 @@ WAYBACK_WINDOW_DAYS: int = 180
 #            `history_run_ledger` and never touch `risk_snapshot`: a series that
 #            silently changes scoring regime half way through its own history is
 #            worse than no series at all.
-SCORING_MODES: tuple[str, ...] = ("masked", "named")
+#   masked_nostructural
+#          — the same ~60 diagnostic dates, masked, with the `structural` block
+#            withheld. It exists because masked-vs-named divergence is ambiguous
+#            on its own: a small gap could mean the structural facts recovered
+#            what the name was carrying, or that the name never carried
+#            anything. Only the third arm tells those apart, and it costs about
+#            a dollar. Ledger-only, like `named`.
+SCORING_MODES: tuple[str, ...] = ("masked", "named", "masked_nostructural")
+
+# The modes that must never touch `risk_snapshot`. They share (country, as_of)
+# with their masked twin and would overwrite the production series on its own
+# primary key — a series that silently changes regime half way through its own
+# history is worse than no series at all.
+DIAGNOSTIC_MODES: tuple[str, ...] = ("named", "masked_nostructural")
 
 # Weekly, anchored on Monday. Matches the cadence the full 48-country backfill
 # will use, so the pilot is a scale model rather than a different experiment.

@@ -1,12 +1,16 @@
-"""CLI for the History Machine's harvest phase.
+"""CLI for the History Machine: harvest, vintage, score, report.
 
 ``main.py`` is the only *process* the backend runs — the weekly ETL, the prices
 tick, the panel rebuild. None of that is this. Harvesting ten years of articles
-is a one-off backfill that takes days of somebody else's rate limit, so it gets
-its own entry point rather than a job in the scheduler's tuple.
+takes days of somebody else's rate limit and scoring them costs real money, so
+both get their own entry point rather than a job in the scheduler's tuple.
 
-Nothing here scores anything. It fills the article store and reports on what it
-filled.
+Nothing here computes a score. `score` and `diagnostic` drive
+``pipeline._process_country`` with ``as_of`` pinned — the same code path the
+daily run takes, which is the entire premise of the project. If the backfill had
+its own scoring path, the series would be measuring the backfill.
+
+Every command that spends money prints its projection and waits for a yes.
 
 Usage:
     python -m backend.utils.history.run guardian     # step 2
@@ -17,9 +21,13 @@ Usage:
     python -m backend.utils.history.run monthly      # step 7 (IMF monthly, back-dated)
     python -m backend.utils.history.run restamp      # step 7 (re-date stored rows)
     python -m backend.utils.history.run report       # counts, evenness, recovery curve
+
+    python -m backend.utils.history.run score ...    # step 9/10 (asks before spending)
+    python -m backend.utils.history.run diagnostic   # step 10 (the named arms)
 """
 
 import argparse
+import datetime
 import logging
 import os
 import pathlib
@@ -35,7 +43,7 @@ load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv()
 
 from backend.utils.data_upsert import data_push  # noqa: E402
-from backend.utils.history import config, store, wayback  # noqa: E402
+from backend.utils.history import config, score, store, wayback  # noqa: E402
 from backend.utils.history.adapters import gdelt, guardian, nyt  # noqa: E402
 from backend.utils.history.vintage import lags, monthly, restamp, weo  # noqa: E402
 
@@ -155,7 +163,7 @@ def _restamp_diff(iso2: str) -> None:
         print(f"{iso2}: nothing to re-date.")
         return
 
-    today = __import__("datetime").date.today()
+    today = datetime.date.today()
     latest: dict = {}
     for row in changed:
         code = row["indicator_code"]
@@ -197,6 +205,89 @@ def _restamp(args) -> None:
     print(f"\nLags: {lags.SCHEME}. WEO editions keep their own dates.")
 
 
+def _confirm_spend(label: str, n_snapshots: int, args) -> bool:
+    """Print the projection and the observed per-unit cost, then ask.
+
+    The one place money is committed, so the number shown is derived from what
+    the ledger has actually spent rather than from a constant — a projection
+    that does not move when the real cost moves is not worth approving against.
+    """
+    already = store.total_spend_usd()
+    projected = score.projection(n_snapshots)
+    per = projected / n_snapshots if n_snapshots else 0.0
+
+    print(f"\n=== {label} ===")
+    print(f"  snapshots        : {n_snapshots}")
+    print(f"  observed per unit: ${per:.4f}")
+    print(f"  projection       : ${projected:.2f}")
+    print(f"  already spent    : ${already:.2f}")
+    print(f"  budget           : ${config.PILOT_BUDGET_USD:.2f} "
+          f"(hard: the run aborts rather than exceeding it)")
+    print(f"  would leave      : ${config.PILOT_BUDGET_USD - already - projected:.2f}")
+
+    if already + projected > config.PILOT_BUDGET_USD:
+        print("\nThis would exceed the budget. Raise PILOT_BUDGET_USD deliberately "
+              "or narrow the run.")
+        return False
+    if args.approved:
+        return True
+    try:
+        return input("\nProceed? [y/N] ").strip().lower() == "y"
+    except EOFError:
+        print("No terminal to ask on. Re-run with --approved to consent up front.")
+        return False
+
+
+def _score(args) -> None:
+    """Score a range of anchors in one mode, after showing what it costs."""
+    roster = args.roster or list(config.PILOT_ROSTER)
+    start = (datetime.date.fromisoformat(args.since) if args.since
+             else datetime.date.fromisoformat(config.PILOT_START))
+    end = datetime.date.fromisoformat(args.until) if args.until else datetime.date.today()
+
+    dates = score.anchors(start, end)
+    outstanding = sum(len([d for d in dates if d not in store.completed_runs(args.mode, c)])
+                      for c in roster)
+    if not outstanding:
+        print("Nothing outstanding — every anchor in this range is already complete.")
+        return
+    if not _confirm_spend(f"{args.mode}: {len(roster)} country/ies x {len(dates)} anchors",
+                          outstanding, args):
+        print("Not scoring.")
+        return
+
+    totals = score.run(roster=roster, start=start, end=end, mode=args.mode)
+    print(f"\nscored {totals['scored']}, skipped {totals['skipped']}, "
+          f"failed {totals['failed']}, spent ${totals['spend_usd']:.2f}")
+    print(f"cumulative: ${store.total_spend_usd():.2f} of ${config.PILOT_BUDGET_USD:.2f}")
+
+
+def _diagnostic(args) -> None:
+    """Score the named and no-structural arms on dates chosen from the series."""
+    roster = args.roster or list(config.PILOT_ROSTER)
+    plan = score.diagnostic_plan(roster)
+    total = sum(len(v) for v in plan.values())
+    if not total:
+        print("No masked series to sample from yet. Run `score` first.")
+        return
+
+    print("\n=== diagnostic sample ===")
+    for iso2, days in sorted(plan.items()):
+        print(f"  {iso2}: {len(days)} date(s)  {', '.join(str(d) for d in days[:4])}"
+              f"{' …' if len(days) > 4 else ''}")
+
+    modes = args.mode or list(config.DIAGNOSTIC_MODES)
+    if not _confirm_spend(f"diagnostic arms {modes}", total * len(modes), args):
+        print("Not scoring.")
+        return
+
+    for mode in modes:
+        totals = score.run(roster=roster, mode=mode, dates=plan)
+        print(f"\n{mode}: scored {totals['scored']}, skipped {totals['skipped']}, "
+              f"failed {totals['failed']}, spent ${totals['spend_usd']:.2f}")
+    print(f"\ncumulative: ${store.total_spend_usd():.2f} of ${config.PILOT_BUDGET_USD:.2f}")
+
+
 def main() -> None:
     """Dispatch one harvest command."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -234,6 +325,22 @@ def main() -> None:
     p.add_argument("--revert", metavar="CSV",
                    help="restore a dump written by an earlier run")
 
+    p = sub.add_parser("score")
+    p.add_argument("--country", action="append", dest="roster",
+                   help="ISO2 code; repeatable. Defaults to PILOT_ROSTER.")
+    p.add_argument("--since", help="first anchor; defaults to PILOT_START")
+    p.add_argument("--until", help="last anchor; defaults to today")
+    p.add_argument("--mode", default="masked", choices=config.SCORING_MODES)
+    p.add_argument("--approved", action="store_true",
+                   help="consent to the projected spend up front")
+
+    p = sub.add_parser("diagnostic")
+    p.add_argument("--country", action="append", dest="roster")
+    p.add_argument("--mode", action="append",
+                   choices=config.DIAGNOSTIC_MODES,
+                   help="repeatable; defaults to both diagnostic arms")
+    p.add_argument("--approved", action="store_true")
+
     sub.add_parser("report")
     args = parser.parse_args()
 
@@ -257,6 +364,12 @@ def main() -> None:
         _wayback(args)
     elif args.command == "restamp":
         _restamp(args)
+        return
+    elif args.command == "score":
+        _score(args)
+        return
+    elif args.command == "diagnostic":
+        _diagnostic(args)
         return
     elif args.command == "monthly":
         rows = monthly.backfill(roster=args.roster, since=args.since)
