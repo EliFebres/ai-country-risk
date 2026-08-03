@@ -46,7 +46,7 @@ from backend.utils import constants
 # Bump on any change to COUNTRIES, THIN or ROLES. Stamped into every masked
 # run's manifest so a score can always be traced to the mask map that produced
 # it.
-MASK_MAP_VERSION = "g3"
+MASK_MAP_VERSION = "g4"
 
 # What each category of proper noun becomes. The scorer reads these, so they
 # read as English rather than as placeholders — "the central bank" carries the
@@ -86,6 +86,13 @@ UNMASKED_BY_DESIGN: Tuple[str, ...] = ("real", "won")
 # time, so "United States of America" is consumed before "United States" and
 # "South Korean" before "Korea" — a shorter form matching first would leave a
 # fragment behind, and a fragment is a leak.
+#
+# `regions` carries the same caution as UNMASKED_BY_DESIGN. A region name that
+# is also an ordinary English phrase — "the South", "the West", "the North" —
+# stays out: masking it corrupts far more sentences than it protects, and a
+# corpus that reads as damaged tells the scorer something is wrong with its
+# evidence, which is a worse leak than the place name it was hiding. The forms
+# listed are the unambiguous ones; the probe is what measures the rest.
 COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
     "US": {
         "names": ("United States of America", "the United States", "United States",
@@ -102,8 +109,15 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
         # Listed so "America" cannot eat the continent it is part of. Without
         # these, "Latin America" masks to "Latin the country" — a corruption
         # that appears constantly in exactly the coverage the US run reads.
+        #
+        # The rest are sub-national and identify as loudly as the name does. See
+        # the note above COUNTRIES on why "the South" and "the West" are not here.
         "regions": ("Latin America", "South America", "North America",
-                    "Central America"),
+                    "Central America",
+                    "Silicon Valley", "Wall Street", "Capitol Hill",
+                    "the Midwest", "Midwest", "New England", "the Rust Belt",
+                    "Rust Belt", "Appalachia", "the Great Lakes",
+                    "the Gulf Coast", "the West Coast", "the East Coast"),
     },
     "TR": {
         "names": ("Republic of Türkiye", "Republic of Turkiye", "Turkey", "Türkiye",
@@ -117,6 +131,9 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
                          "Central Bank of the Republic of Turkey",
                          "Central Bank of Turkey", "CBRT"),
         "statistics_office": ("Turkish Statistical Institute", "TurkStat", "TÜİK", "TUIK"),
+        "regions": ("Anatolia", "Anatolian", "Cappadocia", "the Bosphorus",
+                    "Bosphorus", "Bosporus", "the Dardanelles", "Dardanelles",
+                    "Thrace", "the Sea of Marmara", "Marmara"),
     },
     "BR": {
         "names": ("Federative Republic of Brazil", "Brazil", "Brasil"),
@@ -130,6 +147,13 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
         "central_bank": ("Banco Central do Brasil", "Central Bank of Brazil", "BCB",
                          "Copom", "COPOM"),
         "statistics_office": ("Brazilian Institute of Geography and Statistics", "IBGE"),
+        # No bare "Amazon": it is a company far more often than a rainforest in
+        # this corpus, and masking it would turn earnings coverage into nonsense.
+        # The qualified forms are unambiguous.
+        "regions": ("the Amazon rainforest", "Amazon rainforest", "the Amazon basin",
+                    "Amazon basin", "Amazonia", "Amazônia", "the Pantanal",
+                    "Pantanal", "the Cerrado", "Cerrado", "Minas Gerais",
+                    "Copacabana", "Ipanema"),
     },
     "PT": {
         "names": ("Portuguese Republic", "Portugal"),
@@ -140,6 +164,16 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
         "central_bank": ("Banco de Portugal", "Bank of Portugal"),
         "statistics_office": ("Instituto Nacional de Estatística",
                               "Statistics Portugal", "INE"),
+        # The live masked run of 2026-08-03 passed the integrity scan with zero
+        # flagged tokens and the probe still named Portugal at 0.9 confidence,
+        # citing the Douro Valley and the Algarve. Neither is a name, a demonym,
+        # a currency or a capital, so nothing was going to catch them — a wine
+        # region identifies a country as precisely as its central bank does.
+        "regions": ("the Douro Valley", "Douro Valley", "the Douro", "Douro",
+                    "the Algarve", "Algarve", "the Alentejo", "Alentejo",
+                    "Madeira", "the Azores", "Azores", "the Minho", "Minho",
+                    "Trás-os-Montes", "Tras-os-Montes",
+                    "the Iberian Peninsula", "Iberian Peninsula", "Iberia"),
     },
     "KR": {
         "names": ("Republic of Korea", "South Korea", "Korea"),
@@ -156,6 +190,12 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
         # both wrong and a louder giveaway than the name it replaced.
         "neighbors": ("North Korea", "Democratic People's Republic of Korea", "DPRK",
                       "Pyongyang", "North Korean"),
+        # "the Korean Peninsula" is listed here and not under names so it is
+        # consumed whole; left to the name patterns it becomes "the the country
+        # Peninsula", which is both broken and louder than the name.
+        "regions": ("the Korean Peninsula", "Korean Peninsula", "Gangnam",
+                    "the Demilitarized Zone", "Demilitarized Zone", "the DMZ",
+                    "Jeju", "Jeju Island"),
     },
 }
 

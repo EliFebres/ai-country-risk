@@ -119,6 +119,50 @@ class TestScanIsTheBackstop:
         assert gz.scan("", ROSTER) == [] and gz.mask("", "TR") == ""
 
 
+class TestRegionsIdentifyToo:
+    """What the live run of 2026-08-03 found and nothing else could.
+
+    That snapshot passed the integrity scan with zero flagged tokens and the
+    probe named Portugal at 0.9 confidence anyway, citing the Douro Valley and
+    the Algarve. A wine region is not a name, a demonym, a currency or a
+    capital, so no check in the project was looking at it.
+    """
+
+    def test_the_two_forms_that_actually_leaked(self):
+        masked = gz.mask("Tourism in the Algarve rose and Douro Valley exports grew.", "PT")
+        assert "Algarve" not in masked
+        assert "Douro" not in masked
+
+    def test_every_pilot_country_carries_regions(self):
+        for iso2 in ROSTER:
+            assert gz.COUNTRIES[iso2].get("regions"), iso2
+
+    def test_numbers_survive_region_masking(self):
+        # The whole point of masking: identity goes, evidence stays.
+        masked = gz.mask("Algarve tourism revenue rose 8.5% to 4.2bn.", "PT")
+        assert "8.5%" in masked and "4.2bn" in masked
+
+    def test_a_region_that_is_ordinary_english_is_left_alone(self):
+        # Masking "the South" or "the West" damages far more sentences than it
+        # protects, and a corpus that reads as broken is its own leak.
+        for form in ("the South", "the West", "the North", "the East"):
+            assert form not in gz.terms("US")
+
+    def test_a_company_that_shares_a_regions_name_survives(self):
+        assert "Amazon Web Services" in gz.mask("Amazon Web Services revenue rose.", "BR")
+        assert "the region" in gz.mask("Deforestation in the Amazon rainforest fell.", "BR")
+
+    def test_a_multiword_region_is_consumed_whole(self):
+        # "the Korean Peninsula" left to the name patterns becomes "the the
+        # country Peninsula" — broken, and louder than the name it replaced.
+        masked = gz.mask("Tension on the Korean Peninsula rose.", "KR")
+        assert "Peninsula" not in masked and "Korea" not in masked
+
+    def test_a_region_masked_payload_passes_the_scan(self):
+        text = "The Algarve and the Douro Valley drew record visitors."
+        assert gz.scan(gz.mask(text, "PT"), ROSTER) == []
+
+
 class TestTheMapItself:
     def test_every_roster_country_has_a_gazetteer(self):
         # Not just the pilot five: the daily run masks all forty-eight, and a
