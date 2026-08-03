@@ -65,6 +65,20 @@ GDELT_REQUEST_INTERVAL_SECONDS: float = 5.0
 # by crowding it.
 NYT_REQUEST_INTERVAL_SECONDS: float = 12.0
 
+# Most relevant articles kept per country per month from the NYT archive.
+#
+# The archive returns the whole paper, and the whole paper is mostly about the
+# United States: in a measured month (2018-08) the roster matched 1,824 articles
+# and 1,687 of them were US. A month holds about 4.3 weekly snapshots wanting 20
+# articles each, so ~86 is the real appetite and 1,687 is twenty times the
+# oversupply — bought at roughly 100MB of storage for articles that could never
+# be selected.
+#
+# The cut uses the live relevance score, so what is dropped is the tail no
+# snapshot would have picked, and `harvest_month` logs how many went. A cap
+# nobody reports reads afterwards as "we harvested everything".
+NYT_MAX_PER_COUNTRY_MONTH: int = 150
+
 # How far past publication a Wayback capture may sit and still be treated as a
 # capture "of" the article. Beyond six months the page has usually been
 # re-templated, and later edits start showing up as if they were original.

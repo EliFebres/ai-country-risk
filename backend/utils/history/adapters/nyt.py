@@ -12,12 +12,20 @@ one. Keeping the two in one place is the point: a country the gazetteer cannot
 find is a country it also cannot mask, and both failures should surface from the
 same fix.
 
-Everything lands ``tier='abstract-only'``. The NYT does not return body text and
-its pages are paywalled, so what is stored is the headline and the abstract, and
-the row says so rather than pretending to be a Guardian row with a missing body.
-That tier is a real evidence level, not a defect — an abstract is what the paper
-itself wrote about the story — and it is what carries the months before
-``GDELT_START`` where the corpus is otherwise Guardian-only.
+Everything lands ``tier='abstract-only'`` and ``body_status='degraded-title-only'``.
+The NYT does not return body text and its pages are paywalled, so what is stored
+is the headline and the abstract, and the row says so rather than pretending to
+be a Guardian row with a missing body. That tier is a real evidence level, not a
+defect — an abstract is what the paper itself wrote about the story — and it is
+what carries the months before ``GDELT_START`` where the corpus is otherwise
+Guardian-only.
+
+The status is deliberately **not** ``'pending'``. Pending means "a body is
+coming", and none is: a Wayback fetch of a paywalled NYT page returns the
+paywall, not the article. Queueing these would have put roughly 200,000 URLs
+into the recovery drain — weeks of polite waiting at one request a second, for
+nothing. ``degraded-title-only`` is what the store already calls "no body, use
+the title and abstract", which is exactly the truth here.
 
 Themes come from the classifier rather than from a query, because there is no
 query. ``store.article_row`` already does that for any item arriving without a
@@ -35,7 +43,7 @@ import requests
 from backend.utils import http
 from backend.utils.history import config, store
 from backend.utils.history.masking import gazetteer
-from backend.utils.news_fetching import core
+from backend.utils.news_fetching import article_ranking, core
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +54,21 @@ _ENDPOINT = "https://api.nytimes.com/svc/archive/v1/{year}/{month}.json"
 # tags most foreign coverage with a `glocations` entry, which catches stories
 # whose headline names only a city or a person.
 _PLACE_KEYWORDS = frozenset({"glocations", "subject", "organizations"})
+
+# Desks that do not carry country-risk news. A denylist rather than an allowlist
+# because a quarter of archive rows have no desk at all — mostly older and wire
+# copy — and an allowlist would silently throw all of it away.
+#
+# This matters more here than for the other two sources. The Guardian and GDELT
+# are asked a themed question; the archive hands over the entire paper, sport
+# and recipes included. In one measured month (2018-08) the desks below were
+# 25% of everything that matched a roster country.
+_SKIP_DESKS = frozenset({
+    "Sports", "Culture", "Weekend", "Society", "Style", "Dining", "Food",
+    "Travel", "Arts", "Books", "Movies", "Theater", "Television", "Obits",
+    "RealEstate", "Automobiles", "Games", "Well", "Home", "Fashion",
+    "Magazine", "TStyle", "Escapes", "Living", "Vows", "Insider", "Smarter Living",
+})
 
 
 def _api_key() -> str:
@@ -121,6 +144,15 @@ def _docs(year: int, month: int) -> List[Dict]:
         return []
 
 
+def carries_risk_news(doc: Dict) -> bool:
+    """Is this document from a desk that reports the kind of news being scored?
+
+    A document with no desk is kept: absent is not the same as excluded, and a
+    quarter of the archive predates the field.
+    """
+    return (doc.get("news_desk") or "").strip() not in _SKIP_DESKS
+
+
 def searchable_text(doc: Dict) -> str:
     """Everything about a document worth matching a country against.
 
@@ -172,21 +204,35 @@ def harvest_month(year: int, month: int, roster: List[str]) -> Dict[str, int]:
     Returns:
         Rows written per country ISO2.
     """
-    docs = _docs(year, month)
+    docs = [d for d in _docs(year, month) if carries_risk_news(d)]
     written: Dict[str, int] = {}
 
     for iso2 in roster:
-        rows = []
+        country = config.country_name(iso2)
+        items = []
         for doc in docs:
             if not gazetteer.mentions(searchable_text(doc), iso2):
                 continue
             item = to_item(doc)
-            if not item:
-                continue
+            if item:
+                item["relevance_score"] = article_ranking.score_relevance(item, country)
+                items.append(item)
+
+        # Keep the most relevant, by the live scorer, and say what went. The
+        # tail is articles no snapshot could have selected; dropping them
+        # silently would read afterwards as a complete harvest.
+        kept = core.by_relevance(items)[:config.NYT_MAX_PER_COUNTRY_MONTH]
+        if len(items) > len(kept):
+            logger.info("[nyt] %04d-%02d %s: kept %d of %d matches (cap %d)",
+                        year, month, iso2, len(kept), len(items),
+                        config.NYT_MAX_PER_COUNTRY_MONTH)
+
+        rows = []
+        for item in kept:
             try:
                 rows.append(store.article_row(
                     item, country_iso2=iso2, source_system=SOURCE_SYSTEM,
-                    body_status="pending", tier="abstract-only"))
+                    body_status="degraded-title-only", tier="abstract-only"))
             except ValueError as exc:
                 # One malformed document must not cost the month its others.
                 logger.debug("[nyt] skipped a document: %s", exc)

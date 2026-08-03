@@ -434,7 +434,10 @@ class TestNytHarvestEconomics:
         nyt.harvest_month(2018, 8, ["TR"])
 
         assert rows[0]["tier"] == "abstract-only"
-        assert rows[0]["body_status"] == "pending"
+        # Not 'pending': pending means a body is coming, and none is. A Wayback
+        # fetch of a paywalled NYT page returns the paywall. Queueing these
+        # would put ~200k URLs into the recovery drain for nothing.
+        assert rows[0]["body_status"] == "degraded-title-only"
         assert rows[0]["body"] is None
 
     def test_a_month_is_skipped_only_for_countries_that_have_it(self, monkeypatch):
@@ -469,3 +472,58 @@ class TestNytHarvestEconomics:
 
         assert len(seen) > 1 and statuses[0] == "failed"
         assert written == 2 * (len(seen) - 1)
+
+
+class TestNytDeskFilter:
+    """The archive hands over the whole paper, sport and recipes included."""
+
+    def test_a_sports_document_is_not_risk_news(self):
+        assert not nyt.carries_risk_news({**NYT_DOC, "news_desk": "Sports"})
+
+    def test_a_foreign_desk_document_is(self):
+        assert nyt.carries_risk_news({**NYT_DOC, "news_desk": "Foreign"})
+
+    def test_a_document_with_no_desk_is_kept(self):
+        # A quarter of the archive predates the field; absent is not excluded.
+        assert nyt.carries_risk_news({**NYT_DOC, "news_desk": ""})
+        assert nyt.carries_risk_news({k: v for k, v in NYT_DOC.items() if k != "news_desk"})
+
+    def test_the_filter_runs_before_the_country_match(self, monkeypatch):
+        rows = []
+        monkeypatch.setattr(nyt, "_docs", lambda y, m: [
+            {**NYT_DOC, "news_desk": "Sports"}, {**NYT_DOC, "news_desk": "Foreign"}])
+        monkeypatch.setattr(nyt.store, "upsert_articles", lambda r: rows.extend(r) or len(r))
+        assert nyt.harvest_month(2018, 8, ["TR"]) == {"TR": 1}
+
+
+class TestNytVolumeCap:
+    """The archive is mostly about the United States, and a month wants ~86."""
+
+    def test_the_cap_keeps_the_most_relevant(self, monkeypatch):
+        many = [{**NYT_DOC, "web_url": f"https://www.nytimes.com/{i}",
+                 "headline": {"main": ("Turkey inflation crisis deepens" if i < 3
+                                       else "A quiet day in Turkey")}}
+                for i in range(10)]
+        rows = []
+        monkeypatch.setattr(nyt, "_docs", lambda y, m: many)
+        monkeypatch.setattr(nyt.config, "NYT_MAX_PER_COUNTRY_MONTH", 3)
+        monkeypatch.setattr(nyt.store, "upsert_articles", lambda r: rows.extend(r) or len(r))
+
+        assert nyt.harvest_month(2018, 8, ["TR"]) == {"TR": 3}
+        assert all("crisis" in r["title"] for r in rows), "the cap dropped the wrong tail"
+
+    def test_a_dropped_tail_is_reported(self, monkeypatch, caplog):
+        # A cap nobody reports reads afterwards as a complete harvest.
+        monkeypatch.setattr(nyt, "_docs", lambda y, m: [
+            {**NYT_DOC, "web_url": f"https://www.nytimes.com/{i}"} for i in range(5)])
+        monkeypatch.setattr(nyt.config, "NYT_MAX_PER_COUNTRY_MONTH", 2)
+        monkeypatch.setattr(nyt.store, "upsert_articles", lambda r: len(r))
+
+        with caplog.at_level("INFO"):
+            nyt.harvest_month(2018, 8, ["TR"])
+        assert "kept 2 of 5" in caplog.text
+
+    def test_under_the_cap_nothing_is_dropped(self, monkeypatch):
+        monkeypatch.setattr(nyt, "_docs", lambda y, m: [NYT_DOC])
+        monkeypatch.setattr(nyt.store, "upsert_articles", lambda r: len(r))
+        assert nyt.harvest_month(2018, 8, ["TR"]) == {"TR": 1}
