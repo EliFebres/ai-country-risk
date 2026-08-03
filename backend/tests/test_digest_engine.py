@@ -10,7 +10,7 @@ import pytest
 from backend.utils.ai import digest_engine
 from backend.utils.data_upsert import data_push
 
-from datetime import date
+from datetime import date, timedelta
 
 AS_OF = date(2026, 7, 26)
 
@@ -202,6 +202,105 @@ class TestDigestArticlesCache:
             digest_engine.digest_articles([], country_display="X", iso2="PRT", as_of=AS_OF)
         with pytest.raises(TypeError):
             digest_engine.digest_articles([], country_display="X", iso2="PT", as_of="2026-07-26")
+
+
+class _FakeContentCache:
+    """A content-keyed cache, in a dict. Matches `history.store`'s two functions."""
+
+    def __init__(self):
+        self.rows = {}          # (sha, model, mode) -> row
+        self.reads = []
+
+    def read_digest_cache(self, hashes, digest_model, mode):
+        self.reads.append((sorted(hashes), digest_model, mode))
+        return {sha: self.rows[(sha, digest_model, mode)]
+                for sha in hashes if (sha, digest_model, mode) in self.rows}
+
+    def write_digest_cache(self, rows, digest_model, mode):
+        for r in rows:
+            self.rows[(r["content_sha256"], digest_model, mode)] = {
+                "digest": r["digest"], "stage1_severity": r.get("stage1_severity")}
+        return len(rows)
+
+
+class TestTheContentKeyedCache:
+    """The overlap between consecutive anchors, which is most of the pilot's bill.
+
+    Weekly anchors and a 30-day window put one article in about four snapshots.
+    Keyed on `as_of` every one of those is a miss.
+    """
+
+    def test_a_later_anchor_reuses_the_earlier_anchors_digest(self, stage1):
+        cache = _FakeContentCache()
+        first = _item("a1", text="body one", link="http://x/1")
+        stage1.results = [_digest(70.0)]
+        digest_engine.digest_articles([first], country_display="Portugal", iso2="PT",
+                                      as_of=AS_OF, content_cache=cache)
+        assert stage1.structured.batch_sizes == [1]
+
+        # Next week's snapshot: same article, different as_of, so the per-day
+        # cache misses. Without the content cache this is a second API call.
+        stage1.structured = None
+        later = _item("a1", text="body one", link="http://x/1")
+        digest_engine.digest_articles([later], country_display="Portugal", iso2="PT",
+                                      as_of=AS_OF + timedelta(days=7),
+                                      content_cache=cache)
+        assert later["digest"] == _digest(70.0)
+        assert later["stage1_severity"] == 70.0
+        assert stage1.structured is None, "re-digested an article it already had"
+
+    def test_masked_and_named_never_share_a_digest(self, stage1):
+        """Two genuinely different texts. Serving one for the other leaks a name."""
+        cache = _FakeContentCache()
+        stage1.results = [_digest(70.0)]
+        digest_engine.digest_articles([_item("a1", text="body one", link="http://x/1")],
+                                      country_display="Portugal", iso2="PT",
+                                      as_of=AS_OF, masked=False, content_cache=cache)
+        stage1.structured = None
+        stage1.results = [_digest(40.0)]
+        it = _item("a1", text="body one", link="http://x/1")
+        digest_engine.digest_articles([it], country_display="a country", iso2="PT",
+                                      as_of=AS_OF, masked=True, content_cache=cache)
+        assert stage1.structured.batch_sizes == [1], "served a named digest to a masked run"
+        assert it["digest"] == _digest(40.0)
+
+    def test_the_two_masked_arms_share_digests(self, stage1):
+        """What keeps the third arm nearly free.
+
+        `masked` and `masked_nostructural` differ only in the structural block,
+        which the digest never sees. If these two re-digest the same content the
+        pilot's digest line doubles for no benefit.
+        """
+        cache = _FakeContentCache()
+        stage1.results = [_digest(70.0)]
+        digest_engine.digest_articles([_item("a1", text="body one", link="http://x/1")],
+                                      country_display="a country", iso2="PT",
+                                      as_of=AS_OF, masked=True, content_cache=cache)
+        stage1.structured = None
+        it = _item("a1", text="body one", link="http://x/1")
+        digest_engine.digest_articles([it], country_display="a country", iso2="PT",
+                                      as_of=AS_OF, masked=True, content_cache=cache)
+        assert stage1.structured is None
+        assert it["digest"] == _digest(70.0)
+        assert {mode for _, _, mode in cache.reads} == {"masked"}
+
+    def test_the_daily_run_passes_none_and_is_untouched(self, stage1):
+        it = _item("a1", text="body one", link="http://x/1")
+        stage1.results = [_digest(70.0)]
+        digest_engine.digest_articles([it], country_display="Portugal", iso2="PT",
+                                      as_of=AS_OF)
+        assert it["digest"] == _digest(70.0)
+
+    def test_a_broken_content_cache_degrades_to_digesting(self, stage1):
+        class _Boom:
+            def read_digest_cache(self, *a, **k): raise RuntimeError("down")
+            def write_digest_cache(self, *a, **k): raise RuntimeError("down")
+
+        it = _item("a1", text="body one", link="http://x/1")
+        stage1.results = [_digest(70.0)]
+        digest_engine.digest_articles([it], country_display="Portugal", iso2="PT",
+                                      as_of=AS_OF, content_cache=_Boom())
+        assert it["digest"] == _digest(70.0)
 
 
 class TestArticleInputText:

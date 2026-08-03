@@ -23,7 +23,7 @@ import datetime
 import hashlib
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Protocol, Sequence
 
 from langchain_core.messages import SystemMessage
 
@@ -33,6 +33,20 @@ from backend.utils.data_upsert import data_push
 from backend.utils.news_fetching import core as news_core
 
 logger = logging.getLogger(__name__)
+
+
+class ContentCache(Protocol):
+    """A digest cache keyed on content rather than on ``(country, as_of, url)``.
+
+    Structural only — ``history.store`` satisfies it by having the two functions,
+    with no import in either direction.
+    """
+
+    def read_digest_cache(self, hashes: Sequence[str], digest_model: str,
+                          mode: str) -> Dict[str, Dict]: ...
+
+    def write_digest_cache(self, rows: Sequence[Dict], digest_model: str,
+                           mode: str) -> int: ...
 
 # Stage-1 calls in flight at once. High enough to keep a 20-article country
 # fast, low enough to stay clear of per-minute rate limits.
@@ -90,6 +104,7 @@ def digest_articles(
     iso2: str,
     as_of: datetime.date,
     masked: bool = False,
+    content_cache: Optional["ContentCache"] = None,
 ) -> List[Dict]:
     """Digest every article's full text with the cheap stage-1 model.
 
@@ -113,6 +128,20 @@ def digest_articles(
             the cache key, because the same article text digested under the two
             modes produces two different digests and only one of them is safe
             to send.
+        content_cache: an optional second cache keyed on the *content hash*
+            rather than on ``(country, as_of, url)``, consulted before the model
+            and written after it.
+
+            The daily run passes None and behaves exactly as before. A backfill
+            passes one because its anchors overlap: weekly anchors with a 30-day
+            window put the same article in about four consecutive snapshots, and
+            keyed on ``as_of`` each of those is a miss, so the pilot would pay
+            to digest every article four times over for digests that are
+            identical by construction.
+
+            Kept as a parameter rather than an import so this module does not
+            reach into the backfill package — the same layering the masking
+            package was moved out of ``history`` to preserve.
 
     Returns:
         The same list, mutated. Per-article failures leave ``digest = None``;
@@ -167,6 +196,30 @@ def digest_articles(
             it["stage1_severity"] = None
             pending_idx.append(i)
 
+    # Second chance for the misses: the same article in last week's snapshot has
+    # a different `as_of` and so missed above, but its digest is byte-identical.
+    from_content = 0
+    if pending_idx and content_cache is not None:
+        mode = "masked" if masked else "named"
+        shas = {i: _content_sha(texts[i], masked) for i in pending_idx}
+        try:
+            hits = content_cache.read_digest_cache(
+                sorted(set(shas.values())), ai_client.DIGEST_MODEL_NAME, mode)
+        except Exception as exc:
+            logger.warning("[%s] content digest cache read failed (%s); "
+                           "digesting everything", iso2, exc)
+            hits = {}
+        still_pending = []
+        for i in pending_idx:
+            hit = hits.get(shas[i])
+            if hit and isinstance(hit.get("digest"), dict):
+                items[i]["digest"] = hit["digest"]
+                items[i]["stage1_severity"] = _severity_or_none(hit.get("stage1_severity"))
+                from_content += 1
+            else:
+                still_pending.append(i)
+        pending_idx = still_pending
+
     ok = 0
     if pending_idx:
         api_key = os.getenv("OPENAI_API_KEY")
@@ -219,9 +272,18 @@ def digest_articles(
                     data_push.upsert_article_digests(new_rows)
                 except Exception as exc:
                     logger.warning("[%s] digest cache write failed: %s", iso2, exc)
+                if content_cache is not None:
+                    try:
+                        content_cache.write_digest_cache(
+                            new_rows, ai_client.DIGEST_MODEL_NAME,
+                            "masked" if masked else "named")
+                    except Exception as exc:
+                        logger.warning("[%s] content digest cache write failed: %s",
+                                       iso2, exc)
 
-    failed = len(items) - ok - cached
-    logger.info("[%s] digests: ok=%d cached=%d failed=%d", iso2, ok, cached, failed)
+    failed = len(items) - ok - cached - from_content
+    logger.info("[%s] digests: ok=%d cached=%d content-cached=%d failed=%d",
+                iso2, ok, cached, from_content, failed)
     return items
 
 

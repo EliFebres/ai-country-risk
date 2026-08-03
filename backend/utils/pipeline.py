@@ -240,7 +240,8 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
                      *, as_of: Optional[date] = None,
                      items: Optional[List[Dict]] = None,
                      scoring_mode: str = "masked",
-                     upsert: bool = True) -> tuple:
+                     upsert: bool = True,
+                     digest_content_cache: Optional[Any] = None) -> tuple:
     """Run the full pipeline for one country: macro payload → news → LLM score
     → Top-3 selection/enrichment → DB upsert. Appends the country's Top-3 to
     ``global_alert_pool`` for the post-loop global alert ranking.
@@ -274,6 +275,12 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             which land in ``history_run_ledger`` instead — they share
             ``(country, as_of)`` with their masked twin and would overwrite the
             production series on its own primary key.
+        digest_content_cache: forwarded to ``digest_engine.digest_articles``. A
+            backfill hands it ``history.store``, whose digest cache is keyed on
+            content instead of on ``as_of`` and so survives the overlap between
+            consecutive anchors. Forwarded rather than imported: this module sits
+            above the layers, and reaching down into the backfill package to find
+            a cache would invert that.
 
     Returns:
         ``(llm_output, input_manifest)``, so a caller that suppressed the upsert
@@ -340,6 +347,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         # *writes*. `actors: who did what to whom` reads as an instruction to
         # name people, and people are exactly what the gazetteer cannot know.
         masked=masked,
+        content_cache=digest_content_cache,
     )
     fulltext_ids = digest_engine.select_fulltext_ids(scored)
     logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)

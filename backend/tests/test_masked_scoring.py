@@ -219,7 +219,8 @@ class TestThePipelineMasksBeforeItDigests:
     def test_the_digest_prompt_never_sees_the_country(self, monkeypatch):
         seen = {}
 
-        def fake_digest(items, *, country_display, iso2, as_of, masked=False):
+        def fake_digest(items, *, country_display, iso2, as_of, masked=False,
+                        content_cache=None):
             seen["display"] = country_display
             seen["masked"] = masked
             seen["text"] = json.dumps(items)

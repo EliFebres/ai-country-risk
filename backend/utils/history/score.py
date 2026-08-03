@@ -89,6 +89,16 @@ def score_one(iso2: str, as_of: datetime.date, mode: str,
                 # The two diagnostic arms would overwrite their own masked twin
                 # on `risk_snapshot`'s primary key. They live in the ledger.
                 upsert=mode not in config.DIAGNOSTIC_MODES,
+                # Weekly anchors and a 30-day window put the same article in
+                # about four consecutive snapshots. The daily run's cache is
+                # keyed on `as_of`, so all four are misses and the pilot pays
+                # four times for one digest; this one is keyed on content.
+                #
+                # It is also what makes `masked` and `masked_nostructural` share
+                # their digests: the two arms differ only in the structural
+                # block, which is nowhere near the digest, so they hash the same
+                # and the second arm is nearly free.
+                digest_content_cache=store,
             )
         except usage.BudgetExhausted:
             store.write_run(as_of, iso2, mode, status="failed",
