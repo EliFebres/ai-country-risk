@@ -19,7 +19,7 @@ costs a single phase rather than the whole day.
 """
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from backend.utils import constants, data_retrieval, lint, provenance
@@ -163,10 +163,29 @@ def refresh_ledger_sources() -> None:
         logger.exception("[curated] series load ERROR")
 
 
-def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]) -> None:
+def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict],
+                     *, as_of: Optional[date] = None,
+                     items: Optional[List[Dict]] = None,
+                     scoring_mode: str = "named") -> None:
     """Run the full pipeline for one country: macro payload → news → LLM score
     → Top-3 selection/enrichment → DB upsert. Appends the country's Top-3 to
-    ``global_alert_pool`` for the post-loop global alert ranking."""
+    ``global_alert_pool`` for the post-loop global alert ranking.
+
+    Args:
+        as_of: pin the snapshot to a past date instead of today. Every stage
+            below already takes ``as_of`` as a real parameter — digests, the
+            evidence payload, the prompt, the sanctions lookup, the upsert key —
+            so pinning ``_meta.generated_at``, the single place the date is
+            derived from, pins all of them at once.
+        items: pre-assembled articles, from ``history.snapshot_select``. Supplying
+            them is the *only* difference between a historical run and a live
+            one: the article source changes and nothing else does.
+        scoring_mode: ``'named'`` or ``'masked'``, stamped onto the snapshot row.
+
+    A call with none of these is the daily run, byte for byte.
+    """
+    historical = as_of is not None
+
     # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
     #    the merged non-WB indicators (Political Corruption Index) so they
     #    reach both the LLM payload and the DB upsert.
@@ -178,16 +197,29 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         deltas=_PAYLOAD_DELTA_HORIZONS,
     )
 
+    if historical:
+        # The one pin. `payload_as_of` reads this field and every downstream
+        # stage takes its date from that call, so overwriting it here is what
+        # makes the whole run happen on `as_of` rather than today.
+        payload.setdefault("_meta", {})["generated_at"] = as_of.isoformat()
+
     # 2) Fetch relevant news using multi-query strategy with relevance filtering
-    items = article_enrichment.fetch_relevant_news(
-        country_name or iso2, max_articles=_MAX_ARTICLES_PER_COUNTRY
-    )
+    if items is None:
+        items = article_enrichment.fetch_relevant_news(
+            country_name or iso2, max_articles=_MAX_ARTICLES_PER_COUNTRY
+        )
 
     if items:
         avg_rel = sum(it.get("relevance_score", 0) for it in items) / len(items)
         logger.info("[%s] Fetched %d articles (avg relevance: %.2f)", iso2, len(items), avg_rel)
 
-    items = article_enrichment.resolve_and_enrich(items, iso2)
+    if not historical:
+        # Resolution and body extraction are what turn a Google News wrapper
+        # into an article. Historical items arrive already resolved, with the
+        # body the harvest stored, so re-fetching them would replace a
+        # vintage-stamped body with today's copy of the page — the exact
+        # hindsight `snapshot_select` refuses.
+        items = article_enrichment.resolve_and_enrich(items, iso2)
 
     # Assign stable ids ("a1","a2",...)
     for i, it in enumerate(items, start=1):
@@ -281,8 +313,12 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     items_by_id = {it.get("id"): it for it in items if isinstance(it, dict) and it.get("id")}
     top_ids = article_ranking.select_top_ids(items_by_id, imp_map, topic_map, iso2)
 
-    # 5) Enrich ONLY the Top-3 with missing images using the advanced scraper
-    article_enrichment.enrich_top_images(top_ids, items_by_id)
+    # 5) Enrich ONLY the Top-3 with missing images using the advanced scraper.
+    #    Skipped for historical runs: an image is decoration, not evidence, and
+    #    scraping three publishers per week per country would be thousands of
+    #    live page fetches to decorate a backfill.
+    if not historical:
+        article_enrichment.enrich_top_images(top_ids, items_by_id)
 
     # 6) Build Top-3 payload AFTER enrichment
     top_articles = article_ranking.build_top_articles(top_ids, items_by_id, imp_map)
@@ -294,7 +330,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     # 7) Upsert to DB
     data_push.upsert_snapshot(
         {**payload, "llm_output": llm_output, "top_articles": top_articles,
-         "input_manifest": input_manifest},
+         "input_manifest": input_manifest, "scoring_mode": scoring_mode},
         country_name=country_name
     )
 

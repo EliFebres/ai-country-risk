@@ -613,6 +613,27 @@ def recovery_curve() -> List[Dict[str, Any]]:
     """)
 
 
+def read_window(iso2: str, start: datetime.datetime,
+                end: datetime.datetime) -> List[Dict[str, Any]]:
+    """Every article for one country in ``[start, end)``.
+
+    The upper bound is **strict**, and that is the whole point: ``end`` is the
+    snapshot's anchor, and an article published on the anchor is same-day news
+    the live run's own cutoff would not reliably have had either.
+
+    Ordered deterministically — newest first, ties broken on URL — so two
+    assemblies of the same snapshot rank identical articles identically. The
+    relevance sort downstream is stable, so this order is what decides ties.
+    """
+    return _rows("""
+        SELECT url, publisher_link, title, abstract, body, body_status,
+               body_vintage, source_system, published_at, themes, tier
+          FROM historical_article
+         WHERE country_iso2 = %s AND published_at >= %s AND published_at < %s
+         ORDER BY published_at DESC, url ASC
+    """, (iso2, start, end))
+
+
 def existing_urls(urls: Sequence[str]) -> set:
     """Which of these URLs the store already holds.
 
