@@ -52,9 +52,13 @@ _COL_COLLECTION = "COLLECTION:Collection"
 
 _MONTHLY_PERIOD = re.compile(r"^\d{4}-\d{2}$")
 
-# Only the recent tail matters: 24 months of returns for FX volatility, and a
-# current level for the policy rate. Keeping five years bounds the write while
-# leaving room for a longer window later.
+# Only the recent tail matters for the daily run: 24 months of returns for FX
+# volatility, and a current level for the policy rate. Keeping five years bounds
+# the write while leaving room for a longer window later.
+#
+# That longer window is now the History Machine's, and it is a parameter rather
+# than a bigger default: the backfill wants a decade, the daily run wants a
+# small write, and the flat CSV holds the whole history either way.
 _KEEP_MONTHS = 60
 
 # A series whose newest observation is older than this is discontinued, not
@@ -179,17 +183,21 @@ def _cutoff_period(as_of: _dt.date) -> str:
     return f"{months // 12:04d}-{months % 12 + 1:02d}"
 
 
-def fetch_dataset_rows(code: str, *, as_of: Optional[_dt.date] = None) -> List[Dict[str, Any]]:
+def fetch_dataset_rows(code: str, *, as_of: Optional[_dt.date] = None,
+                       keep_months: Optional[int] = None) -> List[Dict[str, Any]]:
     """Fetch one BIS dataset as ``indicator_series`` rows for the whole roster.
 
     Args:
         code: registry id, either ``'BIS.POLICY.RATE'`` or ``'BIS.FX.USD'``.
         as_of: date to stamp values with. Defaults to today.
+        keep_months: how much history to keep per country. Defaults to
+            :data:`_KEEP_MONTHS`; the historical backfill passes a decade. The
+            download is the same either way — this only bounds what is written.
 
     Returns:
         Rows ready for ``data_push.upsert_indicator_series``, restricted to the
-        roster and to the most recent :data:`_KEEP_MONTHS` observations per
-        country. Empty if the download failed or the code is unknown.
+        roster and to the most recent ``keep_months`` observations per country.
+        Empty if the download failed or the code is unknown.
     """
     spec = _DATASETS.get(code)
     if not spec:
@@ -211,7 +219,7 @@ def fetch_dataset_rows(code: str, *, as_of: Optional[_dt.date] = None) -> List[D
         if not series or series[-1][0] < cutoff:
             discontinued.append(f"{iso2}@{series[-1][0]}" if series else iso2)
             continue
-        for period, value in series[-_KEEP_MONTHS:]:
+        for period, value in series[-(keep_months or _KEEP_MONTHS):]:
             rows.append({
                 "country_iso2": iso2,
                 "indicator_code": code,

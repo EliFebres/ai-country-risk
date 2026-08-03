@@ -32,7 +32,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.utils import constants
-from backend.utils.data_fetching import imf_macro_fetch
+from backend.utils.data_fetching import bis_bulk_fetch, imf_macro_fetch
 from backend.utils.history import config
 from backend.utils.history.vintage import lags
 
@@ -57,17 +57,49 @@ def restamp(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return out
 
 
+def _bis(months: int) -> List[Dict[str, Any]]:
+    """The BIS half: exchange rate and policy rate, back to the pilot floor.
+
+    The daily run keeps five years of these, which is why the store began in
+    2021 and why every snapshot before it had no exchange rate at all. The flat
+    CSV always held the whole history — only the write was bounded — so this is
+    the same fetch with a wider window, not a new source.
+
+    Whole-roster rather than pilot-only: ``fetch_dataset_rows`` downloads every
+    country in one file, so restricting it would cost a filter and save nothing.
+    """
+    rows: List[Dict[str, Any]] = []
+    for code in ("BIS.FX.USD", "BIS.POLICY.RATE"):
+        try:
+            fetched = bis_bulk_fetch.fetch_dataset_rows(code, keep_months=months)
+        except Exception:  # noqa: BLE001
+            logger.exception("[monthly] BIS %s failed; continuing", code)
+            continue
+        dated = restamp(fetched)
+        logger.info("[monthly] %s: %d row(s), %d datable", code, len(fetched), len(dated))
+        rows += dated
+    return rows
+
+
 def backfill(roster: Optional[List[str]] = None,
              since: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Every pilot country's IMF monthly history, correctly dated.
+    """Every monthly series the pilot window needs, dated when it landed.
+
+    Two sources with the same problem and the same fix: the IMF's CPI, fetched
+    per country, and the BIS exchange and policy rates, which arrive for the
+    whole roster in one file.
 
     Returns rows for ``data_push.upsert_indicator_series`` rather than writing
-    them, so the caller decides whether to accept the overwrite described in
-    the module docstring.
+    them, so the caller decides whether to accept the overwrite described in the
+    module docstring.
     """
     roster = roster or config.PILOT_ROSTER
     start = datetime.date.fromisoformat(since or config.PILOT_START)
-    lookback = datetime.date.today().year - start.year + 1
+    today = datetime.date.today()
+    lookback = today.year - start.year + 1
+    # One extra year of months, so a partial first year is covered rather than
+    # clipped: the floor is a date, not a January.
+    months = (today.year - start.year + 1) * 12
 
     rows: List[Dict[str, Any]] = []
     for iso2 in roster:
@@ -85,4 +117,5 @@ def backfill(roster: Optional[List[str]] = None,
         dated = restamp(fetched)
         logger.info("[monthly] %s: %d row(s), %d datable", iso2, len(fetched), len(dated))
         rows += dated
-    return rows
+
+    return rows + _bis(months)
