@@ -284,6 +284,11 @@ class _Observation(NamedTuple):
     period_end: date
     as_of: date
     source: str
+    # Whether `as_of` is a real publication date or a stand-in. The panel has no
+    # record of when the World Bank published a figure, so it uses the year's
+    # end; that is a placeholder wearing the shape of a vintage, and it must
+    # never outrank an edition that really was published on its date.
+    dated: bool = False
 
 
 def _panel_observations(panel: pd.DataFrame, panel_col: str) -> List[_Observation]:
@@ -324,6 +329,11 @@ def _series_observations(rows: List[dict]) -> List[_Observation]:
         observations.append(_Observation(
             value=float(value), period=str(period), freq=str(freq),
             period_end=period_end, as_of=as_of, source=str(row.get("source") or "unknown"),
+            # `indicator_series` rows carry an as_of that was decided when the
+            # row was written — a WEO edition date, or a publication-lag stamp —
+            # rather than derived from the period. That is what `dated` means,
+            # and it is what lets a real vintage outrank the panel's year-end.
+            dated=True,
         ))
     return observations
 
@@ -369,11 +379,17 @@ def _resolve(observations: List[_Observation],
         observations = [o for o in observations
                         if o.as_of <= as_of and o.period_end <= as_of]
 
+    # A real vintage always outranks a synthesized one, whatever the dates say.
+    # The panel stamps every annual figure with 31 December of its own year, so
+    # between the year end and the next WEO edition — January to March, a
+    # quarter of the anchors — that placeholder was beating the edition that
+    # actually existed, and the snapshot silently read today's revision of last
+    # year instead of the number a reader could have had.
     best: Dict[str, _Observation] = {}
     for obs in observations:
         key = f"{obs.freq}:{obs.period}"
         current = best.get(key)
-        if current is None or obs.as_of > current.as_of:
+        if current is None or (obs.dated, obs.as_of) > (current.dated, current.as_of):
             best[key] = obs
 
     # Sort by the period the value describes, not by when we learned it: an

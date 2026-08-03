@@ -204,6 +204,36 @@ class TestTheVintageRuleInThePayload:
         ], as_of=datetime.date(2018, 6, 4))
         assert [o.period for o in merged] == ["2017"]
 
+    def test_a_real_vintage_outranks_the_panels_year_end_stamp(self):
+        """January to March is a quarter of the anchors, and it was reading today.
+
+        The panel stamps every annual figure with 31 December of its own year,
+        because it has no record of when the World Bank published it. Between
+        that year end and the next WEO edition, the placeholder had the newer
+        date and won — so a February 2018 snapshot read 2026's revision of 2017
+        rather than the October 2017 estimate that was the newest thing anyone
+        could actually have had.
+        """
+        panel_stamp = data_retrieval._Observation(
+            value=1.37, period="2017", freq="A",
+            period_end=datetime.date(2017, 12, 31),
+            as_of=datetime.date(2017, 12, 31), source="World Bank panel", dated=False)
+        real_edition = data_retrieval._Observation(
+            value=1.581, period="2017", freq="A",
+            period_end=datetime.date(2017, 12, 31),
+            as_of=datetime.date(2017, 10, 1), source="IMF WEO 2017-10", dated=True)
+        merged = data_retrieval._resolve([panel_stamp, real_edition],
+                                         as_of=datetime.date(2018, 2, 20))
+        assert [o.value for o in merged] == [1.581], "the placeholder outranked the edition"
+
+    def test_the_panel_still_wins_when_it_is_the_only_source(self):
+        panel_stamp = data_retrieval._Observation(
+            value=1.37, period="2017", freq="A",
+            period_end=datetime.date(2017, 12, 31),
+            as_of=datetime.date(2017, 12, 31), source="World Bank panel", dated=False)
+        merged = data_retrieval._resolve([panel_stamp], as_of=datetime.date(2018, 2, 20))
+        assert [o.value for o in merged] == [1.37]
+
     def test_the_daily_run_is_unaffected(self):
         """No as_of means no filtering — the live path must not change."""
         observations = [
