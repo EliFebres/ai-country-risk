@@ -332,6 +332,16 @@ def harvest(roster: Optional[List[str]] = None,
                 exc, calls[0], left, len(todo), left * len(core.THEME_QUERIES),
                 -(-left * len(core.THEME_QUERIES) // per_day))
             return written
+        except Exception:  # noqa: BLE001
+            # Checkpointed as failed rather than left unwritten, so the next run
+            # retries it — only 'done' windows are skipped. A single 503 on the
+            # eighth of twelve windows must not throw away the seven behind it,
+            # which is exactly what an uncaught one did on 2026-08-03.
+            logger.exception("[guardian] %s %s failed; continuing",
+                             iso2, window_start.year)
+            store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
+                                   status="failed", note="request error")
+            continue
         store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
                                items_written=n)
         written += n

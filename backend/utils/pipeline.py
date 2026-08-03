@@ -19,6 +19,7 @@ costs a single phase rather than the whole day.
 """
 
 import logging
+import os
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
@@ -29,6 +30,7 @@ from backend.utils.data_fetching import (
     bis_bulk_fetch, curated_loader, fmp_calendar_fetch, imf_macro_fetch, wb_series_fetch,
 )
 from backend.utils.data_upsert import data_push
+from backend.utils.masking import rewrite
 from backend.utils.news_fetching import article_enrichment, article_ranking
 
 logger = logging.getLogger(__name__)
@@ -64,6 +66,32 @@ def _to_100(value: Optional[float]) -> Optional[int]:
         return round(float(value) * 100)
     except (TypeError, ValueError):
         return None
+
+
+def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str) -> None:
+    """Model-mask the handful of bodies the scorer reads end to end. Mutates.
+
+    The gazetteer masks what somebody wrote down. It does not know this week's
+    finance minister, this year's ruling party, or the bank that just failed —
+    and those are named in the full text far more often than the country is.
+
+    Fails **closed**: a rewrite that errors or comes back empty leaves the
+    article with no body, so it reaches the scorer as its masked title. Being
+    short one body costs a week some evidence; one leaked name costs the whole
+    comparison.
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key or not fulltext_ids:
+        return
+    by_id = {it.get("id"): it for it in items if isinstance(it, dict)}
+    for aid in fulltext_ids:
+        item = by_id.get(aid)
+        if not item or not item.get("text"):
+            continue
+        item["text"] = rewrite.rewrite_body(item["text"], api_key)
+        if not item["text"]:
+            logger.warning("[%s] %s degraded to title-only: the mask rewrite "
+                           "would not clear its body", iso2, aid)
 
 
 def refresh_calendar() -> None:
@@ -166,7 +194,7 @@ def refresh_ledger_sources() -> None:
 def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict],
                      *, as_of: Optional[date] = None,
                      items: Optional[List[Dict]] = None,
-                     scoring_mode: str = "named") -> None:
+                     scoring_mode: str = "masked") -> None:
     """Run the full pipeline for one country: macro payload → news → LLM score
     → Top-3 selection/enrichment → DB upsert. Appends the country's Top-3 to
     ``global_alert_pool`` for the post-loop global alert ranking.
@@ -180,9 +208,13 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         items: pre-assembled articles, from ``history.snapshot_select``. Supplying
             them is the *only* difference between a historical run and a live
             one: the article source changes and nothing else does.
-        scoring_mode: ``'named'`` or ``'masked'``, stamped onto the snapshot row.
-
-    A call with none of these is the daily run, byte for byte.
+        scoring_mode: ``'masked'`` or ``'named'``, stamped onto the snapshot row.
+            Masked is the default and the production regime: the model is shown
+            the evidence with the identity removed and every number intact.
+            Backfilling 2016 and scoring tomorrow have to be the same
+            instrument, and the only way that is true is if the live run and
+            the backfill present the model with the same anonymized structure.
+            ``'named'`` is the diagnostic twin, for measuring the divergence.
     """
     historical = as_of is not None
 
@@ -225,15 +257,32 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     for i, it in enumerate(items, start=1):
         it["id"] = f"a{i}"
 
+    # 2a) Masking, and it happens here rather than at the call because a digest
+    #     made from named text carries the name into the prompt however clean
+    #     the article beside it is. Everything from this line to the score reads
+    #     `scored`; everything the database and the front end read stays on
+    #     `items`, unmasked. Masking is a transform at the scoring boundary and
+    #     nowhere else — the same rule the harvest follows for stored bodies.
+    masked = scoring_mode == "masked"
+    scored = rewrite.mask_items(items, iso2) if masked else items
+    display = langchain_llm.MASKED_COUNTRY_LABEL if masked else country_name
+
     # 2b) Stage 1: digest every article's full text with the cheap model,
     #     keyed on the same as_of the snapshot upsert will use, then pick
     #     which articles the scorer reads in full.
     as_of = data_push.payload_as_of(payload)
-    items = digest_engine.digest_articles(
-        items, country_display=country_name, iso2=iso2, as_of=as_of
+    scored = digest_engine.digest_articles(
+        scored, country_display=display, iso2=iso2, as_of=as_of
     )
-    fulltext_ids = digest_engine.select_fulltext_ids(items)
+    fulltext_ids = digest_engine.select_fulltext_ids(scored)
     logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)
+
+    if masked:
+        # The gazetteer is a list somebody wrote; it does not know this week's
+        # ministers, parties or companies. The model pass covers what it missed,
+        # and only on the two or three bodies the scorer reads end to end —
+        # everything else reaches it as a digest of already-masked text.
+        _rewrite_fulltext(scored, fulltext_ids, iso2)
 
     # 2c) The three-ledger evidence the model actually scores on. Separate from
     #     the panel payload above, which stays the DB-facing one: `upsert_snapshot`
@@ -263,9 +312,13 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     llm_output = langchain_llm.country_llm_score(
         country_display=country_name,
         payload=evidence,
-        articles=items,
+        articles=scored,
         as_of=as_of,
         fulltext_ids=fulltext_ids,
+        # The evidence payload names the country too, in its `_meta` and its
+        # series labels, and it is serialized whole into the prompt. Masking it
+        # inside the call keeps the sanctions lookup on the real code.
+        mask_iso2=iso2 if masked else None,
     )
 
     # 3a) Lint: record contradictions between what the model flagged and what it
@@ -299,8 +352,11 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     #     country its score, so it degrades to NULL and the snapshot still writes.
     try:
         input_manifest = provenance.build_input_manifest(
-            items=items,
-            prompt_entries=langchain_llm.prompt_entries(items),
+            # `scored`, not `items`: the manifest's whole promise is that it
+            # hashes the bytes the model actually saw, and under masking those
+            # are not the bytes in the database.
+            items=scored,
+            prompt_entries=langchain_llm.prompt_entries(scored),
             fulltext_ids=fulltext_ids,
             payload=payload,
             model_id=llm_output.get("model_id"),

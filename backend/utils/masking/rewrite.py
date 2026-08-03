@@ -119,6 +119,26 @@ def mask_items(items: Iterable[Dict[str, Any]], iso2: str,
     return [mask_item(item, iso2, roster) for item in items]
 
 
+def _code_role(value: str, iso2: str, roster: List[str]) -> Optional[str]:
+    """The role for a payload value that *is* a country code, or None.
+
+    ISO2 codes are the one identifier the prose gazetteer cannot carry. As
+    patterns they are catastrophic — "IT" is information technology, "NO" is
+    no, "IN" and "ID" and "AT" are ordinary words in upper case — so masking
+    them anywhere in a sentence would shred the corpus.
+
+    But a payload value that is *exactly* "PT" is not prose. It is a field, and
+    a field naming the country is the loudest possible leak: the evidence
+    payload is serialized whole into the prompt, `_meta.country` and all.
+    Matching on the entire string rather than inside it is what makes this both
+    safe and sufficient.
+    """
+    code = value.strip().upper()
+    if len(code) != 2 or code not in roster:
+        return None
+    return gazetteer.ROLES["names"] if code == iso2.upper() else gazetteer.ROLES["foreign"]
+
+
 def mask_payload(value: Any, iso2: str,
                  roster: Optional[Iterable[str]] = None) -> Any:
     """The same two passes over every string in a nested payload. Non-mutating.
@@ -128,8 +148,9 @@ def mask_payload(value: Any, iso2: str,
     is masked *whole* rather than field by field for the same reason
     :func:`assert_clean` scans it whole: the leak is wherever nobody looked.
     """
+    roster = list(roster or gazetteer.DEFAULT_ROSTER)
     if isinstance(value, str):
-        return mask_text(value, iso2, roster)
+        return _code_role(value, iso2, roster) or mask_text(value, iso2, roster)
     if isinstance(value, dict):
         return {k: mask_payload(v, iso2, roster) for k, v in value.items()}
     if isinstance(value, list):
@@ -185,7 +206,12 @@ def assert_clean(payload: Any, roster: Optional[Iterable[str]] = None) -> None:
 def _scan_any(value: Any, roster: List[str]) -> List[str]:
     """Every roster term anywhere in a nested payload."""
     if isinstance(value, str):
-        return gazetteer.scan(value, roster)
+        # A value that *is* a country code, checked the same way
+        # `mask_payload` masks it. A gate blind to the leak its own masking
+        # pass handles is a gate that only ever confirms itself.
+        code = value.strip().upper()
+        codes = [code] if len(code) == 2 and code in roster else []
+        return codes + gazetteer.scan(value, roster)
     if isinstance(value, dict):
         return [hit for v in value.values() for hit in _scan_any(v, roster)]
     if isinstance(value, (list, tuple)):

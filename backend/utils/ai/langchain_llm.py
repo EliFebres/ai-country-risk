@@ -33,12 +33,17 @@ import backend.utils.ai.constants as ai_constants
 from backend.utils.ai import client as ai_client
 from backend.utils.ai import digest_engine
 from backend.utils.ai import policy
+from backend.utils.masking import rewrite
 
 logger = logging.getLogger(__name__)
 
 # Prompt cap for the legacy fallback path only (stage 1 entirely down): the
 # digest path sends every fetched article.
 _MAX_PROMPT_ARTICLES = 10
+
+# What a masked run calls the country in the prompt. Matches the gazetteer's
+# own `names` role, so a masked body and its label read as the same document.
+MASKED_COUNTRY_LABEL = "the country"
 
 # Matches the maxLength on RISK_SCHEMA_V3.bullet_summary.
 _MAX_SUMMARY_CHARS = 800
@@ -229,6 +234,7 @@ def country_llm_score(
     articles: List[Dict],
     as_of: date,
     fulltext_ids: Optional[List[str]] = None,
+    mask_iso2: Optional[str] = None,
 ) -> Dict[str, object]:
     """Score one country at both horizons under the friction framework.
 
@@ -253,6 +259,11 @@ def country_llm_score(
         fulltext_ids: ids whose full text the model should read (from
             ``digest_engine.select_fulltext_ids``); empty/None means no
             FULL_TEXT section.
+        mask_iso2: score this country without naming it. Everything the model
+            will see — the evidence payload, the articles, the country label —
+            is run through the gazetteer and then through the integrity gate,
+            which raises rather than sends a payload that still names a roster
+            country. None is the old named behavior, byte for byte.
 
     Returns:
         A dict whose first keys keep their historical names and 0-1 scale:
@@ -302,6 +313,17 @@ def country_llm_score(
     # Evaluated against the caller's `as_of`, not today, so a backfill of an old
     # date gets that date's rules.
     iso2 = _extract_iso2(payload)
+
+    if mask_iso2:
+        # After `_extract_iso2` and before anything is serialized. That is not
+        # a convenience: the sanctions lookup needs the real code, and this is
+        # the one line where everything the model will see is still separate
+        # objects — the last place a gate can stand.
+        payload = rewrite.mask_payload(payload, mask_iso2)
+        articles = rewrite.mask_items(articles, mask_iso2)
+        country_display = MASKED_COUNTRY_LABEL
+        rewrite.assert_clean({"evidence": payload, "articles": articles,
+                              "country": country_display})
 
     evidence_json = json.dumps(payload, ensure_ascii=False)
     article_digests_json = _digests_to_json(articles)
