@@ -208,6 +208,11 @@ class _SnapshotData(NamedTuple):
     # (``provenance.build_input_manifest``). Payload-level, not part of
     # ``llm_output`` — it describes the inputs, not the model's answer.
     input_manifest: Optional[Dict[str, Any]] = None
+    # Which scoring regime produced the row. Defaults to 'named' because that is
+    # what every caller who does not say otherwise is doing — the daily run's
+    # articles name their country. Never None: an unstamped row in a series that
+    # spans a regime change is indistinguishable from a wrong one.
+    scoring_mode: str = "named"
 
 
 class _ArticleRow(NamedTuple):
@@ -324,6 +329,7 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
         prompt_version=llm_out.get("prompt_version"),
         policy_version=llm_out.get("policy_version"),
         input_manifest=input_manifest,
+        scoring_mode=payload.get("scoring_mode") or "named",
     )
 
 
@@ -352,7 +358,12 @@ ALTER TABLE risk_snapshot
   ADD COLUMN IF NOT EXISTS order_uncertainty_score DOUBLE PRECISION,
   ADD COLUMN IF NOT EXISTS information_score       DOUBLE PRECISION,
   ADD COLUMN IF NOT EXISTS edge_vitality           DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS non_investable          BOOLEAN;
+  ADD COLUMN IF NOT EXISTS non_investable          BOOLEAN,
+  -- Which scoring regime produced this row: 'named' (the article text names the
+  -- country) or 'masked' (it does not). Every row is stamped, including this
+  -- one and every one the daily run has written since. A ten-year series that
+  -- changes regime half way through and does not say so is not a series.
+  ADD COLUMN IF NOT EXISTS scoring_mode            TEXT;
 """
 
 # ALTER TABLE takes an ACCESS EXCLUSIVE lock even when every column already
@@ -516,10 +527,10 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
               article_scores, applied_rules, evidence_coverage, legal_gate,
               model_id, prompt_version, policy_version, input_manifest,
               friction_score, order_uncertainty_score, information_score,
-              edge_vitality, non_investable
+              edge_vitality, non_investable, scoring_mode
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s)
+                    %s, %s, %s, %s, %s, %s)
             ON CONFLICT (country_iso2, as_of)
             DO UPDATE SET
               score             = EXCLUDED.score,
@@ -542,7 +553,10 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
               model_id          = COALESCE(EXCLUDED.model_id,          risk_snapshot.model_id),
               prompt_version    = COALESCE(EXCLUDED.prompt_version,    risk_snapshot.prompt_version),
               policy_version    = COALESCE(EXCLUDED.policy_version,    risk_snapshot.policy_version),
-              input_manifest    = COALESCE(EXCLUDED.input_manifest,    risk_snapshot.input_manifest)
+              input_manifest    = COALESCE(EXCLUDED.input_manifest,    risk_snapshot.input_manifest),
+              -- Not COALESCEd: the mode of the run that just wrote is the mode
+              -- of the row, and a re-score in the other regime must say so.
+              scoring_mode      = EXCLUDED.scoring_mode
             """,
             (
                 data.country, data.as_of,
@@ -559,6 +573,7 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                 _json_or_none(data.input_manifest),
                 data.friction_score, data.order_uncertainty_score,
                 data.information_score, data.edge_vitality, data.non_investable,
+                data.scoring_mode,
             ),
         )
 
