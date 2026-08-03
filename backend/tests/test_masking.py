@@ -12,7 +12,7 @@ No network and no model: both model passes take an injected chat object.
 import pytest
 
 from backend.utils.history import config
-from backend.utils.history.masking import gazetteer, probe, rewrite
+from backend.utils.masking import gazetteer, probe, rewrite
 
 
 class FakeChat:

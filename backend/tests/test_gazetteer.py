@@ -15,7 +15,7 @@ No network, no model, no database.
 import pytest
 
 from backend.utils.history import config
-from backend.utils.history.masking import gazetteer as gz
+from backend.utils.masking import gazetteer as gz
 
 ROSTER = config.PILOT_ROSTER
 
@@ -120,16 +120,41 @@ class TestScanIsTheBackstop:
 
 
 class TestTheMapItself:
-    def test_every_pilot_country_has_a_gazetteer(self):
-        assert set(gz.COUNTRIES) == set(ROSTER)
+    def test_every_roster_country_has_a_gazetteer(self):
+        # Not just the pilot five: the daily run masks all forty-eight, and a
+        # country with no entry would be scored named without anyone noticing.
+        assert set(gz.COUNTRIES) == set(gz.DEFAULT_ROSTER)
+        assert len(gz.COUNTRIES) == 48
 
     def test_every_category_has_a_role(self):
         for iso2, entry in gz.COUNTRIES.items():
             assert set(entry) <= set(gz.ROLES), iso2
 
-    def test_every_country_has_a_name_and_a_central_bank(self):
-        for iso2, entry in gz.COUNTRIES.items():
+    def test_every_pilot_country_is_curated_to_its_central_bank(self):
+        for iso2 in ROSTER:
+            entry = gz.COUNTRIES[iso2]
             assert entry.get("names") and entry.get("central_bank"), iso2
+
+    def test_every_country_has_a_name_and_a_currency(self):
+        # The thin tier's floor. Anything below this is not masking.
+        for iso2, entry in gz.COUNTRIES.items():
+            assert entry.get("names") and entry.get("currency"), iso2
+
+    def test_the_thin_tier_carries_a_demonym_or_a_multiword_name(self):
+        # "Japanese" and "New Zealand" identify a country as surely as its name.
+        for iso2 in gz.THIN:
+            entry = gz.COUNTRIES[iso2]
+            assert entry.get("demonyms") or " " in entry["names"][0], iso2
+
+    def test_ambiguous_currency_codes_are_left_out(self):
+        # "PEN" is a pen and "COP" is a police officer; masking them would
+        # damage text nowhere near a country name.
+        assert "PEN" not in gz.terms("PE") and "COP" not in gz.terms("CO")
+        assert "Peruvian Sol" in gz.terms("PE")
+
+    def test_a_thin_country_masks_its_own_forms(self):
+        masked = gz.mask("Tokyo raised the Japanese Yen against Japan.", "JP")
+        assert gz.scan(masked, ["JP"]) == []
 
     def test_forms_are_ordered_longest_first(self):
         lengths = [len(form) for form in gz.terms("KR")]
@@ -140,6 +165,48 @@ class TestTheMapItself:
         # improved gazetteer would serve digests of differently-masked text.
         assert gz.MASK_MAP_VERSION
 
+class TestEveryoneElseFlattens:
+    """The foreign pass, without which the gate fires on every real snapshot.
+
+    A story about Portugal that mentions Germany is ordinary; a gate that
+    refuses to send it is a gate somebody turns off.
+    """
+
+    def test_another_roster_country_becomes_a_flat_role(self):
+        masked = gz.mask_foreign("Germany and Japan disagreed.", "PT")
+        assert "Germany" not in masked and "Japan" not in masked
+        assert masked.count(gz.ROLES["foreign"]) == 2
+
+    def test_the_scored_country_survives_the_foreign_pass(self):
+        # It has already had its own, richer pass; this one must not touch it.
+        assert gz.mask_foreign("Portugal met Germany.", "PT").startswith("Portugal")
+
+    def test_the_scored_country_keeps_its_specific_roles(self):
+        masked = gz.mask_foreign(gz.mask("The Bank of Korea met Germany.", "KR"), "KR")
+        assert "the central bank" in masked
+
+    def test_a_swallowed_article_leaves_readable_text(self):
+        # "the Bank of Korea" must not become "the another country" — text that
+        # reads as damaged says something was removed.
+        assert gz.mask_foreign("the Bank of Korea held rates.", "PT") == \
+            "another country held rates."
+
+    def test_the_longest_form_wins_inside_the_alternation(self):
+        # Python's `|` is leftmost-first, so "Korea" listed before "North Korea"
+        # would leave "North another country" behind.
+        assert "North" not in gz.mask_foreign("North Korea tested a missile.", "PT")
+
+    def test_a_masked_snapshot_passes_the_scan(self):
+        text = "Turkey, Brazil and the UK met in Tokyo; Lisbon abstained."
+        masked = gz.mask_foreign(gz.mask(text, "PT"), "PT")
+        assert gz.scan(masked, gz.DEFAULT_ROSTER) == []
+
+    def test_a_custom_roster_does_not_poison_the_default(self):
+        assert "Germany" in gz.mask_foreign("Germany spoke.", "PT", ["PT", "BR"])
+        assert "Germany" not in gz.mask_foreign("Germany spoke.", "PT")
+
+
+class TestTheMapItselfContinued:
     def test_mentions_finds_a_country_by_any_form(self):
         assert gz.mentions("The Fed raised rates.", "US")
         assert gz.mentions("Ankara responded.", "TR")

@@ -390,7 +390,7 @@ class TestNytCountryFilter:
     def test_the_filter_reuses_the_gazetteer(self):
         # Not a second list of country names: a country the gazetteer cannot
         # find is one it also cannot mask, and both should fail from one fix.
-        from backend.utils.history.masking import gazetteer
+        from backend.utils.masking import gazetteer
         assert gazetteer.mentions(nyt.searchable_text(NYT_DOC), "TR")
         assert not gazetteer.mentions(nyt.searchable_text(NYT_DOC), "PT")
 

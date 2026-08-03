@@ -22,16 +22,18 @@ not a degraded result, it is a wrong one, and it would sit in the series
 looking exactly like a right one.
 
 The scan covers the *whole roster*, not just the country being scored: an
-article naming a different pilot country lets the probe rule countries out by
-elimination, which is the same leak wearing a hat.
+article naming a different roster country lets the probe rule countries out by
+elimination, which is the same leak wearing a hat. So the gazetteer pass masks
+the whole roster too — the scored country by its roles, everyone else flattened
+to "another country" — because a gate that fires on every real snapshot is a
+gate somebody turns off.
 """
 
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
 from backend.utils.ai import client as ai_client
-from backend.utils.history import config
-from backend.utils.history.masking import gazetteer
+from backend.utils.masking import gazetteer
 
 logger = logging.getLogger(__name__)
 
@@ -86,22 +88,53 @@ class MaskLeak(RuntimeError):
     """
 
 
-def mask_item(item: Dict[str, Any], iso2: str) -> Dict[str, Any]:
+def mask_text(text: str, iso2: str, roster: Optional[Iterable[str]] = None) -> str:
+    """The scored country by its roles, every other roster country flattened.
+
+    Both passes, in this order, because the scored country's central bank must
+    survive as "the central bank" while everyone else's collapses to "another
+    country" — running the flat pass first would eat the specific one.
+    """
+    return gazetteer.mask_foreign(gazetteer.mask(text, iso2), iso2, roster)
+
+
+def mask_item(item: Dict[str, Any], iso2: str,
+              roster: Optional[Iterable[str]] = None) -> Dict[str, Any]:
     """One article with its text masked by the gazetteer. Non-mutating.
 
-    The original item is left alone because the named run scores the same
-    article, and the two must differ only in what the model was shown.
+    The original item is left alone because the DB and the front end still show
+    the real headline: masking is a transform at the scoring boundary, not a
+    property of the stored article.
     """
     masked = dict(item)
     for field in _TEXT_FIELDS:
         if masked.get(field):
-            masked[field] = gazetteer.mask(masked[field], iso2)
+            masked[field] = mask_text(masked[field], iso2, roster)
     return masked
 
 
-def mask_items(items: Iterable[Dict[str, Any]], iso2: str) -> List[Dict[str, Any]]:
+def mask_items(items: Iterable[Dict[str, Any]], iso2: str,
+               roster: Optional[Iterable[str]] = None) -> List[Dict[str, Any]]:
     """Every article in a snapshot, masked by the gazetteer."""
-    return [mask_item(item, iso2) for item in items]
+    return [mask_item(item, iso2, roster) for item in items]
+
+
+def mask_payload(value: Any, iso2: str,
+                 roster: Optional[Iterable[str]] = None) -> Any:
+    """The same two passes over every string in a nested payload. Non-mutating.
+
+    The evidence payload names the country in its ``_meta``, in series labels
+    and in provenance, and all of it is serialized straight into the prompt. It
+    is masked *whole* rather than field by field for the same reason
+    :func:`assert_clean` scans it whole: the leak is wherever nobody looked.
+    """
+    if isinstance(value, str):
+        return mask_text(value, iso2, roster)
+    if isinstance(value, dict):
+        return {k: mask_payload(v, iso2, roster) for k, v in value.items()}
+    if isinstance(value, list):
+        return [mask_payload(v, iso2, roster) for v in value]
+    return value
 
 
 def rewrite_body(text: str, api_key: str, model_chat: Optional[Any] = None) -> str:
@@ -139,7 +172,7 @@ def assert_clean(payload: Any, roster: Optional[Iterable[str]] = None) -> None:
         MaskLeak: naming the forms found, so the gazetteer can be fixed rather
             than the run merely retried.
     """
-    roster = list(roster or config.PILOT_ROSTER)
+    roster = list(roster or gazetteer.DEFAULT_ROSTER)
     found = sorted(set(_scan_any(payload, roster)))
     if found:
         raise MaskLeak(
