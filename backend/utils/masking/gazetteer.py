@@ -124,7 +124,7 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
                   "Turkiye"),
         "demonyms": ("Turkish",),
         "people": ("Turks",),
-        "currency": ("Turkish lira", "lira", "TRY"),
+        "currency": ("Turkish lira", "lira", "TRY", "₺"),
         "capital": ("Ankara",),
         "cities": ("Istanbul", "Izmir", "İzmir", "Bursa", "Antalya", "Adana"),
         "central_bank": ("Central Bank of the Republic of Türkiye",
@@ -139,8 +139,9 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
         "names": ("Federative Republic of Brazil", "Brazil", "Brasil"),
         "demonyms": ("Brazilian",),
         "people": ("Brazilians",),
-        # No bare "real" — see UNMASKED_BY_DESIGN.
-        "currency": ("Brazilian real", "reais", "BRL"),
+        # No bare "real" — see UNMASKED_BY_DESIGN. "R$" is here because a probe
+        # run cited it by name as its reason for identifying Brazil.
+        "currency": ("Brazilian real", "reais", "BRL", "R$"),
         "capital": ("Brasília", "Brasilia"),
         "cities": ("São Paulo", "Sao Paulo", "Rio de Janeiro", "Belo Horizonte",
                    "Salvador", "Curitiba", "Recife", "Porto Alegre"),
@@ -158,7 +159,7 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
     "PT": {
         "names": ("Portuguese Republic", "Portugal"),
         "demonyms": ("Portuguese",),
-        "currency": ("euro", "EUR"),
+        "currency": ("euro", "EUR", "€"),
         "capital": ("Lisbon", "Lisboa"),
         "cities": ("Porto", "Oporto", "Braga", "Coimbra", "Faro", "Funchal"),
         "central_bank": ("Banco de Portugal", "Bank of Portugal"),
@@ -180,7 +181,7 @@ COUNTRIES: Dict[str, Dict[str, Tuple[str, ...]]] = {
         "demonyms": ("South Korean", "Korean"),
         "people": ("South Koreans", "Koreans"),
         # No bare "won" — see UNMASKED_BY_DESIGN.
-        "currency": ("South Korean won", "Korean won", "KRW"),
+        "currency": ("South Korean won", "Korean won", "KRW", "₩"),
         "capital": ("Seoul",),
         "cities": ("Busan", "Pusan", "Incheon", "Daegu", "Daejeon", "Gwangju", "Ulsan"),
         "central_bank": ("Bank of Korea", "BOK"),
@@ -367,7 +368,18 @@ def _forms(iso2: str) -> List[Tuple[str, str]]:
     pairs += [(form + "s", ROLES["currency"])
               for form in entry.get("currency", ())
               if not form.endswith("s") and not form.isupper()]
+    # A symbol runs straight into its digits, so its replacement has to supply
+    # the space the symbol never needed: "R$4,200" -> "the local currency 4,200"
+    # rather than "the local currency4,200", which reads as damaged text and
+    # tells the scorer something is wrong with its evidence.
+    pairs = [(form, role + " " if form[-1:] in _SYMBOL_TAIL else role)
+             for form, role in pairs]
     return sorted(pairs, key=lambda pair: len(pair[0]), reverse=True)
+
+
+# Currency symbols sit flush against their digits — "R$4,200", "€2.1bn" — so a
+# trailing "not a word character" lookahead can never match one.
+_SYMBOL_TAIL = "$€₺₩£¥"
 
 
 def _compile(form: str) -> re.Pattern:
@@ -376,9 +388,15 @@ def _compile(form: str) -> re.Pattern:
     Lookarounds rather than ``\\b`` because several forms end in a period
     ("U.S.") where a word boundary sits in the wrong place, and several contain
     one ("Washington, D.C.").
+
+    A form ending in a currency symbol drops the trailing lookahead, because
+    what follows it is always a digit. Restricted to the symbol set rather than
+    to "any non-word character": dropping it for "U.S." would let that form
+    match inside "U.S.S.R." and turn it into "the countryS.R.".
     """
     flags = 0 if form in _CASE_SENSITIVE else re.IGNORECASE
-    return re.compile(rf"(?<!\w){re.escape(form)}(?!\w)", flags)
+    tail = "" if form[-1:] in _SYMBOL_TAIL else r"(?!\w)"
+    return re.compile(rf"(?<!\w){re.escape(form)}{tail}", flags)
 
 
 # Built once per country: this runs over every article body in a 2,600-snapshot

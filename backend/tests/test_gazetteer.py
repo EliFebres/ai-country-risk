@@ -163,6 +163,33 @@ class TestRegionsIdentifyToo:
         assert gz.scan(gz.mask(text, "PT"), ROSTER) == []
 
 
+class TestCurrencySymbols:
+    """A probe run named "R$" as its reason for identifying Brazil."""
+
+    def test_a_symbol_flush_against_its_digits_is_masked(self):
+        # The case the word-boundary lookahead could never match.
+        assert "R$" not in gz.mask("The price hit R$4,200 per tonne.", "BR")
+        assert "€" not in gz.mask("Exports reached €2.1bn.", "PT")
+        assert "₺" not in gz.mask("The lira fell to ₺18.5.", "TR")
+        assert "₩" not in gz.mask("Revenue was ₩1.2tn.", "KR")
+
+    def test_the_number_survives_the_symbol(self):
+        assert "4,200" in gz.mask("The price hit R$4,200 per tonne.", "BR")
+        assert "2.1bn" in gz.mask("Exports reached €2.1bn.", "PT")
+
+    def test_the_replacement_supplies_the_space_the_symbol_did_not(self):
+        # "the local currency4,200" reads as damaged, which is its own leak.
+        assert "the local currency 4,200" in gz.mask("hit R$4,200 today", "BR")
+
+    def test_dropping_the_lookahead_did_not_break_dotted_forms(self):
+        # "U.S." must not match inside "U.S.S.R." and leave "the countryS.R.".
+        assert "U.S.S.R." in gz.mask("The U.S.S.R. collapsed.", "US")
+
+    def test_ordinary_english_still_survives(self):
+        assert gz.mask("Real GDP rose and the party won.", "BR") == \
+            "Real GDP rose and the party won."
+
+
 class TestTheMapItself:
     def test_every_roster_country_has_a_gazetteer(self):
         # Not just the pilot five: the daily run masks all forty-eight, and a
