@@ -23,9 +23,10 @@ PILOT_ROSTER: list[str] = ["US", "TR", "BR", "PT", "KR"]
 # stops being honest is what the step-4 recovery curve is for.
 PILOT_START: str = "2016-08-03"
 
-# The GDELT DOC 2.0 API's own article floor. Months before this are Guardian and
-# NYT only — a real thinning of the corpus, not a bug, and the harvest counts
-# report it rather than hiding it.
+# The GDELT DOC 2.0 API's own article floor. Dormant: the pilot is Guardian and
+# NYT only, because the DOC endpoint answers roughly one call per multi-minute
+# window from a single IP — see the measurement in ``adapters/gdelt``. Kept so
+# the adapter still has a floor to harvest from if the ngrams route replaces it.
 GDELT_START: str = "2017-01-01"
 
 # Hard ceiling on the step-4 leakage scan. The scan is the one OpenAI-billable
@@ -52,11 +53,14 @@ GUARDIAN_SUBDIVIDE_ABOVE_PAGES: int = 5
 GDELT_MAX_RECORDS: int = 250
 
 # GDELT's own stated limit, quoted verbatim from the body it returns with a 429:
-# "Please limit requests to one every 5 seconds". One per second is five times
-# too fast, and it does not merely throttle — every retry inside the backoff
-# window 429s too, so the whole harvest dies on its first call. Five seconds
-# makes the full harvest ~5 hours instead of ~1, which is the actual price of
-# this dataset being free.
+# "Please limit requests to one every 5 seconds".
+#
+# It is not the real limit, and this constant is why the source is dormant.
+# Measured on 2026-08-03, five seconds is far too fast and so is thirty: the
+# endpoint answers the first call after a long idle and 429s everything after
+# it, spacing regardless. Honouring the stated interval would still have failed
+# the harvest — the number in their error message is not the number they
+# enforce.
 GDELT_REQUEST_INTERVAL_SECONDS: float = 5.0
 
 # The NYT developer tier allows five requests a minute. Twelve seconds apart is

@@ -10,7 +10,7 @@ filled.
 
 Usage:
     python -m backend.utils.history.run guardian     # step 2
-    python -m backend.utils.history.run gdelt        # step 3
+    python -m backend.utils.history.run gdelt        # step 3 (dormant, needs --anyway)
     python -m backend.utils.history.run wayback      # step 4 (asks before spending)
     python -m backend.utils.history.run nyt          # step 5
     python -m backend.utils.history.run weo          # step 7 (per-edition macro)
@@ -134,6 +134,9 @@ def main() -> None:
         p.add_argument("--since", help="ISO date overriding the configured floor")
         p.add_argument("--country", action="append", dest="roster",
                        help="ISO2 code; repeatable. Defaults to PILOT_ROSTER.")
+        if name == "gdelt":
+            p.add_argument("--anyway", action="store_true",
+                           help="harvest anyway, knowing what it costs")
 
     p = sub.add_parser("wayback")
     p.add_argument("--limit", type=int, help="stop after this many articles")
@@ -150,6 +153,16 @@ def main() -> None:
     if args.command == "guardian":
         guardian.harvest(roster=args.roster, since=args.since)
     elif args.command == "gdelt":
+        # Dormant, and the reason is a measurement rather than an opinion — see
+        # the module docstring. The guard exists because the harvest is
+        # resumable and polite and looks perfectly safe to start, and starting
+        # it costs about twelve days.
+        if not args.anyway:
+            print("GDELT is dormant: the DOC API answers ~1 call per multi-minute "
+                  "window from one IP, making this harvest ~12 days with most "
+                  "windows failing. See backend/utils/history/adapters/gdelt.py.\n"
+                  "Pass --anyway if you mean it.")
+            return
         gdelt.harvest(roster=args.roster, since=args.since)
     elif args.command == "nyt":
         nyt.harvest(roster=args.roster, since=args.since)

@@ -1,4 +1,4 @@
-"""GDELT DOC 2.0 harvester — breadth without bodies.
+"""GDELT DOC 2.0 harvester — breadth without bodies. **Dormant: see below.**
 
 GDELT indexes an order of magnitude more of the world's news than any single
 publisher's API, which is what makes a country like Turkey or Korea harvestable
@@ -12,8 +12,34 @@ that breadth actually survived.
 
 The DOC API over HTTP, not BigQuery: no key, no credentials, no new dependency,
 and a month-windowed query is cheap enough that there is no reason to reach for
-the warehouse. There is also no quota to manage, which is why the windows here
-stay months while the Guardian's had to become years.
+the warehouse.
+
+Why this source is not in the pilot
+-----------------------------------
+The plan above assumed the only discipline was politeness. It is not. Measured
+against the live endpoint on 2026-08-03, twelve calls varying both spacing and
+query form:
+
+    30s apart — 1 of 6 answered
+    20s apart — 1 of 4
+    10s apart — 2 of 4
+
+The failure is not the request interval and not the query syntax: quoted and
+unquoted multi-word phrases each both succeeded and failed across repetitions.
+The signature is a per-IP budget — the first call after a multi-minute idle is
+answered and everything after it 429s, whatever the spacing. The body returned
+with the 429 is GDELT's generic error page, which is why it reads like a rate
+limit however you provoke it.
+
+At that throughput the 3,500-call pilot harvest is roughly twelve days of wall
+clock with most windows failing. Guardian and NYT already put ~91k articles in
+the store across the roster, and what GDELT would add is bodyless stubs that
+each cost a Wayback fetch on top.
+
+So the module stays, tested and working, and nothing calls it. The upgrade path
+is the one GDELT's own error page points at: the web-ngrams dataset, or a bulk
+route rather than a query-per-window one. Revisit at 48-country scale, where the
+breadth would actually be worth the engineering.
 """
 
 import datetime
