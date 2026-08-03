@@ -40,9 +40,19 @@ LEAKAGE_SCAN_BUDGET_USD: float = 3.0
 # thousands of requests. One per second, always, with a real backoff on 429.
 REQUEST_INTERVAL_SECONDS: float = 1.0
 
-# Guardian's maximum page size. The dominant lever on the free tier's daily call
-# budget: at 200 a country-year of one theme is usually a single call.
-GUARDIAN_PAGE_SIZE: int = 200
+# Guardian page size. Their documented maximum is 200 and that was the setting,
+# because it is the dominant lever on the free tier's daily call budget.
+#
+# 200 is not reliable. On 2026-08-03 one window — KR 2020, the friction query —
+# returned 503 for `page-size=200&page=2` on every attempt, while the same 594
+# results came back fine at `page-size=100&page=3` and at `page-size=50&page=5`.
+# A specific (query, size, page) triple failing deterministically is a server
+# bug, not a rate limit, and 100 halves the exposure at a cost of roughly twice
+# the calls — about 1,200 for a full pilot harvest, against a 5,000/day budget.
+#
+# ponytail: blunt instrument. If a 503 ever recurs at 100, the real fix is to
+# retry the failing page at half the size rather than to keep halving this.
+GUARDIAN_PAGE_SIZE: int = 100
 
 # A window needing more than this many pages is split — year into quarters,
 # quarter into months — for that country/theme only. Expected to fire on the US.
