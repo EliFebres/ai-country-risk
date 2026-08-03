@@ -21,7 +21,7 @@ import re
 import pytest
 
 from backend.utils.history import config
-from backend.utils.history.adapters import gdelt, guardian
+from backend.utils.history.adapters import gdelt, guardian, nyt
 from backend.utils.news_fetching import core
 
 # One result exactly as the Content API returns it, fields and all.
@@ -235,7 +235,7 @@ class TestNoAdapterForksTheCore:
     the shared core exists to prevent, and exactly the kind that looks fine in
     every count."""
 
-    MODULES = (guardian, gdelt)
+    MODULES = (guardian, gdelt, nyt)
     FORBIDDEN = ("_HIGH_KEYWORDS", "score_relevance", "select_with_theme_floor",
                  "_select_with_theme_floor", "headline_key", "_by_relevance")
 
@@ -251,11 +251,26 @@ class TestNoAdapterForksTheCore:
             assert not re.search(rf"^\s*(def|{re.escape(name)}\s*=)\s*{re.escape(name)}\b",
                                  source, re.M), f"{module.__name__} redefines {name}"
 
+    # Adapters that retrieve by theme. NYT is exempt from the second half of
+    # the rule below because it has no query at all: the archive endpoint takes
+    # a year and a month and returns the whole paper, so its themes come from
+    # `store.article_row`'s classifier. It is still forbidden from carrying a
+    # theme list of its own.
+    THEME_QUERYING = (guardian, gdelt)
+
     @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)
     def test_no_adapter_carries_its_own_theme_queries(self, module):
         source = inspect.getsource(module)
         assert "THEME_QUERIES: dict" not in source
-        assert "core.THEME_QUERIES" in source
+        if module in self.THEME_QUERYING:
+            assert "core.THEME_QUERIES" in source
+
+    def test_an_adapter_with_no_query_still_gets_themed(self):
+        # The exemption above must not become a silently untagged corpus: rows
+        # with no `_theme` are classified from their text at the store boundary,
+        # which is what fills the same per-theme floor the live run uses.
+        from backend.utils.history import store
+        assert "core.classify_themes" in inspect.getsource(store.article_row)
 
     @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)
     def test_no_adapter_extracts_bodies_itself(self, module):
@@ -306,3 +321,151 @@ class TestRetryRespectsAStatedRateLimit:
         params = inspect.signature(http_mod.retry_transient).parameters
         assert params["initial"].default == 1
         assert params["max_wait"].default == 30
+
+
+# One document exactly as the Archive API returns it, fields and all.
+NYT_DOC = {
+    "web_url": "https://www.nytimes.com/2018/08/13/world/europe/turkey-lira-crisis.html",
+    "snippet": "The currency's collapse deepened.",
+    "lead_paragraph": "The currency's collapse deepened on Monday as investors fled.",
+    "abstract": "The lira fell to a record low, deepening a crisis.",
+    "headline": {"main": "Turkey's Currency Crisis Deepens", "kicker": None},
+    "keywords": [{"name": "glocations", "value": "Turkey"},
+                 {"name": "subject", "value": "Currency"},
+                 {"name": "persons", "value": "Some Person"}],
+    "pub_date": "2018-08-13T09:30:00+0000",
+    "document_type": "article",
+    "news_desk": "Foreign",
+    "section_name": "World",
+    "word_count": 1200,
+    "source": "The New York Times",
+}
+
+
+class TestNytPayload:
+    def test_a_document_becomes_a_valid_item(self):
+        assert core.validate_item(nyt.to_item(NYT_DOC))
+
+    def test_the_fields_land_where_they_belong(self):
+        item = nyt.to_item(NYT_DOC)
+        assert item["title"] == "Turkey's Currency Crisis Deepens"
+        assert item["link"] == NYT_DOC["web_url"]
+        assert item["source"] == "The New York Times"
+        assert item["snippet"].startswith("The lira fell")
+
+    def test_a_document_carries_no_body(self):
+        # The NYT returns none and its pages are paywalled. The row says so via
+        # tier='abstract-only' rather than pretending to be a missing body.
+        assert nyt.to_item(NYT_DOC)["text"] == ""
+
+    def test_the_lead_paragraph_backs_up_a_missing_abstract(self):
+        item = nyt.to_item({**NYT_DOC, "abstract": ""})
+        assert item["snippet"].startswith("The currency's collapse")
+
+    def test_a_document_with_no_url_is_dropped(self):
+        assert nyt.to_item({**NYT_DOC, "web_url": ""}) is None
+
+    def test_a_document_with_no_headline_is_dropped(self):
+        assert nyt.to_item({**NYT_DOC, "headline": {}}) is None
+
+    def test_a_document_with_no_date_is_dropped(self):
+        assert nyt.to_item({**NYT_DOC, "pub_date": None}) is None
+
+
+class TestNytCountryFilter:
+    """The archive cannot be queried per country, so the filter is the source."""
+
+    def test_a_country_is_found_by_name(self):
+        assert "Turkey" in nyt.searchable_text(NYT_DOC)
+
+    def test_place_keywords_are_searched(self):
+        # Catches a story whose headline names only a person or a city.
+        doc = {**NYT_DOC, "headline": {"main": "A Quiet Week"}, "abstract": "",
+               "lead_paragraph": ""}
+        assert "Turkey" in nyt.searchable_text(doc)
+
+    def test_person_keywords_are_not_searched(self):
+        assert "Some Person" not in nyt.searchable_text(NYT_DOC)
+
+    def test_the_filter_reuses_the_gazetteer(self):
+        # Not a second list of country names: a country the gazetteer cannot
+        # find is one it also cannot mask, and both should fail from one fix.
+        from backend.utils.history.masking import gazetteer
+        assert gazetteer.mentions(nyt.searchable_text(NYT_DOC), "TR")
+        assert not gazetteer.mentions(nyt.searchable_text(NYT_DOC), "PT")
+
+
+class TestNytMonths:
+    def test_months_tile_the_range(self):
+        got = nyt.months(datetime.date(2016, 11, 15), datetime.date(2017, 2, 3))
+        assert got == [(2016, 11), (2016, 12), (2017, 1), (2017, 2)]
+
+    def test_a_single_month_is_one_call(self):
+        assert nyt.months(datetime.date(2018, 5, 2), datetime.date(2018, 5, 30)) == [(2018, 5)]
+
+    def test_month_bounds_cover_the_month(self):
+        assert nyt.month_bounds(2020, 2) == (datetime.date(2020, 2, 1),
+                                             datetime.date(2020, 2, 29))
+        assert nyt.month_bounds(2018, 12) == (datetime.date(2018, 12, 1),
+                                              datetime.date(2018, 12, 31))
+
+    def test_months_are_stable_across_runs(self):
+        args = (datetime.date(2016, 8, 3), datetime.date(2018, 4, 1))
+        assert nyt.months(*args) == nyt.months(*args)
+
+
+class TestNytHarvestEconomics:
+    def test_one_call_serves_every_country(self, monkeypatch):
+        """Fetching per country would be five times the calls for the same bytes."""
+        calls, rows = [], []
+        monkeypatch.setattr(nyt, "_docs", lambda y, m: calls.append((y, m)) or [NYT_DOC])
+        monkeypatch.setattr(nyt.store, "upsert_articles", lambda r: rows.extend(r) or len(r))
+
+        written = nyt.harvest_month(2018, 8, ["TR", "PT", "BR"])
+
+        assert len(calls) == 1
+        assert written == {"TR": 1, "PT": 0, "BR": 0}
+
+    def test_rows_land_on_the_degraded_tier(self, monkeypatch):
+        rows = []
+        monkeypatch.setattr(nyt, "_docs", lambda y, m: [NYT_DOC])
+        monkeypatch.setattr(nyt.store, "upsert_articles", lambda r: rows.extend(r) or len(r))
+
+        nyt.harvest_month(2018, 8, ["TR"])
+
+        assert rows[0]["tier"] == "abstract-only"
+        assert rows[0]["body_status"] == "pending"
+        assert rows[0]["body"] is None
+
+    def test_a_month_is_skipped_only_for_countries_that_have_it(self, monkeypatch):
+        asked = []
+        monkeypatch.setattr(nyt.store, "completed_windows",
+                            lambda src, iso2: {datetime.date(2016, 8, 1)} if iso2 == "PT" else set())
+        monkeypatch.setattr(nyt, "harvest_month",
+                            lambda y, m, wanted: asked.append((y, m, tuple(wanted))) or {})
+        monkeypatch.setattr(nyt.store, "write_checkpoint", lambda *a, **kw: None)
+        monkeypatch.setattr(nyt.time, "sleep", lambda s: None)
+
+        nyt.harvest(roster=["PT", "TR"], since="2016-08-01")
+
+        assert asked[0][2] == ("TR",), "PT already had August 2016"
+
+    def test_one_bad_month_does_not_end_the_harvest(self, monkeypatch):
+        seen, statuses = [], []
+
+        def boom(year, month, wanted):
+            seen.append((year, month))
+            if len(seen) == 1:
+                raise RuntimeError("500 from the archive")
+            return {"PT": 2}
+
+        monkeypatch.setattr(nyt.store, "completed_windows", lambda src, iso2: set())
+        monkeypatch.setattr(nyt, "harvest_month", boom)
+        monkeypatch.setattr(nyt.store, "write_checkpoint",
+                            lambda *a, **kw: statuses.append(kw.get("status", "done")))
+        monkeypatch.setattr(nyt.time, "sleep", lambda s: None)
+
+        written = nyt.harvest(roster=["PT"], since="2016-08-01")
+
+        assert len(seen) > 1 and statuses[0] == "failed"
+        assert written == 2 * (len(seen) - 1)

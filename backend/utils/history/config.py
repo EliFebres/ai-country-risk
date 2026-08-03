@@ -59,6 +59,12 @@ GDELT_MAX_RECORDS: int = 250
 # this dataset being free.
 GDELT_REQUEST_INTERVAL_SECONDS: float = 5.0
 
+# The NYT developer tier allows five requests a minute. Twelve seconds apart is
+# that limit exactly, and the archive endpoint needs only ~120 calls for ten
+# years — one per month, covering the whole world — so there is nothing to gain
+# by crowding it.
+NYT_REQUEST_INTERVAL_SECONDS: float = 12.0
+
 # How far past publication a Wayback capture may sit and still be treated as a
 # capture "of" the article. Beyond six months the page has usually been
 # re-templated, and later edits start showing up as if they were original.

@@ -12,6 +12,7 @@ Usage:
     python -m backend.utils.history.run guardian     # step 2
     python -m backend.utils.history.run gdelt        # step 3
     python -m backend.utils.history.run wayback      # step 4 (asks before spending)
+    python -m backend.utils.history.run nyt          # step 5
     python -m backend.utils.history.run report       # counts, evenness, recovery curve
 """
 
@@ -31,7 +32,7 @@ load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv()
 
 from backend.utils.history import config, store, wayback  # noqa: E402
-from backend.utils.history.adapters import gdelt, guardian  # noqa: E402
+from backend.utils.history.adapters import gdelt, guardian, nyt  # noqa: E402
 
 logger = logging.getLogger("history")
 
@@ -125,7 +126,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    for name in ("guardian", "gdelt"):
+    for name in ("guardian", "gdelt", "nyt"):
         p = sub.add_parser(name)
         p.add_argument("--since", help="ISO date overriding the configured floor")
         p.add_argument("--country", action="append", dest="roster",
@@ -146,6 +147,8 @@ def main() -> None:
         guardian.harvest(roster=args.roster, since=args.since)
     elif args.command == "gdelt":
         gdelt.harvest(roster=args.roster, since=args.since)
+    elif args.command == "nyt":
+        nyt.harvest(roster=args.roster, since=args.since)
     elif args.command == "wayback":
         _wayback(args)
     _report()
