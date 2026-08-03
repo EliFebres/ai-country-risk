@@ -40,12 +40,37 @@ VINTAGE_DIR = (pathlib.Path(__file__).resolve().parents[4]
 # Deliberately short: the panel already holds the World Bank's version of most
 # series, and what the vintages are for is the handful where the *revision* is
 # the story rather than the level.
+#
+# The target has to be a key of `constants.INDICATOR_REGISTRY`. The builder
+# resolves registry codes and nothing else, so a plausible-looking World Bank
+# code that is not in the registry loads cleanly and is never read — which is
+# how this table spent its whole life mapping all five subjects onto codes no
+# ledger requests. Check the registry before adding a row here.
 SUBJECTS: Dict[str, str] = {
-    "NGDP_RPCH": "NY.GDP.MKTP.KD.ZG",     # real GDP growth, %
-    "PCPIPCH": "FP.CPI.TOTL.ZG",          # inflation, average consumer prices, %
-    "GGXWDG_NGDP": "GC.DOD.TOTL.GD.ZS",   # general government gross debt, % of GDP
-    "GGXCNL_NGDP": "GC.NLD.TOTL.GD.ZS",   # general government net lending, % of GDP
-    "BCA_NGDPD": "BN.CAB.XOKA.GD.ZS",     # current account balance, % of GDP
+    "PCPIPCH": "CPI.YOY",                 # inflation, average consumer prices, %
+}
+
+# Loaded for their vintages but not mapped above, because the registry has no
+# equivalent to map them onto:
+#
+#   NGDP_RPCH    real GDP growth, %          the registry carries per-capita
+#                                            growth (NY.GDP.PCAP.KD.ZG), which is
+#                                            a different series — they differ by
+#                                            population growth, so pointing one
+#                                            at the other injects a wrong number
+#   GGXWDG_NGDP  gross govt debt, % GDP      no registry entry
+#   GGXCNL_NGDP  govt net lending, % GDP     no registry entry
+#   BCA_NGDPD    current account, % GDP      no registry entry
+#
+# Giving the last three a registry entry would put genuinely new evidence in
+# front of the model on every country, live as well as historical, so it is
+# Eli's call rather than a loader detail. Until then they are absent from the
+# payload — not silently, but by this comment.
+UNMAPPED_SUBJECTS: Dict[str, str] = {
+    "NGDP_RPCH": "real GDP growth, %",
+    "GGXWDG_NGDP": "general government gross debt, % of GDP",
+    "GGXCNL_NGDP": "general government net lending, % of GDP",
+    "BCA_NGDPD": "current account balance, % of GDP",
 }
 
 # "2018-04.xls" / "2018-10.xls" — the edition, not the file's own mtime.
@@ -156,7 +181,13 @@ def read_edition(path: pathlib.Path, roster: List[str]) -> List[Dict[str, Any]]:
                 "country_iso2": iso2,
                 "indicator_code": SUBJECTS[subject],
                 "freq": "A",
-                "period": datetime.date(year, 12, 31),
+                # A bare year, because that is what every other annual source
+                # writes and what `data_retrieval._period_to_date` parses. Dated
+                # periods ("2017-12-31") round-trip through the database fine and
+                # are then dropped by the payload builder, which is worse than
+                # failing: the editions load, the row counts look right, and not
+                # one WEO value ever reaches a score.
+                "period": str(year),
                 "value": value,
                 "as_of": vintage,
                 "source": f"IMF WEO {vintage:%Y-%m}",

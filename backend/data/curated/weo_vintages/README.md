@@ -26,6 +26,13 @@ that is:
     2020-04  2020-10  2021-04  2021-10  2022-04  2022-10  2023-04  2023-10
     2024-04  2024-10  2025-04  2025-10  2026-04
 
+Nineteen of those are present, through `2025-04`. **`2025-10` and `2026-04` are
+missing**: the WEO database moved to data.imf.org in October 2025 and the legacy
+path was never backfilled, so the fetch script cannot reach them. The effect is
+confined to the tail — an anchor after October 2025 reads the `2025-04` vintage,
+at most ten months stale — and it is post-cutoff, so it does not touch the
+2023-10 cutoff comparison.
+
 Editions before `2016-10` are not needed: the pilot starts 2016-08-03 and the
 rule is "newest vintage not after the anchor", so `2016-10` covers the first
 weeks via the edition before it only if you also drop `2016-04`. Adding it is
@@ -59,6 +66,25 @@ loader tries both, so no conversion is needed.
 Only a handful of series — the ones where the *revision* is the story rather
 than the level. See `SUBJECTS` in `backend/utils/history/vintage/weo.py`.
 
+A subject only reaches a score if it maps onto a key of
+`constants.INDICATOR_REGISTRY`. Today that is **inflation alone**; real GDP
+growth, gross debt, net lending and the current account are loaded for their
+vintages but have no registry entry to be read through, and `UNMAPPED_SUBJECTS`
+records why. Giving them one would put new evidence in front of the model on
+every country, live included, so it is a deliberate decision rather than a
+loader change.
+
+### Known per-edition quirks
+
+- **`2020-04` carries four subjects, not five** — the April 2020 edition was
+  published with curtailed coverage, and gross government debt is absent from
+  it (the file is 1.7 MB against ~9 MB for its neighbours). This is the IMF's
+  own gap, not a truncated download. The "newest vintage ≤ as_of" rule resolves
+  per indicator, so an anchor between April and October 2020 falls back to the
+  `2019-10` debt figure rather than losing it.
+- **`2020-10` onward are UTF-16LE without a BOM** and around 19–20 MB. The
+  loader handles them; do not "fix" the encoding.
+
 Only **historical** columns: years up to and including the edition's own year.
 The WEO's forward columns are projections, and a 2018 edition's guess at 2020 is
 not a fact about 2020. Loading them would put the IMF's forecast into the
@@ -69,8 +95,9 @@ evidence payload as if it were an observation.
     python -m backend.utils.history.run weo
 
 Idempotent — `indicator_series` is keyed on
-`(country_iso2, indicator_code, freq, period)` with `as_of` carrying the
-vintage, so re-running re-writes the same rows.
+`(country_iso2, indicator_code, freq, period, as_of)`, so every edition's copy of
+a year coexists with the others instead of the newest load overwriting them all.
+`as_of` is in the key precisely because the vintages are the point.
 
 ## If this folder is empty
 

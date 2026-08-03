@@ -26,10 +26,13 @@ def edition(tmp_path: pathlib.Path, name: str, rows, encoding="latin-1") -> path
     return path
 
 
-# Portugal real GDP growth: the 2017 estimate as first published, then revised.
-PT_APR2018 = ("182\tPRT\tNGDP_RPCH\tPortugal\tGross domestic product\t"
+# Portugal inflation: the 2017 estimate as first published, then revised.
+# PCPIPCH because that is the one subject `SUBJECTS` maps — the other four have
+# no indicator-registry equivalent to be read through, so a fixture using them
+# would test a loader whose output nothing consumes.
+PT_APR2018 = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
               "Percent change\tUnits\t1.9\t2.7\t2.3\t2.0\t1.8")
-PT_OCT2018 = ("182\tPRT\tNGDP_RPCH\tPortugal\tGross domestic product\t"
+PT_OCT2018 = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
               "Percent change\tUnits\t1.9\t2.8\t2.3\t2.2\t1.9")
 
 
@@ -45,6 +48,35 @@ class TestEditionDates:
         assert weo.edition_date(tmp_path / "2018-13.xls") is None
 
 
+class TestTheSubjectMapping:
+    """Where the editions were being loaded to before anyone checked.
+
+    Every one of the five subjects mapped onto a World Bank code that reads
+    perfectly plausibly and is not in `INDICATOR_REGISTRY`. The builder resolves
+    registry codes and nothing else, so all five loaded and none was ever read —
+    no error, no warning, correct-looking row counts, and not one WEO number in
+    any score.
+    """
+
+    def test_every_mapped_subject_lands_on_a_registry_code(self):
+        from backend.utils import constants
+        for subject, code in weo.SUBJECTS.items():
+            assert code in constants.INDICATOR_REGISTRY, (
+                f"{subject} maps to {code}, which no ledger requests")
+
+    def test_a_mapped_subject_reaches_a_ledger(self):
+        """In the registry is not enough — it has to be evidence, not a helper."""
+        from backend.utils import constants
+        for subject, code in weo.SUBJECTS.items():
+            assert constants.INDICATOR_REGISTRY[code].get("ledger"), (
+                f"{subject} maps to {code}, which carries no ledger")
+
+    def test_the_unmapped_subjects_are_recorded_rather_than_forgotten(self):
+        # They are still loaded; they just have nowhere to be read. The comment
+        # in the module is the point — this pins that the two sets stay disjoint.
+        assert not (set(weo.SUBJECTS) & set(weo.UNMAPPED_SUBJECTS))
+
+
 class TestReadingAnEdition:
     def test_rows_carry_the_edition_as_their_vintage(self, tmp_path):
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
@@ -55,35 +87,66 @@ class TestReadingAnEdition:
     def test_projections_are_not_loaded_as_observations(self, tmp_path):
         # A 2018 edition's guess at 2020 is not a fact about 2020.
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
-        years = {r["period"].year for r in rows}
+        years = {int(r["period"]) for r in rows}
         assert years == {2016, 2017, 2018}
         assert 2019 not in years and 2020 not in years
+
+    def test_the_period_is_the_one_the_payload_builder_can_parse(self, tmp_path):
+        """The contract with the consumer, not with ourselves.
+
+        These rows were written with a dated period ("2017-12-31") for as long as
+        this module existed. Every edition loaded, every row count looked right,
+        `_period_to_date` returned None for all of them, and the payload builder
+        dropped the lot — so no WEO value ever reached a score and nothing said
+        so. Asserting the loader's own convention is what let that survive; this
+        asserts the one the reader uses.
+        """
+        rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
+        assert rows
+        for row in rows:
+            assert data_retrieval._period_to_date(row["period"], row["freq"]) is not None
 
     def test_the_revision_is_visible_across_editions(self, tmp_path):
         """The whole reason this module exists."""
         april = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
         october = weo.read_edition(edition(tmp_path, "2018-10.xls", [PT_OCT2018]), ["PT"])
-        pick = lambda rows: next(r["value"] for r in rows if r["period"].year == 2017)
+        pick = lambda rows: next(r["value"] for r in rows if r["period"] == "2017")
         assert pick(april) == 2.7
         assert pick(october) == 2.8
 
+    def test_a_revision_actually_reaches_the_resolver(self):
+        """End to end: two vintages of one year, resolved at two anchors.
+
+        The unit tests above all pass with a period the payload builder cannot
+        read. This one fails unless the row survives `_resolve`.
+        """
+        rows = []
+        for vintage, value in ((datetime.date(2018, 4, 1), 2.7),
+                               (datetime.date(2018, 10, 1), 2.8)):
+            rows.append(data_retrieval._Observation(
+                value=value, period="2017", freq="A",
+                period_end=data_retrieval._period_to_date("2017", "A"),
+                as_of=vintage, source=f"IMF WEO {vintage:%Y-%m}"))
+        assert [o.value for o in data_retrieval._resolve(rows, datetime.date(2018, 6, 4))] == [2.7]
+        assert [o.value for o in data_retrieval._resolve(rows, datetime.date(2018, 12, 1))] == [2.8]
+
     def test_countries_outside_the_roster_are_dropped(self, tmp_path):
-        spain = ("184\tESP\tNGDP_RPCH\tSpain\tGross domestic product\t"
+        spain = ("184\tESP\tPCPIPCH\tSpain\tInflation, average consumer prices\t"
                  "Percent change\tUnits\t3.2\t3.0\t2.7\t2.2\t2.0")
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018, spain]), ["PT"])
         assert {r["country_iso2"] for r in rows} == {"PT"}
 
     def test_absent_is_absent_never_zero(self, tmp_path):
-        blank = ("182\tPRT\tNGDP_RPCH\tPortugal\tGross domestic product\t"
+        blank = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
                  "Percent change\tUnits\t1.9\tn/a\t--\t2.0\t1.8")
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [blank]), ["PT"])
-        assert {r["period"].year for r in rows} == {2016}
+        assert {int(r["period"]) for r in rows} == {2016}
 
     def test_thousands_separators_parse(self, tmp_path):
-        big = ("182\tPRT\tGGXWDG_NGDP\tPortugal\tGeneral government gross debt\t"
-               "Percent of GDP\tUnits\t1,129.5\t125.7\t121.5\t119.0\t117.0")
+        big = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
+               "Percent change\tUnits\t1,129.5\t125.7\t121.5\t119.0\t117.0")
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [big]), ["PT"])
-        assert next(r["value"] for r in rows if r["period"].year == 2016) == 1129.5
+        assert next(r["value"] for r in rows if r["period"] == "2016") == 1129.5
 
     def test_utf16_editions_read_too(self, tmp_path):
         path = edition(tmp_path, "2016-10.xls", [PT_APR2018], encoding="utf-16")

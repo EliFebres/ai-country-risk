@@ -668,7 +668,12 @@ def build_evidence_payload(
         "_meta": {
             "country": country_iso2,
             "as_of": as_of.isoformat(),
-            "vintage_scheme": provenance._VINTAGE_SCHEME,
+            # Which regime built this payload, not a constant. A vintage-bounded
+            # build is point-in-time; reporting it as "as-published-latest" told
+            # the audit record the exact opposite of what happened, and the
+            # manifest is the only place that difference is ever visible.
+            "vintage_scheme": ("point-in-time" if vintage_as_of is not None
+                               else provenance._VINTAGE_SCHEME),
             "staleness_basis": (
                 "staleness_days counts from the end of the period a value describes "
                 "to as_of: how old the reading is. `as_of` on each value is a "

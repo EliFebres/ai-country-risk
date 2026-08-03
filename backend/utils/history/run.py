@@ -386,8 +386,12 @@ def main() -> None:
         return
     elif args.command == "weo":
         rows = weo.load_all()
-        written = data_push.upsert_indicator_series(rows) if rows else 0
-        print(f"\n{written} WEO vintage row(s) written to indicator_series.")
+        if rows:
+            # upsert_indicator_series returns None, so count the rows we handed
+            # it. Printing its return said "None row(s) written" after a
+            # successful load of nineteen editions, which reads as a failure.
+            data_push.upsert_indicator_series(rows)
+        print(f"\n{len(rows)} WEO vintage row(s) written to indicator_series.")
         if not rows:
             print("Drop the editions into backend/data/curated/weo_vintages/ "
                   "— see the README there.")
