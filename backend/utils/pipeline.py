@@ -20,6 +20,7 @@ costs a single phase rather than the whole day.
 
 import logging
 import os
+import zlib
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
@@ -30,7 +31,7 @@ from backend.utils.data_fetching import (
     bis_bulk_fetch, curated_loader, fmp_calendar_fetch, imf_macro_fetch, wb_series_fetch,
 )
 from backend.utils.data_upsert import data_push
-from backend.utils.masking import rewrite
+from backend.utils.masking import gazetteer, probe, rewrite
 from backend.utils.news_fetching import article_enrichment, article_ranking
 
 logger = logging.getLogger(__name__)
@@ -92,6 +93,44 @@ def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str) -> 
         if not item["text"]:
             logger.warning("[%s] %s degraded to title-only: the mask rewrite "
                            "would not clear its body", iso2, aid)
+
+
+# How often the live run asks the cheap model to guess which country it is
+# looking at. One country in six, so the whole roster is sampled about weekly at
+# a daily cadence, for a few cents a month.
+#
+# It runs in production rather than only in the pilot because identifiability is
+# not a property of the method, it is a property of *this week's evidence*. A
+# quiet week masks well and a week where the only story is a named central bank
+# governor does not, and the only way to know which kind of week the series is
+# accumulating is to keep measuring. A one-off experiment answers the question
+# once, for a corpus nobody will score again.
+_PROBE_EVERY_NTH_COUNTRY = 6
+
+
+def _identifiability(items: List[Dict], iso2: str, as_of: date) -> Optional[Dict]:
+    """Ask the cheap model which country this masked bundle is about, sometimes.
+
+    Returns None when this country is not in today's sample, which is most of
+    them. The result is a measurement and never a gate: unlike ``assert_clean``,
+    a confident correct guess does not stop the snapshot. It could not — the
+    US is expected to be identified nearly always, from coverage volume alone,
+    and refusing to score the US would be answering the wrong question.
+    """
+    # Deterministic on (country, date) rather than random, so re-running a day
+    # probes the same countries and the meter is reproducible. Not `hash()`:
+    # Python salts string hashing per process, so that would have re-sampled on
+    # every restart while the comment claimed otherwise.
+    seed = zlib.crc32(f"{iso2}:{as_of.toordinal()}".encode())
+    if seed % _PROBE_EVERY_NTH_COUNTRY != 0:
+        return None
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        return None
+    guess = probe.probe(items, api_key)
+    logger.info("[%s] identifiability probe: guessed %s at %.2f",
+                iso2, guess.get("country"), guess.get("confidence", 0.0))
+    return guess
 
 
 def refresh_calendar() -> None:
@@ -367,6 +406,23 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             prompt_version=llm_output.get("prompt_version"),
             policy_version=llm_output.get("policy_version"),
             seed=ai_client.SEED,
+            masking={
+                "scoring_mode": scoring_mode,
+                # Without the map's version the same articles re-mask
+                # differently and the row cannot be rebuilt, so this is as
+                # load-bearing here as the prompt version.
+                "mask_map_version": gazetteer.MASK_MAP_VERSION,
+                # "clean" by construction: `country_llm_score` raises MaskLeak
+                # before sending, so any row that exists at all got past the
+                # gate. Recorded anyway, because a manifest that only says what
+                # went right when it went right proves nothing.
+                "mask_integrity_status": "clean",
+                # Five of forty-eight countries have a structural block, and
+                # that asymmetry has to be countable in the data rather than
+                # only in a comment.
+                "structural_fields": len(evidence.get("structural") or {}),
+                "identifiability": _identifiability(scored, iso2, as_of),
+            } if masked else None,
         )
     except Exception:
         logger.exception("[%s] provenance manifest failed; writing the snapshot without it", iso2)

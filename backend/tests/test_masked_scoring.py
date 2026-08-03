@@ -269,3 +269,99 @@ class TestThePipelineMasksBeforeItDigests:
 
         assert stored["scoring_mode"] == "masked"
         assert stored["top_articles"][0]["title"] == "Portugal cuts rates"
+
+    def test_the_manifest_records_the_regime_that_scored_the_row(self, monkeypatch):
+        """A masked row cannot be rebuilt without knowing which mask map made it:
+        the same articles under a different gazetteer are different bytes."""
+        stored = {}
+        monkeypatch.setattr(pipeline.digest_engine, "digest_articles",
+                            lambda items, **_k: items)
+        monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids", lambda _i: [])
+        monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
+                            lambda **_k: {"_meta": {"country": "PT",
+                                                    "generated_at": AS_OF.isoformat()}})
+        monkeypatch.setattr(pipeline.data_retrieval, "build_evidence_payload",
+                            lambda *_a, **_k: {"_meta": {"country": "PT"},
+                                               "structural": {"region": "Europe",
+                                                              "income_group": "high"}})
+        monkeypatch.setattr(pipeline.langchain_llm, "country_llm_score",
+                            lambda **_k: {"score": 0.5, "news_article_scores": []})
+        monkeypatch.setattr(pipeline.data_push, "upsert_snapshot",
+                            lambda payload, country_name: stored.update(payload))
+        monkeypatch.setattr(pipeline.data_push, "upsert_lint_findings", lambda *_a: None)
+        # No key, so the probe declines rather than calling out.
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+        items = [{"title": "Portugal cuts rates", "text": "Lisbon acted.",
+                  "link": "https://example.com/a", "published": "2024-05-01"}]
+        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF, items=items)
+
+        mask = stored["input_manifest"]["masking"]
+        assert mask["mask_map_version"] == gazetteer.MASK_MAP_VERSION
+        assert mask["mask_integrity_status"] == "clean"
+        # Five countries of forty-eight carry a structural block; the count is
+        # what makes that asymmetry visible in the data rather than in a comment.
+        assert mask["structural_fields"] == 2
+
+    def test_a_named_run_carries_no_masking_block(self, monkeypatch):
+        """Absent, not a block full of nulls: a named row was never masked, and
+        saying "mask_map_version: null" invites somebody to average over it."""
+        stored = {}
+        monkeypatch.setattr(pipeline.digest_engine, "digest_articles",
+                            lambda items, **_k: items)
+        monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids", lambda _i: [])
+        monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
+                            lambda **_k: {"_meta": {"country": "PT",
+                                                    "generated_at": AS_OF.isoformat()}})
+        monkeypatch.setattr(pipeline.data_retrieval, "build_evidence_payload",
+                            lambda *_a, **_k: {"_meta": {"country": "PT"}})
+        monkeypatch.setattr(pipeline.langchain_llm, "country_llm_score",
+                            lambda **_k: {"score": 0.5, "news_article_scores": []})
+        monkeypatch.setattr(pipeline.data_push, "upsert_snapshot",
+                            lambda payload, country_name: stored.update(payload))
+        monkeypatch.setattr(pipeline.data_push, "upsert_lint_findings", lambda *_a: None)
+
+        items = [{"title": "Portugal cuts rates", "link": "https://e.com/a",
+                  "published": "2024-05-01"}]
+        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF, items=items,
+                                  scoring_mode="named")
+        assert "masking" not in stored["input_manifest"]
+
+
+class TestTheProductionProbe:
+    """Identifiability is a property of this week's evidence, not of the method,
+    so it is measured continuously rather than once in a pilot."""
+
+    def test_the_sample_is_stable_across_processes(self):
+        """Python salts string hashing per process. Sampling on `hash()` would
+        have re-drawn the roster on every restart while claiming not to."""
+        picked = [iso2 for iso2 in ("US", "TR", "BR", "PT", "KR", "IN", "JP", "DE")
+                  if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
+                  % pipeline._PROBE_EVERY_NTH_COUNTRY == 0]
+        assert picked == [iso2 for iso2 in ("US", "TR", "BR", "PT", "KR", "IN", "JP", "DE")
+                          if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
+                          % pipeline._PROBE_EVERY_NTH_COUNTRY == 0]
+
+    def test_a_country_out_of_the_sample_is_not_probed(self, monkeypatch):
+        monkeypatch.setattr(pipeline.probe, "probe",
+                            lambda *_a, **_k: pytest.fail("probed a country not in the sample"))
+        skipped = [iso2 for iso2 in ("US", "TR", "BR", "PT", "KR")
+                   if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
+                   % pipeline._PROBE_EVERY_NTH_COUNTRY != 0]
+        assert skipped, "the fixture date samples every country; pick another"
+        for iso2 in skipped:
+            assert pipeline._identifiability([{"title": "x"}], iso2, AS_OF) is None
+
+    def test_a_failed_probe_never_blocks_the_snapshot(self, monkeypatch):
+        """The opposite of assert_clean, deliberately. The US is expected to be
+        identified nearly always from coverage volume alone, and refusing to
+        score it would be answering a different question."""
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.probe, "probe",
+                            lambda *_a, **_k: {"country": "PT", "confidence": 1.0,
+                                               "evidence": "obvious"})
+        sampled = next(iso2 for iso2 in ("US", "TR", "BR", "PT", "KR", "IN", "JP", "DE")
+                       if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
+                       % pipeline._PROBE_EVERY_NTH_COUNTRY == 0)
+        got = pipeline._identifiability([{"title": "x"}], sampled, AS_OF)
+        assert got["country"] == "PT" and got["confidence"] == 1.0

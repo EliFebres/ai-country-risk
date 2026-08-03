@@ -203,7 +203,8 @@ def build_input_manifest(*,
                          model_id: Optional[str],
                          prompt_version: Optional[str],
                          policy_version: Optional[str],
-                         seed: Optional[int]) -> Dict[str, Any]:
+                         seed: Optional[int],
+                         masking: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Everything one snapshot needs to be reproducible.
 
     Args:
@@ -216,6 +217,18 @@ def build_input_manifest(*,
         prompt_version: ``ai.constants.PROMPT_VERSION`` at call time.
         policy_version: ``ai.policy.POLICY_VERSION`` at call time.
         seed: the determinism seed (``ai.client.SEED``).
+        masking: the regime this row was scored under —
+            ``{scoring_mode, mask_map_version, mask_integrity_status,
+            structural_fields, identifiability}``. Omitted for a named run.
+
+            It belongs in the manifest rather than beside it because the
+            manifest's promise is reproducibility, and under masking the bytes
+            the model saw are not the bytes in the database: without the mask
+            map's version the same articles re-mask differently and the row
+            cannot be rebuilt. ``structural_fields`` counts the structural block
+            because it is filled for five countries of forty-eight, and that
+            asymmetry has to be visible in the data rather than only in a
+            comment.
 
     Returns:
         The dict stored in ``risk_snapshot.input_manifest``. ``git_sha`` comes
@@ -231,4 +244,5 @@ def build_input_manifest(*,
         "policy_version": policy_version,
         "seed": seed,
         "git_sha": os.environ.get("GIT_SHA") or None,
+        **({"masking": masking} if masking else {}),
     }
