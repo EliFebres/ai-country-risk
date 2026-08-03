@@ -46,7 +46,7 @@ from backend.utils import constants
 # Bump on any change to COUNTRIES, THIN or ROLES. Stamped into every masked
 # run's manifest so a score can always be traced to the mask map that produced
 # it.
-MASK_MAP_VERSION = "g4"
+MASK_MAP_VERSION = "g5"
 
 # What each category of proper noun becomes. The scorer reads these, so they
 # read as English rather than as placeholders — "the central bank" carries the
