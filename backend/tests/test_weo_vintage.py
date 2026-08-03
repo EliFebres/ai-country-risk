@@ -14,7 +14,7 @@ import pathlib
 import pytest
 
 from backend.utils import data_retrieval
-from backend.utils.history.vintage import monthly, weo
+from backend.utils.history.vintage import lags, monthly, weo
 
 HEADER = ("WEO Country Code\tISO\tWEO Subject Code\tCountry\tSubject Descriptor\t"
           "Units\tScale\t2016\t2017\t2018\t2019\t2020")
@@ -159,28 +159,31 @@ class TestMonthlyRestamping:
     """A backfilled monthly print has to be dated when it landed, not today."""
 
     def test_a_month_ends_on_its_last_day(self):
-        assert monthly.period_end("2018-02", "M") == datetime.date(2018, 2, 28)
-        assert monthly.period_end("2020-02", "M") == datetime.date(2020, 2, 29)
-        assert monthly.period_end("2018-12", "M") == datetime.date(2018, 12, 31)
+        assert lags.period_end("2018-02", "M") == datetime.date(2018, 2, 28)
+        assert lags.period_end("2020-02", "M") == datetime.date(2020, 2, 29)
+        assert lags.period_end("2018-12", "M") == datetime.date(2018, 12, 31)
 
     def test_a_quarter_ends_on_its_last_day(self):
-        assert monthly.period_end("2018Q1", "Q") == datetime.date(2018, 3, 31)
-        assert monthly.period_end("2018Q4", "Q") == datetime.date(2018, 12, 31)
+        assert lags.period_end("2018Q1", "Q") == datetime.date(2018, 3, 31)
+        assert lags.period_end("2018Q4", "Q") == datetime.date(2018, 12, 31)
 
     def test_a_year_ends_in_december(self):
-        assert monthly.period_end("2018", "A") == datetime.date(2018, 12, 31)
+        assert lags.period_end("2018", "A") == datetime.date(2018, 12, 31)
 
     def test_the_print_lands_after_the_period_it_describes(self):
         # Late rather than early: reading a number a fortnight before anyone
         # had it is a leak; a fortnight after is a small staleness.
-        assert monthly.published_on("2018-03", "M") > datetime.date(2018, 3, 31)
+        assert lags.published_on("2018-03", "M") > datetime.date(2018, 3, 31)
 
     def test_restamping_replaces_today_with_the_publication_date(self):
         rows = monthly.restamp([{
             "country_iso2": "PT", "indicator_code": "CPI.YOY", "freq": "M",
             "period": "2018-03", "value": 1.2, "as_of": datetime.date.today(),
         }])
-        assert rows[0]["as_of"] == monthly.published_on("2018-03", "M")
+        # With the indicator code, because the lag is CPI's own 25 days rather
+        # than the monthly default — the table stopped being one number per
+        # frequency when it started dating market rates too.
+        assert rows[0]["as_of"] == lags.published_on("2018-03", "M", "CPI.YOY")
         assert rows[0]["vintage_scheme"] == "publication-lag-estimate"
 
     def test_an_undatable_row_is_dropped_not_misdated(self):
@@ -190,10 +193,10 @@ class TestMonthlyRestamping:
         """The bug this module exists to prevent: rows stamped 'today' are
         discarded by the vintage bound, so a 2018 snapshot silently loses all
         of its monthly macro."""
-        stamp = monthly.published_on("2018-03", "M")
+        stamp = lags.published_on("2018-03", "M")
         obs = data_retrieval._Observation(
             value=1.2, period="2018-03", freq="M",
-            period_end=monthly.period_end("2018-03", "M"),
+            period_end=lags.period_end("2018-03", "M"),
             as_of=stamp, source="IMF")
         assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 9, 3)) == [obs]
         # …and is correctly refused before it was published.
