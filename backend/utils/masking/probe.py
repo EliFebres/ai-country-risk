@@ -17,6 +17,7 @@ The probe never sees the named bundle, so it cannot be scored against its own
 answer key by accident.
 """
 
+import json
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -68,21 +69,50 @@ Say what gave it away: the specific number, institution, event or phrasing.
 _PER_ARTICLE_CHARS = 1200
 
 
-def bundle_text(items: List[Dict[str, Any]]) -> str:
-    """The masked articles as one block of text for the probe.
+def bundle_text(items: List[Dict[str, Any]],
+                fulltext_ids: Optional[List[str]] = None) -> str:
+    """Exactly what the scoring prompt carries, as one block for the probe.
 
-    Titles and text only. URLs are never included — a path like
-    "/2018/aug/13/turkey-lira-crisis" would hand over the answer.
+    This has to mirror the prompt or the meter is measuring the wrong thing, and
+    the first version did not. It read ``item["text"]`` for all twenty articles,
+    but the scorer never sees twenty bodies: ``prompt_entries`` hands it a title
+    and a *digest* per article, and full text for only the two or three ids in
+    ``fulltext_ids``. Probing the raw bodies measures a bundle strictly more
+    identifiable than the one that gets sent, and would have reported the
+    instrument as leakier than it is — forever, and in the direction that looks
+    like diligence.
+
+    So the entries come from ``prompt_entries`` rather than from a second
+    reading of the items. URLs are excluded there already, which matters: a path
+    like "/2018/aug/13/turkey-lira-crisis" would hand over the answer, and it is
+    never sent.
+
+    Args:
+        items: the masked articles, after stage-1 digesting.
+        fulltext_ids: the ids whose full text the prompt carries. Omitted, no
+            article contributes a body — the conservative reading, and the right
+            one when the caller does not know.
     """
+    # Imported here rather than at module scope: `langchain_llm` imports this
+    # module's neighbours, and a top-level import closes the cycle.
+    from backend.utils.ai import langchain_llm
+
+    chosen = set(fulltext_ids or ())
     parts = []
-    for i, item in enumerate(items, start=1):
-        body = (item.get("text") or item.get("snippet") or "")[:_PER_ARTICLE_CHARS]
-        parts.append(f"[{i}] {item.get('title') or ''}\n{body}".strip())
+    for i, entry in enumerate(langchain_llm.prompt_entries(items), start=1):
+        digest = entry.get("digest")
+        body = json.dumps(digest, ensure_ascii=False) if isinstance(digest, dict) else (
+            entry.get("summary") or "")
+        if entry.get("id") in chosen:
+            item = next((it for it in items if it.get("id") == entry.get("id")), {})
+            body = f"{body}\n{item.get('text') or ''}"
+        parts.append(f"[{i}] {entry.get('title') or ''}\n{body[:_PER_ARTICLE_CHARS]}".strip())
     return "\n\n".join(parts)
 
 
 def probe(items: List[Dict[str, Any]], api_key: str,
-          model_chat: Optional[Any] = None) -> Dict[str, Any]:
+          model_chat: Optional[Any] = None,
+          fulltext_ids: Optional[List[str]] = None) -> Dict[str, Any]:
     """Ask which country a masked bundle is about.
 
     Returns:
@@ -98,7 +128,7 @@ def probe(items: List[Dict[str, Any]], api_key: str,
         chat = model_chat or ai_client.build_digest_chat(api_key)
         result = chat.with_structured_output(
             schema=_PROBE_SCHEMA, strict=True).invoke(
-                _PROBE_PROMPT.format(bundle=bundle_text(items)))
+                _PROBE_PROMPT.format(bundle=bundle_text(items, fulltext_ids)))
     except Exception as exc:  # noqa: BLE001
         logger.warning("probe failed (%s); recorded as no-guess", exc)
         return {"country": "ZZ", "confidence": 0.0, "evidence": f"probe failed: {exc}"}

@@ -108,7 +108,8 @@ def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str) -> 
 _PROBE_EVERY_NTH_COUNTRY = 6
 
 
-def _identifiability(items: List[Dict], iso2: str, as_of: date) -> Optional[Dict]:
+def _identifiability(items: List[Dict], iso2: str, as_of: date,
+                     fulltext_ids: Optional[List[str]] = None) -> Optional[Dict]:
     """Ask the cheap model which country this masked bundle is about, sometimes.
 
     Returns None when this country is not in today's sample, which is most of
@@ -127,7 +128,12 @@ def _identifiability(items: List[Dict], iso2: str, as_of: date) -> Optional[Dict
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
-    guess = probe.probe(items, api_key)
+    # Masked again, because the digest is generated *after* the first pass and
+    # `country_llm_score` masks everything a second time on its way out. Probing
+    # `items` as they stand here reads digests in a state the model never sees,
+    # and the meter would have reported the instrument leakier than it is.
+    guess = probe.probe(rewrite.mask_items(items, iso2), api_key,
+                        fulltext_ids=fulltext_ids)
     logger.info("[%s] identifiability probe: guessed %s at %.2f",
                 iso2, guess.get("country"), guess.get("confidence", 0.0))
     return guess
@@ -329,7 +335,11 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     #     which articles the scorer reads in full.
     as_of = data_push.payload_as_of(payload)
     scored = digest_engine.digest_articles(
-        scored, country_display=display, iso2=iso2, as_of=as_of
+        scored, country_display=display, iso2=iso2, as_of=as_of,
+        # The text is masked already; this is about what the digest model
+        # *writes*. `actors: who did what to whom` reads as an instruction to
+        # name people, and people are exactly what the gazetteer cannot know.
+        masked=masked,
     )
     fulltext_ids = digest_engine.select_fulltext_ids(scored)
     logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)
@@ -444,7 +454,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
                 # that asymmetry has to be countable in the data rather than
                 # only in a comment.
                 "structural_fields": len(evidence.get("structural") or {}),
-                "identifiability": _identifiability(scored, iso2, as_of),
+                "identifiability": _identifiability(scored, iso2, as_of, fulltext_ids),
             } if masked else None,
         )
     except Exception:

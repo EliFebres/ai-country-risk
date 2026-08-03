@@ -94,11 +94,28 @@ class TestPromptTemplates:
 
     def test_digest_prompt_placeholders(self):
         prompt = ai_constants.DIGEST_PROMPT.format(
-            country="Portugal", article_text="Some article text."
+            country="Portugal", article_text="Some article text.", mask_rule=""
         )
         assert "Some article text." in prompt
         assert "Portugal" in prompt
         assert "{article_text}" not in prompt
+
+    def test_the_named_digest_prompt_carries_no_mask_rule(self):
+        prompt = ai_constants.DIGEST_PROMPT.format(
+            country="Portugal", article_text="x", mask_rule="")
+        assert "deliberately anonymous" not in prompt
+
+    def test_the_masked_digest_prompt_targets_actors_by_name(self):
+        """`actors: who did what to whom` is where names get written back in,
+        so the rule has to name that field rather than gesture at the output."""
+        prompt = ai_constants.DIGEST_PROMPT.format(
+            country="the country", article_text="x",
+            mask_rule=ai_constants.DIGEST_MASK_RULE)
+        assert "This applies to `actors` above all" in prompt
+        assert "never the president" in prompt
+        # The numbers are the evidence; a masked digest that lost them would be
+        # measuring something else entirely.
+        assert "Keep every NUMBER exactly as written" in prompt
 
     def test_digest_schema_is_strict(self):
         s = ai_constants.DIGEST_SCHEMA

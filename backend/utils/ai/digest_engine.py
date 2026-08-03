@@ -67,12 +67,29 @@ def _severity_or_none(value) -> Optional[float]:
     return max(0.0, min(100.0, severity))
 
 
+def _content_sha(text: str, masked: bool) -> str:
+    """The cache key for one article's digest, mode included.
+
+    The mode has to be in here. The cache is keyed on (country, as_of, url) and
+    validated against this hash, so without it the same article text digested
+    under the two modes collides — and a *named* digest served to a masked run
+    puts the president's name straight into the prompt with every gate reporting
+    clean, because the gate scans for country names and a person is not one.
+
+    Prefixed rather than mixed in, so an existing named row keeps its current
+    hash and no cache is invalidated by adding the mode.
+    """
+    prefix = "masked\n" if masked else ""
+    return hashlib.sha256((prefix + text).encode("utf-8")).hexdigest()
+
+
 def digest_articles(
     items: List[Dict],
     *,
     country_display: str,
     iso2: str,
     as_of: datetime.date,
+    masked: bool = False,
 ) -> List[Dict]:
     """Digest every article's full text with the cheap stage-1 model.
 
@@ -88,6 +105,14 @@ def digest_articles(
         iso2: 2-letter country code — half of the cache key.
         as_of: the date the snapshot will be keyed on — the other half, so
             digest rows and the snapshot always share a key.
+        masked: run the digest prompt in mask mode, so names the gazetteer
+            cannot know — people, parties, companies, named events — come back
+            as the roles they play. The input text is already masked; this is
+            about what the *model writes*, and without it `actors` reads "who
+            did what to whom" as an instruction to name them. It also enters
+            the cache key, because the same article text digested under the two
+            modes produces two different digests and only one of them is safe
+            to send.
 
     Returns:
         The same list, mutated. Per-article failures leave ``digest = None``;
@@ -131,7 +156,7 @@ def digest_articles(
         urls.append(url)
         texts.append(text)
 
-        sha = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        sha = _content_sha(text, masked)
         hit = cache.get(url) if url else None
         if hit and hit.get("content_sha256") == sha and isinstance(hit.get("digest"), dict):
             it["digest"] = hit["digest"]
@@ -149,7 +174,9 @@ def digest_articles(
             logger.warning("[%s] OPENAI_API_KEY not set; %d articles left undigested", iso2, len(pending_idx))
         else:
             prompts = [
-                ai_constants.DIGEST_PROMPT.format(country=country_display, article_text=texts[i])
+                ai_constants.DIGEST_PROMPT.format(
+                    country=country_display, article_text=texts[i],
+                    mask_rule=ai_constants.DIGEST_MASK_RULE if masked else "")
                 for i in pending_idx
             ]
             structured_llm = ai_client.build_digest_chat(api_key).with_structured_output(
@@ -182,7 +209,7 @@ def digest_articles(
                         "as_of": as_of,
                         "url": urls[i],
                         "published_at": it.get("published"),
-                        "content_sha256": hashlib.sha256(texts[i].encode("utf-8")).hexdigest(),
+                        "content_sha256": _content_sha(texts[i], masked),
                         "digest": res,
                         "stage1_severity": it["stage1_severity"],
                         "model_id": ai_client.DIGEST_MODEL_NAME,

@@ -405,11 +405,42 @@ RISK_SCHEMA_V3: Dict = {
 # NOTE: literal braces inside JSON examples are escaped as {{ }} for .format().
 # ---------------------------------------------------------------------------
 
+# What the digest prompt says when the run is masked, and it is not optional
+# decoration. The digest is generated from already-masked text, so the country's
+# own name is gone — but `actors: who did what to whom` is a direct instruction
+# to name people, and the gazetteer has never masked people. The measured result
+# was a scorer reading "Jair Bolsonaro", "Moon Jae-in", "Recep Tayyip Erdoğan"
+# in seventeen of its twenty articles, and a probe identifying five countries
+# out of eight from the digests alone with the gate reporting clean throughout.
+#
+# The model rewrite pass covers this, but only on the two or three full texts
+# the scorer reads end to end. Everything else reaches it as a digest, and a
+# digest was born named.
+DIGEST_MASK_RULE = """
+IMPORTANT — the country in this text is deliberately anonymous, and your output
+must keep it that way.
+
+Replace every proper noun with the role it plays. A named person becomes their
+office ("the president", "the finance minister", "the opposition leader", "the
+central bank governor"). A named party becomes "the governing party" or "the
+main opposition party". A named company becomes "a large domestic bank", "a
+state oil company" or similar. A named place becomes "the capital", "a major
+city" or "a neighbouring country". A named event, scandal or operation becomes a
+description of what it was ("a long-running corruption investigation").
+
+This applies to `actors` above all, which is where names would otherwise appear.
+Say "the president" and never the president's name.
+
+Keep every NUMBER exactly as written — percentages, dates, rates, amounts,
+counts. The numbers are the evidence and must survive intact.
+"""
+
+
 DIGEST_PROMPT = """
 You are an extraction engine. Read the article text below and return JSON.
 Use ONLY the text provided. If the text does not state something, write
 "not stated" — never fill gaps from outside knowledge.
-
+{mask_rule}
 ARTICLE_TEXT
 {article_text}
 

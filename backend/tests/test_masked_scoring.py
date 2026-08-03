@@ -219,8 +219,9 @@ class TestThePipelineMasksBeforeItDigests:
     def test_the_digest_prompt_never_sees_the_country(self, monkeypatch):
         seen = {}
 
-        def fake_digest(items, *, country_display, iso2, as_of):
+        def fake_digest(items, *, country_display, iso2, as_of, masked=False):
             seen["display"] = country_display
+            seen["masked"] = masked
             seen["text"] = json.dumps(items)
             return items
 
@@ -242,6 +243,10 @@ class TestThePipelineMasksBeforeItDigests:
 
         assert seen["display"] == llm.MASKED_COUNTRY_LABEL
         assert "Portugal" not in seen["text"] and "Lisbon" not in seen["text"]
+        # The text is masked; the digest model still has to be told not to write
+        # names back in. `actors: who did what to whom` is otherwise a direct
+        # instruction to name the people the gazetteer cannot know about.
+        assert seen["masked"] is True
 
     def test_the_stored_articles_stay_unmasked(self, monkeypatch):
         # The database and the front end show real headlines. Masking is a
