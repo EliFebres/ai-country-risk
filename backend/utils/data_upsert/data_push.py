@@ -752,8 +752,42 @@ CREATE TABLE IF NOT EXISTS indicator_series (
   as_of          DATE NOT NULL,          -- when this value became known to us
   source         TEXT NOT NULL,
   vintage_scheme TEXT NOT NULL DEFAULT 'as-published-latest',
-  PRIMARY KEY (country_iso2, indicator_code, freq, period)
+  -- `as_of` is IN the key, and leaving it out made the whole vintage layer
+  -- inert. One row per (country, indicator, period) means the April 2018 WEO
+  -- edition's estimate of 2017 growth and the October 2018 edition's revision
+  -- of the same number are the same row, and the second load silently replaces
+  -- the first. Loading fifteen editions kept 941 rows out of ~13,000 — all from
+  -- whichever edition happened to load last — so a 2018 snapshot would have
+  -- read 2023's revision of 2018 while `vintage_scheme` said
+  -- 'as-published-edition' and looked correct.
+  --
+  -- Multiple rows per period is exactly what `data_retrieval._resolve` already
+  -- expects: it collapses same-period copies to the newest `as_of` not after
+  -- the anchor. The key was the only thing preventing it from ever seeing more
+  -- than one.
+  PRIMARY KEY (country_iso2, indicator_code, freq, period, as_of)
 );
+"""
+
+# Widening an existing table's primary key. Separate from the CREATE because
+# `CREATE TABLE IF NOT EXISTS` does nothing to a table that already exists, so
+# every deployment that ran before this would have kept the narrow key and
+# quietly kept collapsing vintages.
+_INDICATOR_SERIES_PK_MIGRATION = """
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.key_column_usage
+    WHERE table_name = 'indicator_series'
+      AND constraint_name = 'indicator_series_pkey'
+    GROUP BY constraint_name
+    HAVING count(*) = 4
+  ) THEN
+    ALTER TABLE indicator_series DROP CONSTRAINT indicator_series_pkey;
+    ALTER TABLE indicator_series
+      ADD PRIMARY KEY (country_iso2, indicator_code, freq, period, as_of);
+  END IF;
+END $$;
 """
 
 _SERIES_FREQS = ("M", "Q", "A")
@@ -819,16 +853,16 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
 
     with _transaction() as cur:
         cur.execute(_INDICATOR_SERIES_DDL)
+        cur.execute(_INDICATOR_SERIES_PK_MIGRATION)
         extras.execute_values(
             cur,
             """
             INSERT INTO indicator_series
               (country_iso2, indicator_code, freq, period, value, as_of, source, vintage_scheme)
             VALUES %s
-            ON CONFLICT (country_iso2, indicator_code, freq, period)
+            ON CONFLICT (country_iso2, indicator_code, freq, period, as_of)
             DO UPDATE SET
               value          = EXCLUDED.value,
-              as_of          = EXCLUDED.as_of,
               source         = EXCLUDED.source,
               vintage_scheme = EXCLUDED.vintage_scheme
             """,
