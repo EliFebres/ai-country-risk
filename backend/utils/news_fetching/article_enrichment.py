@@ -113,14 +113,26 @@ def fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict]
     for item in all_items:
         item["relevance_score"] = article_ranking.score_relevance(item, country_name)
 
-    filtered = [it for it in all_items if it.get("relevance_score", 0) >= _RELEVANCE_THRESHOLD]
-
-    # Thin coverage: the floor is meaningless when there is nothing to ration, so
-    # drop the bar and take the best of the raw pool, as before.
-    if len(filtered) < article_ranking.TOP_N:
-        logger.info("[%s] Only %d high-relevance items (>=%.1f). Relaxing threshold to ensure 3.",
-                    country_name, len(filtered), _RELEVANCE_THRESHOLD)
-        return _by_relevance(all_items)[:max(max_articles, article_ranking.TOP_N)]
+    # The threshold is a preference, not a cap. It used to be both, and the two
+    # readings disagreed exactly where it mattered: with fewer than TOP_N items
+    # over the bar the bar came off and the country got a full twenty by rank,
+    # but with TOP_N or more it got *only those*. So a week where two articles
+    # cleared 0.3 was scored on twenty, and a week where three cleared was
+    # scored on three — evidence falling as relevance rose, discontinuously, at
+    # the one place a country's coverage is most likely to sit.
+    #
+    # Filling from the cleared items first and topping up by rank keeps what the
+    # threshold was for (relevant articles come first) and drops what it was
+    # never for (throwing away the budget).
+    pool = _by_relevance(all_items)
+    cleared = [it for it in pool if it.get("relevance_score", 0) >= _RELEVANCE_THRESHOLD]
+    if len(cleared) < max_articles:
+        logger.info("[%s] %d item(s) over the %.1f bar; topping up to %d by rank.",
+                    country_name, len(cleared), _RELEVANCE_THRESHOLD, max_articles)
+        seen = {id(it) for it in cleared}
+        filtered = cleared + [it for it in pool if id(it) not in seen]
+    else:
+        filtered = cleared
 
     selected = _select_with_theme_floor(filtered, max_articles, _PER_THEME_FLOOR)
     logger.info("[%s] %d/%d articles kept, themes: %s", country_name, len(selected),

@@ -205,6 +205,37 @@ class TestSelectionMatchesTheLiveRun:
         assert len(sel.select(COUNTRY, AS_OF)[0]["snippet"]) == sel._SNIPPET_CHARS
 
 
+class TestTheThresholdOrdersRatherThanCaps:
+    """Read as a cap, the relevance bar made evidence fall as relevance rose.
+
+    Under the old rule, fewer than TOP_N items over the bar dropped the bar and
+    filled the snapshot to twenty by rank; TOP_N or more kept *only those*. So a
+    week where two articles cleared 0.3 was scored on twenty and a week where
+    three cleared was scored on three. Across Portugal 2019 that was a median of
+    6.5 articles out of ~55 available, with 34 of 52 weeks under ten.
+    """
+
+    def test_more_relevant_articles_never_means_less_evidence(self, store_rows):
+        store_rows([row(url=f"https://g/{i}") for i in range(40)])
+        picked = sel.select(COUNTRY, AS_OF, max_articles=20)
+        assert len(picked) == 20
+
+    def test_the_budget_is_filled_when_the_pool_allows_it(self, store_rows):
+        store_rows([row(url=f"https://g/{i}") for i in range(25)])
+        assert len(sel.select(COUNTRY, AS_OF, max_articles=20)) == 20
+
+    def test_a_genuinely_thin_week_stays_thin(self, store_rows):
+        """The fix fills the budget from what exists; it never invents."""
+        store_rows([row(url=f"https://g/{i}") for i in range(4)])
+        assert len(sel.select(COUNTRY, AS_OF, max_articles=20)) == 4
+
+    def test_the_most_relevant_still_come_first(self, store_rows):
+        store_rows([row(url=f"https://g/{i}") for i in range(30)])
+        picked = sel.select(COUNTRY, AS_OF, max_articles=20)
+        scores = [i["relevance_score"] for i in picked]
+        assert scores == sorted(scores, reverse=True) or len(set(scores)) == 1
+
+
 class TestTheAbstractTierIsRationed:
     """The NYT archive returns no bodies, and it is overwhelmingly about the US.
 
