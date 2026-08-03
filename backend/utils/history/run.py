@@ -24,6 +24,7 @@ Usage:
 
     python -m backend.utils.history.run score ...    # step 9/10 (asks before spending)
     python -m backend.utils.history.run diagnostic   # step 10 (the named arms)
+    python -m backend.utils.history.run pilot-report # step 10/11 (the five meters)
 """
 
 import argparse
@@ -43,7 +44,7 @@ load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv()
 
 from backend.utils.data_upsert import data_push  # noqa: E402
-from backend.utils.history import config, score, store, wayback  # noqa: E402
+from backend.utils.history import config, reports, score, store, wayback  # noqa: E402
 from backend.utils.history.adapters import gdelt, guardian, nyt  # noqa: E402
 from backend.utils.history.vintage import lags, monthly, restamp, weo  # noqa: E402
 
@@ -342,6 +343,10 @@ def main() -> None:
     p.add_argument("--approved", action="store_true")
 
     sub.add_parser("report")
+
+    p = sub.add_parser("pilot-report")
+    p.add_argument("--country", action="append", dest="roster")
+
     args = parser.parse_args()
 
     if args.command == "guardian":
@@ -370,6 +375,9 @@ def main() -> None:
         return
     elif args.command == "diagnostic":
         _diagnostic(args)
+        return
+    elif args.command == "pilot-report":
+        reports.render(args.roster)
         return
     elif args.command == "monthly":
         rows = monthly.backfill(roster=args.roster, since=args.since)
