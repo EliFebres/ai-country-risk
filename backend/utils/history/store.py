@@ -607,9 +607,9 @@ def recovery_curve() -> List[Dict[str, Any]]:
     """
     return _rows("""
         SELECT source_system, EXTRACT(YEAR FROM published_at)::int AS year,
-               body_status, body_vintage, COUNT(*)::int AS n
+               body_status, body_vintage, tier, COUNT(*)::int AS n
           FROM historical_article
-         GROUP BY 1, 2, 3, 4 ORDER BY 1, 2, 3, 4
+         GROUP BY 1, 2, 3, 4, 5 ORDER BY 1, 2, 3, 4, 5
     """)
 
 

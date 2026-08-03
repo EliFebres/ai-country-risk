@@ -65,19 +65,33 @@ def _report() -> None:
     print(f"  {holes} hole(s) — each one is an empty snapshot later")
 
     print("\n=== recovery curve: body outcomes by source x year ===")
+    print("  (abstract-only is a tier, not a failure: the NYT archive returns no "
+          "bodies to recover)")
     totals: dict = {}
     for row in store.recovery_curve():
         key = (row["source_system"], row["year"])
-        totals.setdefault(key, {})
-        label = f"{row['body_status']}/{row['body_vintage'] or '-'}"
-        totals[key][label] = totals[key].get(label, 0) + row["n"]
-    for (source, year), buckets in sorted(totals.items()):
-        total = sum(buckets.values())
-        recovered = sum(n for k, n in buckets.items() if k.startswith("recovered"))
-        live = sum(n for k, n in buckets.items() if k.endswith("live-refetch"))
-        degraded = sum(n for k, n in buckets.items() if k.startswith("degraded"))
-        print(f"  {source:<9} {year}  n={total:<6} recovered={100*recovered/total:5.1f}%  "
-              f"live-refetch={100*live/total:5.1f}%  flagged={100*degraded/total:5.1f}%")
+        buckets = totals.setdefault(key, {"n": 0, "recovered": 0, "live": 0,
+                                          "flagged": 0, "abstract": 0})
+        buckets["n"] += row["n"]
+        if row["tier"] == "abstract-only":
+            # Never had a body to lose. Counting it as a recovery failure would
+            # read afterwards as "the archive went dark", which is the opposite
+            # of what this curve is for.
+            buckets["abstract"] += row["n"]
+        elif row["body_status"] == "recovered":
+            buckets["recovered"] += row["n"]
+            buckets["live"] += row["n"] if row["body_vintage"] == "live-refetch" else 0
+        elif str(row["body_status"]).startswith("degraded"):
+            buckets["flagged"] += row["n"]
+    for (source, year), b in sorted(totals.items()):
+        # Percentages against the articles that could have had a body, so a
+        # source with none does not dilute the number that matters.
+        full = b["n"] - b["abstract"]
+        rates = (f"recovered={100*b['recovered']/full:5.1f}%  "
+                 f"live-refetch={100*b['live']/full:5.1f}%  "
+                 f"flagged={100*b['flagged']/full:5.1f}%" if full
+                 else "abstract-only, no bodies to recover")
+        print(f"  {source:<9} {year}  n={b['n']:<6} {rates}")
 
 
 def _wayback(args) -> None:
