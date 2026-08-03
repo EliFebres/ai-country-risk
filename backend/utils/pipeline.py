@@ -301,6 +301,10 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         recent=_safe(lambda: data_push.read_recent_indicators(iso2), iso2, "recent") or {},
         fx_regimes=constants.FX_REGIMES,
         elections=constants.ELECTIONS,
+        # Static, so it needs no vintage bound and is read the same way for a
+        # 2016 anchor and for today. Degrades like every other store: a
+        # malformed file costs the structural block, not the score.
+        structural=_safe(curated_loader.load_structural_facts, iso2, "structural") or {},
         # Only a historical run restricts the data vintage. The daily run passes
         # None and behaves exactly as before — handing it today's date would
         # drop the current year's annual figures, whose period ends in December.

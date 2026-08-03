@@ -473,6 +473,7 @@ def build_evidence_payload(
     fx_regimes: Optional[Dict[str, str]] = None,
     elections: Optional[Dict[str, List[dict]]] = None,
     vintage_as_of: Optional[date] = None,
+    structural: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> dict:
     """Build the three-ledger evidence payload the scoring model receives.
 
@@ -497,6 +498,13 @@ def build_evidence_payload(
             period ends in December. Only a historical run wants that, and a
             historical run wants it badly — otherwise a 2018 score is built on
             2026's revisions of 2018.
+        structural: static per-country facts, from
+            ``curated_loader.load_structural_facts``. Masking removes the
+            country's name and with it the priors the name carried; this puts
+            the structural ones back as stated evidence. Deliberately not
+            time-varying — anything that moves year to year is an
+            ``indicator_series`` row with its own vintage, or it would be a
+            future leak on every historical snapshot.
 
     Returns:
         ``{_meta, friction_inputs, uncertainty_inputs, information_inputs,
@@ -672,6 +680,22 @@ def build_evidence_payload(
         **sections,
         "computed": computed,
     }
+
+    # The facts identity used to imply, stated because masking took identity
+    # away. Omitted entirely when the country has no block, exactly as an
+    # indicator with no observation is omitted: an empty `structural` key would
+    # read to the model as "this country has no structure", which is false and
+    # is worse than silence.
+    country_structural = (structural or {}).get(country_iso2)
+    if country_structural:
+        payload["structural"] = {
+            **country_structural,
+            "note": (
+                "Facts about this country that do not change year to year, "
+                "supplied because the country is not named. Reason from these "
+                "rather than from any guess about which country this is."
+            ),
+        }
 
     estimated_tokens = len(json.dumps(payload, ensure_ascii=False)) // _CHARS_PER_TOKEN
     log = logger.warning if estimated_tokens > _TOKEN_BUDGET else logger.info

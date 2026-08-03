@@ -1,0 +1,226 @@
+# Structural facts — what identity used to imply, stated instead.
+#
+# Masking removes the country's name, and with it a set of legitimate priors the
+# model was entitled to use. A model that does not know it is looking at the
+# United States does not know the debt is denominated in a currency the country
+# issues; that a euro-area member's is not; that a reserve-currency issuer's
+# fiscal arithmetic differs in kind from a frontier borrower's. Those are
+# structure, not reputation, and withholding them is not a fair test — it is a
+# different and worse one.
+#
+# So they are stated here. This is strictly better epistemics than leaving them
+# to be remembered: the model reasons from what is on the page rather than from
+# what it recalls about a name, and every fact it uses has a source line next to
+# it that somebody can check.
+#
+# ---------------------------------------------------------------------------
+# WHAT BELONGS HERE, AND WHAT DOES NOT
+# ---------------------------------------------------------------------------
+# Only facts that do not move year to year. Anything time-varying goes into
+# `indicator_series` as an annual series with a real `as_of`, because a single
+# current value used for a 2016 snapshot is a future leak — the same class of
+# error as scoring 2018 on 2026's revisions, and one this project already has
+# machinery to avoid. Three fields were moved out for exactly that reason and
+# are documented at the bottom of this file.
+#
+# Absent is absent. A field nobody could source cleanly is left out, never
+# estimated, and `build_evidence_payload` omits it the same way it omits an
+# indicator with no observation. There is no "unknown" value and no default.
+#
+# ---------------------------------------------------------------------------
+# THIS BLOCK NARROWS THE GUESS SPACE, DELIBERATELY
+# ---------------------------------------------------------------------------
+# Region plus income group plus monetary sovereignty is a small set of
+# countries: "Europe, high income, currency-union member" is twenty candidates
+# before a single number is read. That is a real cost, accepted for the same
+# reason `rewrite.py` keeps region coarse — the alternative is a model reasoning
+# about a debt burden with no idea whether the debt can be inflated away.
+#
+# The identifiability probe measures what this costs. If a country's probe rate
+# jumps when the structural block is present, that is the number to argue with,
+# not this comment.
+#
+# ---------------------------------------------------------------------------
+# COVERAGE
+# ---------------------------------------------------------------------------
+# Five of forty-eight. The pilot roster only, filled from cited sources; the
+# other forty-three are absent and their snapshots carry no structural block.
+#
+# That asymmetry is fine for a pilot and NOT fine for cutover: the countries
+# with the block are exactly the countries the method is being validated on, so
+# leaving it would make the validation optimistic about the live run. The
+# manifest records per-snapshot coverage so the difference is visible in the
+# data rather than only in this comment. Filling the remaining forty-three is a
+# cutover prerequisite.
+#
+# ---------------------------------------------------------------------------
+# SCHEMA
+# ---------------------------------------------------------------------------
+# Every field is optional. Every field carries `source` and `retrieved`.
+#
+#   region                 coarse geography, from a closed vocabulary in
+#                          `curated_loader._STRUCTURAL_VOCAB`. Coarser than the
+#                          World Bank's own region names, and it has to be: run
+#                          through the mask, "Latin America and Caribbean"
+#                          becomes "another country and Caribbean" — "America"
+#                          is a name form for the US — and "North America"
+#                          becomes "the region". The one country whose region
+#                          vanished was the United States while every other kept
+#                          theirs, which is not a lost field but a signature.
+#                          These values pass the gazetteer unchanged for all 48,
+#                          and a test asserts it rather than trusting it.
+#   income_group           low | lower-middle | upper-middle | high.
+#                          World Bank classification for the current fiscal year.
+#   commodity_exporter     true when commodities are more than 60% of merchandise
+#                          exports — UNCTAD's own commodity-dependence threshold,
+#                          used rather than invented.
+#   monetary_sovereignty   full        issues its own floating currency
+#                          constrained currency-union member: uses a currency it
+#                                      does not issue and cannot devalue
+#                          pegged      maintains a peg it must defend with reserves
+#                          dollarized  uses another sovereign's currency outright
+#   reserve_currency       major | regional | none — the status of the currency
+#                          the government's debt is denominated in, NOT of the
+#                          country. Portugal is the case that makes the
+#                          distinction worth having: its debt is in a major
+#                          reserve currency that it cannot issue, which is a
+#                          harder position than either field alone describes.
+#
+# ---------------------------------------------------------------------------
+
+US:
+  region:
+    value: Americas
+    source: World Bank region, coarsened to a mask-stable value
+    retrieved: 2026-08-03
+  income_group:
+    value: high
+    source: World Bank income classification, FY2026
+    retrieved: 2026-08-03
+  commodity_exporter:
+    value: false
+    source: UNCTAD State of Commodity Dependence — below the 60% threshold
+    retrieved: 2026-08-03
+  monetary_sovereignty:
+    value: full
+    source: IMF AREAER — free floating
+    retrieved: 2026-08-03
+  reserve_currency:
+    value: major
+    source: IMF COFER — USD is the largest share of allocated reserves
+    retrieved: 2026-08-03
+
+TR:
+  region:
+    value: Europe
+    source: World Bank region, coarsened to a mask-stable value
+    retrieved: 2026-08-03
+  income_group:
+    value: upper-middle
+    source: World Bank income classification, FY2026
+    retrieved: 2026-08-03
+  commodity_exporter:
+    value: false
+    source: UNCTAD State of Commodity Dependence — below the 60% threshold
+    retrieved: 2026-08-03
+  monetary_sovereignty:
+    value: full
+    source: IMF AREAER — floating; issues its own currency
+    retrieved: 2026-08-03
+  reserve_currency:
+    value: none
+    source: IMF COFER — not a separately identified reserve currency
+    retrieved: 2026-08-03
+
+BR:
+  region:
+    value: Americas
+    source: World Bank region, coarsened to a mask-stable value
+    retrieved: 2026-08-03
+  income_group:
+    value: upper-middle
+    source: World Bank income classification, FY2026
+    retrieved: 2026-08-03
+  commodity_exporter:
+    value: true
+    source: UNCTAD State of Commodity Dependence — commodity-dependent, above
+      the 60% share of merchandise exports
+    retrieved: 2026-08-03
+  monetary_sovereignty:
+    value: full
+    source: IMF AREAER — free floating
+    retrieved: 2026-08-03
+  reserve_currency:
+    value: none
+    source: IMF COFER — not a separately identified reserve currency
+    retrieved: 2026-08-03
+
+PT:
+  region:
+    value: Europe
+    source: World Bank region, coarsened to a mask-stable value
+    retrieved: 2026-08-03
+  income_group:
+    value: high
+    source: World Bank income classification, FY2026
+    retrieved: 2026-08-03
+  commodity_exporter:
+    value: false
+    source: UNCTAD State of Commodity Dependence — below the 60% threshold
+    retrieved: 2026-08-03
+  monetary_sovereignty:
+    value: constrained
+    source: Euro area member since 1999 — uses a currency it does not issue
+    retrieved: 2026-08-03
+  reserve_currency:
+    value: major
+    source: IMF COFER — the euro is a major reserve currency. Paired with
+      monetary_sovereignty:constrained this is the whole point of the field —
+      the debt is in a reserve currency the borrower cannot print.
+    retrieved: 2026-08-03
+
+KR:
+  region:
+    value: East Asia and Pacific
+    source: World Bank region, coarsened to a mask-stable value
+    retrieved: 2026-08-03
+  income_group:
+    value: high
+    source: World Bank income classification, FY2026
+    retrieved: 2026-08-03
+  commodity_exporter:
+    value: false
+    source: UNCTAD State of Commodity Dependence — below the 60% threshold
+    retrieved: 2026-08-03
+  monetary_sovereignty:
+    value: full
+    source: IMF AREAER — floating; issues its own currency
+    retrieved: 2026-08-03
+  reserve_currency:
+    value: none
+    source: IMF COFER — held under "other currencies", not separately identified
+    retrieved: 2026-08-03
+
+# ---------------------------------------------------------------------------
+# MOVED OUT: the time-varying three
+# ---------------------------------------------------------------------------
+# These belong in the payload and do NOT belong in this file, because they move
+# every year and a 2016 snapshot must see 2016's value:
+#
+#   GOV.DEBT.FX.SHARE        share of government debt denominated in foreign
+#                            currency, % of total
+#   GOV.DEBT.DOMESTIC.SHARE  share of government debt held by residents,
+#                            % of total
+#   NIIP.GDP                 net international investment position, % of GDP
+#
+# They are registered in `constants.INDICATOR_REGISTRY` and load through
+# `backend/data/curated.csv`, whose `as_of` column carries the vintage — so they
+# inherit the no-future bound for free, with no new machinery.
+#
+# They are currently ABSENT, and that is the honest state rather than an
+# oversight. Debt composition by currency and by holder is published per country
+# by national debt agencies and inside IMF Article IV staff reports, mostly as
+# PDF tables; there is no free machine-readable series covering the roster.
+# Estimating them would be exactly the fabrication this file refuses. Add rows to
+# curated.csv as they are sourced — one row per country-year with its own as_of,
+# and the loader validates the rest.

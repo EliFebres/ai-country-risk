@@ -303,6 +303,32 @@ INDICATOR_REGISTRY: dict[str, dict[str, object]] = {
         "ledger": "uncertainty", "source": "IMF IRFCL (manual)", "freq": "M",
         "panel_col": None, "recent_name": None,
     },
+    # The time-varying half of the structural block. Masking strips the priors a
+    # country's name carried, and `structural_facts.yaml` restates the ones that
+    # never move. These three move every year, so a single current value used
+    # for a 2016 snapshot would be a future leak — the same error as scoring
+    # 2018 on 2026's revisions. They live here instead, load through curated.csv,
+    # and inherit the vintage bound for free.
+    #
+    # Currently empty, and honestly so: debt composition by currency and by
+    # holder is published per country by national debt agencies and inside IMF
+    # Article IV staff reports, mostly as PDF tables, with no free
+    # machine-readable series covering the roster. Absent beats estimated.
+    "GOV.DEBT.FX.SHARE": {
+        "label": "Government debt in foreign currency (% of total)", "unit": "% of total",
+        "ledger": "uncertainty", "source": "National debt agencies / IMF Article IV",
+        "freq": "A", "panel_col": None, "recent_name": None,
+    },
+    "GOV.DEBT.DOMESTIC.SHARE": {
+        "label": "Government debt held by residents (% of total)", "unit": "% of total",
+        "ledger": "uncertainty", "source": "National debt agencies / IMF Article IV",
+        "freq": "A", "panel_col": None, "recent_name": None,
+    },
+    "NIIP.GDP": {
+        "label": "Net international investment position (% GDP)", "unit": "% of GDP",
+        "ledger": "uncertainty", "source": "IMF Balance of Payments / IIP",
+        "freq": "A", "panel_col": None, "recent_name": None,
+    },
     "WUI.INDEX": {
         "label": "World Uncertainty Index", "unit": "index",
         "ledger": "uncertainty", "source": "World Uncertainty Index", "freq": "Q",
