@@ -62,9 +62,16 @@ def month_windows(start: datetime.date, end: datetime.date
     return out
 
 
-@http.retry_transient(frozenset({429, 500, 502, 503, 504}))
+@http.retry_transient(frozenset({429, 500, 502, 503, 504}),
+                      initial=config.GDELT_REQUEST_INTERVAL_SECONDS + 1,
+                      max_wait=60)
 def _get(params: Dict[str, object]) -> requests.Response:
-    """One DOC-API call, retrying transient errors."""
+    """One DOC-API call, retrying transient errors.
+
+    The backoff starts above GDELT's stated five-second floor. The default
+    one-second first retry is *below* it, which turns any single 429 into five
+    guaranteed failures — every retry is itself too fast to be answered.
+    """
     resp = requests.get(_ENDPOINT, params=params,
                         headers={"User-Agent": http.PROJECT_UA}, timeout=60)
     if resp.status_code in (429, 500, 502, 503, 504):

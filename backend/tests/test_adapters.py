@@ -283,3 +283,26 @@ class TestPilotConfig:
 
     def test_gdelt_starts_no_earlier_than_its_own_floor(self):
         assert config.GDELT_START >= "2017-01-01"
+
+
+class TestRetryRespectsAStatedRateLimit:
+    """A backoff faster than the API's own floor cannot ever succeed.
+
+    GDELT answers anything quicker than one request per five seconds with a
+    429. Tenacity's default first retry is one second, so a single throttle
+    became five guaranteed failures and the window was lost — with the harvest
+    logging a rate-limit error at a service that was working perfectly.
+    """
+
+    def test_gdelt_asks_for_a_backoff_above_its_own_floor(self):
+        # Read off the decorator rather than the timing: what matters is that
+        # the first retry cannot be quicker than the interval GDELT states.
+        source = inspect.getsource(gdelt)
+        assert "initial=config.GDELT_REQUEST_INTERVAL_SECONDS + 1" in source
+
+    def test_the_shared_default_is_unchanged_for_every_other_caller(self):
+        # World Bank and FMP keep the one-second first retry they were tuned on.
+        from backend.utils import http as http_mod
+        params = inspect.signature(http_mod.retry_transient).parameters
+        assert params["initial"].default == 1
+        assert params["max_wait"].default == 30
