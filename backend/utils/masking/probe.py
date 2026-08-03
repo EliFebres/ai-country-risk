@@ -26,6 +26,10 @@ from backend.utils.history import config
 logger = logging.getLogger(__name__)
 
 _PROBE_SCHEMA = {
+    # Same omission as the rewrite schema had, and worse here: the probe fails
+    # *open*, recording a failed call as "no guess", so a nameless schema would
+    # have reported perfect masking on every bundle it never actually read.
+    "title": "CountryGuess",
     "type": "object",
     "properties": {
         "country": {

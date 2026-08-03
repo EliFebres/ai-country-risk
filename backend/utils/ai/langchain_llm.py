@@ -315,15 +315,11 @@ def country_llm_score(
     iso2 = _extract_iso2(payload)
 
     if mask_iso2:
-        # After `_extract_iso2` and before anything is serialized. That is not
-        # a convenience: the sanctions lookup needs the real code, and this is
-        # the one line where everything the model will see is still separate
-        # objects — the last place a gate can stand.
+        # After `_extract_iso2`, so the sanctions lookup keeps the real code
+        # while the prompt never learns it.
         payload = rewrite.mask_payload(payload, mask_iso2)
         articles = rewrite.mask_items(articles, mask_iso2)
         country_display = MASKED_COUNTRY_LABEL
-        rewrite.assert_clean({"evidence": payload, "articles": articles,
-                              "country": country_display})
 
     evidence_json = json.dumps(payload, ensure_ascii=False)
     article_digests_json = _digests_to_json(articles)
@@ -349,6 +345,21 @@ def country_llm_score(
         full_text_block=fulltext_block if fulltext_block != "(none)"
         else "(no full-text articles supplied)",
     )
+
+    if mask_iso2:
+        # The gate, on the serialized blocks rather than on the objects they
+        # came from. Those objects carry fields the model never sees — the
+        # article URLs, which name the country in their paths and mask into
+        # nonsense if touched — so scanning them means either a gate that cries
+        # wolf on every snapshot or an allow-list of what to scan, which is the
+        # same allow-list that already let `content` and `summary` through.
+        #
+        # Not the whole prompt either: the template's own worked examples name
+        # Australia and China, and they are instructions rather than evidence
+        # about anyone. These four strings are every byte the prompt carries
+        # that came from this country's data.
+        rewrite.assert_clean([evidence_json, article_digests_json,
+                              fulltext_block, country_display])
 
     # Client construction is inside the guard, not just the call: a malformed
     # key or a langchain init error is as much a "this country did not score" as

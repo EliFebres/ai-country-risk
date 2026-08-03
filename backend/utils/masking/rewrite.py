@@ -37,13 +37,27 @@ from backend.utils.masking import gazetteer
 
 logger = logging.getLogger(__name__)
 
-# Which item fields carry text a reader could identify a country from. `link`
-# is deliberately absent and deliberately never sent: a URL like
-# ".../2018/aug/13/turkey-lira-crisis" names the country in the path, so masked
-# payloads carry ids, not URLs.
-_TEXT_FIELDS = ("title", "snippet", "text")
+# Which item fields to leave alone. Everything else is masked, and the polarity
+# matters more than the contents: this began as an allow-list of the three
+# fields somebody remembered — title, snippet, text — and `article_input_text`
+# prefers `content` over `text` while the legacy prompt shape reads `summary`.
+# Both went to the model unmasked, and the allow-list looked complete the whole
+# time. A gate defaults to masking; what it skips has to be argued for.
+#
+# The links are argued for: they are never sent (`prompt_entries` carries ids,
+# not URLs) and a path like ".../2018/aug/13/turkey-lira-crisis" masks into
+# nonsense. The rest are not text.
+_UNMASKED_FIELDS = frozenset({
+    "link", "publisher_link", "url", "image", "id", "published", "published_at",
+    "relevance_score", "stage1_severity", "_theme", "theme",
+})
 
 _REWRITE_SCHEMA = {
+    # The title is not decoration: `with_structured_output(strict=True)` turns
+    # the schema into a function definition and OpenAI needs a name for it.
+    # Without one every call raised, the pass failed closed on every article,
+    # and the only symptom was three bodies quietly degrading to their titles.
+    "title": "MaskedArticle",
     "type": "object",
     "properties": {
         "rewritten": {
@@ -100,17 +114,20 @@ def mask_text(text: str, iso2: str, roster: Optional[Iterable[str]] = None) -> s
 
 def mask_item(item: Dict[str, Any], iso2: str,
               roster: Optional[Iterable[str]] = None) -> Dict[str, Any]:
-    """One article with its text masked by the gazetteer. Non-mutating.
+    """One article masked field by field, ids and links excepted. Non-mutating.
 
     The original item is left alone because the DB and the front end still show
     the real headline: masking is a transform at the scoring boundary, not a
     property of the stored article.
+
+    The stage-1 ``digest`` is masked too, though it is generated from already
+    masked text. It is model output, and the gazetteer is cheaper than trusting
+    it.
     """
-    masked = dict(item)
-    for field in _TEXT_FIELDS:
-        if masked.get(field):
-            masked[field] = mask_text(masked[field], iso2, roster)
-    return masked
+    return {
+        key: value if key in _UNMASKED_FIELDS else mask_payload(value, iso2, roster)
+        for key, value in item.items()
+    }
 
 
 def mask_items(items: Iterable[Dict[str, Any]], iso2: str,
@@ -152,7 +169,21 @@ def mask_payload(value: Any, iso2: str,
     if isinstance(value, str):
         return _code_role(value, iso2, roster) or mask_text(value, iso2, roster)
     if isinstance(value, dict):
-        return {k: mask_payload(v, iso2, roster) for k, v in value.items()}
+        # Keys as well as values. The payload is serialized to JSON before it
+        # reaches the model, so a label is as visible as a number — and the
+        # evidence payload really does carry "Exchange rate vs USD" as a key.
+        # That one names a country in every country's payload, so masking it
+        # costs no information at all; the point is that the gate cannot have
+        # exceptions, because the first one is always the reasonable one.
+        out: Dict[Any, Any] = {}
+        for key, item in value.items():
+            masked_key = mask_payload(key, iso2, roster) if isinstance(key, str) else key
+            # Two labels differing only by a country name must not merge into
+            # one indicator. Vanishingly unlikely, silent if it happened.
+            while masked_key in out:
+                masked_key = f"{masked_key} "
+            out[masked_key] = mask_payload(item, iso2, roster)
+        return out
     if isinstance(value, list):
         return [mask_payload(v, iso2, roster) for v in value]
     return value
@@ -213,7 +244,10 @@ def _scan_any(value: Any, roster: List[str]) -> List[str]:
         codes = [code] if len(code) == 2 and code in roster else []
         return codes + gazetteer.scan(value, roster)
     if isinstance(value, dict):
-        return [hit for v in value.values() for hit in _scan_any(v, roster)]
+        # Keys too — they are serialized into the prompt exactly like values,
+        # and scanning only values is how "Exchange rate vs USD" survived.
+        return [hit for pair in value.items() for v in pair
+                for hit in _scan_any(v, roster)]
     if isinstance(value, (list, tuple)):
         return [hit for v in value for hit in _scan_any(v, roster)]
     return []

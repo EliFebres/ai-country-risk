@@ -46,7 +46,7 @@ from backend.utils import constants
 # Bump on any change to COUNTRIES, THIN or ROLES. Stamped into every masked
 # run's manifest so a score can always be traced to the mask map that produced
 # it.
-MASK_MAP_VERSION = "g2"
+MASK_MAP_VERSION = "g3"
 
 # What each category of proper noun becomes. The scorer reads these, so they
 # read as English rather than as placeholders — "the central bank" carries the
@@ -321,6 +321,12 @@ def _forms(iso2: str) -> List[Tuple[str, str]]:
     pairs = [(form, ROLES[category])
              for category, forms in entry.items()
              for form in forms]
+    # Plural currency names, which a live run found surviving: a masked body
+    # still saying "euros" narrows forty-eight countries to twelve. ISO codes
+    # are excluded — "EURs" is not a word anyone writes.
+    pairs += [(form + "s", ROLES["currency"])
+              for form in entry.get("currency", ())
+              if not form.endswith("s") and not form.isupper()]
     return sorted(pairs, key=lambda pair: len(pair[0]), reverse=True)
 
 

@@ -132,6 +132,42 @@ class TestTheNamedPathIsUntouched:
         assert "Portugal" in prompt and "Lisbon" in prompt
 
 
+class TestEveryFieldThatReachesTheModel:
+    """The bug a live run found and no unit test would have.
+
+    Masking started as an allow-list of three fields — title, snippet, text.
+    But `article_input_text` prefers `content` over `text`, and the legacy
+    prompt shape reads `summary`. Both went to the model unmasked, and the
+    allow-list looked complete the whole time.
+    """
+
+    @pytest.mark.parametrize("field", ["title", "snippet", "text", "content",
+                                       "summary", "source"])
+    def test_a_text_field_is_masked(self, field):
+        masked = rewrite.mask_item({field: "Portugal cut rates in Lisbon."}, "PT")
+        assert "Portugal" not in masked[field] and "Lisbon" not in masked[field]
+
+    def test_the_stage_one_digest_is_masked_too(self):
+        # Model output, generated from masked text. The gazetteer is cheaper
+        # than trusting it.
+        masked = rewrite.mask_item(
+            {"digest": {"what": "Portugal cut rates.", "why": ["Lisbon acted"]}}, "PT")
+        assert "Portugal" not in str(masked["digest"])
+        assert "Lisbon" not in str(masked["digest"])
+
+    def test_the_link_is_left_alone(self):
+        # Never sent — `prompt_entries` carries ids, not URLs — and masking a
+        # path like /2018/turkey-lira-crisis produces nonsense.
+        url = "https://example.com/2018/portugal-bailout"
+        assert rewrite.mask_item({"link": url}, "PT")["link"] == url
+
+    def test_an_unknown_field_is_masked_by_default(self):
+        # The polarity is the point: a field nobody thought of is masked, not
+        # forwarded.
+        masked = rewrite.mask_item({"some_new_field": "Lisbon acted."}, "PT")
+        assert "Lisbon" not in masked["some_new_field"]
+
+
 class TestTheCodeIsALeakToo:
     """The one identifier the prose gazetteer cannot carry.
 

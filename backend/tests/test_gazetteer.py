@@ -152,6 +152,15 @@ class TestTheMapItself:
         assert "PEN" not in gz.terms("PE") and "COP" not in gz.terms("CO")
         assert "Peruvian Sol" in gz.terms("PE")
 
+    def test_plural_currency_names_are_masked(self):
+        # A live run found "euros" surviving. It narrows forty-eight countries
+        # to twelve, which is most of the way to naming one.
+        assert "euro" not in gz.mask("traders held euros", "PT")
+        assert "Dollar" not in gz.mask("held Australian Dollars", "AU")
+
+    def test_iso_codes_are_not_pluralised(self):
+        assert "EURs" not in gz.terms("PT")
+
     def test_a_thin_country_masks_its_own_forms(self):
         masked = gz.mask("Tokyo raised the Japanese Yen against Japan.", "JP")
         assert gz.scan(masked, ["JP"]) == []
