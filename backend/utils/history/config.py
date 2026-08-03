@@ -145,9 +145,14 @@ CUTOFF_DATE: str = "2023-10-01"
 NAMED_SAMPLE_PER_COUNTRY: int = 12
 
 # Hard abort threshold for the whole pilot, enforced against metered token spend
-# rather than a projection. Projection is ≈ $95; the gap is deliberate headroom,
-# not budget to spend.
-PILOT_BUDGET_USD: float = 110.0
+# rather than a projection.
+#
+# This is a runaway guard, not a budget. Authorization is the gate — Eli approves
+# a run, and this only decides how far a run that has gone wrong gets before it
+# stops. Raising it authorizes nothing; a number well clear of the projection is
+# what keeps a legitimate run from aborting three-quarters finished, which costs
+# the spend and delivers no series.
+PILOT_BUDGET_USD: float = 130.0
 
 # The snapshot window, in days back from each anchor. Same 30 days the live run
 # uses, so a historical snapshot differs from a live one only in where its
