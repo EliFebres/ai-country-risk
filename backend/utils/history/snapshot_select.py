@@ -174,6 +174,37 @@ def to_item(row: Dict[str, Any], as_of: datetime.date,
     )
 
 
+def ration_abstracts(items: List[Dict[str, Any]],
+                     max_articles: int) -> List[Dict[str, Any]]:
+    """Cap the abstract-only tier's share of a snapshot, keeping the best of it.
+
+    The NYT archive returns no bodies, so its articles arrive as a headline and
+    two sentences. That is real evidence and it is thin evidence, and it is
+    distributed nothing like evenly across the roster — the archive is mostly
+    about the United States. Left uncapped, a US snapshot fills with abstracts
+    while a Portugal one keeps full bodies, and the two stop being the same
+    instrument pointed at different countries. Every cross-country comparison
+    the pilot exists to make would then be partly a comparison of evidence
+    texture.
+
+    Applied before the theme floor rather than after, so the floor rations what
+    survives instead of the cap overriding the floor's guarantees. The cost is
+    real and accepted: an abstract that was its theme's only article can be cut,
+    and that theme forfeits its quota.
+
+    Non-mutating, and stable — the surviving items keep their original order, so
+    :func:`select` stays byte-reproducible.
+    """
+    cap = int(max_articles * config.ABSTRACT_TIER_SHARE)
+    abstracts = [i for i in core.by_relevance(items) if i.get("tier") == "abstract-only"]
+    if len(abstracts) <= cap:
+        return items
+    logger.info("rationing the abstract tier: %d of %d abstracts kept",
+                cap, len(abstracts))
+    dropped = {id(i) for i in abstracts[cap:]}
+    return [i for i in items if id(i) not in dropped]
+
+
 def select(iso2: str, as_of: datetime.date,
            max_articles: int = 20) -> List[Dict[str, Any]]:
     """The articles a snapshot for this country on this date is scored on.
@@ -213,4 +244,5 @@ def select(iso2: str, as_of: datetime.date,
         clearing = items
 
     return core.select_with_theme_floor(
-        clearing, max_articles, article_enrichment._PER_THEME_FLOOR)
+        ration_abstracts(clearing, max_articles),
+        max_articles, article_enrichment._PER_THEME_FLOOR)

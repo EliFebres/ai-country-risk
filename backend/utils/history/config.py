@@ -141,6 +141,30 @@ PILOT_BUDGET_USD: float = 110.0
 # articles came from.
 SNAPSHOT_WINDOW_DAYS: int = 30
 
+# Most of a snapshot's articles that may be NYT abstract-only rows.
+#
+# The archive API returns no bodies, so every NYT article is a headline and two
+# sentences — real evidence, and much thinner evidence than a Guardian piece. It
+# is also distributed nothing like evenly: in a measured month the roster matched
+# 1,824 NYT articles and 1,687 of them were US. Uncapped, a US snapshot fills
+# with abstracts while a Portugal one keeps full bodies, and the two stop being
+# the same instrument pointed at different countries.
+#
+# 0.4 of twenty is eight. High enough that abstracts still fill the gaps they are
+# there to fill; low enough that no snapshot is mostly headlines.
+#
+# The cap is hard, and it can leave a thin week thinner. That is the same trade
+# `relevance_snippet` makes: a thin week reported honestly beats a full one
+# assembled from whatever was cheapest to harvest.
+#
+# It is a share of the *budget*, not of the realized snapshot, so a thin week
+# reports above this number without the cap having leaked: eight abstracts out
+# of a week that only found thirteen articles is 62%, and still eight. Measured
+# across the roster it lands at 26-45% per country-year, and PT sits near 5%
+# because the NYT barely covers Portugal — which is the corpus telling the truth
+# rather than the cap failing.
+ABSTRACT_TIER_SHARE: float = 0.4
+
 
 def country_name(iso2: str) -> str:
     """Display name for a pilot country, from the live roster.

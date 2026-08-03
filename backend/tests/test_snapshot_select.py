@@ -205,6 +205,54 @@ class TestSelectionMatchesTheLiveRun:
         assert len(sel.select(COUNTRY, AS_OF)[0]["snippet"]) == sel._SNIPPET_CHARS
 
 
+class TestTheAbstractTierIsRationed:
+    """The NYT archive returns no bodies, and it is overwhelmingly about the US.
+
+    Left uncapped, a US snapshot fills with two-sentence abstracts while a
+    Portugal one keeps full Guardian bodies — and every cross-country comparison
+    the pilot exists to make becomes partly a comparison of evidence texture.
+    """
+
+    def abstracts(self, n, **over):
+        return [row(url=f"https://www.nytimes.com/a{i}", source_system="nyt",
+                    tier="abstract-only", body=None, body_status="failed",
+                    abstract="Portugal's deficit narrowed, officials said.",
+                    published_at=datetime.datetime(2018, 6, 1, 9, 30,
+                                                   tzinfo=datetime.timezone.utc),
+                    **over)
+                for i in range(n)]
+
+    def test_a_flood_of_abstracts_cannot_take_the_whole_snapshot(self, store_rows):
+        store_rows(self.abstracts(40) + [row(url=f"https://g/{i}") for i in range(5)])
+        picked = sel.select(COUNTRY, AS_OF, max_articles=20)
+        thin = [i for i in picked if i.get("tier") == "abstract-only"]
+        assert len(thin) <= int(20 * config.ABSTRACT_TIER_SHARE)
+
+    def test_abstracts_still_fill_the_gaps_they_are_there_for(self, store_rows):
+        """A cap is not a ban: under the cap, nothing is dropped."""
+        store_rows(self.abstracts(3) + [row(url=f"https://g/{i}") for i in range(5)])
+        picked = sel.select(COUNTRY, AS_OF, max_articles=20)
+        assert len([i for i in picked if i.get("tier") == "abstract-only"]) == 3
+
+    def test_the_ration_keeps_the_most_relevant_abstracts(self):
+        items = [{"tier": "abstract-only", "relevance_score": s, "published": None}
+                 for s in (1, 9, 5, 7, 3)]
+        kept = sel.ration_abstracts(items, max_articles=5)   # cap = 2
+        assert sorted(i["relevance_score"] for i in kept) == [7, 9]
+
+    def test_the_ration_leaves_full_bodied_articles_alone(self):
+        items = ([{"tier": "full", "relevance_score": 0.1, "published": None}] * 30
+                 + [{"tier": "abstract-only", "relevance_score": 9, "published": None}])
+        assert len(sel.ration_abstracts(items, max_articles=20)) == 31
+
+    def test_the_survivors_keep_their_order(self):
+        """`select` must stay byte-reproducible; a re-sort here would break it."""
+        items = [{"tier": "abstract-only", "relevance_score": s, "published": None}
+                 for s in (1, 9, 5, 7, 3)]
+        kept = sel.ration_abstracts(items, max_articles=5)
+        assert [i["relevance_score"] for i in kept] == [9, 7]
+
+
 class TestRelevanceSnippetStaysHonest:
     """The snippet is what `score_relevance` answers "is this about the country?"
     from. Choosing it to beat the body-mention ceiling is how a snapshot fills
