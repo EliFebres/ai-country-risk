@@ -14,6 +14,8 @@ Usage:
     python -m backend.utils.history.run wayback      # step 4 (asks before spending)
     python -m backend.utils.history.run nyt          # step 5
     python -m backend.utils.history.run weo          # step 7 (per-edition macro)
+    python -m backend.utils.history.run monthly      # step 7 (IMF monthly, back-dated)
+    python -m backend.utils.history.run restamp      # step 7 (re-date stored rows)
     python -m backend.utils.history.run report       # counts, evenness, recovery curve
 """
 
@@ -35,7 +37,7 @@ load_dotenv()
 from backend.utils.data_upsert import data_push  # noqa: E402
 from backend.utils.history import config, store, wayback  # noqa: E402
 from backend.utils.history.adapters import gdelt, guardian, nyt  # noqa: E402
-from backend.utils.history.vintage import weo  # noqa: E402
+from backend.utils.history.vintage import lags, monthly, restamp, weo  # noqa: E402
 
 logger = logging.getLogger("history")
 
@@ -138,6 +140,63 @@ def _wayback(args) -> None:
     wayback.drain(limit=args.limit, api_key=api_key)
 
 
+def _restamp_diff(iso2: str) -> None:
+    """What the migration would do to one country's staleness, before it runs.
+
+    Prints the latest observation of each indicator with its stored ``as_of``,
+    its planned one, and how much older the payload will report it to be. The
+    numbers grow, and that is the point: the stored date says every value
+    arrived the morning of the last bulk fetch, which is when *we* got it, not
+    when anyone could have.
+    """
+    stored = [r for r in restamp.read_all() if r["country_iso2"] == iso2]
+    changed, _ = restamp.plan(stored)
+    if not changed:
+        print(f"{iso2}: nothing to re-date.")
+        return
+
+    today = __import__("datetime").date.today()
+    latest: dict = {}
+    for row in changed:
+        code = row["indicator_code"]
+        if code not in latest or row["period"] > latest[code]["period"]:
+            latest[code] = row
+    before = {(r["country_iso2"], r["indicator_code"], r["freq"], r["period"]): r["as_of"]
+              for r in stored}
+
+    print(f"\n=== {iso2}: staleness of the newest observation per indicator ===")
+    print(f"  {'indicator':<24} {'period':<8} {'stored':<12} {'planned':<12} "
+          f"{'stale before':>12} {'after':>7}")
+    for code, row in sorted(latest.items()):
+        was = before[(row["country_iso2"], code, row["freq"], row["period"])]
+        print(f"  {code:<24} {str(row['period']):<8} {was!s:<12} {row['as_of']!s:<12} "
+              f"{(today - was).days:>12} {(today - row['as_of']).days:>7}")
+    print(f"\n  {len(changed)} row(s) would change for {iso2}. Nothing written.")
+
+
+def _restamp(args) -> None:
+    """Re-date every fetch-dated row, having dumped it first."""
+    if args.revert:
+        print(f"{restamp.revert(pathlib.Path(args.revert))} row(s) restored.")
+        return
+    if args.diff:
+        _restamp_diff(args.diff.upper())
+        return
+
+    result = restamp.apply(dry_run=args.dry_run)
+    print(f"\nread {result['read']} row(s); {result['changed']} to re-date.")
+    for reason, count in sorted(result["skipped"].items()):
+        print(f"  skipped {count:>6}: {reason}")
+    if args.dry_run:
+        print("\n--dry-run: nothing written.")
+        return
+    if result["backup"]:
+        print(f"\nbacked up to {result['backup']}")
+        print(f"revert with: python -m backend.utils.history.run restamp "
+              f"--revert {result['backup']}")
+    print(f"\nLags: {lags.SCHEME}. WEO editions keep their own dates.")
+
+
 def main() -> None:
     """Dispatch one harvest command."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -161,6 +220,20 @@ def main() -> None:
                         "run with no terminal to ask on")
 
     sub.add_parser("weo")
+
+    p = sub.add_parser("monthly")
+    p.add_argument("--since", help="ISO date overriding PILOT_START")
+    p.add_argument("--country", action="append", dest="roster",
+                   help="ISO2 code; repeatable. Defaults to PILOT_ROSTER.")
+
+    p = sub.add_parser("restamp")
+    p.add_argument("--dry-run", action="store_true",
+                   help="count what would change; write nothing")
+    p.add_argument("--diff", metavar="ISO2",
+                   help="show one country's staleness before/after; write nothing")
+    p.add_argument("--revert", metavar="CSV",
+                   help="restore a dump written by an earlier run")
+
     sub.add_parser("report")
     args = parser.parse_args()
 
@@ -182,6 +255,14 @@ def main() -> None:
         nyt.harvest(roster=args.roster, since=args.since)
     elif args.command == "wayback":
         _wayback(args)
+    elif args.command == "restamp":
+        _restamp(args)
+        return
+    elif args.command == "monthly":
+        rows = monthly.backfill(roster=args.roster, since=args.since)
+        data_push.upsert_indicator_series(rows) if rows else None
+        print(f"\n{len(rows)} monthly row(s) written, dated by publication lag.")
+        return
     elif args.command == "weo":
         rows = weo.load_all()
         written = data_push.upsert_indicator_series(rows) if rows else 0
