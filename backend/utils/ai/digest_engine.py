@@ -221,6 +221,7 @@ def digest_articles(
         pending_idx = still_pending
 
     ok = 0
+    swept = 0
     if pending_idx:
         api_key = os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -253,6 +254,15 @@ def digest_articles(
                 if isinstance(res, Exception) or not isinstance(res, dict):
                     logger.warning("[%s] digest failed for %s: %s", iso2, it.get("id"), res)
                     continue
+                if masked:
+                    # The digest prompt asked for roles and the digest model
+                    # wrote names anyway — which is what the probe kept quoting
+                    # back. Swept here, before caching, so it is paid once per
+                    # article rather than once per snapshot that reuses it.
+                    from backend.utils.masking import rewrite as _rewrite
+                    clean = _rewrite.sweep_digest(res, api_key)
+                    if clean is not None:
+                        res, swept = clean, swept + 1
                 it["digest"] = res
                 it["stage1_severity"] = _severity_or_none(res.get("stage1_severity"))
                 ok += 1
@@ -282,8 +292,9 @@ def digest_articles(
                                        iso2, exc)
 
     failed = len(items) - ok - cached - from_content
-    logger.info("[%s] digests: ok=%d cached=%d content-cached=%d failed=%d",
-                iso2, ok, cached, from_content, failed)
+    logger.info("[%s] digests: ok=%d cached=%d content-cached=%d failed=%d%s",
+                iso2, ok, cached, from_content, failed,
+                f" swept={swept}" if masked and pending_idx else "")
     return items
 
 

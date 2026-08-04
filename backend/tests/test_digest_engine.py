@@ -94,6 +94,12 @@ class _FakeStructured:
         assert return_exceptions is True
         return self.results[: len(inputs)]
 
+    def invoke(self, prompt):
+        """The masked path's digest sweep. Echoes the fields back unchanged, so
+        these tests stay about caching rather than about what a model rewrites."""
+        self.sweeps = getattr(self, "sweeps", 0) + 1
+        return {f: "" for f in ("what_happened", "actors", "numbers", "transmission")}
+
 
 class _FakeChat:
     def __init__(self, structured):
@@ -122,7 +128,11 @@ def stage1(monkeypatch):
     monkeypatch.setattr(data_push, "upsert_article_digests", lambda rows: h.upserted.extend(rows))
 
     def _build(api_key):
-        h.structured = _FakeStructured(h.results)
+        # One instance per fixture, not per call: the masked path builds a chat
+        # twice — once to digest, once to sweep the digest — and a fresh fake on
+        # the second call would throw away the batch sizes the tests assert on.
+        if h.structured is None:
+            h.structured = _FakeStructured(h.results)
         return _FakeChat(h.structured)
 
     monkeypatch.setattr(digest_engine.ai_client, "build_digest_chat", _build)

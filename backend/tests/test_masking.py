@@ -124,6 +124,54 @@ class TestTheModelRewrite:
         assert chat.prompts == []
 
 
+class TestTheDigestSweep:
+    """The layer that was missing, and the one the probe kept quoting past.
+
+    Digests are born masked, so the sweep only ever ran on the two or three
+    full texts. But the digest *model* writes the digest, and it wrote names —
+    a probe over twenty bundles identified fifteen, quoting "Jair Bolsonaro",
+    "Erdoğan", "Park Geun-hye", "Temer", "Lula". All of those were in digests.
+    """
+
+    DIGEST = {"what_happened": "Bolsonaro dissolved the committee.",
+              "actors": "Jair Bolsonaro, President",
+              "numbers": "inflation 8.5%", "transmission": "fiscal",
+              "directly_about_country": True, "stage1_severity": 60.0}
+
+    def test_it_replaces_the_names_the_digest_model_kept(self):
+        chat = FakeChat({"what_happened": "The president dissolved the committee.",
+                         "actors": "the president", "numbers": "inflation 8.5%",
+                         "transmission": "fiscal"})
+        out = rewrite.sweep_digest(self.DIGEST, "k", model_chat=chat)
+        assert "Bolsonaro" not in str(out)
+        assert out["actors"] == "the president"
+
+    def test_the_numbers_and_the_non_text_fields_survive(self):
+        chat = FakeChat({"what_happened": "x", "actors": "the president",
+                         "numbers": "inflation 8.5%", "transmission": "fiscal"})
+        out = rewrite.sweep_digest(self.DIGEST, "k", model_chat=chat)
+        assert out["numbers"] == "inflation 8.5%"
+        assert out["stage1_severity"] == 60.0
+        assert out["directly_about_country"] is True
+
+    def test_the_prompt_insists_on_keeping_numbers(self):
+        chat = FakeChat({"what_happened": "x", "actors": "y",
+                         "numbers": "z", "transmission": "w"})
+        rewrite.sweep_digest(self.DIGEST, "k", model_chat=chat)
+        assert "Keep every number exactly as written" in chat.prompts[0]
+
+    def test_a_failed_sweep_returns_none_rather_than_dropping_the_digest(self):
+        # Unlike `rewrite_body` this does not fail closed: a digest is not sent
+        # whole, and silently dropping it would cost the article for a call that
+        # merely timed out. The caller keeps the unswept digest and the manifest
+        # records the mode.
+        chat = FakeChat(raises=RuntimeError("model down"))
+        assert rewrite.sweep_digest(self.DIGEST, "k", model_chat=chat) is None
+
+    def test_a_non_dict_is_refused(self):
+        assert rewrite.sweep_digest("not a digest", "k") is None
+
+
 class TestTheProbe:
     def test_it_returns_a_guess(self):
         chat = FakeChat({"country": "TR", "confidence": 0.8, "evidence": "85% inflation"})

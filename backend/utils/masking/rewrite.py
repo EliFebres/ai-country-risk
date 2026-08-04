@@ -93,6 +93,88 @@ Article:
 """
 
 
+_DIGEST_SWEEP_FIELDS = ("what_happened", "actors", "numbers", "transmission")
+
+_DIGEST_SWEEP_SCHEMA = {
+    "title": "MaskedDigest",
+    "type": "object",
+    "properties": {field: {"type": "string"} for field in _DIGEST_SWEEP_FIELDS},
+    "required": list(_DIGEST_SWEEP_FIELDS),
+    "additionalProperties": False,
+}
+
+_DIGEST_SWEEP_PROMPT = """\
+The fields below describe an event in a country that is deliberately anonymous. \
+Rewrite them so no reader could name the country, changing nothing else.
+
+Rules, in order of importance:
+1. Keep every number exactly as written — percentages, dates, rates, amounts, \
+counts. Never round, never drop, never convert one. `numbers` is evidence.
+2. Replace every proper noun with the functional role it plays. A named person \
+becomes their office ("the president", "the finance minister", "the central \
+bank governor"). A named party becomes "the governing party" or "the main \
+opposition party". A named company becomes "a large domestic bank" or similar. \
+A named place becomes "the capital", "a major city" or "a neighbouring \
+country". A named scandal, operation or election becomes what it was.
+3. Keep the region coarse. Never name a continent, a neighbouring country, a \
+currency, a language, a nationality, a region, a landmark or a sports team.
+4. Change nothing else — same facts, same sequence, roughly the same length.
+
+{fields}
+"""
+
+
+def sweep_digest(digest: Dict[str, Any], api_key: str,
+                 model_chat: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+    """Replace the names a digest kept, despite being told not to keep them.
+
+    The digest prompt already runs in mask mode, so digests are *born* masked —
+    that was the argument for sweeping only the two or three full texts. It does
+    not survive contact with the measurement. A probe over twenty stored bundles
+    identified fifteen, and the evidence it quoted was almost entirely people:
+    "Jair Bolsonaro", "Erdoğan", "Park Geun-hye", "Temer", "Lula". Those are in
+    the digests, written there by a model that was instructed in the same breath
+    not to write them.
+
+    The gazetteer cannot fix this — it is a list of what somebody wrote down,
+    and a list cannot know this year's finance minister. This is the layer that
+    can, and it now covers the seventeen articles a snapshot reads as digests
+    rather than only the three it reads whole.
+
+    Runs once per unique article per mode and is cached with the digest, so the
+    cost is amortized over every snapshot that reuses it rather than paid per
+    snapshot.
+
+    Returns:
+        The digest with its free-text fields swept, or None if the call failed —
+        the caller decides whether to keep the unswept digest or drop it. Unlike
+        :func:`rewrite_body` this does not fail closed on its own, because a
+        digest is not sent whole: dropping it silently would cost the article.
+    """
+    if not isinstance(digest, dict):
+        return None
+    fields = {f: str(digest.get(f) or "") for f in _DIGEST_SWEEP_FIELDS}
+    if not any(fields.values()):
+        return dict(digest)
+    rendered = "\n".join(f"{name}: {text}" for name, text in fields.items() if text)
+    try:
+        chat = model_chat or ai_client.build_digest_chat(api_key)
+        result = chat.with_structured_output(
+            schema=_DIGEST_SWEEP_SCHEMA, strict=True).invoke(
+                _DIGEST_SWEEP_PROMPT.format(fields=rendered))
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("digest sweep failed (%s); keeping the unswept digest", exc)
+        return None
+    if not isinstance(result, dict):
+        return None
+    swept = dict(digest)
+    for field in _DIGEST_SWEEP_FIELDS:
+        value = result.get(field)
+        if isinstance(value, str) and value.strip():
+            swept[field] = value
+    return swept
+
+
 class MaskLeak(RuntimeError):
     """A payload about to be sent still names a roster country.
 
