@@ -294,6 +294,31 @@ class TestTheContentKeyedCache:
         assert it["digest"] == _digest(70.0)
         assert {mode for _, _, mode in cache.reads} == {"masked"}
 
+    def test_a_swept_headline_survives_a_cache_hit(self, stage1):
+        """The failure this guards: a cache hit serving a masked digest next to
+        the article's original, named title.
+
+        Seeded through the same write path the engine uses, so the key is
+        whatever the engine really computes rather than a guess at it.
+        """
+        cache = _FakeContentCache()
+        digest = dict(_digest(70.0))
+        digest["masked_title"] = "the country election: a candidate leads"
+        stage1.results = [digest]
+        first = _item("a1", text="body one", link="http://x/1",
+                      title="Jair Bolsonaro wins")
+        digest_engine.digest_articles([first], country_display="a country", iso2="BR",
+                                      as_of=AS_OF, masked=True, content_cache=cache)
+
+        stage1.structured = None
+        later = _item("a1", text="body one", link="http://x/1",
+                      title="Jair Bolsonaro wins")
+        digest_engine.digest_articles([later], country_display="a country", iso2="BR",
+                                      as_of=AS_OF + timedelta(days=7),
+                                      masked=True, content_cache=cache)
+        assert stage1.structured is None, "re-digested instead of using the cache"
+        assert "Bolsonaro" not in later["title"]
+
     def test_the_daily_run_passes_none_and_is_untouched(self, stage1):
         it = _item("a1", text="body one", link="http://x/1")
         stage1.results = [_digest(70.0)]

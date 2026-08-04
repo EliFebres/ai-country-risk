@@ -95,11 +95,19 @@ Article:
 
 _DIGEST_SWEEP_FIELDS = ("what_happened", "actors", "numbers", "transmission")
 
+# The headline is sent for every article, digest or not, and it was reaching the
+# model with gazetteer masking alone — so "Brazil Election: Jair Bolsonaro Heads
+# to Runoff" became "the country Election: Jair Bolsonaro Heads to Runoff". Six
+# of twenty titles in one measured bundle named the politician. It is swept in
+# the same call as the digest, so it costs nothing extra and caches with it.
+_SWEPT_TITLE_KEY = "masked_title"
+
 _DIGEST_SWEEP_SCHEMA = {
     "title": "MaskedDigest",
     "type": "object",
-    "properties": {field: {"type": "string"} for field in _DIGEST_SWEEP_FIELDS},
-    "required": list(_DIGEST_SWEEP_FIELDS),
+    "properties": {field: {"type": "string"}
+                   for field in _DIGEST_SWEEP_FIELDS + ("headline",)},
+    "required": list(_DIGEST_SWEEP_FIELDS) + ["headline"],
     "additionalProperties": False,
 }
 
@@ -120,12 +128,16 @@ country". A named scandal, operation or election becomes what it was.
 currency, a language, a nationality, a region, a landmark or a sports team.
 4. Change nothing else — same facts, same sequence, roughly the same length.
 
+Return `headline` as the given headline rewritten under the same rules, keeping \
+it a headline.
+
 {fields}
 """
 
 
 def sweep_digest(digest: Dict[str, Any], api_key: str,
-                 model_chat: Optional[Any] = None) -> Optional[Dict[str, Any]]:
+                 model_chat: Optional[Any] = None,
+                 title: str = "") -> Optional[Dict[str, Any]]:
     """Replace the names a digest kept, despite being told not to keep them.
 
     The digest prompt already runs in mask mode, so digests are *born* masked —
@@ -154,9 +166,11 @@ def sweep_digest(digest: Dict[str, Any], api_key: str,
     if not isinstance(digest, dict):
         return None
     fields = {f: str(digest.get(f) or "") for f in _DIGEST_SWEEP_FIELDS}
-    if not any(fields.values()):
+    if not any(fields.values()) and not title:
         return dict(digest)
     rendered = "\n".join(f"{name}: {text}" for name, text in fields.items() if text)
+    if title:
+        rendered = f"headline: {title}\n{rendered}"
     try:
         chat = model_chat or ai_client.build_digest_chat(api_key)
         result = chat.with_structured_output(
@@ -172,6 +186,9 @@ def sweep_digest(digest: Dict[str, Any], api_key: str,
         value = result.get(field)
         if isinstance(value, str) and value.strip():
             swept[field] = value
+    headline = result.get("headline")
+    if title and isinstance(headline, str) and headline.strip():
+        swept[_SWEPT_TITLE_KEY] = headline.strip()
     return swept
 
 

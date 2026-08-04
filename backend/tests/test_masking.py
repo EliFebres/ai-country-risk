@@ -171,6 +171,27 @@ class TestTheDigestSweep:
     def test_a_non_dict_is_refused(self):
         assert rewrite.sweep_digest("not a digest", "k") is None
 
+    def test_the_headline_is_swept_in_the_same_call(self):
+        """A title is sent for every article and had only ever been
+        gazetteer-masked, so "Brazil Election: Jair Bolsonaro Heads to Runoff"
+        reached the model as "the country Election: Jair Bolsonaro Heads to
+        Runoff". Six of twenty titles in one measured bundle named the
+        politician."""
+        chat = FakeChat({"what_happened": "x", "actors": "the president",
+                         "numbers": "n", "transmission": "t",
+                         "headline": "the country election: far-right candidate heads to runoff"})
+        out = rewrite.sweep_digest(
+            self.DIGEST, "k", model_chat=chat,
+            title="the country Election: Jair Bolsonaro Heads to Runoff")
+        assert "Bolsonaro" not in out[rewrite._SWEPT_TITLE_KEY]
+        assert "headline:" in chat.prompts[0]
+
+    def test_no_title_means_no_swept_title_key(self):
+        chat = FakeChat({"what_happened": "x", "actors": "y", "numbers": "n",
+                         "transmission": "t", "headline": "should be ignored"})
+        out = rewrite.sweep_digest(self.DIGEST, "k", model_chat=chat)
+        assert rewrite._SWEPT_TITLE_KEY not in out
+
 
 class TestTheProbe:
     def test_it_returns_a_guess(self):

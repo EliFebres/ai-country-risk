@@ -34,6 +34,10 @@ from backend.utils.news_fetching import core as news_core
 
 logger = logging.getLogger(__name__)
 
+# Where `masking.rewrite.sweep_digest` parks the swept headline. Named here so
+# this module does not import the masking package just to read one key.
+_SWEPT_TITLE_KEY = "masked_title"
+
 
 class ContentCache(Protocol):
     """A digest cache keyed on content rather than on ``(country, as_of, url)``.
@@ -259,8 +263,13 @@ def digest_articles(
                     # wrote names anyway — which is what the probe kept quoting
                     # back. Swept here, before caching, so it is paid once per
                     # article rather than once per snapshot that reuses it.
+                    #
+                    # The headline rides along in the same call: it is sent for
+                    # every article, digest or not, and had only ever been
+                    # gazetteer-masked.
                     from backend.utils.masking import rewrite as _rewrite
-                    clean = _rewrite.sweep_digest(res, api_key)
+                    clean = _rewrite.sweep_digest(res, api_key,
+                                                  title=str(it.get("title") or ""))
                     if clean is not None:
                         res, swept = clean, swept + 1
                 it["digest"] = res
@@ -290,6 +299,15 @@ def digest_articles(
                     except Exception as exc:
                         logger.warning("[%s] content digest cache write failed: %s",
                                        iso2, exc)
+
+    # Apply the swept headline however the digest arrived — fresh, per-day cache
+    # or content cache. Doing it here rather than at each of the three sites is
+    # what stops a cache hit from serving a masked digest beside a named title.
+    if masked:
+        for it in items:
+            digest = it.get("digest")
+            if isinstance(digest, dict) and digest.get(_SWEPT_TITLE_KEY):
+                it["title"] = digest[_SWEPT_TITLE_KEY]
 
     failed = len(items) - ok - cached - from_content
     logger.info("[%s] digests: ok=%d cached=%d content-cached=%d failed=%d%s",
