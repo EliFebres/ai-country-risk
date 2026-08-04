@@ -48,29 +48,15 @@ VINTAGE_DIR = (pathlib.Path(__file__).resolve().parents[4]
 # ledger requests. Check the registry before adding a row here.
 SUBJECTS: Dict[str, str] = {
     "PCPIPCH": "CPI.YOY",                 # inflation, average consumer prices, %
-}
-
-# Loaded for their vintages but not mapped above, because the registry has no
-# equivalent to map them onto:
-#
-#   NGDP_RPCH    real GDP growth, %          the registry carries per-capita
-#                                            growth (NY.GDP.PCAP.KD.ZG), which is
-#                                            a different series — they differ by
-#                                            population growth, so pointing one
-#                                            at the other injects a wrong number
-#   GGXWDG_NGDP  gross govt debt, % GDP      no registry entry
-#   GGXCNL_NGDP  govt net lending, % GDP     no registry entry
-#   BCA_NGDPD    current account, % GDP      no registry entry
-#
-# Giving the last three a registry entry would put genuinely new evidence in
-# front of the model on every country, live as well as historical, so it is
-# Eli's call rather than a loader detail. Until then they are absent from the
-# payload — not silently, but by this comment.
-UNMAPPED_SUBJECTS: Dict[str, str] = {
-    "NGDP_RPCH": "real GDP growth, %",
-    "GGXWDG_NGDP": "general government gross debt, % of GDP",
-    "GGXCNL_NGDP": "general government net lending, % of GDP",
-    "BCA_NGDPD": "current account balance, % of GDP",
+    # The four that got their own registry entries rather than being pointed at
+    # a World Bank code that nearly means the same thing. `WEO.`-prefixed so the
+    # source is unambiguous: these are edition-vintaged and the World Bank's
+    # versions are not, and quietly merging the two would throw away the
+    # revision history that is the whole reason for loading editions.
+    "NGDP_RPCH": "WEO.NGDP_RPCH",         # real GDP growth, % (aggregate)
+    "GGXWDG_NGDP": "WEO.GGXWDG_NGDP",     # general government gross debt, % of GDP
+    "GGXCNL_NGDP": "WEO.GGXCNL_NGDP",     # general government net lending, % of GDP
+    "BCA_NGDPD": "WEO.BCA_NGDPD",         # current account balance, % of GDP
 }
 
 # "2018-04.xls" / "2018-10.xls" — the edition, not the file's own mtime.
@@ -206,8 +192,11 @@ def load_all(roster: Optional[List[str]] = None,
     raising: the pilot can run without vintages, it just runs on
     as-published-latest macro and has to say so in its stamps.
     """
-    from backend.utils.history import config
-    roster = roster or config.PILOT_ROSTER
+    # The whole roster, not the pilot five. These series now carry four of the
+    # registry's indicators, so a country missing from here is a country scored
+    # without its debt ratio, live as well as historically. The files hold every
+    # country in the world; restricting the load saved nothing.
+    roster = roster or [entry["iso2"] for entry in constants.COUNTRY_ROSTER]
     directory = directory or VINTAGE_DIR
 
     if not directory.exists():

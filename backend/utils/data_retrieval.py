@@ -244,7 +244,11 @@ _RESERVES_TREND_MONTHS = 6
 # payload builder that reaches the network to count its own tokens is a payload
 # builder that fails offline.
 _CHARS_PER_TOKEN = 4
-_TOKEN_BUDGET = 2500
+# Raised from 2500 with payload version p2, which added the four WEO indicators.
+# A fully-populated country came to ~2514. Sized against the contract rather
+# than trimmed to fit the old number: four annual series cost about 1% more
+# tokens for about 19% more indicators, which is the trade worth making.
+_TOKEN_BUDGET = 2800
 
 
 def _period_to_date(period: str, freq: str) -> Optional[date]:

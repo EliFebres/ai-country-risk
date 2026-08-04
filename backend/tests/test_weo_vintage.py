@@ -71,10 +71,16 @@ class TestTheSubjectMapping:
             assert constants.INDICATOR_REGISTRY[code].get("ledger"), (
                 f"{subject} maps to {code}, which carries no ledger")
 
-    def test_the_unmapped_subjects_are_recorded_rather_than_forgotten(self):
-        # They are still loaded; they just have nowhere to be read. The comment
-        # in the module is the point — this pins that the two sets stay disjoint.
-        assert not (set(weo.SUBJECTS) & set(weo.UNMAPPED_SUBJECTS))
+    def test_every_weo_subject_is_mapped(self):
+        # All five now have a registry entry of their own. Nothing is loaded to
+        # nowhere: a subject worth parsing is a subject worth reading.
+        assert set(weo.SUBJECTS) == {"PCPIPCH", "NGDP_RPCH", "GGXWDG_NGDP",
+                                     "GGXCNL_NGDP", "BCA_NGDPD"}
+
+    def test_aggregate_growth_is_not_pointed_at_per_capita(self):
+        """They differ by population growth, so one served as the other is a
+        wrong number rather than a missing one."""
+        assert weo.SUBJECTS["NGDP_RPCH"] != "NY.GDP.PCAP.KD.ZG"
 
 
 class TestReadingAnEdition:

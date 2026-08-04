@@ -30,6 +30,20 @@ from typing import Any, Dict, Iterable, List, Optional
 # reader can tell a missing field from a field that never existed.
 _SCHEMA_VERSION = 1
 
+# Which evidence contract the model was scored against — the set of indicators
+# the payload can carry. Bump on any change to `INDICATOR_REGISTRY`'s membership
+# or to what a ledger section may contain.
+#
+# The prompt and the mask map were already versioned; this was the third thing
+# that changes what the model sees and the only one a reader could not date. Two
+# scores built on different indicator sets are not comparable, and without this
+# nothing in the row says which set it was.
+#
+#   p1  the registry as it stood through the masked cutover
+#   p2  adds the IMF WEO block — aggregate real GDP growth, gross debt, net
+#       lending and the current account, all edition-vintaged
+PAYLOAD_VERSION = "p2"
+
 # How the macro panel this snapshot consumed relates to real point-in-time data.
 # "as-published-latest" means: latest published values, silently revised by the
 # World Bank over time. Phase B's first-release panel writes "first-release"
@@ -242,6 +256,7 @@ def build_input_manifest(*,
         "model_id": model_id,
         "prompt_version": prompt_version,
         "policy_version": policy_version,
+        "payload_version": PAYLOAD_VERSION,
         "seed": seed,
         "git_sha": os.environ.get("GIT_SHA") or None,
         **({"masking": masking} if masking else {}),

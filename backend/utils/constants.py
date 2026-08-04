@@ -211,6 +211,38 @@ INDICATOR_REGISTRY: dict[str, dict[str, object]] = {
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "GINI_INDEX", "recent_name": None,
     },
+    # --- the IMF WEO block ---------------------------------------------------
+    # Sourced from the per-edition WEO files rather than the World Bank, because
+    # for these four the *revision* is the story: the IMF's estimate of a year's
+    # debt ratio published in April differs from October's and from today's, and
+    # all three look identical in the payload. Every value carries the edition
+    # that published it, so a snapshot reads the number that existed then.
+    #
+    # Aggregate real GDP growth is its own entry rather than being folded into
+    # NY.GDP.PCAP.KD.ZG: per-capita growth differs from it by population growth,
+    # which is exactly the gap that matters in a shrinking or a fast-growing
+    # population, and serving one as the other would be a wrong number rather
+    # than a missing one.
+    "WEO.NGDP_RPCH": {
+        "label": "Real GDP growth (% y/y)", "unit": "% y/y",
+        "ledger": "uncertainty", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "WEO.GGXWDG_NGDP": {
+        "label": "Government gross debt (% GDP)", "unit": "% GDP",
+        "ledger": "friction", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "WEO.GGXCNL_NGDP": {
+        "label": "Government net lending/borrowing (% GDP)", "unit": "% GDP",
+        "ledger": "friction", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "WEO.BCA_NGDPD": {
+        "label": "Current account balance (% GDP)", "unit": "% GDP",
+        "ledger": "uncertainty", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
     "SP.POP.DPND.OL": {
         "label": "Old-age dependency ratio", "unit": "% working-age population",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
