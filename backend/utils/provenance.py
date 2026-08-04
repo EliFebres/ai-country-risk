@@ -161,6 +161,30 @@ def build_article_manifest(items: List[Dict],
     ]
 
 
+def stage1_health(items: List[Dict]) -> Dict[str, Any]:
+    """How much of this snapshot the scorer read as digests rather than as text.
+
+    A stage-1 failure is silent by design — the article still reaches the model,
+    just in the pre-digest title+summary shape — so a bundle where a third of
+    the digests failed scores fine and says nothing. That matters twice over:
+    the fallback carries a truncated body instead of a structured digest, which
+    is different evidence, and it carries it at several times the token cost.
+
+    A probe run over twenty stored bundles had at least one failure in six of
+    them, all of them the digest model running to its 16,384-token output limit
+    on a prompt of one to four thousand. That is a third of the sample scoring
+    on partly-degraded evidence, and the divergence meter is the deliverable.
+    """
+    items = [it for it in (items or []) if isinstance(it, dict)]
+    degraded = [it for it in items if not isinstance(it.get("digest"), dict)]
+    return {
+        "articles": len(items),
+        "digested": len(items) - len(degraded),
+        "degraded": len(degraded),
+        "degraded_ids": sorted(str(it.get("id")) for it in degraded if it.get("id"))[:20],
+    }
+
+
 def _latest_year_of(series: Any) -> Optional[int]:
     """The newest year in one indicator's ``series`` that actually has a value."""
     if not isinstance(series, dict):
@@ -252,6 +276,7 @@ def build_input_manifest(*,
     return {
         "schema_version": _SCHEMA_VERSION,
         "articles": build_article_manifest(items, prompt_entries, fulltext_ids),
+        "stage1": stage1_health(items),
         "macro_vintages": macro_vintages(payload),
         "model_id": model_id,
         "prompt_version": prompt_version,

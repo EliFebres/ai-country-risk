@@ -57,14 +57,30 @@ _MAX_FULLTEXT_CHARS = 12_000
 # -------------------------
 # Helpers for prompt I/O
 # -------------------------
+# The fallback shape falls through to `text` when there is no summary, and the
+# historical Guardian rows are exactly that case: a full body and no abstract. A
+# digest is ~400 characters; an uncapped body is a median of 5,400 and a p90 of
+# 12,400, so a single stage-1 failure was quietly spending fourteen to thirty
+# times a digest's prompt budget on one article — and the whole point of stage 1
+# is that the scorer reads digests, not bodies.
+#
+# 1,200 is what this field was always meant to hold: the feed blurb the legacy
+# shape was built around, before there were digests or full bodies at all.
+_FALLBACK_SUMMARY_CHARS = 1200
+
+
 def _legacy_entry(it: Dict) -> Dict:
     """The pre-digest prompt shape for one article: title + summary only."""
+    summary = (it.get("summary") or it.get("text") or it.get("snippet") or "").strip()
     return {
         "id": it.get("id") or "",
         "source": (it.get("source") or "").strip(),
         "published_at": (it.get("published") or "")[:10],
         "title": (it.get("title") or "").strip(),
-        "summary": (it.get("summary") or it.get("text") or it.get("snippet") or "").strip(),
+        "summary": summary[:_FALLBACK_SUMMARY_CHARS],
+        # So a reader can tell "the scorer saw a digest" from "the scorer saw a
+        # truncated body because stage 1 failed on this one".
+        **({"digest_degraded": True} if not isinstance(it.get("digest"), dict) else {}),
     }
 
 

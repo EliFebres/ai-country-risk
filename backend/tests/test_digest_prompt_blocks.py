@@ -40,8 +40,22 @@ class TestDigestsToJson:
     def test_degraded_item_gets_legacy_summary_shape(self):
         items = [{"id": "a1", "title": "T", "digest": None, "summary": "sum"}]
         got = json.loads(llm._digests_to_json(items))[0]
-        assert set(got) == {"id", "source", "published_at", "title", "summary"}
+        assert set(got) == {"id", "source", "published_at", "title", "summary",
+                            "digest_degraded"}
         assert got["summary"] == "sum"
+        assert got["digest_degraded"] is True
+
+    def test_a_degraded_body_is_capped_rather_than_sent_whole(self):
+        """Guardian rows have a body and no abstract, so the fallback fell
+        through to the full text — a median of 5,400 characters against a
+        digest's 400, at fourteen times the prompt cost, silently."""
+        items = [{"id": "a1", "title": "T", "digest": None, "text": "x" * 20000}]
+        got = json.loads(llm._digests_to_json(items))[0]
+        assert len(got["summary"]) == llm._FALLBACK_SUMMARY_CHARS
+
+    def test_a_digested_item_is_not_marked_degraded(self):
+        items = [{"id": "a1", "title": "T", "digest": _digest(42.0), "stage1_severity": 42.0}]
+        assert "digest_degraded" not in json.loads(llm._digests_to_json(items))[0]
 
     def test_all_items_included_no_ten_cap(self):
         items = [{"id": f"a{i}", "title": "T", "digest": _digest(1.0), "stage1_severity": 1.0}
