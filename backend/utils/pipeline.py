@@ -541,7 +541,58 @@ def process_all_countries() -> List[Dict]:
         except Exception:
             # Resilience boundary: one country's failure must not kill the run.
             logger.exception("[%s] ERROR", iso2)
+    log_run_summary()
     return global_alert_pool
+
+
+def log_run_summary(as_of: Optional[date] = None) -> None:
+    """What the run just wrote that somebody is supposed to look at.
+
+    Lint is advisory by design — nothing it finds changes a score, and that was
+    argued for on the basis that a contradiction gets *written down next to the
+    score and read*. It was written down. `risk_lint` had no reader anywhere in
+    this codebase, so the reading never happened, and an advisory tripwire
+    nobody reads is indistinguishable from no tripwire.
+
+    Degradation is the same shape one layer down. `28a8889` added
+    ``digest_degraded`` and the manifest's ``stage1`` block so that "the scorer
+    read digests" and "the scorer read truncated bodies" would stop being
+    indistinguishable after the fact — and nothing distinguished them, so they
+    stayed exactly as indistinguishable as before.
+
+    Fully guarded: this is a summary of a run that has already written
+    everything it was going to write.
+    """
+    as_of = as_of or datetime.now(timezone.utc).date()
+    try:
+        findings = data_push.read_lint_findings(as_of=as_of)
+        if findings:
+            by_rule: Dict[str, List[str]] = {}
+            for finding in findings:
+                by_rule.setdefault(finding["rule"], []).append(finding["country_iso2"])
+            logger.warning("[lint] %d finding(s) on %s across %d country/ies",
+                           len(findings), as_of,
+                           len({f["country_iso2"] for f in findings}))
+            for rule, countries in sorted(by_rule.items()):
+                logger.warning("[lint]   %-34s %s", rule, ", ".join(sorted(countries)))
+        else:
+            logger.info("[lint] no findings on %s", as_of)
+    except Exception:
+        logger.exception("[lint] summary failed; the run's writes stand")
+
+    try:
+        degraded = data_push.read_stage1_degradation(as_of=as_of)
+        if degraded:
+            logger.warning(
+                "[stage1] %d country/ies scored partly on truncated bodies "
+                "rather than digests on %s:", len(degraded), as_of)
+            for row in degraded:
+                logger.warning("[stage1]   %s %d/%d article(s) degraded",
+                               row["country_iso2"], row["degraded"], row["articles"])
+        else:
+            logger.info("[stage1] every article digested on %s", as_of)
+    except Exception:
+        logger.exception("[stage1] summary failed; the run's writes stand")
 
 
 def publish_global_alerts(global_alert_pool: List[Dict]) -> None:

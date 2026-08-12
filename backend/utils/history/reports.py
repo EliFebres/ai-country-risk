@@ -261,8 +261,69 @@ def structural_candidates(roster: Optional[List[str]] = None) -> List[Dict[str, 
     return sorted(ranked, key=lambda r: r["unexplained"], reverse=True)
 
 
+def lint_findings(roster: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Advisory tripwires the run recorded, by rule and by country.
+
+    Lint is observe-only by design, and that design was argued for on the basis
+    that a contradiction gets written down beside the score and read. `risk_lint`
+    had no reader in this codebase, so only the first half was happening — and a
+    tripwire nobody reads is not a safety net, it is a table.
+
+    Counted by rule as well as listed, because the two failure modes need
+    different answers: one country tripping one rule is a country to look at, and
+    a rule firing across the whole roster is a prompt or a threshold to move.
+    """
+    roster = roster or list(config.PILOT_ROSTER)
+    rows = [r for r in data_push.read_lint_findings() if r["country_iso2"] in roster]
+    by_rule: Dict[str, Dict[str, Any]] = {}
+    for row in rows:
+        bucket = by_rule.setdefault(row["rule"], {"n": 0, "countries": set()})
+        bucket["n"] += 1
+        bucket["countries"].add(row["country_iso2"])
+    return {
+        "total": len(rows),
+        "by_rule": {rule: {"n": v["n"], "countries": sorted(v["countries"])}
+                    for rule, v in sorted(by_rule.items(), key=lambda kv: -kv[1]["n"])},
+        "recent": rows[:10],
+    }
+
+
+def stage1_degradation(roster: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Snapshots the scorer read as truncated bodies rather than as digests.
+
+    A stage-1 failure is silent: the article still reaches the model in the
+    pre-digest shape, so the snapshot scores fine and says nothing. `28a8889`
+    recorded it in the manifest so the two cases would stop being
+    indistinguishable; this is what distinguishes them.
+
+    It belongs beside divergence rather than in a footnote. A country whose
+    divergence is large *and* whose snapshots were partly degraded is not
+    evidence about masking — it is evidence about how much of its evidence
+    arrived.
+    """
+    roster = roster or list(config.PILOT_ROSTER)
+    rows = [r for r in data_push.read_stage1_degradation()
+            if r["country_iso2"] in roster]
+    per: Dict[str, Dict[str, int]] = {}
+    for row in rows:
+        bucket = per.setdefault(row["country_iso2"], {"snapshots": 0, "articles": 0,
+                                                      "degraded": 0})
+        bucket["snapshots"] += 1
+        bucket["articles"] += row["articles"] or 0
+        bucket["degraded"] += row["degraded"] or 0
+    return {
+        "affected_snapshots": len(rows),
+        "per_country": {
+            iso2: {**counts,
+                   "degraded_share": (round(counts["degraded"] / counts["articles"], 3)
+                                      if counts["articles"] else None)}
+            for iso2, counts in sorted(per.items())
+        },
+    }
+
+
 def render(roster: Optional[List[str]] = None) -> None:
-    """Print all five meters. The pilot's deliverable."""
+    """Print all seven meters. The pilot's deliverable."""
     roster = roster or list(config.PILOT_ROSTER)
 
     print("\n=== 1. divergence: |masked - named| on paired dates ===")
@@ -315,6 +376,29 @@ def render(roster: Optional[List[str]] = None) -> None:
                                                                 "no no-structural arm)"
         print(f"  {rank}. {row['country']}  unexplained={_fmt(row['unexplained'])}  "
               f"of divergence={_fmt(row['divergence'])}  n={row['n']}{flag}")
+
+    print("\n=== 6. lint: contradictions the run wrote down ===")
+    print("  (advisory — nothing here moved a score. One country on one rule is a")
+    print("   country to look at; a rule firing across the roster is a threshold")
+    print("   to move or a prompt to fix.)")
+    lint = lint_findings(roster)
+    if not lint["total"]:
+        print("  No findings.")
+    for rule, row in lint["by_rule"].items():
+        print(f"  {rule:<36} {row['n']:>4}  {', '.join(row['countries'])}")
+
+    print("\n=== 7. stage-1 degradation: snapshots scored on truncated bodies ===")
+    print("  (a stage-1 failure is silent — the article still reaches the model in")
+    print("   the pre-digest shape. Read this before reading divergence: a country")
+    print("   that is both divergent and degraded is telling you about its evidence,")
+    print("   not about masking.)")
+    degradation = stage1_degradation(roster)
+    if not degradation["affected_snapshots"]:
+        print("  Every article in every snapshot was digested.")
+    for iso2, row in degradation["per_country"].items():
+        print(f"  {iso2:<4} {row['snapshots']:>4} snapshot(s) affected, "
+              f"{row['degraded']:>4}/{row['articles']:<5} article(s) degraded "
+              f"({_fmt(row['degraded_share'])})")
 
 
 def _fmt(value: Optional[float]) -> str:

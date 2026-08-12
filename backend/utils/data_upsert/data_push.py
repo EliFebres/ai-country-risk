@@ -987,6 +987,85 @@ def upsert_lint_findings(findings: List[Dict[str, Any]]) -> None:
         )
 
 
+def read_lint_findings(as_of: Optional[datetime.date] = None,
+                       country_iso2: Optional[str] = None,
+                       since: Optional[datetime.date] = None) -> List[Dict[str, Any]]:
+    """Lint findings, newest first — the half of this tripwire that was missing.
+
+    ``lint.check`` runs for every country on every run and `upsert_lint_findings`
+    has been writing this table since the enforcement layer was deleted. Nothing
+    read it back. The observe-only decision was justified on the argument that a
+    contradiction would be *written down next to the score and looked at*, and
+    for as long as nothing surfaced them the second half of that sentence was not
+    true — the table was a place findings went, not a place anyone saw them.
+
+    Args:
+        as_of: one run's findings.
+        country_iso2: one country's.
+        since: everything from this date forward, for a trend rather than a
+            snapshot — a rule that fires constantly is a prompt problem, and
+            that only shows up across days.
+    """
+    where, params = [], []
+    if as_of:
+        where.append("as_of = %s")
+        params.append(as_of)
+    if country_iso2:
+        where.append("country_iso2 = %s")
+        params.append(country_iso2)
+    if since:
+        where.append("as_of >= %s")
+        params.append(since)
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    with _transaction() as cur:
+        cur.execute(_RISK_LINT_DDL)
+        cur.execute(f"""
+            SELECT country_iso2, as_of, rule, detail, created_at
+              FROM risk_lint {clause}
+             ORDER BY as_of DESC, country_iso2, rule
+        """, tuple(params))
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def read_stage1_degradation(as_of: Optional[datetime.date] = None,
+                            since: Optional[datetime.date] = None
+                            ) -> List[Dict[str, Any]]:
+    """Snapshots whose scorer read truncated bodies instead of digests.
+
+    Read straight out of `risk_snapshot.input_manifest`, where
+    ``provenance.stage1_health`` has been recording it since `28a8889`. That
+    commit's stated purpose was that "the scorer read digests" and "the scorer
+    read truncated bodies" would stop being indistinguishable after the fact.
+    They stayed indistinguishable, because the block had no reader — the same
+    shape as the WEO loader whose rows nothing resolved and the probe whose
+    results lived in a commit message.
+
+    Only rows with at least one degraded article come back: a clean run should
+    print nothing rather than forty-eight zeroes.
+    """
+    where, params = ["(input_manifest -> 'stage1' ->> 'degraded')::int > 0"], []
+    if as_of:
+        where.append("as_of = %s")
+        params.append(as_of)
+    if since:
+        where.append("as_of >= %s")
+        params.append(since)
+    with _transaction() as cur:
+        cur.execute(f"""
+            SELECT country_iso2, as_of,
+                   (input_manifest -> 'stage1' ->> 'articles')::int AS articles,
+                   (input_manifest -> 'stage1' ->> 'digested')::int AS digested,
+                   (input_manifest -> 'stage1' ->> 'degraded')::int AS degraded,
+                   input_manifest -> 'stage1' -> 'degraded_ids'     AS degraded_ids
+              FROM risk_snapshot
+             WHERE input_manifest IS NOT NULL AND {' AND '.join(where)}
+             ORDER BY as_of DESC, country_iso2
+        """, tuple(params))
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
 _ECON_EVENT_DDL = """
 CREATE TABLE IF NOT EXISTS economic_calendar_event (
     id           BIGSERIAL PRIMARY KEY,
@@ -1558,6 +1637,7 @@ CREATE TABLE IF NOT EXISTS probe_result (
   mask_map_version  TEXT NOT NULL,
   sweep_version     TEXT NOT NULL,
   probe_model       TEXT NOT NULL,
+  probe_version     TEXT NOT NULL,
   guess             TEXT,
   confidence        DOUBLE PRECISION,
   evidence          TEXT,
@@ -1565,7 +1645,8 @@ CREATE TABLE IF NOT EXISTS probe_result (
   n_articles        INT,
   git_sha           TEXT,
   probed_at         TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (country_iso2, as_of, mask_map_version, sweep_version, probe_model)
+  PRIMARY KEY (country_iso2, as_of, mask_map_version, sweep_version,
+               probe_model, probe_version)
 );
 """
 
@@ -1578,6 +1659,7 @@ def upsert_probe_result(
     mask_map_version: str,
     sweep_version: str,
     probe_model: str,
+    probe_version: str,
     n_articles: Optional[int] = None,
 ) -> None:
     """Record what the probe guessed about one masked bundle.
@@ -1610,9 +1692,11 @@ def upsert_probe_result(
                 """
                 INSERT INTO probe_result
                   (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
-                   guess, confidence, evidence, identified, n_articles, git_sha, probed_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
-                ON CONFLICT (country_iso2, as_of, mask_map_version, sweep_version, probe_model)
+                   probe_version, guess, confidence, evidence, identified,
+                   n_articles, git_sha, probed_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
+                ON CONFLICT (country_iso2, as_of, mask_map_version, sweep_version,
+                             probe_model, probe_version)
                 DO UPDATE SET
                   guess      = EXCLUDED.guess,
                   confidence = EXCLUDED.confidence,
@@ -1623,6 +1707,7 @@ def upsert_probe_result(
                   probed_at  = EXCLUDED.probed_at
                 """,
                 (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
+                 probe_version,
                  str(guess.get("country") or ""),
                  float(guess.get("confidence") or 0.0),
                  str(guess.get("evidence") or ""),
@@ -1655,7 +1740,8 @@ def read_probe_results(country_iso2: Optional[str] = None,
         cur.execute(_PROBE_RESULT_DDL)
         cur.execute(f"""
             SELECT country_iso2, as_of, mask_map_version, sweep_version, probe_model,
-                   guess, confidence, evidence, identified, n_articles, git_sha, probed_at
+                   probe_version, guess, confidence, evidence, identified,
+                   n_articles, git_sha, probed_at
               FROM probe_result {clause}
              ORDER BY as_of DESC, country_iso2
         """, tuple(params))
