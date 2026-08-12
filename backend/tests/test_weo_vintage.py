@@ -300,3 +300,47 @@ class TestMonthlyRestamping:
         assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 9, 3)) == [obs]
         # …and is correctly refused before it was published.
         assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
+
+
+class TestTheLeapDay:
+    """A February month-end has no counterpart in the year before it.
+
+    `date(2020, 2, 29).replace(year=2019)` raises, and both of the payload's
+    "N years before this" call sites used exactly that. It is not an edge case
+    anyone has to reach for: monthly FX and CPI observations end on the last day
+    of their month, so every snapshot anchored in the months after a leap
+    February hit it — 2016, 2020 and 2024 inside the pilot window alone. The
+    failure surfaced as a *snapshot*, not as a traceback: `score_one` records the
+    exception and moves on, so the series would simply have been missing weeks.
+    """
+
+    def monthly(self, period, value, as_of):
+        return data_retrieval._Observation(
+            value=value, period=period, freq="M",
+            period_end=lags.period_end(period, "M"),
+            as_of=as_of, source="BIS XRU")
+
+    def test_a_trend_off_a_leap_february_does_not_raise(self):
+        observations = [
+            self.monthly("2019-02", 1.0, datetime.date(2019, 3, 31)),
+            self.monthly("2020-02", 3.0, datetime.date(2020, 3, 31)),
+        ]
+        assert observations[-1].period_end == datetime.date(2020, 2, 29)
+        # Clamped to the 28th, which is what "a year before a month-end" means.
+        assert data_retrieval._trend(observations, 1) == 2.0
+
+    def test_a_five_year_trend_off_a_leap_february(self):
+        observations = [
+            self.monthly("2015-02", 1.0, datetime.date(2015, 3, 31)),
+            self.monthly("2020-02", 4.5, datetime.date(2020, 3, 31)),
+        ]
+        assert data_retrieval._trend(observations, 5) == 3.5
+
+    def test_the_long_history_cutoff_survives_a_leap_day_anchor(self):
+        """This one takes the *anchor* rather than an observation, so on
+        29 February it fails for every country in the daily run at once."""
+        code = next(iter(data_retrieval._LONG_HISTORY_CODES))
+        entry = data_retrieval._stamp(
+            [self.monthly("2024-01", 2.0, datetime.date(2024, 2, 25))],
+            code, datetime.date(2024, 2, 29))
+        assert entry is not None and "history" in entry

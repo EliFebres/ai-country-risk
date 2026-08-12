@@ -28,6 +28,8 @@ import pandas as pd
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, NamedTuple, Optional
 
+from dateutil.relativedelta import relativedelta
+
 from backend.utils import constants, metrics, provenance
 from backend.utils.dates import utc_minute_iso
 
@@ -414,7 +416,13 @@ def _trend(observations: List[_Observation], years: int) -> Optional[float]:
     if not observations:
         return None
     latest = observations[-1]
-    target = latest.period_end.replace(year=latest.period_end.year - years)
+    # `relativedelta`, not `.replace(year=...)`: a monthly observation for
+    # February ends on the 29th in a leap year, and `date(2020, 2, 29).replace(
+    # year=2019)` raises rather than returning anything. It is not hypothetical
+    # — it is every snapshot anchored in the months after a leap February, which
+    # in the pilot window is 2016, 2020 and 2024. `relativedelta` clamps to the
+    # 28th, which is what "a year before this" means for a month-end.
+    target = latest.period_end - relativedelta(years=years)
 
     tolerance = timedelta(days=183)
     candidates = [o for o in observations if abs((o.period_end - target).days) <= tolerance.days]
@@ -460,7 +468,11 @@ def _stamp(observations: List[_Observation], code: str, as_of: date) -> Optional
             entry[key] = trend
     if code in _LONG_HISTORY_CODES:
         # The two indicators whose path matters as much as their level.
-        cutoff = as_of.replace(year=as_of.year - _LONG_HISTORY_YEARS)
+        # Same leap-day trap as `_trend`, one step further out: this one takes
+        # the anchor rather than an observation, so it fires on any run whose
+        # own date is 29 February — which for the daily run is the whole roster,
+        # every leap year.
+        cutoff = as_of - relativedelta(years=_LONG_HISTORY_YEARS)
         entry["history"] = {
             o.period: round(o.value, 2) for o in observations if o.period_end >= cutoff
         }
