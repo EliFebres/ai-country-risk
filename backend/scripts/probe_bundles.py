@@ -203,7 +203,9 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
     baseline = data_push.read_probe_results()
     print(f"\n=== {label}: {len(bundles)} bundle(s) ===")
     print(f"  masking: mask_map={gazetteer.MASK_MAP_VERSION} "
-          f"sweep={rewrite.SWEEP_VERSION}  probe model={ai_client.DIGEST_MODEL_NAME}")
+          f"sweep={rewrite.SWEEP_VERSION}")
+    print(f"  probe  : model={ai_client.DIGEST_MODEL_NAME} "
+          f"version={probe.PROBE_VERSION}")
     print(f"  baseline rows already stored: {len(baseline)}")
 
     results, still_named = [], []
@@ -220,6 +222,7 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
                 mask_map_version=gazetteer.MASK_MAP_VERSION,
                 sweep_version=rewrite.SWEEP_VERSION,
                 probe_model=ai_client.DIGEST_MODEL_NAME,
+                probe_version=probe.PROBE_VERSION,
                 n_articles=outcome["n"])
             results.append({"country_iso2": iso2, "guess": guess})
             print(f"  {iso2} {as_of}  n={outcome['n']:>2}  guess={guess.get('country'):<3} "
@@ -240,6 +243,24 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
         print(f"    {iso2}  {stats['hits']}/{stats['n']}  rate={stats['rate']:.2f}  "
               f"mean confidence={stats['mean_confidence']:.2f}")
     print(f"    ceiling={summary['ceiling']:.2f}  spread={summary['spread']:.2f}")
+
+    # The prior, made visible. A country named far more often than it appears is
+    # the model's base rate leaking into the meter, and the hit rates above are
+    # that plus whatever the corpus gave away.
+    dist = probe.distribution(results)
+    print("\n  guess distribution vs. what was actually probed:")
+    print(f"    guessed : {dist['guessed']}")
+    print(f"    truth   : {dist['truth']}")
+    over = {k: v for k, v in dist["over_representation"].items() if abs(v) >= 0.05}
+    print(f"    over-represented (>=0.05): {over or 'none'}")
+    print(f"    said insufficient_information: "
+          f"{dist['insufficient_information']}/{dist['n']}")
+    unsure = [r for r in results if r["guess"].get("insufficient_information")]
+    hits_when_unsure = sum(1 for r in unsure
+                           if r["guess"].get("country") == r["country_iso2"])
+    if unsure:
+        print(f"    of those, still correct: {hits_when_unsure}/{len(unsure)} "
+              f"— correct-by-prior, not by evidence")
 
     current = data_push.read_probe_results(
         mask_map_version=gazetteer.MASK_MAP_VERSION,
@@ -279,10 +300,70 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
                 print(f"    [{e['id']}] FULLTEXT: {e['text'][:400]}")
 
 
+def run_control(repeats: int, size: int) -> None:
+    """Probe bundles with no country in them, and print what it says anyway.
+
+    The deflator for every other number here. A probe that must name a country
+    names the one its prior favours, so "US identified at 0.85" and "the model
+    always says US" are the same output — and only this tells them apart. If the
+    control names a country at high confidence, every identifiability rate in
+    this report is that baseline plus whatever the corpus actually leaked, and
+    the baseline has to come off before the rest means anything.
+
+    Cheap by construction: the null bundles are synthetic, so nothing is
+    digested and the only calls are the probes themselves.
+    """
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        print("OPENAI_API_KEY is not set; nothing to probe.")
+        return
+
+    print(f"\n=== control arm: {repeats} null bundle(s) of {size} articles ===")
+    print("  synthetic evidence with the shape of a real snapshot and no country")
+    print("  in it — `gazetteer.scan` finds nothing, and neither should the probe.")
+    results = []
+    with usage.meter(budget_usd=config.LEAKAGE_SCAN_BUDGET_USD) as meter:
+        for i in range(repeats):
+            bundle = probe.null_bundle(size)
+            guess = probe.probe(bundle, api_key)
+            results.append({"country_iso2": "ZZ", "guess": guess})
+            alts = ", ".join(f"{a['country']}={a['probability']:.2f}"
+                             for a in guess.get("alternatives") or [])
+            print(f"  [{i + 1}] guess={guess.get('country'):<3} "
+                  f"conf={guess.get('confidence'):.2f}  "
+                  f"insufficient={str(guess.get('insufficient_information')):<5} "
+                  f"[{alts}]")
+            print(f"      {str(guess.get('evidence'))[:200]}")
+
+    print(f"\n  metered spend: ${meter.spend_usd:.4f} ({meter.calls} calls)")
+    named = [r for r in results
+             if r["guess"].get("country") not in ("ZZ", "")
+             and not r["guess"].get("insufficient_information")]
+    dist = probe.distribution(results)
+    print(f"\n  guessed: {dist['guessed']}")
+    print(f"  said insufficient_information: {dist['insufficient_information']}"
+          f"/{dist['n']}")
+    print(f"  named a country anyway, without flagging it a guess: {len(named)}"
+          f"/{dist['n']}")
+    if named:
+        mean_conf = statistics.fmean(r["guess"]["confidence"] for r in named)
+        print(f"  mean confidence when it did: {mean_conf:.2f}")
+        print("\n  READ THIS BEFORE THE RATES ABOVE: the probe names countries")
+        print("  from bundles containing none, so its identifiability numbers")
+        print("  carry that prior and need deflating by it.")
+    else:
+        print("\n  the probe declines to name a country with nothing to go on, so")
+        print("  its identifications elsewhere are about the evidence.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--recorded", action="store_true",
                         help="the bundles that left a digest-cache trace")
+    parser.add_argument("--control", type=int, metavar="N", default=0,
+                        help="probe N null bundles to measure the model's prior")
+    parser.add_argument("--control-size", type=int, default=20,
+                        help="articles per null bundle; match a real snapshot")
     parser.add_argument("--fresh", action="store_true",
                         help="a reproducible stratified sample across the roster")
     parser.add_argument("--per-country", type=int, default=4)
@@ -291,6 +372,10 @@ def main() -> None:
                         help="skip printing the text of identified bundles")
     args = parser.parse_args()
 
+    # The control runs first when asked for, because it is the number every
+    # other number in the report has to be read against.
+    if args.control:
+        run_control(args.control, args.control_size)
     if args.recorded:
         bundles = recorded_bundles()
         print(f"recorded bundles (from article_digest): {len(bundles)}")
@@ -302,8 +387,8 @@ def main() -> None:
               f"{max(1, args.per_country // 2)} smallest bundles per country "
               f"over quarterly anchors")
         run(bundles, "fresh sample — the new baseline", not args.no_leaks)
-    if not (args.recorded or args.fresh):
-        parser.error("pass --recorded, --fresh, or both")
+    if not (args.recorded or args.fresh or args.control):
+        parser.error("pass --control, --recorded, --fresh, or any combination")
 
 
 if __name__ == "__main__":

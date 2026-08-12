@@ -17,6 +17,7 @@ The probe never sees the named bundle, so it cannot be scored against its own
 answer key by accident.
 """
 
+import hashlib
 import json
 import logging
 from typing import Any, Dict, List, Optional
@@ -42,23 +43,65 @@ _PROBE_SCHEMA = {
             "type": "number",
             "description": "0.0 to 1.0.",
         },
+        "alternatives": {
+            "type": "array",
+            "description": "The three most likely countries with probabilities "
+                           "summing to at most 1.0, most likely first. The "
+                           "first entry must match `country`.",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "country": {"type": "string"},
+                    "probability": {"type": "number"},
+                },
+                "required": ["country", "probability"],
+                "additionalProperties": False,
+            },
+        },
+        "insufficient_information": {
+            "type": "boolean",
+            "description": "True when the bundle carries nothing country-specific "
+                           "and the answer is a prior rather than an inference.",
+        },
         "evidence": {
             "type": "string",
             "description": "The specific detail that gave it away, or why it is untellable.",
         },
     },
-    "required": ["country", "confidence", "evidence"],
+    "required": ["country", "confidence", "alternatives",
+                 "insufficient_information", "evidence"],
     "additionalProperties": False,
 }
 
+# Asking for a distribution rather than an answer, and offering a way out.
+#
+# The old prompt said "guess even when unsure" and allowed only a single code.
+# Both push the same way: a model that must name one country will name the one
+# its prior favours, and on this roster that is the United States. The meter then
+# reports the model's prior as an identifiability rate, and the two are
+# indistinguishable in the output — a masked US bundle and an empty bundle both
+# come back "US, 0.85".
+#
+# `alternatives` makes the prior visible: a bundle identified on evidence
+# concentrates probability, a bundle answered from prior spreads it.
+# `insufficient_information` lets the model say so outright. Neither is a fix for
+# masking; both are what make the number readable, and they are why the control
+# arm below exists.
 _PROBE_PROMPT = """\
 The news summaries below have had country names, demonyms, currencies, cities \
 and institutions removed. Identify which country they are about.
 
-Guess even when unsure — an honest low confidence is more useful than a \
-refusal. Answer 'ZZ' only if there is genuinely nothing to go on.
+Give your three most likely candidates with probabilities. Concentrate the \
+probability only as far as the evidence warrants: if two countries fit equally \
+well, say so with two similar probabilities rather than picking one.
 
-Say what gave it away: the specific number, institution, event or phrasing.
+Set `insufficient_information` to true when the text carries nothing \
+country-specific and your answer is really a guess from base rates — that is a \
+more useful answer than a confident one you cannot support, and it is not \
+penalised. Use 'ZZ' as the country in that case if no candidate stands out.
+
+Say what gave it away: the specific number, institution, event or phrasing. If \
+you are inferring from base rates, say that instead.
 
 {bundle}
 """
@@ -67,6 +110,20 @@ Say what gave it away: the specific number, institution, event or phrasing.
 # the *evidence*, so it gets what the scorer got, capped so a single long
 # article cannot dominate the bundle.
 _PER_ARTICLE_CHARS = 1200
+
+# The instrument's own version, on the same derived-not-maintained principle as
+# `rewrite.SWEEP_VERSION`.
+#
+# A probe result is only comparable to another taken with the same instrument.
+# Asking for a top-3 distribution and offering `insufficient_information`
+# changes what the model reports about identical text — that is the point of the
+# change — so a stored result from before it is not a baseline for one after it,
+# and a key that could not tell them apart would silently overwrite one with the
+# other. Which is the same failure `SWEEP_VERSION` exists to prevent, one layer
+# up.
+PROBE_VERSION = hashlib.sha256(
+    (_PROBE_PROMPT + json.dumps(_PROBE_SCHEMA, sort_keys=True)).encode("utf-8")
+).hexdigest()[:8]
 
 
 def bundle_text(items: List[Dict[str, Any]],
@@ -116,14 +173,14 @@ def probe(items: List[Dict[str, Any]], api_key: str,
     """Ask which country a masked bundle is about.
 
     Returns:
-        ``{'country', 'confidence', 'evidence'}``. A failed call returns 'ZZ'
-        at confidence 0.0 with the error as evidence — the opposite of the
-        leakage scan's fail-closed, and deliberately: this is a measurement,
-        not a gate, and a failed measurement must not be recorded as a
-        successful identification.
+        ``{'country', 'confidence', 'alternatives', 'insufficient_information',
+        'evidence'}``. A failed call returns 'ZZ' at confidence 0.0 with the
+        error as evidence — the opposite of the leakage scan's fail-closed, and
+        deliberately: this is a measurement, not a gate, and a failed
+        measurement must not be recorded as a successful identification.
     """
     if not items:
-        return {"country": "ZZ", "confidence": 0.0, "evidence": "empty bundle"}
+        return _no_guess("empty bundle")
     try:
         chat = model_chat or ai_client.build_digest_chat(api_key)
         result = chat.with_structured_output(
@@ -131,13 +188,143 @@ def probe(items: List[Dict[str, Any]], api_key: str,
                 _PROBE_PROMPT.format(bundle=bundle_text(items, fulltext_ids)))
     except Exception as exc:  # noqa: BLE001
         logger.warning("probe failed (%s); recorded as no-guess", exc)
-        return {"country": "ZZ", "confidence": 0.0, "evidence": f"probe failed: {exc}"}
+        return _no_guess(f"probe failed: {exc}")
     if not isinstance(result, dict):
-        return {"country": "ZZ", "confidence": 0.0, "evidence": "probe returned no object"}
+        return _no_guess("probe returned no object")
+
+    alternatives = []
+    for entry in result.get("alternatives") or []:
+        if not isinstance(entry, dict):
+            continue
+        try:
+            alternatives.append({
+                "country": str(entry.get("country") or "ZZ").upper()[:2],
+                "probability": float(entry.get("probability") or 0.0),
+            })
+        except (TypeError, ValueError):
+            continue
     return {
         "country": str(result.get("country") or "ZZ").upper()[:2],
         "confidence": float(result.get("confidence") or 0.0),
+        "alternatives": alternatives[:3],
+        "insufficient_information": bool(result.get("insufficient_information")),
         "evidence": str(result.get("evidence") or ""),
+    }
+
+
+def _no_guess(evidence: str) -> Dict[str, Any]:
+    """The shape a probe that did not happen returns.
+
+    ``insufficient_information`` is True here for the same reason the whole
+    function fails open: an unanswered probe is not evidence that masking
+    worked, and anything averaging over these must be able to exclude them.
+    """
+    return {"country": "ZZ", "confidence": 0.0, "alternatives": [],
+            "insufficient_information": True, "evidence": evidence}
+
+
+# --- the control arm --------------------------------------------------------
+# What the probe answers when there is genuinely nothing to answer from.
+#
+# Every identifiability number is meaningless without this. A probe forced to
+# name a country will name the one its prior favours, and on a roster containing
+# the United States that is the United States — so "US identified at 0.85" and
+# "the model always says US" produce identical output. The only way to tell them
+# apart is to hand it a bundle with no country in it and see what it says.
+#
+# These are written rather than derived from real articles on purpose: a real
+# bundle stripped by a rule is stripped only of what the rule knew about, which
+# is the assumption under test. Numbers are kept, and kept plausible, because a
+# bundle with no numbers is not the same instrument — magnitudes are exactly what
+# the probe cites when it identifies the US from the size of a stimulus package.
+_NULL_DIGESTS = (
+    {"what_happened": "The central bank held its policy rate for a third "
+                      "consecutive meeting, citing balanced risks.",
+     "actors": "the central bank, the rate-setting committee",
+     "numbers": "3.25%, third consecutive meeting, 7-2 vote",
+     "transmission": "borrowing costs, credit growth"},
+    {"what_happened": "Headline inflation eased for the fourth month while core "
+                      "inflation proved stickier than expected.",
+     "actors": "the national statistics office",
+     "numbers": "2.8%, 3.4%, fourth month, 0.2 percentage points",
+     "transmission": "real incomes, wage bargaining"},
+    {"what_happened": "The governing party lost its majority in a regional "
+                      "election, and coalition talks began the following week.",
+     "actors": "the governing party, the main opposition party",
+     "numbers": "41 seats, 38%, 12 days",
+     "transmission": "policy continuity, fiscal plans"},
+    {"what_happened": "A large domestic bank reported a rise in non-performing "
+                      "loans concentrated in commercial property.",
+     "actors": "a large domestic bank, the financial regulator",
+     "numbers": "4.1% of the book, 1.2bn, up from 2.9%",
+     "transmission": "credit supply, capital ratios"},
+    {"what_happened": "Industrial production contracted for a second quarter as "
+                      "export orders weakened.",
+     "actors": "manufacturers, the trade ministry",
+     "numbers": "-1.4%, second consecutive quarter, 62% of output",
+     "transmission": "employment, current account"},
+    {"what_happened": "The finance ministry announced a fiscal package funded by "
+                      "additional borrowing, and the debt agency raised its "
+                      "issuance target.",
+     "actors": "the finance ministry, the debt management agency",
+     "numbers": "0.8% of GDP, 14bn, three years",
+     "transmission": "yields, the fiscal deficit"},
+)
+
+
+def null_bundle(size: int = 20) -> List[Dict[str, Any]]:
+    """A bundle with the shape of real masked evidence and no country in it.
+
+    The control arm's input. Cycled to ``size`` so it matches the article count
+    of a real snapshot: a six-article bundle and a twenty-article one are not the
+    same test, because volume is itself a signal the probe uses.
+    """
+    out = []
+    for i in range(size):
+        digest = dict(_NULL_DIGESTS[i % len(_NULL_DIGESTS)])
+        digest["stage1_severity"] = 30 + (i % 5) * 10
+        digest["directly_about_country"] = True
+        out.append({
+            "id": f"a{i + 1}",
+            "title": digest["what_happened"][:70],
+            "digest": digest,
+            "stage1_severity": digest["stage1_severity"],
+            "published": "2020-06-0{}T00:00:00Z".format(i % 9 + 1),
+            "source": "a news agency",
+        })
+    return out
+
+
+def distribution(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """How often each country was named, against how often it could have been.
+
+    The prior, made visible. If the guesses concentrate on one country far beyond
+    its share of the bundles probed, the meter is reporting the model's base
+    rates rather than the corpus's leakiness — and every identifiability rate
+    needs deflating by that before it means anything.
+
+    Args:
+        results: dicts with ``country_iso2`` (the truth) and ``guess``.
+    """
+    guessed: Dict[str, int] = {}
+    truth: Dict[str, int] = {}
+    insufficient = 0
+    for row in results:
+        guess = row["guess"]
+        guessed[guess.get("country") or "ZZ"] = guessed.get(guess.get("country") or "ZZ", 0) + 1
+        truth[row["country_iso2"]] = truth.get(row["country_iso2"], 0) + 1
+        insufficient += bool(guess.get("insufficient_information"))
+    n = len(results) or 1
+    return {
+        "guessed": dict(sorted(guessed.items(), key=lambda kv: -kv[1])),
+        "truth": dict(sorted(truth.items(), key=lambda kv: -kv[1])),
+        # Positive means a country was named more often than it appeared.
+        "over_representation": {
+            iso2: round(count / n - truth.get(iso2, 0) / n, 3)
+            for iso2, count in sorted(guessed.items(), key=lambda kv: -kv[1])
+        },
+        "insufficient_information": insufficient,
+        "n": len(results),
     }
 
 

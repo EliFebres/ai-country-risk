@@ -9,6 +9,7 @@ payload — not just in the field somebody remembered to check.
 No network and no model: both model passes take an injected chat object.
 """
 
+import json
 from datetime import date
 
 import pytest
@@ -197,9 +198,37 @@ class TestTheDigestSweep:
 
 class TestTheProbe:
     def test_it_returns_a_guess(self):
-        chat = FakeChat({"country": "TR", "confidence": 0.8, "evidence": "85% inflation"})
+        chat = FakeChat({"country": "TR", "confidence": 0.8, "evidence": "85% inflation",
+                         "alternatives": [{"country": "TR", "probability": 0.7},
+                                          {"country": "AR", "probability": 0.2}],
+                         "insufficient_information": False})
         got = probe.probe([item()], "k", model_chat=chat)
-        assert got == {"country": "TR", "confidence": 0.8, "evidence": "85% inflation"}
+        assert got["country"] == "TR" and got["confidence"] == 0.8
+        assert got["evidence"] == "85% inflation"
+        assert got["alternatives"][0] == {"country": "TR", "probability": 0.7}
+        assert got["insufficient_information"] is False
+
+    def test_a_model_that_omits_the_distribution_still_parses(self):
+        """The distribution is new; a stray response without it must degrade to
+        an empty list rather than taking the probe down."""
+        chat = FakeChat({"country": "TR", "confidence": 0.8, "evidence": "x"})
+        got = probe.probe([item()], "k", model_chat=chat)
+        assert got["alternatives"] == [] and got["insufficient_information"] is False
+
+    def test_a_malformed_alternative_is_dropped_not_fatal(self):
+        chat = FakeChat({"country": "TR", "confidence": 0.5, "evidence": "x",
+                         "alternatives": [{"country": "TR", "probability": "high"},
+                                          {"country": "BR", "probability": 0.3},
+                                          "nonsense"]})
+        got = probe.probe([item()], "k", model_chat=chat)
+        assert got["alternatives"] == [{"country": "BR", "probability": 0.3}]
+
+    def test_insufficient_information_is_carried_through(self):
+        """The answer that lets a prior admit it is a prior. Losing it would put
+        the meter back to reporting base rates as identifications."""
+        chat = FakeChat({"country": "US", "confidence": 0.4, "evidence": "base rates",
+                         "insufficient_information": True})
+        assert probe.probe([item()], "k", model_chat=chat)["insufficient_information"]
 
     def test_the_bundle_never_contains_urls(self):
         # ".../2018/mar/14/turkey-lira-central-bank" would hand over the answer.
@@ -241,6 +270,56 @@ class TestTheProbeSummary:
 
     def test_no_results_is_not_a_crash(self):
         assert probe.summarize([])["spread"] == 0.0
+
+
+class TestTheControlArm:
+    """Every identifiability number is unreadable without this.
+
+    A probe forced to name a country names the one its prior favours, and on a
+    roster containing the United States that is the United States — so "US
+    identified at 0.85" and "the model always says US" produce identical output.
+    The null bundle is the only thing that separates them.
+    """
+
+    def test_the_null_bundle_names_no_country(self):
+        blob = json.dumps(probe.null_bundle(20), ensure_ascii=False)
+        assert gazetteer.scan(blob, list(gazetteer.DEFAULT_ROSTER)) == []
+
+    def test_it_matches_a_real_snapshots_size(self):
+        """A six-article bundle and a twenty-article one are not the same test:
+        volume is itself a signal the probe uses."""
+        assert len(probe.null_bundle(20)) == 20
+        assert len(probe.null_bundle(7)) == 7
+
+    def test_it_keeps_numbers_because_magnitudes_are_the_signal(self):
+        """Stripping the numbers would make the control easier than the thing it
+        is a control for — the probe cites magnitudes when it names the US."""
+        assert any(any(ch.isdigit() for ch in it["digest"]["numbers"])
+                   for it in probe.null_bundle(6))
+
+    def test_it_has_the_shape_the_prompt_builder_expects(self):
+        entries = probe.bundle_text(probe.null_bundle(4))
+        assert entries and "central bank" in entries
+
+    def test_the_distribution_exposes_an_over_named_country(self):
+        results = [{"country_iso2": c, "guess": {"country": "US", "confidence": 0.9}}
+                   for c in ("US", "TR", "BR", "PT")]
+        got = probe.distribution(results)
+        assert got["guessed"]["US"] == 4
+        # Named in 4 of 4 while being the truth in 1 of 4: the prior, visible.
+        assert got["over_representation"]["US"] == 0.75
+
+    def test_a_calibrated_probe_shows_no_over_representation(self):
+        results = [{"country_iso2": c, "guess": {"country": c, "confidence": 0.9}}
+                   for c in ("US", "TR", "BR", "PT")]
+        assert set(probe.distribution(results)["over_representation"].values()) == {0.0}
+
+    def test_insufficient_information_is_counted(self):
+        results = [{"country_iso2": "PT",
+                    "guess": {"country": "US", "insufficient_information": True}},
+                   {"country_iso2": "PT",
+                    "guess": {"country": "PT", "insufficient_information": False}}]
+        assert probe.distribution(results)["insufficient_information"] == 1
 
 
 class TestComparingTwoMaskingBehaviours:
