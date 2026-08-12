@@ -29,6 +29,7 @@ to "another country" — because a gate that fires on every real snapshot is a
 gate somebody turns off.
 """
 
+import hashlib
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -133,6 +134,24 @@ it a headline.
 
 {fields}
 """
+
+# What the sweep *does*, as a version string, derived rather than maintained.
+#
+# The digest cache keys masked digests on a hash of the masked text, and the
+# sweep runs after the digest is generated — so between `84c5b9f` and `1fab1b1`
+# the sweep changed twice while the hash did not move an inch. Every digest
+# cached before those commits was unswept, carried no `masked_title`, and would
+# have been served straight into the pilot with the manifest reporting the same
+# `mask_map_version` either way. Two masking behaviours, one cache key.
+#
+# `MASK_MAP_VERSION` cannot cover this: it versions the gazetteer's data, and
+# the sweep is a prompt. Deriving the version from the prompt rather than adding
+# a second constant to bump is the point — this repo has already shipped one
+# version bump that silently did not happen (`b146104`: the sed sat behind a
+# `&&` after a command that exited non-zero), and a hash cannot forget.
+SWEEP_VERSION = hashlib.sha256(
+    (_DIGEST_SWEEP_PROMPT + "\x00".join(_DIGEST_SWEEP_FIELDS)).encode("utf-8")
+).hexdigest()[:8]
 
 
 def sweep_digest(digest: Dict[str, Any], api_key: str,

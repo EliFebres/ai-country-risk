@@ -338,6 +338,54 @@ class TestTheContentKeyedCache:
         assert it["digest"] == _digest(70.0)
 
 
+class TestTheMaskingVersionIsInTheKey:
+    """A masking change must invalidate masked digests without anyone purging.
+
+    The hash covers the digest's *input*; the sweep rewrites its *output*, and
+    only for freshly generated digests. So without the version in here, changing
+    the gazetteer or the sweep prompt leaves every cached digest in place and the
+    pilot scores half its decade under one masking behaviour and half under
+    another, with nothing on either row to say which.
+    """
+
+    def test_the_masked_prefix_carries_both_versions(self):
+        from backend.utils.masking import gazetteer, rewrite
+
+        assert digest_engine._content_sha("body", masked=True) == _sha(
+            f"masked:{gazetteer.MASK_MAP_VERSION}:{rewrite.SWEEP_VERSION}\nbody")
+
+    def test_a_named_digest_keeps_its_bare_hash(self):
+        """The sweep is a masked-mode stage; nothing about named digests moved,
+        so invalidating them would be throwing away paid-for work for nothing."""
+        assert digest_engine._content_sha("body", masked=False) == _sha("body")
+
+    def test_a_new_sweep_prompt_changes_the_masked_key(self, monkeypatch):
+        from backend.utils.masking import rewrite
+
+        before = digest_engine._content_sha("body", masked=True)
+        monkeypatch.setattr(rewrite, "SWEEP_VERSION", "deadbeef")
+        assert digest_engine._content_sha("body", masked=True) != before
+
+    def test_a_new_mask_map_changes_the_masked_key(self, monkeypatch):
+        from backend.utils.masking import gazetteer
+
+        before = digest_engine._content_sha("body", masked=True)
+        monkeypatch.setattr(gazetteer, "MASK_MAP_VERSION", "g99")
+        assert digest_engine._content_sha("body", masked=True) != before
+
+    def test_the_sweep_version_tracks_the_prompt(self):
+        """Derived, not maintained. This repo has already shipped a version bump
+        that silently did not happen (`b146104`), and a hash cannot forget."""
+        import hashlib
+
+        from backend.utils.masking import rewrite
+
+        assert rewrite.SWEEP_VERSION == hashlib.sha256(
+            (rewrite._DIGEST_SWEEP_PROMPT
+             + "\x00".join(rewrite._DIGEST_SWEEP_FIELDS)).encode("utf-8")
+        ).hexdigest()[:8]
+
+
 class TestArticleInputText:
     def test_longer_of_content_and_text(self):
         assert digest_engine.article_input_text({"content": "long content", "text": "txt"}) == "long content"

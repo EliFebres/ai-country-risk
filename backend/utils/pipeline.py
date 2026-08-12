@@ -453,6 +453,13 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
                 # differently and the row cannot be rebuilt, so this is as
                 # load-bearing here as the prompt version.
                 "mask_map_version": gazetteer.MASK_MAP_VERSION,
+                # The gazetteer is only half of masking. The sweep rewrites what
+                # the digest model wrote, and it changed twice on 2026-08-03
+                # while `mask_map_version` sat still — so a row stamped with the
+                # map alone cannot say which of two masking behaviours produced
+                # it. Derived from the sweep prompt, so it moves whenever the
+                # sweep does.
+                "sweep_version": rewrite.SWEEP_VERSION,
                 # "clean" by construction: `country_llm_score` raises MaskLeak
                 # before sending, so any row that exists at all got past the
                 # gate. Recorded anyway, because a manifest that only says what

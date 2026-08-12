@@ -304,6 +304,10 @@ class TestThePipelineMasksBeforeItDigests:
 
         mask = stored["input_manifest"]["masking"]
         assert mask["mask_map_version"] == gazetteer.MASK_MAP_VERSION
+        # The gazetteer is half of masking. The sweep changed twice on
+        # 2026-08-03 while `mask_map_version` sat still, so a row stamped with
+        # the map alone cannot say which behaviour produced it.
+        assert mask["sweep_version"] == rewrite.SWEEP_VERSION
         assert mask["mask_integrity_status"] == "clean"
         # Five countries of forty-eight carry a structural block; the count is
         # what makes that asymmetry visible in the data rather than in a comment.

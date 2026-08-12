@@ -86,7 +86,7 @@ def _severity_or_none(value) -> Optional[float]:
 
 
 def _content_sha(text: str, masked: bool) -> str:
-    """The cache key for one article's digest, mode included.
+    """The cache key for one article's digest, mode and masking version included.
 
     The mode has to be in here. The cache is keyed on (country, as_of, url) and
     validated against this hash, so without it the same article text digested
@@ -94,10 +94,28 @@ def _content_sha(text: str, masked: bool) -> str:
     puts the president's name straight into the prompt with every gate reporting
     clean, because the gate scans for country names and a person is not one.
 
-    Prefixed rather than mixed in, so an existing named row keeps its current
-    hash and no cache is invalidated by adding the mode.
+    So does the masking version, and for a subtler reason. The hashed text is
+    the *input* to the digest; the sweep that strips the names the digest model
+    wrote anyway runs on its *output*, and only on freshly generated digests —
+    never on a cache hit. So a change to the gazetteer or to the sweep prompt
+    leaves this hash exactly where it was, and the cache happily serves digests
+    produced by the previous behaviour for as long as they live. That is not
+    hypothetical: it is what `84c5b9f` and `1fab1b1` would have done to the
+    pilot, which is a ten-year series in which half the rows were masked one way
+    and half another, with nothing on any row to tell them apart.
+
+    Prefixed rather than mixed in, so an existing *named* row keeps its current
+    hash — the sweep is a masked-mode stage and nothing about named digests
+    changed.
     """
-    prefix = "masked\n" if masked else ""
+    if masked:
+        # Imported here rather than at module scope: `masking.rewrite` imports
+        # this module's neighbours, and a top-level import closes the cycle.
+        # Same reason as the lazy import in `digest_articles`.
+        from backend.utils.masking import gazetteer, rewrite
+        prefix = f"masked:{gazetteer.MASK_MAP_VERSION}:{rewrite.SWEEP_VERSION}\n"
+    else:
+        prefix = ""
     return hashlib.sha256((prefix + text).encode("utf-8")).hexdigest()
 
 
