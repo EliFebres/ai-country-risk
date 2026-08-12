@@ -123,13 +123,49 @@ def _number(raw: str) -> Optional[float]:
         return None
 
 
+def _estimates_start_after(row: Dict[str, str],
+                           vintage: datetime.date) -> int:
+    """The last year this row states as fact, from the file's own column.
+
+    Every edition ships ``Estimates Start After`` and it is per row — per country
+    per subject — because the IMF does not have actuals for every country at the
+    same date. It is the only authoritative answer to "is this cell an
+    observation or a forecast", and it was not being read.
+
+    Falls back to the year before the edition, loudly. Every edition checked
+    (2016-04, 2020-10, 2025-04) states exactly that for every roster country, so
+    the fallback matches observed reality — but a silent fallback is how the
+    original bug survived, so this one says something.
+    """
+    raw = (row.get("Estimates Start After") or "").strip()
+    if raw.isdigit():
+        return int(raw)
+    logger.warning("[weo] %s %s: no readable 'Estimates Start After' (%r); "
+                   "falling back to %d", row.get("ISO"),
+                   row.get("WEO Subject Code"), raw, vintage.year - 1)
+    return vintage.year - 1
+
+
 def read_edition(path: pathlib.Path, roster: List[str]) -> List[Dict[str, Any]]:
     """One WEO edition as ``indicator_series`` rows.
 
-    Only *historical* columns are read — years up to and including the edition's
-    own year. The WEO's forward columns are projections, and a projection of
-    2020 published in 2018 is not a fact about 2020; loading them would put the
-    IMF's forecast into the evidence payload as though it were an observation.
+    Only *historical* columns are read. The WEO's forward columns are
+    projections, and a projection of 2020 published in 2018 is not a fact about
+    2020; loading them would put the IMF's forecast into the evidence payload as
+    though it were an observation.
+
+    Where the history stops is the file's own ``Estimates Start After``, per
+    row, not the edition's year. That distinction is the whole of this function's
+    correctness and it was wrong in the obvious direction: an edition published
+    in April of year Y does not have Y's actuals — the year has not happened.
+    Every edition therefore carried exactly one forecast year loaded as fact,
+    and `2020-10` says so out loud, with TUR NGDP_RPCH estimated after 2019
+    while the old rule admitted 2020.
+
+    It mattered less than it looks, because ``_resolve`` takes the newest vintage
+    not after the anchor and by then a later edition usually supplies the actual.
+    It matters exactly when the later edition is missing, which is the tail of
+    the archive — the anchors nearest today.
 
     Args:
         path: an edition file named ``YYYY-MM.xls``.
@@ -137,7 +173,9 @@ def read_edition(path: pathlib.Path, roster: List[str]) -> List[Dict[str, Any]]:
 
     Returns:
         Rows for ``data_push.upsert_indicator_series``, stamped with the
-        edition date as ``as_of``.
+        edition date as ``as_of``. Projections are dropped rather than marked:
+        nothing downstream can carry a marker today, and a forecast the payload
+        cannot label is a forecast the model reads as an observation.
     """
     vintage = edition_date(path)
     if vintage is None:
@@ -154,11 +192,12 @@ def read_edition(path: pathlib.Path, roster: List[str]) -> List[Dict[str, Any]]:
         if iso3 not in wanted or subject not in SUBJECTS:
             continue
         iso2 = iso3_to_iso2[iso3]
+        last_actual = _estimates_start_after(row, vintage)
         for column, raw in row.items():
             if not column or not column.strip().isdigit():
                 continue
             year = int(column.strip())
-            if year > vintage.year:
+            if year > last_actual:
                 continue                     # a projection, not an observation
             value = _number(raw)
             if value is None:

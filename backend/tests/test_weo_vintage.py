@@ -17,7 +17,7 @@ from backend.utils import data_retrieval
 from backend.utils.history.vintage import lags, monthly, weo
 
 HEADER = ("WEO Country Code\tISO\tWEO Subject Code\tCountry\tSubject Descriptor\t"
-          "Units\tScale\t2016\t2017\t2018\t2019\t2020")
+          "Units\tScale\t2016\t2017\t2018\t2019\t2020\tEstimates Start After")
 
 
 def edition(tmp_path: pathlib.Path, name: str, rows, encoding="latin-1") -> pathlib.Path:
@@ -30,10 +30,15 @@ def edition(tmp_path: pathlib.Path, name: str, rows, encoding="latin-1") -> path
 # PCPIPCH because that is the one subject `SUBJECTS` maps — the other four have
 # no indicator-registry equivalent to be read through, so a fixture using them
 # would test a loader whose output nothing consumes.
+#
+# `Estimates Start After` is 2017 in both, which is what the real files say: an
+# edition published in April 2018 does not have 2018's actuals, because 2018 has
+# not happened. Checked against 2016-04 (2015), 2020-10 (2019) and 2025-04
+# (2024) — every roster country, every subject, always the year before.
 PT_APR2018 = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
-              "Percent change\tUnits\t1.9\t2.7\t2.3\t2.0\t1.8")
+              "Percent change\tUnits\t1.9\t2.7\t2.3\t2.0\t1.8\t2017")
 PT_OCT2018 = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
-              "Percent change\tUnits\t1.9\t2.8\t2.3\t2.2\t1.9")
+              "Percent change\tUnits\t1.9\t2.8\t2.3\t2.2\t1.9\t2017")
 
 
 class TestEditionDates:
@@ -91,11 +96,33 @@ class TestReadingAnEdition:
         assert all(r["vintage_scheme"] == "as-published-edition" for r in rows)
 
     def test_projections_are_not_loaded_as_observations(self, tmp_path):
-        # A 2018 edition's guess at 2020 is not a fact about 2020.
+        """A 2018 edition's guess at 2020 is not a fact about 2020 — and neither
+        is its guess at 2018, which is the part the old rule got wrong.
+
+        The boundary is the file's own `Estimates Start After` (2017 here), not
+        the edition's year. Inferring it from the year admitted exactly one
+        forecast per edition, every edition, for the life of the loader."""
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
         years = {int(r["period"]) for r in rows}
-        assert years == {2016, 2017, 2018}
-        assert 2019 not in years and 2020 not in years
+        assert years == {2016, 2017}
+        assert not years & {2018, 2019, 2020}
+
+    def test_the_column_decides_not_the_edition_year(self, tmp_path):
+        """Same edition, a country whose actuals run a year longer. The old rule
+        could not express this at all: it had one boundary for the whole file,
+        and the column is per country per subject."""
+        ahead = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
+                 "Percent change\tUnits\t1.9\t2.7\t2.3\t2.0\t1.8\t2019")
+        rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [ahead]), ["PT"])
+        assert {int(r["period"]) for r in rows} == {2016, 2017, 2018, 2019}
+
+    def test_a_missing_column_falls_back_loudly(self, tmp_path, caplog):
+        """Silence is how the original bug survived a year of loading."""
+        bare = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
+                "Percent change\tUnits\t1.9\t2.7\t2.3\t2.0\t1.8\t")
+        rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [bare]), ["PT"])
+        assert {int(r["period"]) for r in rows} == {2016, 2017}
+        assert "Estimates Start After" in caplog.text
 
     def test_the_period_is_the_one_the_payload_builder_can_parse(self, tmp_path):
         """The contract with the consumer, not with ourselves.
@@ -138,19 +165,19 @@ class TestReadingAnEdition:
 
     def test_countries_outside_the_roster_are_dropped(self, tmp_path):
         spain = ("184\tESP\tPCPIPCH\tSpain\tInflation, average consumer prices\t"
-                 "Percent change\tUnits\t3.2\t3.0\t2.7\t2.2\t2.0")
+                 "Percent change\tUnits\t3.2\t3.0\t2.7\t2.2\t2.0\t2017")
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018, spain]), ["PT"])
         assert {r["country_iso2"] for r in rows} == {"PT"}
 
     def test_absent_is_absent_never_zero(self, tmp_path):
         blank = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
-                 "Percent change\tUnits\t1.9\tn/a\t--\t2.0\t1.8")
+                 "Percent change\tUnits\t1.9\tn/a\t--\t2.0\t1.8\t2017")
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [blank]), ["PT"])
         assert {int(r["period"]) for r in rows} == {2016}
 
     def test_thousands_separators_parse(self, tmp_path):
         big = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer prices\t"
-               "Percent change\tUnits\t1,129.5\t125.7\t121.5\t119.0\t117.0")
+               "Percent change\tUnits\t1,129.5\t125.7\t121.5\t119.0\t117.0\t2017")
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [big]), ["PT"])
         assert next(r["value"] for r in rows if r["period"] == "2016") == 1129.5
 
@@ -300,6 +327,53 @@ class TestMonthlyRestamping:
         assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 9, 3)) == [obs]
         # …and is correctly refused before it was published.
         assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
+
+
+class TestAProjectionNeverReachesAConsumer:
+    """The producer-side tests above all pass on a loader nothing reads.
+
+    That is the shape of every bug this module has had: the subjects mapped to
+    non-registry codes and loaded cleanly for a year; the periods were dated and
+    round-tripped fine and were dropped by the builder. So this asserts the
+    consumer — a forecast row must not come back out of `_resolve` at an anchor
+    that would otherwise admit it.
+    """
+
+    def observation(self, year, vintage, value):
+        return data_retrieval._Observation(
+            value=value, period=str(year), freq="A",
+            period_end=data_retrieval._period_to_date(str(year), "A"),
+            as_of=vintage, source=f"IMF WEO {vintage:%Y-%m}")
+
+    def test_the_tail_anchor_reads_the_last_actual_not_the_forecast(self, tmp_path):
+        """The 6.1% case, end to end.
+
+        With no edition later than 2018-04 on disk, an anchor in 2019 wants the
+        2018 figure — and 2018 in that edition is a forecast. Loading it meant
+        the payload served the IMF's April-2018 guess at 2018 as an observation,
+        with nothing on the row to say so. Dropped at load, the anchor falls back
+        to the 2017 actual: staleness the payload reports honestly, rather than
+        freshness it made up.
+        """
+        rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
+        observations = [self.observation(int(r["period"]), r["as_of"], r["value"])
+                        for r in rows]
+        resolved = data_retrieval._resolve(observations, as_of=datetime.date(2019, 6, 3))
+        # `_stamp` reports the last of these as the value; 2018 must not be it.
+        assert "2018" not in {o.period for o in resolved}
+        assert resolved[-1].period == "2017" and resolved[-1].value == 2.7
+
+    def test_a_later_edition_supplies_the_actual_when_it_exists(self, tmp_path):
+        """Why this was survivable until the archive ran out of tail: with the
+        next edition present, the same anchor gets 2018 as a real actual."""
+        apr2019 = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer "
+                   "prices\tPercent change\tUnits\t1.9\t2.7\t2.4\t2.0\t1.8\t2018")
+        rows = (weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
+                + weo.read_edition(edition(tmp_path, "2019-04.xls", [apr2019]), ["PT"]))
+        observations = [self.observation(int(r["period"]), r["as_of"], r["value"])
+                        for r in rows]
+        resolved = data_retrieval._resolve(observations, as_of=datetime.date(2019, 6, 3))
+        assert resolved[-1].period == "2018" and resolved[-1].value == 2.4
 
 
 class TestTheLeapDay:
