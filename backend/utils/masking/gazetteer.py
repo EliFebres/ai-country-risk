@@ -407,7 +407,8 @@ _PATTERNS: Dict[str, List[Tuple[re.Pattern, str, str]]] = {
 }
 
 
-_FOREIGN_CACHE: Dict[Tuple[str, Tuple[str, ...]], Tuple[re.Pattern, ...]] = {}
+_FOREIGN_CACHE: Dict[Tuple[str, Tuple[str, ...]],
+                     Tuple[Tuple[re.Pattern, str], ...]] = {}
 
 
 def _foreign_patterns(iso2: str, roster: Optional[Iterable[str]] = None
@@ -424,17 +425,38 @@ def _foreign_patterns(iso2: str, roster: Optional[Iterable[str]] = None
             (form for other in key[1] if other != iso2 and other in COUNTRIES
              for form, _ in _forms(other)),
             key=len, reverse=True)
+        # Symbol-final forms are split into their own alternations, because the
+        # trailing lookahead can never match one — the same rule `_compile`
+        # applies per form, which this function could not inherit because it
+        # builds one pattern over many forms.
+        #
+        # `f55bb7e` fixed `_compile` and stopped there, so "€2.1bn" was masked
+        # in the country that owns the euro and survived in every other country
+        # on the roster. That is not a cosmetic miss: `scan` finds the symbol
+        # either way, so `assert_clean` raised `MaskLeak` and the snapshot
+        # failed — a US bundle quoting a euro transfer fee was enough.
+        #
         # The optional article is swallowed rather than left behind: without it
         # "the Bank of Korea" becomes "the another country", and text that
         # reads as damaged tells the scorer something was removed — which is
         # the thing masking is trying not to say.
+        groups = []
+        for symbolic in (False, True):
+            subset = [f for f in forms if (f[-1:] in _SYMBOL_TAIL) is symbolic]
+            for case_sensitive in (True, False):
+                group = [f for f in subset
+                         if (f in _CASE_SENSITIVE) is case_sensitive]
+                if group:
+                    groups.append((group, symbolic, 0 if case_sensitive else re.IGNORECASE))
         _FOREIGN_CACHE[key] = tuple(
-            re.compile("(?<!\\w)(?:[Tt]he )?(?:"
-                       + "|".join(re.escape(f) for f in group) + ")(?!\\w)", flags)
-            for group, flags in (
-                ([f for f in forms if f in _CASE_SENSITIVE], 0),
-                ([f for f in forms if f not in _CASE_SENSITIVE], re.IGNORECASE),
-            ) if group
+            (re.compile("(?<!\\w)(?:[Tt]he )?(?:"
+                        + "|".join(re.escape(f) for f in group) + ")"
+                        + ("" if symbolic else "(?!\\w)"), flags),
+             # A symbol runs straight into its digits, so the replacement has to
+             # supply the space it never needed — "€15bn" becomes "another
+             # country 15bn", not "another country15bn".
+             ROLES["foreign"] + (" " if symbolic else ""))
+            for group, symbolic, flags in groups
         )
     return _FOREIGN_CACHE[key]
 
@@ -485,8 +507,8 @@ def mask_foreign(text: str, iso2: str, roster: Optional[Iterable[str]] = None) -
     """
     if not text:
         return text
-    for pattern in _foreign_patterns(iso2, roster):
-        text = pattern.sub(ROLES["foreign"], text)
+    for pattern, replacement in _foreign_patterns(iso2, roster):
+        text = pattern.sub(replacement, text)
     return text
 
 

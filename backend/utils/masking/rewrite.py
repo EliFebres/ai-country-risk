@@ -53,6 +53,48 @@ _UNMASKED_FIELDS = frozenset({
     "relevance_score", "stage1_severity", "_theme", "theme",
 })
 
+# What a masked bundle may not contain, written once and shared by both model
+# passes so the digest sweep and the body rewrite cannot drift apart.
+#
+# Rules 3 and 5 exist because a probe run measured them. With people and
+# countries gone, six of six bundles were still identified at 0.80-0.90, and the
+# evidence the probe quoted was: "the Help America Vote Act" (a statute carrying
+# a country's name), "the White House Situation Room" (a named building), "as
+# bad as Brexit" (a named event), "the Iranian people" and "Europe" (a demonym
+# and a continent for countries outside the roster).
+#
+# None of those is reachable from the gazetteer. It is a list of roster
+# countries, so a non-roster demonym, a continent and a named event are all
+# invisible to it — and extending the list would mean enumerating every proper
+# noun on earth. This is the layer that can generalise, so this is where the
+# scope belongs.
+_MASK_RULES = """\
+1. Keep every number exactly as written — percentages, dates, rates, amounts, \
+counts. Never round, never drop, never convert one. Numbers are evidence.
+2. Replace every proper noun with the functional role it plays. A named person \
+becomes their office ("the president", "the finance minister", "the central \
+bank governor"). A named party becomes "the governing party" or "the main \
+opposition party". A named company becomes "a large domestic bank" or similar. \
+A named place becomes "the capital", "a major city" or "a neighbouring \
+country".
+3. This applies to *every* country, not only the one being described. Never \
+name a foreign country, a foreign leader, a foreign city or a foreign \
+institution: "another country", "a foreign leader", "a major foreign economy".
+4. Keep the region coarse. Never name a continent, an ocean, a hemisphere, a \
+supranational bloc, a currency, a currency symbol, a language, a nationality \
+or a demonym — "European", "Iranian" and "Asian" are all identifying.
+5. Named *things* count as proper nouns and are the easiest ones to miss. \
+Rewrite them as what they were:
+   - a named law or treaty ("the Help America Vote Act" -> "a voting rights \
+law"; "the Good Friday Agreement" -> "a peace agreement");
+   - a named event, crisis or referendum ("Brexit" -> "a referendum on leaving \
+a trade bloc"; "the Arab Spring" -> "a wave of regional uprisings");
+   - a named building, landmark, monument or room ("the White House Situation \
+Room" -> "the leader's crisis room"; "Wall Street" -> "the financial district");
+   - a named sports team, league, competition or club;
+   - a named scandal, military operation, court case or government programme.
+6. Change nothing else — same facts, same sequence, roughly the same length."""
+
 _REWRITE_SCHEMA = {
     # The title is not decoration: `with_structured_output(strict=True)` turns
     # the schema into a function definition and OpenAI needs a name for it.
@@ -76,18 +118,9 @@ Rewrite the article below so that no reader could identify which country it is \
 about, while changing nothing else.
 
 Rules, in order of importance:
-1. Keep every number exactly as written — percentages, dates, rates, amounts, \
-counts. Never round, never drop, never convert one.
-2. Replace every remaining proper noun with the functional role it plays: a \
-named person becomes their office ("the finance minister", "the opposition \
-leader"), a named party becomes "the governing party" or "the main opposition \
-party", a named company becomes "a large domestic bank" or similar, a named \
-place becomes "the capital" or "a major city".
-3. Keep the region coarse. Never name a continent, a neighbouring country, a \
-currency, a language or a nationality.
-4. Change nothing else. Keep the same events, the same sequence, the same tone \
-and roughly the same length. Do not summarise, do not add analysis, do not \
-soften anything.
+""" + _MASK_RULES + """
+7. Do not summarise, do not add analysis, do not soften anything. Keep the same \
+tone.
 
 Article:
 {text}
@@ -117,17 +150,7 @@ The fields below describe an event in a country that is deliberately anonymous. 
 Rewrite them so no reader could name the country, changing nothing else.
 
 Rules, in order of importance:
-1. Keep every number exactly as written — percentages, dates, rates, amounts, \
-counts. Never round, never drop, never convert one. `numbers` is evidence.
-2. Replace every proper noun with the functional role it plays. A named person \
-becomes their office ("the president", "the finance minister", "the central \
-bank governor"). A named party becomes "the governing party" or "the main \
-opposition party". A named company becomes "a large domestic bank" or similar. \
-A named place becomes "the capital", "a major city" or "a neighbouring \
-country". A named scandal, operation or election becomes what it was.
-3. Keep the region coarse. Never name a continent, a neighbouring country, a \
-currency, a language, a nationality, a region, a landmark or a sports team.
-4. Change nothing else — same facts, same sequence, roughly the same length.
+""" + _MASK_RULES + """
 
 Return `headline` as the given headline rewritten under the same rules, keeping \
 it a headline.
@@ -135,7 +158,8 @@ it a headline.
 {fields}
 """
 
-# What the sweep *does*, as a version string, derived rather than maintained.
+# What the model passes *do*, as a version string, derived rather than
+# maintained.
 #
 # The digest cache keys masked digests on a hash of the masked text, and the
 # sweep runs after the digest is generated — so between `84c5b9f` and `1fab1b1`
@@ -149,8 +173,16 @@ it a headline.
 # a second constant to bump is the point — this repo has already shipped one
 # version bump that silently did not happen (`b146104`: the sed sat behind a
 # `&&` after a command that exited non-zero), and a hash cannot forget.
+#
+# Both prompts, not only the sweep's. They share `_MASK_RULES`, and the body
+# rewrite decides what the scorer reads whole — the pass where "the Help America
+# Vote Act" and "the White House Situation Room" survived. Folding it in
+# invalidates cached digests on a change that could not have altered them, which
+# costs one re-digest and buys the invariant that no two masking behaviours ever
+# share a label. That trade is the whole reason this constant exists.
 SWEEP_VERSION = hashlib.sha256(
-    (_DIGEST_SWEEP_PROMPT + "\x00".join(_DIGEST_SWEEP_FIELDS)).encode("utf-8")
+    (_DIGEST_SWEEP_PROMPT + "\x00" + _REWRITE_PROMPT
+     + "\x00".join(_DIGEST_SWEEP_FIELDS)).encode("utf-8")
 ).hexdigest()[:8]
 
 

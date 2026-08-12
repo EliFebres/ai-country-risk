@@ -373,17 +373,51 @@ class TestTheMaskingVersionIsInTheKey:
         monkeypatch.setattr(gazetteer, "MASK_MAP_VERSION", "g99")
         assert digest_engine._content_sha("body", masked=True) != before
 
-    def test_the_sweep_version_tracks_the_prompt(self):
+    def test_the_sweep_version_tracks_both_model_passes(self):
         """Derived, not maintained. This repo has already shipped a version bump
-        that silently did not happen (`b146104`), and a hash cannot forget."""
+        that silently did not happen (`b146104`), and a hash cannot forget.
+
+        Both prompts: they share `_MASK_RULES`, and the body rewrite decides what
+        the scorer reads whole. A change to either is a change of masking
+        behaviour, and two behaviours must never share one label."""
         import hashlib
 
         from backend.utils.masking import rewrite
 
         assert rewrite.SWEEP_VERSION == hashlib.sha256(
-            (rewrite._DIGEST_SWEEP_PROMPT
+            (rewrite._DIGEST_SWEEP_PROMPT + "\x00" + rewrite._REWRITE_PROMPT
              + "\x00".join(rewrite._DIGEST_SWEEP_FIELDS)).encode("utf-8")
         ).hexdigest()[:8]
+
+    def test_editing_either_prompt_moves_the_version(self):
+        """The body rewrite is the pass where "the Help America Vote Act"
+        survived. A fix there that left the version alone would go on being
+        served digests produced by the behaviour it replaced."""
+        import hashlib
+
+        from backend.utils.masking import rewrite
+
+        def version(sweep, body):
+            return hashlib.sha256(
+                (sweep + "\x00" + body
+                 + "\x00".join(rewrite._DIGEST_SWEEP_FIELDS)).encode("utf-8")
+            ).hexdigest()[:8]
+
+        real = version(rewrite._DIGEST_SWEEP_PROMPT, rewrite._REWRITE_PROMPT)
+        assert real == rewrite.SWEEP_VERSION
+        assert version(rewrite._DIGEST_SWEEP_PROMPT + " x",
+                       rewrite._REWRITE_PROMPT) != real
+        assert version(rewrite._DIGEST_SWEEP_PROMPT,
+                       rewrite._REWRITE_PROMPT + " x") != real
+
+    def test_both_passes_share_one_set_of_rules(self):
+        """Two prompts that drift apart are two masking behaviours under one
+        version. The scope fix for non-roster entities went into `_MASK_RULES`
+        precisely so it could not land in one pass and miss the other."""
+        from backend.utils.masking import rewrite
+
+        assert rewrite._MASK_RULES in rewrite._DIGEST_SWEEP_PROMPT
+        assert rewrite._MASK_RULES in rewrite._REWRITE_PROMPT
 
 
 class TestArticleInputText:

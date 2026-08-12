@@ -15,7 +15,7 @@ No network, no model, no database.
 import pytest
 
 from backend.utils.history import config
-from backend.utils.masking import gazetteer as gz
+from backend.utils.masking import gazetteer as gz, rewrite
 
 ROSTER = config.PILOT_ROSTER
 
@@ -188,6 +188,41 @@ class TestCurrencySymbols:
     def test_ordinary_english_still_survives(self):
         assert gz.mask("Real GDP rose and the party won.", "BR") == \
             "Real GDP rose and the party won."
+
+    def test_a_foreign_symbol_is_masked_too(self):
+        """The half of `f55bb7e` that was never fixed.
+
+        `_compile` drops the lookahead per form; `_foreign_patterns` builds one
+        alternation over many forms and kept it, so a currency symbol was masked
+        in the country that owns it and survived in all forty-seven others. Not
+        cosmetic: `scan` finds the symbol either way, so `assert_clean` raised
+        and the snapshot failed. A US bundle quoting a euro transfer fee did it.
+        """
+        assert "€" not in gz.mask_foreign(gz.mask("paid €171.8m for him", "US"),
+                                          "US", ROSTER)
+        assert "R$" not in gz.mask_foreign(gz.mask("holds R$4,200", "US"),
+                                           "US", ROSTER)
+        assert "₺" not in gz.mask_foreign(gz.mask("rose to ₺900", "BR"),
+                                          "BR", ROSTER)
+
+    def test_a_foreign_symbol_replacement_supplies_its_space(self):
+        assert "another country 171.8m" in gz.mask_foreign(
+            "paid €171.8m for him", "US", ROSTER)
+
+    def test_the_foreign_pass_still_swallows_the_article(self):
+        """The regression the symbol split could have caused: forms are now
+        grouped four ways instead of two, and 'the Bank of Korea' has to keep
+        losing its article rather than becoming 'the another country'."""
+        assert gz.mask_foreign("The Bank of Korea met.", "US", ROSTER) == \
+            "another country met."
+
+    def test_every_roster_currency_symbol_survives_no_country(self):
+        """The gate this pair of bugs kept getting past: whatever the scored
+        country, no roster symbol may remain anywhere in the masked text."""
+        text = "figures of €2.1bn, R$4,200, ₺18.5 and ₩1.2tn were reported"
+        for iso2 in ROSTER:
+            masked = rewrite.mask_text(text, iso2, ROSTER)
+            assert gz.scan(masked, ROSTER) == [], f"{iso2}: {masked!r}"
 
 
 class TestTheMapItself:
