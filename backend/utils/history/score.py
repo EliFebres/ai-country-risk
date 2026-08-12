@@ -121,6 +121,16 @@ def score_one(iso2: str, as_of: datetime.date, mode: str,
         # ledger row.
         result=llm_output if mode in config.DIAGNOSTIC_MODES else None,
     )
+    # The governor, and this is the only place it can fire. `_confirm_spend`
+    # checks a *projection* before the run starts; a run whose real per-snapshot
+    # cost lands at three times that projection would otherwise sail past
+    # `PILOT_BUDGET_USD` with nothing to stop it, because `Meter` deliberately
+    # never raises from its callback — a handler that throws mid-`.batch()`
+    # aborts eight concurrent digests at an arbitrary point.
+    #
+    # After the ledger row, not before: the snapshot is paid for either way, and
+    # a budget stop that also loses the work it just bought is the worst of both.
+    meter.check()
     # `llm_score`, not `score`: this is the scorer's number reported back, not
     # a second module assigning one. The name keeps that distinction visible to
     # the tripwire in test_observe_only, which greps for exactly that.

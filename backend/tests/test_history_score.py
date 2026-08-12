@@ -124,6 +124,38 @@ class TestFailureIsRecordedNotRaised:
             score.score_one("PT", MONDAY, "masked")
         assert ledger[0]["status"] == "failed"
 
+    def test_the_governor_fires_on_a_snapshot_that_overruns(
+            self, ledger, monkeypatch, scored):
+        """`_confirm_spend` checks a projection before the run; this checks the
+        meter after each snapshot. Without it a run costing three times its
+        projection spends past `PILOT_BUDGET_USD` with nothing to stop it —
+        `Meter` deliberately never raises from its own callback."""
+        from backend.utils.history import usage
+        monkeypatch.setattr(score.store, "total_spend_usd",
+                            lambda: config.PILOT_BUDGET_USD + 1.0)
+        with pytest.raises(usage.BudgetExhausted):
+            score.score_one("PT", MONDAY, "masked")
+
+    def test_the_overrunning_snapshot_is_still_banked_before_the_stop(
+            self, ledger, monkeypatch, scored):
+        """The snapshot is paid for either way. A budget stop that also loses
+        the work it just bought is the worst of both, and a resume would then
+        buy it a second time."""
+        from backend.utils.history import usage
+        monkeypatch.setattr(score.store, "total_spend_usd",
+                            lambda: config.PILOT_BUDGET_USD + 1.0)
+        with pytest.raises(usage.BudgetExhausted):
+            score.score_one("PT", MONDAY, "masked")
+        assert ledger[-1]["status"] == "complete"
+
+    def test_the_run_stops_rather_than_propagating(self, ledger, monkeypatch, scored):
+        """`run` owns the stop: one country's budget stop ends the run cleanly
+        with its totals, rather than a traceback out of a multi-hour pilot."""
+        monkeypatch.setattr(score.store, "total_spend_usd",
+                            lambda: config.PILOT_BUDGET_USD + 1.0)
+        totals = score.run(roster=["PT"], start=MONDAY, end=MONDAY, mode="masked")
+        assert totals["failed"] == 1 and totals["scored"] == 0
+
 
 class TestResume:
     def test_a_completed_anchor_is_skipped(self, ledger, scored, monkeypatch):
@@ -188,6 +220,32 @@ class TestTheDiagnosticSample:
                             lambda iso2: [(d, None if i % 2 else 0.5)
                                           for i, d in enumerate(days)])
         assert score.diagnostic_dates("PT") == []
+
+    def test_a_series_on_one_side_of_the_cutoff_yields_only_that_side(self, monkeypatch):
+        """The gate-2 dry run scores a single pre-cutoff year, so the post half
+        is empty and the sample is half size. That is the honest answer.
+
+        What must not happen is the sampler quietly making up the difference
+        from the side it does have: the two halves are a stratification, and a
+        sample that rebalances is reporting twelve dates while measuring one
+        era. At pilot scale every country spans both halves, so this would never
+        fire in anger — which is exactly why it would be hard to notice."""
+        monkeypatch.setattr(score, "_masked_series", lambda iso2: self.series(52))
+        cutoff = datetime.date.fromisoformat(config.CUTOFF_DATE)
+        picked = score.diagnostic_dates("PT")
+
+        assert picked, "a pre-cutoff-only series should still yield a sample"
+        assert all(d < cutoff for d in picked)
+        # Half the per-country number, not all of it borrowed from one era.
+        assert len(picked) <= config.NAMED_SAMPLE_PER_COUNTRY // 2
+
+    def test_the_post_cutoff_half_alone_behaves_the_same(self, monkeypatch):
+        monkeypatch.setattr(score, "_masked_series",
+                            lambda iso2: self.series(52, datetime.date(2024, 1, 1)))
+        cutoff = datetime.date.fromisoformat(config.CUTOFF_DATE)
+        picked = score.diagnostic_dates("PT")
+        assert picked and all(d >= cutoff for d in picked)
+        assert len(picked) <= config.NAMED_SAMPLE_PER_COUNTRY // 2
 
 
 class TestProjection:
