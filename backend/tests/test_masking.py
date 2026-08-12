@@ -9,6 +9,8 @@ payload — not just in the field somebody remembered to check.
 No network and no model: both model passes take an injected chat object.
 """
 
+from datetime import date
+
 import pytest
 
 from backend.utils.history import config
@@ -239,3 +241,48 @@ class TestTheProbeSummary:
 
     def test_no_results_is_not_a_crash(self):
         assert probe.summarize([])["spread"] == 0.0
+
+
+class TestComparingTwoMaskingBehaviours:
+    """The consumer of `probe_result`, and the reason the table exists.
+
+    Twenty bundles were probed on 2026-08-03 and the result — fifteen
+    identified, with the leaking names quoted — lives in a commit message. The
+    sweep written to fix it therefore cannot be measured against the run that
+    motivated it. Storing the rows is only half the fix; this is the half that
+    reads them.
+    """
+
+    def row(self, iso2, day, guess, confidence, identified, evidence=""):
+        return {"country_iso2": iso2, "as_of": day, "guess": guess,
+                "confidence": confidence, "identified": identified,
+                "evidence": evidence}
+
+    def test_a_bundle_the_sweep_fixed_is_reported_as_fixed(self):
+        got = probe.compare(
+            [self.row("TR", date(2018, 8, 18), "TR", 0.9, True, "Erdoğan")],
+            [self.row("TR", date(2018, 8, 18), "ZZ", 0.2, False)])
+        assert len(got) == 1
+        assert got[0]["fixed"] is True and got[0]["regressed"] is False
+        assert got[0]["was_guess"] == "TR" and got[0]["now_guess"] == "ZZ"
+
+    def test_a_bundle_that_got_worse_is_reported_as_regressed(self):
+        got = probe.compare(
+            [self.row("PT", date(2019, 6, 3), "ZZ", 0.1, False)],
+            [self.row("PT", date(2019, 6, 3), "PT", 0.8, True, "the Douro")])
+        assert got[0]["regressed"] is True and got[0]["fixed"] is False
+        # The text is carried through, because "why did masking fail here" is
+        # only ever answered by what the probe quoted back.
+        assert got[0]["now_evidence"] == "the Douro"
+
+    def test_a_bundle_only_one_run_covered_is_kept_not_dropped(self):
+        """Twenty bundles leaving six traces is exactly this, silently."""
+        got = probe.compare(
+            [], [self.row("US", date(2017, 3, 11), "US", 0.95, True)])
+        assert len(got) == 1
+        assert got[0]["was_guess"] is None
+        # Not False: "not measured" and "no change" are different answers.
+        assert got[0]["fixed"] is None and got[0]["regressed"] is None
+
+    def test_both_sides_empty_is_not_a_crash(self):
+        assert probe.compare([], []) == []

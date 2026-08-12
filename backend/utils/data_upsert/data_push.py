@@ -1531,6 +1531,138 @@ def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, D
     return out
 
 
+# --- Identifiability probe results -------------------------------------------
+# What the probe guessed, kept rather than logged.
+#
+# The probe ran twenty bundles on 2026-08-03 and left six traces, all of them
+# incidental — `article_digest` rows written as a side effect of digesting. The
+# result itself, fifteen of twenty identified with the leaking evidence quoted,
+# survives only in a commit message. So the sweep fix that followed cannot be
+# measured against the thing it was meant to fix, and the next masking change
+# will be in the same position.
+#
+# That is the same shape as the WEO loader writing rows nothing read and the
+# digest cache the history path never called: the producer looked fine and
+# nothing recorded whether it worked. A probe is a measurement, and a
+# measurement nobody stores is an opinion.
+#
+# Keyed on both masking versions, not just the map. The whole finding behind
+# `SWEEP_VERSION` is that `mask_map_version` does not identify a masking
+# behaviour on its own — two sweeps shared g5 — so a key without it would let a
+# re-probe silently overwrite the baseline it was supposed to be compared with.
+
+_PROBE_RESULT_DDL = """
+CREATE TABLE IF NOT EXISTS probe_result (
+  country_iso2      TEXT NOT NULL,
+  as_of             DATE NOT NULL,
+  mask_map_version  TEXT NOT NULL,
+  sweep_version     TEXT NOT NULL,
+  probe_model       TEXT NOT NULL,
+  guess             TEXT,
+  confidence        DOUBLE PRECISION,
+  evidence          TEXT,
+  identified        BOOLEAN,
+  n_articles        INT,
+  git_sha           TEXT,
+  probed_at         TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (country_iso2, as_of, mask_map_version, sweep_version, probe_model)
+);
+"""
+
+
+def upsert_probe_result(
+    country_iso2: str,
+    as_of: datetime.date,
+    guess: Dict[str, Any],
+    *,
+    mask_map_version: str,
+    sweep_version: str,
+    probe_model: str,
+    n_articles: Optional[int] = None,
+) -> None:
+    """Record what the probe guessed about one masked bundle.
+
+    Args:
+        country_iso2: the truth, so ``identified`` can be stored rather than
+            recomputed by whoever reads this later against a roster that may
+            have changed.
+        as_of: the bundle's anchor.
+        guess: a ``masking.probe.probe`` result — ``{country, confidence,
+            evidence}``. The evidence string is kept in full: "which country is
+            this" is answered by the guess, but "why did masking fail here" is
+            only ever answered by the text it quoted back.
+        mask_map_version, sweep_version: the masking behaviour being measured.
+            Both, for the reason in this section's comment.
+        probe_model: the model that guessed, since a cheaper or smarter probe
+            measures a different thing.
+        n_articles: bundle size, so a thin week is not read as good masking.
+
+    Never raises on a write failure — the probe is a measurement attached to a
+    snapshot that is otherwise fine, and losing the measurement must not cost
+    the score. It logs instead.
+    """
+    if not isinstance(guess, dict):
+        return
+    try:
+        with _transaction() as cur:
+            cur.execute(_PROBE_RESULT_DDL)
+            cur.execute(
+                """
+                INSERT INTO probe_result
+                  (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
+                   guess, confidence, evidence, identified, n_articles, git_sha, probed_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
+                ON CONFLICT (country_iso2, as_of, mask_map_version, sweep_version, probe_model)
+                DO UPDATE SET
+                  guess      = EXCLUDED.guess,
+                  confidence = EXCLUDED.confidence,
+                  evidence   = EXCLUDED.evidence,
+                  identified = EXCLUDED.identified,
+                  n_articles = EXCLUDED.n_articles,
+                  git_sha    = EXCLUDED.git_sha,
+                  probed_at  = EXCLUDED.probed_at
+                """,
+                (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
+                 str(guess.get("country") or ""),
+                 float(guess.get("confidence") or 0.0),
+                 str(guess.get("evidence") or ""),
+                 str(guess.get("country") or "").upper() == country_iso2.upper(),
+                 n_articles, os.environ.get("GIT_SHA") or None),
+            )
+    except Exception:
+        logger.exception("[%s %s] probe result not recorded; the snapshot stands",
+                         country_iso2, as_of)
+
+
+def read_probe_results(country_iso2: Optional[str] = None,
+                       mask_map_version: Optional[str] = None,
+                       sweep_version: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Stored probe results, newest bundle first.
+
+    What makes a re-probe a diff against a table rather than against a commit
+    message. Filters are optional and compose: no arguments returns everything,
+    a version pair returns one masking behaviour's baseline.
+    """
+    where, params = [], []
+    for column, value in (("country_iso2", country_iso2),
+                          ("mask_map_version", mask_map_version),
+                          ("sweep_version", sweep_version)):
+        if value:
+            where.append(f"{column} = %s")
+            params.append(value)
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    with _transaction() as cur:
+        cur.execute(_PROBE_RESULT_DDL)
+        cur.execute(f"""
+            SELECT country_iso2, as_of, mask_map_version, sweep_version, probe_model,
+                   guess, confidence, evidence, identified, n_articles, git_sha, probed_at
+              FROM probe_result {clause}
+             ORDER BY as_of DESC, country_iso2
+        """, tuple(params))
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
 # --- Scheduler bookkeeping ---------------------------------------------------
 # The one place the process records "this job finished". main.py reads it on
 # every tick to decide what is overdue, so a restart or a week of downtime

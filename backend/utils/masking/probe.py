@@ -141,6 +141,53 @@ def probe(items: List[Dict[str, Any]], api_key: str,
     }
 
 
+def compare(baseline: List[Dict[str, Any]],
+            current: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """One masking behaviour's probe results against another's, bundle by bundle.
+
+    The reason ``probe_result`` exists. The sweep fix of 2026-08-03 could not be
+    measured against the run that motivated it, because that run's results lived
+    in a commit message — so "did it work" was answerable only by re-reading
+    prose. Joined on ``(country_iso2, as_of)``, which is the bundle; the masking
+    versions are what differ between the two sides and so cannot be in the join.
+
+    Args:
+        baseline, current: rows as ``data_push.read_probe_results`` returns them.
+
+    Returns:
+        One row per bundle present in *either* side, sorted country then anchor.
+        ``was``/``now`` are None where a side has no row: a bundle that only one
+        run covered is a real fact about the comparison and must not be silently
+        dropped, which is how twenty bundles became six traces in the first
+        place.
+    """
+    def index(rows: List[Dict[str, Any]]) -> Dict[tuple, Dict[str, Any]]:
+        return {(r["country_iso2"], r["as_of"]): r for r in rows}
+
+    old, new = index(baseline), index(current)
+    out = []
+    for key in sorted(set(old) | set(new)):
+        was, now = old.get(key), new.get(key)
+        out.append({
+            "country_iso2": key[0],
+            "as_of": key[1],
+            "was_guess": (was or {}).get("guess"),
+            "was_confidence": (was or {}).get("confidence"),
+            "was_identified": (was or {}).get("identified"),
+            "now_guess": (now or {}).get("guess"),
+            "now_confidence": (now or {}).get("confidence"),
+            "now_identified": (now or {}).get("identified"),
+            "now_evidence": (now or {}).get("evidence"),
+            # None when either side is missing: "not measured" and "no change"
+            # are different answers and must not print the same.
+            "fixed": (None if was is None or now is None
+                      else bool(was["identified"]) and not now["identified"]),
+            "regressed": (None if was is None or now is None
+                          else not was["identified"] and bool(now["identified"])),
+        })
+    return out
+
+
 def summarize(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Guess rates per country, and the spread that is the actual meter.
 

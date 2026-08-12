@@ -136,6 +136,17 @@ def _identifiability(items: List[Dict], iso2: str, as_of: date,
                         fulltext_ids=fulltext_ids)
     logger.info("[%s] identifiability probe: guessed %s at %.2f",
                 iso2, guess.get("country"), guess.get("confidence", 0.0))
+    # Stored as well as returned. The manifest copy is per snapshot and only
+    # exists where a snapshot does; this one is queryable across masking
+    # versions, which is what a re-probe needs to diff against. The last probe
+    # run left its results in a commit message and six incidental cache rows.
+    data_push.upsert_probe_result(
+        iso2, as_of, guess,
+        mask_map_version=gazetteer.MASK_MAP_VERSION,
+        sweep_version=rewrite.SWEEP_VERSION,
+        probe_model=ai_client.DIGEST_MODEL_NAME,
+        n_articles=len(items),
+    )
     return guess
 
 

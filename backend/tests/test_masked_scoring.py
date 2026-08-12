@@ -362,6 +362,44 @@ class TestTheProductionProbe:
         for iso2 in skipped:
             assert pipeline._identifiability([{"title": "x"}], iso2, AS_OF) is None
 
+    def test_the_probe_result_is_stored_not_only_logged(self, monkeypatch):
+        """A measurement nobody stores is an opinion.
+
+        The 2026-08-03 run probed twenty bundles and left six traces, all of them
+        incidental digest-cache rows; its actual finding survives in a commit
+        message. Both masking versions are on the row because `mask_map_version`
+        alone does not identify a behaviour — two sweeps shared g5, which is the
+        whole reason `SWEEP_VERSION` exists.
+        """
+        written = []
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.probe, "probe",
+                            lambda *_a, **_k: {"country": "PT", "confidence": 0.8,
+                                               "evidence": "the Douro"})
+        monkeypatch.setattr(pipeline.data_push, "upsert_probe_result",
+                            lambda *a, **kw: written.append((a, kw)))
+        sampled = next(iso2 for iso2 in ("US", "TR", "BR", "PT", "KR", "IN", "JP", "DE")
+                       if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
+                       % pipeline._PROBE_EVERY_NTH_COUNTRY == 0)
+        pipeline._identifiability([{"title": "x"}, {"title": "y"}], sampled, AS_OF)
+
+        assert len(written) == 1, "the probe ran and recorded nothing"
+        (iso2, as_of, guess), kwargs = written[0]
+        assert iso2 == sampled and as_of == AS_OF and guess["country"] == "PT"
+        assert kwargs["mask_map_version"] == gazetteer.MASK_MAP_VERSION
+        assert kwargs["sweep_version"] == rewrite.SWEEP_VERSION
+        assert kwargs["n_articles"] == 2
+
+    def test_an_unsampled_country_records_nothing(self, monkeypatch):
+        written = []
+        monkeypatch.setattr(pipeline.data_push, "upsert_probe_result",
+                            lambda *a, **kw: written.append(a))
+        skipped = next(iso2 for iso2 in ("US", "TR", "BR", "PT", "KR")
+                       if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
+                       % pipeline._PROBE_EVERY_NTH_COUNTRY != 0)
+        pipeline._identifiability([{"title": "x"}], skipped, AS_OF)
+        assert written == []
+
     def test_a_failed_probe_never_blocks_the_snapshot(self, monkeypatch):
         """The opposite of assert_clean, deliberately. The US is expected to be
         identified nearly always from coverage volume alone, and refusing to
@@ -370,6 +408,11 @@ class TestTheProductionProbe:
         monkeypatch.setattr(pipeline.probe, "probe",
                             lambda *_a, **_k: {"country": "PT", "confidence": 1.0,
                                                "evidence": "obvious"})
+        # This suite touches no database (see conftest). `_identifiability` now
+        # persists, so without this the one case that actually runs the probe
+        # would write a real row for anyone whose shell exports DATABASE_URL.
+        monkeypatch.setattr(pipeline.data_push, "upsert_probe_result",
+                            lambda *_a, **_k: None)
         sampled = next(iso2 for iso2 in ("US", "TR", "BR", "PT", "KR", "IN", "JP", "DE")
                        if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
                        % pipeline._PROBE_EVERY_NTH_COUNTRY == 0)
