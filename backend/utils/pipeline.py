@@ -464,6 +464,11 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
                 # differently and the row cannot be rebuilt, so this is as
                 # load-bearing here as the prompt version.
                 "mask_map_version": gazetteer.MASK_MAP_VERSION,
+                # The hand-maintained label above says what somebody remembered
+                # to write down; this says what the module actually contains.
+                # The euro fix changed masking behaviour and moved neither the
+                # map's data nor its version.
+                "gazetteer_version": gazetteer.GAZETTEER_VERSION,
                 # The gazetteer is only half of masking. The sweep rewrites what
                 # the digest model wrote, and it changed twice on 2026-08-03
                 # while `mask_map_version` sat still — so a row stamped with the

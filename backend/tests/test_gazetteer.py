@@ -376,3 +376,51 @@ class TestTheMapItselfContinued:
         assert gz.mentions("The Fed raised rates.", "US")
         assert gz.mentions("Ankara responded.", "TR")
         assert not gz.mentions("The central bank raised rates.", "TR")
+
+
+class TestTheBehaviourVersion:
+    """`MASK_MAP_VERSION` versions the map's data. The euro fix changed its code.
+
+    `_foreign_patterns` learned that a symbol-final form cannot carry a trailing
+    lookahead — masking behaviour changed, the hand-maintained version did not
+    move, and two behaviours briefly shared one label. It escaped only because
+    the sweep prompt changed in the same commit, so the *pair* stayed
+    unambiguous by luck. A gazetteer-only fix would have moved nothing.
+    """
+
+    def test_it_is_derived_from_the_module_source(self):
+        import hashlib
+        import pathlib
+
+        source = pathlib.Path(gz.__file__).read_bytes()
+        assert gz.GAZETTEER_VERSION == hashlib.sha256(source).hexdigest()[:8]
+
+    def test_it_is_not_the_hand_maintained_label(self):
+        """Two constants answering the same question the same way would be one
+        constant and a copy of it."""
+        assert gz.GAZETTEER_VERSION != gz.MASK_MAP_VERSION
+
+    def test_a_code_change_moves_it_when_the_data_version_would_not(self):
+        """The euro fix, in miniature: patch a pattern rule, not the map."""
+        import hashlib
+        import pathlib
+
+        source = pathlib.Path(gz.__file__).read_text(encoding="utf-8")
+        patched = source.replace('_SYMBOL_TAIL = "$€₺₩£¥"',
+                                 '_SYMBOL_TAIL = "$€₺₩£"')
+        assert patched != source, "the constant this test edits has moved"
+        assert hashlib.sha256(patched.encode("utf-8")).hexdigest()[:8] \
+            != gz.GAZETTEER_VERSION
+        # …while `MASK_MAP_VERSION` is a literal and would sit exactly still.
+        assert 'MASK_MAP_VERSION = "g5"' in patched
+
+    def test_the_manifest_carries_it(self):
+        """Stamped beside `mask_map_version`, not instead of it: the label says
+        what a human meant, the hash says what the code was."""
+        import inspect
+
+        from backend.utils import pipeline
+
+        source = inspect.getsource(pipeline._process_country)
+        assert '"gazetteer_version": gazetteer.GAZETTEER_VERSION' in source
+        assert '"mask_map_version": gazetteer.MASK_MAP_VERSION' in source

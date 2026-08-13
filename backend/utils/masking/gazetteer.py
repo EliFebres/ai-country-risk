@@ -36,6 +36,8 @@ change the version: the digest cache keys on masked content hashes, and a
 silently-improved gazetteer would serve digests of differently-masked text.
 """
 
+import hashlib
+import pathlib
 import re
 from typing import Dict, Iterable, List, Optional, Tuple
 
@@ -45,8 +47,33 @@ from backend.utils import constants
 
 # Bump on any change to COUNTRIES, THIN or ROLES. Stamped into every masked
 # run's manifest so a score can always be traced to the mask map that produced
-# it.
+# it. Human-readable and hand-maintained, which is its value and its limit.
 MASK_MAP_VERSION = "g5"
+
+# The same question answered by a machine: what this module *does*, not what
+# somebody remembered to write down about it.
+#
+# `MASK_MAP_VERSION` versions the map's data. The euro fix changed its *code* —
+# `_foreign_patterns` learned that a symbol-final form cannot carry a trailing
+# lookahead — so masking behaviour changed and the version did not move. Two
+# behaviours under one label, which is precisely the failure `SWEEP_VERSION`
+# exists to prevent one layer up. It escaped notice only because the sweep prompt
+# happened to change in the same commit, so the *pair* stayed unambiguous by
+# luck. A gazetteer-only fix would have moved nothing at all.
+#
+# Hashing the module source catches every change: data, patterns, boundary
+# rules, the roles table. It is coarser than a curated version — a comment
+# rewrite moves it too, invalidating caches that did not need it — and that is
+# the right trade for a value whose entire job is to never be wrong in the
+# permissive direction.
+#
+# Falls back to the hand-maintained version if the source cannot be read, which
+# is a frozen or zipped deployment rather than anything this repo does today.
+try:
+    GAZETTEER_VERSION = hashlib.sha256(
+        pathlib.Path(__file__).read_bytes()).hexdigest()[:8]
+except OSError:  # pragma: no cover - frozen deployments only
+    GAZETTEER_VERSION = MASK_MAP_VERSION
 
 # What each category of proper noun becomes. The scorer reads these, so they
 # read as English rather than as placeholders — "the central bank" carries the
