@@ -296,10 +296,43 @@ class TestTheDiagnosticSample:
 
 
 class TestProjection:
-    def test_it_falls_back_before_there_is_anything_to_measure(self, monkeypatch):
+    def test_it_refuses_before_there_is_anything_to_measure(self, monkeypatch):
+        """It used to return `n * 0.036`.
+
+        That constant was measured before the selector fix moved the median
+        snapshot from 6.5 articles to twenty, so it was low by about a third by
+        the time anyone read it — and it came back as a float indistinguishable
+        from a measured one, into the line of `_confirm_spend` that asks
+        somebody to approve a spend. A projection with nothing to project from
+        is not a small number, it is not a number.
+        """
         monkeypatch.setattr(score.store, "read_runs", lambda mode=None: [])
-        assert 1.5 < score.projection(52) < 2.5      # the ~$2 dry run
-        assert 85 < score.projection(2610) < 105     # the ~$95 pilot
+        with pytest.raises(score.NoObservedCost):
+            score.projection(52)
+
+    def test_the_refusal_says_how_to_get_a_real_one(self, monkeypatch):
+        monkeypatch.setattr(score.store, "read_runs", lambda mode=None: [])
+        with pytest.raises(score.NoObservedCost, match="gate-2"):
+            score.projection(2615)
+
+    def test_it_prices_one_arm_when_asked(self, monkeypatch):
+        """The arms are not interchangeable — the diagnostic ones reuse their
+        masked twin's digests and cost visibly less — so a masked projection off
+        a mixed ledger is a blend of two different things."""
+        seen = {}
+
+        def read_runs(mode=None):
+            seen["mode"] = mode
+            return [{"status": "complete", "spend_usd": 0.05}]
+
+        monkeypatch.setattr(score.store, "read_runs", read_runs)
+        assert score.projection(100, mode="masked") == pytest.approx(5.0)
+        assert seen["mode"] == "masked"
+
+    def test_an_arm_with_no_rows_refuses_rather_than_borrowing_another(self, monkeypatch):
+        monkeypatch.setattr(score.store, "read_runs", lambda mode=None: [])
+        with pytest.raises(score.NoObservedCost, match="named"):
+            score.projection(12, mode="named")
 
     def test_it_follows_the_observed_cost_once_there_is_one(self, monkeypatch):
         """A projection that does not move when the real cost moves is not a

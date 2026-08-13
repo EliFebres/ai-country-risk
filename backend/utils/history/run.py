@@ -214,7 +214,29 @@ def _confirm_spend(label: str, n_snapshots: int, args) -> bool:
     that does not move when the real cost moves is not worth approving against.
     """
     already = store.total_spend_usd()
-    projected = score.projection(n_snapshots)
+    try:
+        projected = score.projection(n_snapshots, mode=getattr(args, "mode", None)
+                                     if isinstance(getattr(args, "mode", None), str)
+                                     else None)
+    except score.NoObservedCost as exc:
+        # The first run of all has nothing to project from, and that is exactly
+        # when a fabricated number is most dangerous — it is the number somebody
+        # approves a budget against. Say so, and make the operator carry the
+        # estimate rather than dressing one up as a measurement.
+        print(f"\n=== {label} ===")
+        print(f"  snapshots        : {n_snapshots}")
+        print(f"  projection       : UNAVAILABLE — {exc}")
+        print(f"  already spent    : ${already:.2f}")
+        print(f"  budget           : ${config.PILOT_BUDGET_USD:.2f}")
+        if args.approved:
+            print("\n  --approved given: proceeding without a projection. The "
+                  "budget governor still stops the run at the cap.")
+            return True
+        try:
+            return input("\nProceed with no projection? [y/N] ").strip().lower() == "y"
+        except EOFError:
+            print("No terminal to ask on. Re-run with --approved to consent up front.")
+            return False
     per = projected / n_snapshots if n_snapshots else 0.0
 
     print(f"\n=== {label} ===")

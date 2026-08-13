@@ -270,19 +270,49 @@ def diagnostic_plan(roster: Optional[List[str]] = None) -> Dict[str, List[dateti
 
 # --- cost projection --------------------------------------------------------
 
-def projection(n_snapshots: int) -> float:
-    """What ``n_snapshots`` should cost, from what the run has already spent.
+class NoObservedCost(RuntimeError):
+    """Nothing has been metered yet, so there is no projection to make."""
 
-    Deliberately derived from the ledger rather than from a constant: a
-    projection that does not move when the observed per-snapshot cost moves is
-    a number nobody should be asked to approve a budget against. Falls back to
-    a documented estimate before there is anything to measure.
+
+def projection(n_snapshots: int, mode: Optional[str] = None) -> float:
+    """What ``n_snapshots`` should cost, from what the run has actually spent.
+
+    Args:
+        n_snapshots: how many to price.
+        mode: price against one arm's observed cost. The arms are not
+            interchangeable — the diagnostic ones reuse their masked twin's
+            digests and cost visibly less — so a masked projection built from a
+            ledger containing all three is quoting a blend of two different
+            things.
+
+    Raises:
+        NoObservedCost: when the ledger holds no metered spend. This used to
+            return ``n_snapshots * 0.036`` instead.
+
+            That constant was measured before the selector fix (`1912c88`) moved
+            the median snapshot from 6.5 articles to twenty, so by the time
+            anyone read it, it was low by roughly a third — and it was returned
+            as a float indistinguishable from a measured one, straight into the
+            line of `_confirm_spend` that asks somebody to approve a spend.
+
+            It is the same shape as the four bugs this branch turned up and the
+            three in its own probe harness: a plausible number, no error, and an
+            answer to a question nobody asked. A projection with nothing to
+            project from is not a small number, it is not a number, and the
+            honest return value is a refusal.
+
+            Anywhere that genuinely wants a guess must label it a guess at the
+            call site. Nothing does.
     """
-    rows = [r for r in store.read_runs() if r["status"] == "complete"
+    rows = [r for r in store.read_runs(mode) if r["status"] == "complete"
             and (r["spend_usd"] or 0) > 0]
     if not rows:
-        # From the dry run's own measurement when it exists; until then, the
-        # figure the pilot was budgeted on.
-        return n_snapshots * 0.036
+        raise NoObservedCost(
+            f"no metered spend in the ledger"
+            f"{f' for mode {mode!r}' if mode else ''}, so there is nothing to "
+            f"project {n_snapshots} snapshot(s) from. Run the gate-2 dry run "
+            f"first: `history.run score --country PT --since 2019-01-01 "
+            f"--until 2019-12-31`."
+        )
     per = sum(r["spend_usd"] for r in rows) / len(rows)
     return n_snapshots * per
