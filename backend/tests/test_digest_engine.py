@@ -443,3 +443,116 @@ class TestArticleInputText:
     def test_non_dict_raises(self):
         with pytest.raises(TypeError):
             digest_engine.article_input_text(None)
+
+
+class _RunawayThenRecover:
+    """A stage-1 runnable that loops on the first call and succeeds on a retry.
+
+    The observed failure exactly: OpenAI refuses to parse because the model hit
+    its output ceiling, and LangChain surfaces that as a generic parse error
+    whose only distinguishing feature is the sentence it carries.
+    """
+
+    LENGTH_ERROR = ValueError(
+        "Could not parse response content as the length limit was reached - "
+        "CompletionUsage(completion_tokens=16384, prompt_tokens=4785)")
+
+    def __init__(self, recover=True):
+        self.calls, self.prompt_lengths, self.recover = [], [], recover
+
+    def batch(self, inputs, config=None, return_exceptions=False):
+        self.calls.append(len(inputs))
+        self.prompt_lengths.append([len(m[0].content) for m in inputs])
+        if len(self.calls) == 1:
+            return [self.LENGTH_ERROR] * len(inputs)
+        return [_digest(50.0) if self.recover else self.LENGTH_ERROR
+                for _ in inputs]
+
+    def invoke(self, prompt):
+        return {f: "" for f in ("what_happened", "actors", "numbers", "transmission")}
+
+
+class TestTheRunawayRetry:
+    """Seven digests in one twenty-bundle probe run died at exactly
+    `completion_tokens=16384`, on prompts of three to five thousand. Not an
+    outage — a generation that never terminated. The article still reaches the
+    scorer, as a truncated body instead of a digest, and says nothing.
+    """
+
+    def _wire(self, monkeypatch, runnable):
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setattr(data_push, "read_article_digests", lambda iso2, as_of: {})
+        monkeypatch.setattr(data_push, "upsert_article_digests", lambda rows: None)
+        monkeypatch.setattr(digest_engine.ai_client, "build_digest_chat",
+                            lambda key: _FakeChat(runnable))
+
+    def test_a_runaway_is_retried_on_shorter_text(self, monkeypatch):
+        runnable = _RunawayThenRecover()
+        self._wire(monkeypatch, runnable)
+        it = _item("a1", text="x" * 20000, link="http://x/1")
+        digest_engine.digest_articles([it], country_display="a country",
+                                      iso2="PT", as_of=AS_OF)
+        assert runnable.calls == [1, 1], "did not retry the runaway"
+        # A plain retry reproduces the loop: temperature is 0 and the seed is
+        # fixed, so the retry has to send a materially different prompt.
+        assert runnable.prompt_lengths[1][0] < runnable.prompt_lengths[0][0]
+        assert isinstance(it["digest"], dict), "the article stayed degraded"
+
+    def test_a_retry_that_also_fails_leaves_the_article_degraded(self, monkeypatch):
+        runnable = _RunawayThenRecover(recover=False)
+        self._wire(monkeypatch, runnable)
+        it = _item("a1", text="x" * 20000, link="http://x/1")
+        digest_engine.digest_articles([it], country_display="a country",
+                                      iso2="PT", as_of=AS_OF)
+        assert runnable.calls == [1, 1], "retried more than once"
+        assert it["digest"] is None
+
+    def test_an_outage_is_not_retried_on_truncated_input(self, monkeypatch):
+        """The narrowness is the point. A network failure must fail, not come
+        back as a digest of the first 6,000 characters."""
+        class _Down(_RunawayThenRecover):
+            def batch(self, inputs, config=None, return_exceptions=False):
+                self.calls.append(len(inputs))
+                return [ConnectionError("connection reset")] * len(inputs)
+
+        runnable = _Down()
+        self._wire(monkeypatch, runnable)
+        it = _item("a1", text="x" * 20000, link="http://x/1")
+        digest_engine.digest_articles([it], country_display="a country",
+                                      iso2="PT", as_of=AS_OF)
+        assert runnable.calls == [1], "retried a plain outage"
+        assert it["digest"] is None
+
+    def test_only_the_runaways_are_retried(self, monkeypatch):
+        class _OneEach(_RunawayThenRecover):
+            def batch(self, inputs, config=None, return_exceptions=False):
+                self.calls.append(len(inputs))
+                if len(self.calls) == 1:
+                    return [_digest(10.0), self.LENGTH_ERROR]
+                return [_digest(50.0)] * len(inputs)
+
+        runnable = _OneEach()
+        self._wire(monkeypatch, runnable)
+        items = [_item("a1", text="a" * 9000, link="http://x/1"),
+                 _item("a2", text="b" * 9000, link="http://x/2")]
+        digest_engine.digest_articles(items, country_display="a country",
+                                      iso2="PT", as_of=AS_OF)
+        assert runnable.calls == [2, 1], "re-sent the digest that already worked"
+
+
+class TestTheDigestOutputIsCapped:
+    def test_the_digest_chat_caps_its_output(self):
+        """Uncapped, a loop costs $0.0098; capped it costs $0.0006. Over a
+        2,615-snapshot pilot that is ~$12 of pure waste against a $130 guard."""
+        from backend.utils.ai import client as ai_client
+
+        assert ai_client._DIGEST_MAX_TOKENS <= 2048
+
+    def test_the_scoring_chat_is_not_capped(self):
+        """The scorer's schema is large and its output is the product. A cap
+        there would truncate a score, which is a different kind of bug."""
+        import inspect
+
+        from backend.utils.ai import client as ai_client
+
+        assert "max_tokens" not in inspect.getsource(ai_client.build_chat)

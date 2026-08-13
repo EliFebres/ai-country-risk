@@ -36,6 +36,21 @@ def build_chat(api_key: str) -> ChatOpenAI:
     )
 
 
+# What a digest can legitimately need. The schema is five short strings and a
+# number; a real one lands near 200 tokens and has never been observed past 600.
+#
+# Uncapped, the stage-1 model does not merely exceed that — it runs to the
+# 16,384-token output ceiling and dies there, on prompts of 2,794 to 5,393
+# tokens. Seven times in one twenty-bundle probe run, every failure with
+# `completion_tokens=16384` exactly. It is a generation loop, not a long answer,
+# and the article ends up degraded either way; the cap decides only whether the
+# loop costs $0.0098 or $0.0006.
+#
+# Over a 2,615-snapshot pilot at the observed failure rate that is the difference
+# between roughly $12 of pure waste and roughly $0.75, against a $130 guard.
+_DIGEST_MAX_TOKENS = 1024
+
+
 def build_digest_chat(api_key: str) -> ChatOpenAI:
     """A ChatOpenAI for deterministic, non-retrying stage-1 digest calls."""
     return ChatOpenAI(
@@ -44,6 +59,7 @@ def build_digest_chat(api_key: str) -> ChatOpenAI:
         max_retries=0,
         api_key=api_key,
         seed=SEED,
+        max_tokens=_DIGEST_MAX_TOKENS,
     )
 
 

@@ -56,6 +56,24 @@ class ContentCache(Protocol):
 # fast, low enough to stay clear of per-minute rate limits.
 _MAX_CONCURRENCY = 8
 
+# How much of an article the runaway-recovery retry sends. Long enough that the
+# digest is still about the article, short enough to be a materially different
+# prompt from the one that looped — a plain retry at temperature 0 with a fixed
+# seed reproduces the loop exactly.
+_RETRY_INPUT_CHARS = 6000
+
+
+def _ran_away(result: object) -> bool:
+    """Whether a stage-1 result is the output-ceiling loop rather than a real error.
+
+    Matched on the message because that is all the exception carries: LangChain
+    surfaces OpenAI's length-limit refusal as a generic parse failure, and the
+    only thing distinguishing "the model looped forever" from "the API was down"
+    is the sentence it came back with. A network failure must not be retried on
+    truncated input — it must simply fail — so this stays narrow.
+    """
+    return isinstance(result, Exception) and "length limit" in str(result).lower()
+
 
 def article_input_text(item: Dict) -> str:
     """The fullest text we hold for an article — the stage-1/full-text input.
@@ -258,15 +276,51 @@ def digest_articles(
             structured_llm = ai_client.build_digest_chat(api_key).with_structured_output(
                 schema=ai_constants.DIGEST_SCHEMA, strict=True
             )
-            try:
-                results = structured_llm.batch(
-                    [[SystemMessage(content=p)] for p in prompts],
-                    config={"max_concurrency": _MAX_CONCURRENCY},
-                    return_exceptions=True,
-                )
-            except Exception as exc:
-                logger.warning("[%s] stage-1 batch failed outright: %s", iso2, exc)
-                results = [exc] * len(pending_idx)
+            def _batch(prompt_list):
+                try:
+                    return structured_llm.batch(
+                        [[SystemMessage(content=p)] for p in prompt_list],
+                        config={"max_concurrency": _MAX_CONCURRENCY},
+                        return_exceptions=True,
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning("[%s] stage-1 batch failed outright: %s", iso2, exc)
+                    return [exc] * len(prompt_list)
+
+            results = _batch(prompts)
+
+            # One retry, on a shorter article, for the failures that ran away.
+            #
+            # The stage-1 model sometimes loops to its output ceiling — seven
+            # times in one twenty-bundle probe run, always at exactly
+            # `completion_tokens=16384`, on prompts of only three to five
+            # thousand. The article is not lost to an outage; it is lost to a
+            # generation that never terminated, and it reaches the scorer as a
+            # truncated body instead of a digest.
+            #
+            # A plain retry would not help: temperature is 0 and the seed is
+            # fixed, so the same call produces the same loop. Truncating the
+            # input makes it a *different* call, and a shorter article is far
+            # less likely to induce the loop in the first place. Once only —
+            # this is a recovery pass, not a retry policy.
+            retry_idx = [n for n, res in enumerate(results) if _ran_away(res)]
+            if retry_idx:
+                logger.warning("[%s] %d digest(s) hit the output ceiling; "
+                               "retrying on truncated text", iso2, len(retry_idx))
+                retry = _batch([
+                    ai_constants.DIGEST_PROMPT.format(
+                        country=country_display,
+                        article_text=texts[pending_idx[n]][:_RETRY_INPUT_CHARS],
+                        mask_rule=ai_constants.DIGEST_MASK_RULE if masked else "")
+                    for n in retry_idx
+                ])
+                recovered = 0
+                for n, res in zip(retry_idx, retry):
+                    if isinstance(res, dict):
+                        results[n] = res
+                        recovered += 1
+                logger.info("[%s] recovered %d/%d runaway digest(s)",
+                            iso2, recovered, len(retry_idx))
 
             # Results come back in input order — map by index, never by
             # completion order, so output order stays deterministic.
