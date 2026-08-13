@@ -216,6 +216,42 @@ class TestCurrencySymbols:
         assert gz.mask_foreign("The Bank of Korea met.", "US", ROSTER) == \
             "another country met."
 
+    def test_the_two_pattern_paths_agree_on_every_form(self):
+        """The linkage between `_compile` and `_foreign_patterns`, asserted.
+
+        They implement the same boundary rule twice — once per form, once over an
+        alternation — and share only the `_SYMBOL_TAIL` constant. That is how
+        `f55bb7e` fixed one and left the other broken for four months: nothing
+        connected them but the author remembering both existed.
+
+        This is the connection. Every surface form the gazetteer knows must be
+        removed by the own-country path *and* by the foreign path. A rule change
+        that reaches only one of them fails here rather than in a snapshot.
+
+        Each form is placed the way it actually occurs, and that detail is the
+        whole test: the first version of it wrote "Reported from € on Tuesday",
+        where a space follows the symbol, so the trailing lookahead matched and
+        the test passed against the very code it was written to catch. A symbol
+        only defeats the lookahead when it is flush against its digits, which is
+        the only way anyone writes one.
+        """
+        for iso2 in ROSTER:
+            other = next(c for c in ROSTER if c != iso2)
+            for form in gz.terms(iso2):
+                contexts = [f"Reported from {form} on Tuesday."]
+                if form[-1:] in gz._SYMBOL_TAIL:
+                    # The only placement that defeats a trailing lookahead, and
+                    # the only way anyone writes a currency symbol. Restricted to
+                    # symbols on purpose: "Bureau of Economic Analysis4,200" is
+                    # not text, and a form that *did* match inside a word would
+                    # be the `U.S.S.R.` damage `_compile` exists to avoid.
+                    contexts.append(f"The figure was {form}4,200 last year.")
+                for sentence in contexts:
+                    assert form not in gz.mask(sentence, iso2), \
+                        f"own-country path left {form!r} ({iso2}) in {sentence!r}"
+                    assert form not in gz.mask_foreign(sentence, other, ROSTER), \
+                        f"foreign path left {form!r} ({iso2}) while scoring {other}"
+
     def test_every_roster_currency_symbol_survives_no_country(self):
         """The gate this pair of bugs kept getting past: whatever the scored
         country, no roster symbol may remain anywhere in the masked text."""

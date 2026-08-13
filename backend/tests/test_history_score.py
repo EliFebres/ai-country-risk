@@ -124,6 +124,53 @@ class TestFailureIsRecordedNotRaised:
             score.score_one("PT", MONDAY, "masked")
         assert ledger[0]["status"] == "failed"
 
+    def test_a_mask_leak_costs_its_snapshot_and_not_the_run(
+            self, ledger, monkeypatch, scored):
+        """`MaskLeak` is deliberately fatal to a snapshot. It must not be fatal
+        to the pilot.
+
+        A masked snapshot that names its country is mislabelled rather than
+        degraded, so refusing to send it is right. Refusing to send it at anchor
+        1,800 of 2,615 and taking the other 815 with it is not — and the euro
+        symbol that survived the foreign pass would have raised this on any
+        bundle quoting a foreign currency figure, which is not a rare bundle.
+        """
+        from backend.utils.masking import rewrite as mask_rewrite
+
+        calls = []
+
+        def leak_once(country_name, iso2, pool, **kw):
+            calls.append(kw["as_of"])
+            if len(calls) == 1:
+                raise mask_rewrite.MaskLeak("payload still names 1 roster term(s): €")
+            return {"score": 0.5}, {"schema_version": 1}
+
+        monkeypatch.setattr(score.pipeline, "_process_country", leak_once)
+        days = score.anchors(MONDAY, MONDAY + datetime.timedelta(weeks=3))
+        totals = score.run(roster=["PT"], start=days[0], end=days[-1], mode="masked")
+
+        # The run continued: every remaining anchor was attempted.
+        assert len(calls) == len(days)
+        assert totals["failed"] == 1 and totals["scored"] == len(days) - 1
+
+    def test_a_leaked_snapshot_is_left_retryable_for_the_resume(
+            self, ledger, monkeypatch, scored):
+        """`completed_runs` counts only 'complete', so a failed row is retried
+        rather than silently skipped — which is the difference between a resume
+        that heals the gap and one that bakes it in."""
+        from backend.utils.masking import rewrite as mask_rewrite
+
+        monkeypatch.setattr(score.pipeline, "_process_country",
+                            lambda *a, **k: (_ for _ in ()).throw(
+                                mask_rewrite.MaskLeak("names a roster term")))
+        score.score_one("PT", MONDAY, "masked")
+
+        row = ledger[-1]
+        assert row["status"] == "failed"
+        assert "roster term" in row["manifest"]["error"]
+        # The ledger's own resume rule, stated as the assertion it protects.
+        assert row["status"] != "complete"
+
     def test_the_governor_fires_on_a_snapshot_that_overruns(
             self, ledger, monkeypatch, scored):
         """`_confirm_spend` checks a projection before the run; this checks the
