@@ -418,3 +418,139 @@ class TestTheProductionProbe:
                        % pipeline._PROBE_EVERY_NTH_COUNTRY == 0)
         got = pipeline._identifiability([{"title": "x"}], sampled, AS_OF)
         assert got["country"] == "PT" and got["confidence"] == 1.0
+
+
+class TestTheFullTextRewriteCache:
+    """The three articles the scorer weights most heavily were the three it
+    could not reproduce.
+
+    `input_manifest` hashes the bytes the model read. For the ids in
+    `fulltext_ids` those bytes are model-generated prose that was kept nowhere,
+    so a rebuild wrote a different sentence and a different hash — and the
+    manifest's whole promise failed on exactly the evidence that mattered most.
+    The cache is what turns that from a caveat into a property.
+    """
+
+    class _Cache:
+        def __init__(self, seeded=None):
+            self.rows = dict(seeded or {})
+            self.reads, self.writes = [], []
+
+        def read_rewrite_cache(self, hashes, version, mode):
+            self.reads.append((sorted(hashes), version, mode))
+            return {h: self.rows[h] for h in hashes if h in self.rows}
+
+        def write_rewrite_cache(self, rows, version, mode):
+            self.writes.append((rows, version, mode))
+            for r in rows:
+                self.rows[r["content_sha256"]] = r["rewritten"]
+            return len(rows)
+
+    def items(self):
+        return [{"id": "a1", "text": "The minister resigned in the capital."}]
+
+    def test_a_cached_body_is_reused_instead_of_re_rewritten(self, monkeypatch):
+        from backend.utils import provenance
+
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
+                            lambda *_a, **_k: pytest.fail("re-rewrote a cached body"))
+        items = self.items()
+        sha = provenance.text_sha256(items[0]["text"])
+        cache = self._Cache({sha: "the minister resigned in the capital."})
+        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=cache)
+        assert items[0]["text"] == "the minister resigned in the capital."
+
+    def test_a_fresh_rewrite_is_written_back(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
+                            lambda *_a, **_k: "the minister resigned")
+        cache = self._Cache()
+        pipeline._rewrite_fulltext(self.items(), ["a1"], "PT", cache=cache)
+        rows, version, mode = cache.writes[0]
+        assert rows[0]["rewritten"] == "the minister resigned"
+        assert version == rewrite.REWRITE_VERSION and mode == "masked"
+
+    def test_the_same_body_next_week_costs_nothing(self, monkeypatch):
+        """Weekly anchors over a 30-day window put one article in about four
+        consecutive snapshots, and a top-severity article stays top-severity."""
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        calls = []
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
+                            lambda *a, **k: calls.append(1) or "masked body")
+        cache = self._Cache()
+        for _ in range(4):
+            pipeline._rewrite_fulltext(self.items(), ["a1"], "PT", cache=cache)
+        assert len(calls) == 1, f"paid {len(calls)} times for one body"
+
+    def test_a_failed_rewrite_is_not_cached(self, monkeypatch):
+        """It fails closed to title-only. Caching that would degrade the article
+        on every future snapshot instead of letting the next run try again."""
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body", lambda *_a, **_k: "")
+        cache = self._Cache()
+        items = self.items()
+        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=cache)
+        assert items[0]["text"] == ""
+        assert cache.rows == {} and not cache.writes
+
+    def test_a_version_change_misses_rather_than_serving_stale_prose(self, monkeypatch):
+        from backend.utils import provenance
+
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
+                            lambda *_a, **_k: "rewritten under the new prompt")
+        items = self.items()
+        sha = provenance.text_sha256(items[0]["text"])
+        cache = self._Cache({sha: "rewritten under the old prompt"})
+        monkeypatch.setattr(pipeline.rewrite, "REWRITE_VERSION", "newvers1")
+        # The fake keys on hash alone, so emulate the real key by emptying it.
+        cache.rows = {}
+        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=cache)
+        assert items[0]["text"] == "rewritten under the new prompt"
+        assert cache.writes[0][1] == "newvers1"
+
+    def test_no_cache_behaves_exactly_as_before(self, monkeypatch):
+        """The daily run passes None and must be untouched by any of this."""
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
+                            lambda *_a, **_k: "masked body")
+        items = self.items()
+        pipeline._rewrite_fulltext(items, ["a1"], "PT")
+        assert items[0]["text"] == "masked body"
+
+    def test_a_broken_cache_degrades_to_rewriting(self, monkeypatch):
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
+                            lambda *_a, **_k: "masked body")
+
+        class _Boom:
+            def read_rewrite_cache(self, *a, **k): raise RuntimeError("down")
+            def write_rewrite_cache(self, *a, **k): raise RuntimeError("down")
+
+        items = self.items()
+        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=_Boom())
+        assert items[0]["text"] == "masked body"
+
+    def test_a_fully_cached_snapshot_needs_no_api_key(self, monkeypatch):
+        """What makes `rebuild_snapshot` free. A rebuild that had to call the
+        model would be paying to compare a fresh non-deterministic value against
+        a stored one, which is not a comparison."""
+        from backend.utils import provenance
+
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
+                            lambda *_a, **_k: pytest.fail("called the model"))
+        items = self.items()
+        sha = provenance.text_sha256(items[0]["text"])
+        cache = self._Cache({sha: "the minister resigned"})
+        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=cache)
+        assert items[0]["text"] == "the minister resigned"
+
+    def test_a_miss_with_no_key_fails_closed(self, monkeypatch):
+        """The rule the key check used to enforce by returning early, kept: an
+        unmasked body must not reach the scorer because there was no key."""
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+        items = self.items()
+        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=self._Cache())
+        assert items[0]["text"] == ""

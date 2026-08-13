@@ -30,6 +30,7 @@ gate somebody turns off.
 """
 
 import hashlib
+import json
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -174,15 +175,24 @@ it a headline.
 # version bump that silently did not happen (`b146104`: the sed sat behind a
 # `&&` after a command that exited non-zero), and a hash cannot forget.
 #
-# Both prompts, not only the sweep's. They share `_MASK_RULES`, and the body
-# rewrite decides what the scorer reads whole — the pass where "the Help America
-# Vote Act" and "the White House Situation Room" survived. Folding it in
-# invalidates cached digests on a change that could not have altered them, which
-# costs one re-digest and buys the invariant that no two masking behaviours ever
-# share a label. That trade is the whole reason this constant exists.
+# One version per cache, now that both model passes have one.
+#
+# These were briefly a single constant covering both prompts, on the argument
+# that no two masking behaviours may share a label. The argument was right and
+# the implementation was blunt: the body rewrite cannot change a digest — it runs
+# after digesting, on a different text — so folding it in threw away every cached
+# digest whenever the body prompt moved.
+#
+# Two versions, each keying its own cache, and the *manifest carries both*. That
+# is what actually satisfies the invariant: a row records the full masking
+# behaviour that produced it, while each cache invalidates on exactly the change
+# that affects it and no other.
 SWEEP_VERSION = hashlib.sha256(
-    (_DIGEST_SWEEP_PROMPT + "\x00" + _REWRITE_PROMPT
-     + "\x00".join(_DIGEST_SWEEP_FIELDS)).encode("utf-8")
+    (_DIGEST_SWEEP_PROMPT + "\x00".join(_DIGEST_SWEEP_FIELDS)).encode("utf-8")
+).hexdigest()[:8]
+
+REWRITE_VERSION = hashlib.sha256(
+    (_REWRITE_PROMPT + json.dumps(_REWRITE_SCHEMA, sort_keys=True)).encode("utf-8")
 ).hexdigest()[:8]
 
 

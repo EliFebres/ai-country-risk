@@ -69,7 +69,8 @@ def _to_100(value: Optional[float]) -> Optional[int]:
         return None
 
 
-def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str) -> None:
+def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str,
+                      cache: Optional[Any] = None) -> None:
     """Model-mask the handful of bodies the scorer reads end to end. Mutates.
 
     The gazetteer masks what somebody wrote down. It does not know this week's
@@ -80,19 +81,76 @@ def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str) -> 
     article with no body, so it reaches the scorer as its masked title. Being
     short one body costs a week some evidence; one leaked name costs the whole
     comparison.
+
+    Args:
+        cache: an optional store keyed on content hash, consulted before the
+            model and written after it. The daily run passes None and behaves
+            exactly as before; a backfill passes one for two reasons.
+
+            The cheap one is overlap: weekly anchors across a 30-day window put
+            the same article in about four consecutive snapshots, and a
+            top-severity article stays top-severity in all four, so the same
+            body was being rewritten four times.
+
+            The one that matters is reproducibility. `input_manifest` hashes the
+            bytes the model read, and for these articles those bytes were
+            generated prose kept nowhere — so a rebuild produced a different
+            sentence and a different hash, and the manifest's promise failed on
+            exactly the three articles the scorer weighted most heavily.
     """
-    api_key = os.getenv("OPENAI_API_KEY")
-    if not api_key or not fulltext_ids:
+    if not fulltext_ids:
         return
     by_id = {it.get("id"): it for it in items if isinstance(it, dict)}
-    for aid in fulltext_ids:
-        item = by_id.get(aid)
-        if not item or not item.get("text"):
+    targets = [(aid, by_id[aid]) for aid in fulltext_ids
+               if by_id.get(aid) and by_id[aid].get("text")]
+    if not targets:
+        return
+    # The key is checked per miss rather than up front, so a fully cached
+    # snapshot needs no key at all. That is what lets `rebuild_snapshot` re-derive
+    # a stored row for free — and a miss during a rebuild is the finding, not an
+    # inconvenience.
+    api_key = os.getenv("OPENAI_API_KEY")
+
+    # The hash is over the masked body, which is what the model is handed and
+    # what a rebuild will re-derive. A gazetteer change therefore lands in the
+    # key without the gazetteer version being part of it.
+    shas = {aid: provenance.text_sha256(item["text"]) for aid, item in targets}
+    hits: Dict[str, str] = {}
+    if cache is not None:
+        try:
+            hits = cache.read_rewrite_cache(
+                sorted(set(shas.values())), rewrite.REWRITE_VERSION, "masked")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("[%s] rewrite cache read failed (%s); rewriting all",
+                           iso2, exc)
+
+    fresh: List[Dict[str, str]] = []
+    for aid, item in targets:
+        cached = hits.get(shas[aid])
+        if cached:
+            item["text"] = cached
+            continue
+        if not api_key:
+            # Same fail-closed rule as a failed rewrite: an unmasked body must
+            # not reach the scorer just because there was no key to mask it.
+            logger.warning("[%s] %s degraded to title-only: no OPENAI_API_KEY "
+                           "and no cached rewrite", iso2, aid)
+            item["text"] = ""
             continue
         item["text"] = rewrite.rewrite_body(item["text"], api_key)
         if not item["text"]:
             logger.warning("[%s] %s degraded to title-only: the mask rewrite "
                            "would not clear its body", iso2, aid)
+            continue
+        fresh.append({"content_sha256": shas[aid], "rewritten": item["text"]})
+
+    logger.info("[%s] full-text rewrites: %d cached, %d fresh",
+                iso2, len(targets) - len(fresh), len(fresh))
+    if fresh and cache is not None:
+        try:
+            cache.write_rewrite_cache(fresh, rewrite.REWRITE_VERSION, "masked")
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("[%s] rewrite cache write failed: %s", iso2, exc)
 
 
 # How often the live run asks the cheap model to guess which country it is
@@ -368,7 +426,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         # ministers, parties or companies. The model pass covers what it missed,
         # and only on the two or three bodies the scorer reads end to end —
         # everything else reaches it as a digest of already-masked text.
-        _rewrite_fulltext(scored, fulltext_ids, iso2)
+        _rewrite_fulltext(scored, fulltext_ids, iso2, cache=digest_content_cache)
 
     # 2c) The three-ledger evidence the model actually scores on. Separate from
     #     the panel payload above, which stays the DB-facing one: `upsert_snapshot`

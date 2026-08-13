@@ -373,42 +373,52 @@ class TestTheMaskingVersionIsInTheKey:
         monkeypatch.setattr(gazetteer, "MASK_MAP_VERSION", "g99")
         assert digest_engine._content_sha("body", masked=True) != before
 
-    def test_the_sweep_version_tracks_both_model_passes(self):
+    def test_each_pass_versions_its_own_cache(self):
         """Derived, not maintained. This repo has already shipped a version bump
         that silently did not happen (`b146104`), and a hash cannot forget.
 
-        Both prompts: they share `_MASK_RULES`, and the body rewrite decides what
-        the scorer reads whole. A change to either is a change of masking
-        behaviour, and two behaviours must never share one label."""
+        One version per cache. These were briefly a single constant covering both
+        prompts, on the right argument — no two masking behaviours may share a
+        label — implemented bluntly: the body rewrite cannot change a digest, so
+        folding it in discarded every cached digest whenever the body prompt
+        moved. The invariant is satisfied by the *manifest* carrying both, not by
+        one cache key carrying a version it has no use for.
+        """
         import hashlib
+        import json
 
         from backend.utils.masking import rewrite
 
         assert rewrite.SWEEP_VERSION == hashlib.sha256(
-            (rewrite._DIGEST_SWEEP_PROMPT + "\x00" + rewrite._REWRITE_PROMPT
+            (rewrite._DIGEST_SWEEP_PROMPT
              + "\x00".join(rewrite._DIGEST_SWEEP_FIELDS)).encode("utf-8")
         ).hexdigest()[:8]
+        assert rewrite.REWRITE_VERSION == hashlib.sha256(
+            (rewrite._REWRITE_PROMPT
+             + json.dumps(rewrite._REWRITE_SCHEMA, sort_keys=True)).encode("utf-8")
+        ).hexdigest()[:8]
+        assert rewrite.SWEEP_VERSION != rewrite.REWRITE_VERSION
 
-    def test_editing_either_prompt_moves_the_version(self):
-        """The body rewrite is the pass where "the Help America Vote Act"
-        survived. A fix there that left the version alone would go on being
-        served digests produced by the behaviour it replaced."""
+    def test_the_shared_rules_move_both_versions(self):
+        """`_MASK_RULES` is in both prompts, so a scope fix invalidates both
+        caches — which is correct, because it changes both behaviours."""
         import hashlib
+        import json
 
         from backend.utils.masking import rewrite
 
-        def version(sweep, body):
-            return hashlib.sha256(
-                (sweep + "\x00" + body
-                 + "\x00".join(rewrite._DIGEST_SWEEP_FIELDS)).encode("utf-8")
-            ).hexdigest()[:8]
+        edited = rewrite._MASK_RULES + "\n8. And another thing."
+        sweep = rewrite._DIGEST_SWEEP_PROMPT.replace(rewrite._MASK_RULES, edited)
+        body = rewrite._REWRITE_PROMPT.replace(rewrite._MASK_RULES, edited)
+        assert sweep != rewrite._DIGEST_SWEEP_PROMPT
+        assert body != rewrite._REWRITE_PROMPT
 
-        real = version(rewrite._DIGEST_SWEEP_PROMPT, rewrite._REWRITE_PROMPT)
-        assert real == rewrite.SWEEP_VERSION
-        assert version(rewrite._DIGEST_SWEEP_PROMPT + " x",
-                       rewrite._REWRITE_PROMPT) != real
-        assert version(rewrite._DIGEST_SWEEP_PROMPT,
-                       rewrite._REWRITE_PROMPT + " x") != real
+        assert hashlib.sha256(
+            (sweep + "\x00".join(rewrite._DIGEST_SWEEP_FIELDS)).encode("utf-8")
+        ).hexdigest()[:8] != rewrite.SWEEP_VERSION
+        assert hashlib.sha256(
+            (body + json.dumps(rewrite._REWRITE_SCHEMA, sort_keys=True)).encode("utf-8")
+        ).hexdigest()[:8] != rewrite.REWRITE_VERSION
 
     def test_both_passes_share_one_set_of_rules(self):
         """Two prompts that drift apart are two masking behaviours under one

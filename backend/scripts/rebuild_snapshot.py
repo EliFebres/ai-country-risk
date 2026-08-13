@@ -4,22 +4,19 @@
 since provenance landed, and its whole promise — "this row can be reproduced, or
 found to be irreproducible" — had never been tested against a stored row.
 
-What reproduces exactly, by construction:
+Everything is re-derived from caches, so a rebuild costs nothing and makes no
+model call: the article set and its order come from `snapshot_select` over the
+same window, the digests from `history_digest_cache`, the rewritten full texts
+from `history_rewrite_cache`, and `macro_vintages` is a pure function of `as_of`.
 
-* the article set and its order, from `snapshot_select` over the same window;
-* every article's `prompt_text_sha256` for the seventeen or so the prompt carries
-  as digests, because digests come from the content cache;
-* `macro_vintages`, because the vintage bound is a pure function of `as_of`.
+The rewrite cache is what makes this a real check. Before it existed the two or
+three articles in `fulltext_ids` had their bodies replaced by a model call whose
+output was kept nowhere, so `content_sha256` hashed prose that no longer existed
+and a rebuild could only ever report a mismatch — on precisely the articles the
+scorer weighted most heavily. This script had to skip them entirely.
 
-What cannot, and this is the finding rather than a caveat: the two or three
-articles in `fulltext_ids` have their bodies replaced by `rewrite_body`, which is
-a model call whose output is cached nowhere. Its `content_sha256` is a hash of
-generated prose. Re-running produces a different sentence and therefore a
-different hash, and no amount of care at this layer changes that.
-
-So the honest report is per-article and split on `in_fulltext`, and a run that
-reports "17/20 exact, 3 full-text rewrites differ" is the *expected* result — not
-a failure, and not the byte-for-byte rebuild the manifest's docstring implies.
+Now a full-text mismatch means a cache miss, which is a real finding: that row
+cannot be rebuilt. Rows written before the cache existed will always report it.
 
     python -m backend.scripts.rebuild_snapshot PT 2019-06-03
 """
@@ -43,7 +40,7 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 
-from backend.utils import constants, data_retrieval as dr, provenance  # noqa: E402
+from backend.utils import constants, data_retrieval as dr, pipeline, provenance  # noqa: E402
 from backend.utils.ai import client as ai_client, digest_engine, langchain_llm  # noqa: E402
 from backend.utils.data_upsert import data_push  # noqa: E402
 from backend.utils.history import config, snapshot_select, store  # noqa: E402
@@ -70,10 +67,13 @@ def rebuild(iso2: str, as_of: datetime.date) -> dict:
         scored, country_display=langchain_llm.MASKED_COUNTRY_LABEL, iso2=iso2,
         as_of=as_of, masked=True, content_cache=store)
     fulltext_ids = digest_engine.select_fulltext_ids(scored)
-    # Deliberately NOT re-running `_rewrite_fulltext`: it is a model call, it
-    # would cost money, and its output differs every time. Leaving the bodies as
-    # the gazetteer left them makes the full-text mismatch explicit instead of
-    # hiding it behind a fresh non-deterministic rewrite.
+    # Cache-served, like the digests. Before `history_rewrite_cache` existed this
+    # step had to be skipped entirely — the rewrite is a model call whose output
+    # was kept nowhere, so re-running it wrote a different sentence and there was
+    # nothing to compare against. Now it is a lookup, and a *miss* here is the
+    # finding: it means the row cannot be rebuilt, which is exactly what this
+    # script is for.
+    pipeline._rewrite_fulltext(scored, fulltext_ids, iso2, cache=store)
     evidence = dr.build_evidence_payload(
         iso2, as_of=as_of, panel=dr.query_macro_panel(iso2),
         series=data_push.read_indicator_series(iso2),
@@ -121,8 +121,10 @@ def main() -> None:
             continue
         if a.get("in_fulltext") or b.get("in_fulltext"):
             drifted_full += 1
-            print(f"  {aid}: differs — IN FULLTEXT (body rewritten by a model, "
-                  f"not cached; expected)")
+            print(f"  {aid}: differs — IN FULLTEXT. Since the rewrite cache "
+                  f"exists this is a cache MISS, not an expected drift: the "
+                  f"rewritten body for this article is gone and the row cannot "
+                  f"be rebuilt.")
         else:
             drifted_other += 1
             print(f"  {aid}: differs — NOT in full text (this one is a real "
@@ -156,9 +158,10 @@ def main() -> None:
         print("\n  VERDICT: not reproducible — the drift is outside the full-text "
               "block and needs explaining before the pilot.")
     elif drifted_full:
-        print("\n  VERDICT: reproducible except the model-rewritten bodies, which "
-              "are not cached anywhere and cannot be. The manifest proves what "
-              "the model read; it cannot regenerate it.")
+        print("\n  VERDICT: not reproducible — the rewritten bodies for "
+              f"{drifted_full} full-text article(s) are missing from "
+              "`history_rewrite_cache`. Rows written before that cache existed "
+              "will always report this; rows written after it should not.")
     else:
         print("\n  VERDICT: byte-for-byte.")
 

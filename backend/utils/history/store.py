@@ -561,6 +561,93 @@ def write_digest_cache(rows: Sequence[Dict[str, Any]], digest_model: str, mode: 
 
 
 # ---------------------------------------------------------------------------
+# The full-text rewrite cache — what makes a snapshot reproducible at all
+# ---------------------------------------------------------------------------
+# The two or three bodies the scorer reads end to end are rewritten by a model,
+# and until this table existed that output was kept nowhere. Two consequences,
+# and the second is the one that mattered.
+#
+# It was paid for repeatedly: weekly anchors over a 30-day window put the same
+# article in about four consecutive snapshots, and a top-severity article stays
+# top-severity across all four, so the same body was rewritten four times.
+#
+# And the snapshot could not be rebuilt. `input_manifest` hashes the bytes the
+# model read, and for these articles those bytes were generated prose that no
+# longer existed anywhere. Re-running produced a different sentence and a
+# different hash, so the manifest's promise — this row can be reproduced —
+# failed on precisely the three articles the scorer weighted most heavily.
+#
+# Keyed like the digest cache: content hash, prompt version, mode. The content
+# hash is over the *masked* text, so a gazetteer change lands in the key without
+# the gazetteer version needing to be part of it.
+
+_REWRITE_CACHE_DDL = """
+CREATE TABLE IF NOT EXISTS history_rewrite_cache (
+  content_sha256  TEXT NOT NULL,
+  rewrite_version TEXT NOT NULL,
+  mode            TEXT NOT NULL,
+  rewritten       TEXT NOT NULL,
+  created_at      TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (content_sha256, rewrite_version, mode)
+);
+"""
+
+
+def read_rewrite_cache(hashes: Sequence[str], rewrite_version: str,
+                       mode: str) -> Dict[str, str]:
+    """Cached rewritten bodies for these content hashes, keyed by hash.
+
+    A miss is an absent key. Never returns the empty string as a hit: an empty
+    rewrite is how :func:`rewrite.rewrite_body` reports failure, and caching a
+    failure would degrade the article to title-only forever.
+    """
+    if not hashes:
+        return {}
+    with _transaction() as cur:
+        cur.execute(_REWRITE_CACHE_DDL)
+        cur.execute(
+            """
+            SELECT content_sha256, rewritten
+              FROM history_rewrite_cache
+             WHERE content_sha256 = ANY(%s) AND rewrite_version = %s AND mode = %s
+            """,
+            (list(hashes), rewrite_version, mode),
+        )
+        return {row[0]: row[1] for row in cur.fetchall() if row[1]}
+
+
+def write_rewrite_cache(rows: Sequence[Dict[str, Any]], rewrite_version: str,
+                        mode: str) -> int:
+    """Cache rewritten bodies by content hash.
+
+    Args:
+        rows: dicts with ``content_sha256`` and ``rewritten``. Rows with an empty
+            rewrite are dropped — that is the fail-closed signal, and a cached
+            failure would degrade the article on every future snapshot rather
+            than letting the next run try again.
+    """
+    values = [(r["content_sha256"], rewrite_version, mode, r["rewritten"])
+              for r in rows
+              if r.get("content_sha256") and (r.get("rewritten") or "").strip()]
+    if not values:
+        return 0
+    with _transaction() as cur:
+        cur.execute(_REWRITE_CACHE_DDL)
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO history_rewrite_cache
+              (content_sha256, rewrite_version, mode, rewritten, created_at)
+            VALUES %s
+            ON CONFLICT (content_sha256, rewrite_version, mode) DO NOTHING
+            """,
+            [v + (datetime.datetime.now(datetime.timezone.utc),) for v in values],
+            page_size=200,
+        )
+    return len(values)
+
+
+# ---------------------------------------------------------------------------
 # Reports — the deliverables of steps 2, 3 and 4
 # ---------------------------------------------------------------------------
 
