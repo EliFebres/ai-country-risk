@@ -375,6 +375,78 @@ def compare(baseline: List[Dict[str, Any]],
     return out
 
 
+def classify(country_iso2: str, guess: Dict[str, Any],
+             confident_at: float = 0.5) -> str:
+    """Which of four things a probe result actually is.
+
+    A meter with two buckets — hit and miss — misreads this corpus in both
+    directions. Counting only correct hits understates how much signal a bundle
+    carries: PT on a quiet week came back "GB at 0.70", which is masking holding
+    and the text still being legible enough to place confidently in Western
+    Europe. Counting confidence alone overstates it: the same result is *wrong*,
+    and a divergence meter read through it would be crediting the mask with less
+    than it achieved.
+
+    Returns:
+        ``identified``    — named the right country, confidently.
+        ``wrong``         — named a country confidently, and the wrong one. The
+                            bundle leaked *something*; it did not leak identity.
+        ``uncertain``     — a low-confidence guess, right or wrong.
+        ``no_guess``      — declined, or said `insufficient_information`.
+    """
+    confidence = float(guess.get("confidence") or 0.0)
+    country = (guess.get("country") or "ZZ").upper()
+    if country in ("", "ZZ") or guess.get("insufficient_information"):
+        return "no_guess"
+    if confidence < confident_at:
+        return "uncertain"
+    return "identified" if country == country_iso2.upper() else "wrong"
+
+
+def source_mix_correlation(results: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Does the probe's success track the outlet rather than the evidence?
+
+    The cheap check with a real answer attached. The corpus is two outlets with
+    very different footprints — the Guardian is British and covers Portugal
+    thinly, the NYT archive is overwhelmingly American — and a model that has
+    read both can recognise house style. If bundles with a higher NYT share are
+    more identifiable, part of the identifiability number is outlet
+    fingerprinting rather than evidence leakage, and the divergence meter must
+    not be read through it without that said out loud.
+
+    It is a caveat generator, not a correction: no threshold here changes a
+    score, and a correlation is not proof of mechanism.
+
+    Args:
+        results: dicts with ``country_iso2``, ``guess``, and ``sources``
+            (``{"guardian": n, "nyt": n}`` for that bundle).
+    """
+    buckets: Dict[str, List[float]] = {}
+    for row in results:
+        sources = row.get("sources") or {}
+        total = sum(sources.values()) or 1
+        nyt_share = sources.get("nyt", 0) / total
+        outcome = classify(row["country_iso2"], row["guess"])
+        buckets.setdefault(outcome, []).append(nyt_share)
+
+    summary = {
+        outcome: {"n": len(shares),
+                  "mean_nyt_share": round(sum(shares) / len(shares), 3)}
+        for outcome, shares in sorted(buckets.items())
+    }
+    placed = [s for o in ("identified", "wrong") for s in buckets.get(o, [])]
+    silent = buckets.get("no_guess", []) + buckets.get("uncertain", [])
+    gap = None
+    if placed and silent:
+        gap = round(sum(placed) / len(placed) - sum(silent) / len(silent), 3)
+    return {
+        "by_outcome": summary,
+        # Positive means bundles the probe placed at all were NYT-heavier than
+        # the ones it could not — the shape that would suggest fingerprinting.
+        "nyt_share_gap": gap,
+    }
+
+
 def summarize(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Guess rates per country, and the spread that is the actual meter.
 
@@ -392,14 +464,22 @@ def summarize(results: List[Dict[str, Any]]) -> Dict[str, Any]:
     per: Dict[str, Dict[str, Any]] = {}
     for row in results:
         truth = row["country_iso2"]
-        stats = per.setdefault(truth, {"n": 0, "hits": 0, "confidence": 0.0})
+        stats = per.setdefault(truth, {"n": 0, "hits": 0, "confidence": 0.0,
+                                       "identified": 0, "wrong": 0,
+                                       "uncertain": 0, "no_guess": 0})
         stats["n"] += 1
         stats["hits"] += int(row["guess"].get("country") == truth)
         stats["confidence"] += float(row["guess"].get("confidence") or 0.0)
+        stats[classify(truth, row["guess"])] += 1
 
     for stats in per.values():
         stats["rate"] = stats["hits"] / stats["n"] if stats["n"] else 0.0
         stats["mean_confidence"] = stats["confidence"] / stats["n"] if stats["n"] else 0.0
+        # Confidently placed *somewhere*, right or wrong. The bundle carried
+        # enough to commit to an answer, which is a different fact from whether
+        # the answer was correct — and the one masking is actually judged on.
+        stats["placed_rate"] = ((stats["identified"] + stats["wrong"]) / stats["n"]
+                                if stats["n"] else 0.0)
         del stats["confidence"]
 
     rates = [s["rate"] for s in per.values()]
@@ -407,5 +487,9 @@ def summarize(results: List[Dict[str, Any]]) -> Dict[str, Any]:
         "per_country": per,
         "spread": (max(rates) - min(rates)) if rates else 0.0,
         "ceiling": max(rates) if rates else 0.0,
+        "totals": {
+            outcome: sum(s[outcome] for s in per.values())
+            for outcome in ("identified", "wrong", "uncertain", "no_guess")
+        },
         "roster": list(config.PILOT_ROSTER),
     }

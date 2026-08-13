@@ -36,6 +36,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.utils.data_upsert import data_push
 from backend.utils.history import config, store
+from backend.utils.masking import probe
 
 logger = logging.getLogger(__name__)
 
@@ -138,10 +139,11 @@ def identifiability(roster: Optional[List[str]] = None) -> Dict[str, Any]:
             continue
         era = "pre_cutoff" if row["as_of"] < cutoff else "post_cutoff"
         stats = per.setdefault(iso2, {"pre_cutoff": [0, 0], "post_cutoff": [0, 0],
-                                      "confidence": []})
+                                      "confidence": [], "outcomes": []})
         stats[era][0] += 1
         stats[era][1] += int(guess.get("country") == iso2)
         stats["confidence"].append(float(guess.get("confidence") or 0.0))
+        stats["outcomes"].append(probe.classify(iso2, guess))
 
     out: Dict[str, Any] = {}
     for iso2, stats in per.items():
@@ -153,6 +155,17 @@ def identifiability(roster: Optional[List[str]] = None) -> Dict[str, Any]:
         total = sum(stats[e][0] for e in ("pre_cutoff", "post_cutoff"))
         hits = sum(stats[e][1] for e in ("pre_cutoff", "post_cutoff"))
         out[iso2]["rate"] = round(hits / total, 3) if total else None
+        # Four outcomes, not two. A bundle the probe places confidently in the
+        # wrong country is neither a hit nor a clean miss: masking held, and the
+        # text was still legible enough to commit to an answer. Counting only
+        # hits understates what the evidence carries; counting confidence alone
+        # overstates it. PT on a quiet week came back "GB at 0.70".
+        counts = {outcome: stats["outcomes"].count(outcome)
+                  for outcome in ("identified", "wrong", "uncertain", "no_guess")}
+        out[iso2]["outcomes"] = counts
+        out[iso2]["placed_rate"] = (
+            round((counts["identified"] + counts["wrong"]) / total, 3)
+            if total else None)
 
     rates = [v["rate"] for v in out.values() if v["rate"] is not None]
     return {
@@ -341,12 +354,22 @@ def render(roster: Optional[List[str]] = None) -> None:
     ident = identifiability(roster)
     print("  (the US is expected near the ceiling — a decade of coverage volume")
     print("   gives it away. The spread is the meter; a high floor is the failure.)")
+    print("   `wrong` is its own column on purpose: a bundle placed confidently in")
+    print("   the wrong country is neither a hit nor a clean miss. Masking held and")
+    print("   the text was still legible enough to commit — read `placed` as what")
+    print("   the evidence gave away, and `overall` as what identity did.)")
     for iso2, row in sorted(ident["per_country"].items()):
         pre, post = row["pre_cutoff"], row["post_cutoff"]
+        counts = row.get("outcomes") or {}
         print(f"  {iso2:<4} overall={_fmt(row['rate']):>6}  "
+              f"placed={_fmt(row.get('placed_rate')):>6}  "
               f"pre={_fmt(pre['rate']):>6} (n={pre['n']:>3})  "
               f"post={_fmt(post['rate']):>6} (n={post['n']:>3})  "
               f"confidence={_fmt(row['mean_confidence'])}")
+        print(f"       identified={counts.get('identified', 0):<4} "
+              f"wrong={counts.get('wrong', 0):<4} "
+              f"uncertain={counts.get('uncertain', 0):<4} "
+              f"no_guess={counts.get('no_guess', 0)}")
     print(f"  ceiling={_fmt(ident['ceiling'])}  floor={_fmt(ident['floor'])}  "
           f"spread={_fmt(ident['spread'])}")
 

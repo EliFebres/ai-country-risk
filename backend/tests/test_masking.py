@@ -365,3 +365,95 @@ class TestComparingTwoMaskingBehaviours:
 
     def test_both_sides_empty_is_not_a_crash(self):
         assert probe.compare([], []) == []
+
+
+class TestTheFourOutcomes:
+    """Two buckets misread this corpus in both directions.
+
+    PT on a quiet week came back "GB at 0.70". Counting only correct hits calls
+    that a clean miss and understates what the bundle carried — the text was
+    legible enough to place confidently in Western Europe. Counting confidence
+    alone calls it a leak and overstates it — masking held; the model named the
+    wrong country.
+    """
+
+    def test_a_correct_confident_guess_is_identified(self):
+        assert probe.classify("TR", {"country": "TR", "confidence": 0.85}) == "identified"
+
+    def test_a_wrong_confident_guess_is_its_own_category(self):
+        """PT 2021-07-05, exactly."""
+        assert probe.classify("PT", {"country": "GB", "confidence": 0.70}) == "wrong"
+
+    def test_a_declined_guess_is_no_guess(self):
+        assert probe.classify("PT", {"country": "ZZ", "confidence": 0.0}) == "no_guess"
+
+    def test_insufficient_information_is_no_guess_even_when_named(self):
+        """The model may name a country and say it is guessing from base rates.
+        That is not an identification and must not be counted as one."""
+        assert probe.classify("PT", {"country": "US", "confidence": 0.4,
+                                     "insufficient_information": True}) == "no_guess"
+
+    def test_a_low_confidence_correct_guess_is_uncertain_not_identified(self):
+        assert probe.classify("KR", {"country": "KR", "confidence": 0.2}) == "uncertain"
+
+    def test_the_summary_carries_all_four(self):
+        got = probe.summarize([
+            {"country_iso2": "PT", "guess": {"country": "GB", "confidence": 0.7}},
+            {"country_iso2": "PT", "guess": {"country": "ZZ", "confidence": 0.0}},
+            {"country_iso2": "TR", "guess": {"country": "TR", "confidence": 0.9}},
+        ])
+        assert got["totals"] == {"identified": 1, "wrong": 1,
+                                 "uncertain": 0, "no_guess": 1}
+        # PT was never identified and was placed once: two different facts, and
+        # the old single rate could express only the first.
+        assert got["per_country"]["PT"]["rate"] == 0.0
+        assert got["per_country"]["PT"]["placed_rate"] == 0.5
+
+
+class TestOutletFingerprinting:
+    """Whether the probe is reading the evidence or the newspaper.
+
+    The corpus is two outlets with very different footprints. A model that has
+    read both can recognise house style, and if bundles with a higher NYT share
+    are more identifiable then part of the identifiability number is the outlet
+    rather than the country.
+    """
+
+    def row(self, iso2, guess_country, confidence, guardian, nyt):
+        return {"country_iso2": iso2,
+                "guess": {"country": guess_country, "confidence": confidence},
+                "sources": {"guardian": guardian, "nyt": nyt}}
+
+    def test_it_reports_the_mix_per_outcome(self):
+        got = probe.source_mix_correlation([
+            self.row("US", "US", 0.9, 5, 15),
+            self.row("PT", "ZZ", 0.0, 19, 1),
+        ])
+        assert got["by_outcome"]["identified"]["mean_nyt_share"] == 0.75
+        assert got["by_outcome"]["no_guess"]["mean_nyt_share"] == 0.05
+
+    def test_a_positive_gap_is_the_fingerprinting_shape(self):
+        got = probe.source_mix_correlation([
+            self.row("US", "US", 0.9, 4, 16),
+            self.row("TR", "TR", 0.9, 6, 14),
+            self.row("PT", "ZZ", 0.0, 19, 1),
+            self.row("KR", "ZZ", 0.0, 18, 2),
+        ])
+        assert got["nyt_share_gap"] > 0.5
+
+    def test_a_wrong_guess_counts_as_placed(self):
+        """It is still the bundle carrying enough to commit to an answer."""
+        got = probe.source_mix_correlation([
+            self.row("PT", "GB", 0.7, 10, 10),
+            self.row("PT", "ZZ", 0.0, 20, 0),
+        ])
+        assert got["by_outcome"]["wrong"]["n"] == 1
+        assert got["nyt_share_gap"] == 0.5
+
+    def test_no_gap_when_one_side_is_empty(self):
+        """Two bundles that both declined say nothing about fingerprinting."""
+        got = probe.source_mix_correlation([
+            self.row("PT", "ZZ", 0.0, 20, 0),
+            self.row("KR", "ZZ", 0.0, 10, 10),
+        ])
+        assert got["nyt_share_gap"] is None
