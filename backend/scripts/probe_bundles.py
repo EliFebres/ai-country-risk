@@ -60,18 +60,36 @@ from backend.utils.masking import gazetteer, probe, rewrite  # noqa: E402
 DEFAULT_SEED = 20260812
 
 
-def recorded_bundles() -> list:
-    """Historical (country, as_of) pairs that left a digest-cache trace.
+# The acceptance set: the six historical bundles that had left a digest-cache
+# trace as of 2026-08-12, which is every trace the 2026-08-03 probe run left
+# behind. Pinned rather than queried, and that is the correction of a real bug
+# in this script.
+#
+# It used to derive the set from `article_digest` — a table this harness itself
+# writes. So probing a fresh sample added those bundles to "recorded", and the
+# set grew from six to fourteen between two runs an hour apart. An acceptance
+# test whose composition changes every time it runs is not measuring a change in
+# masking, it is measuring which bundles happened to be in the table, and the
+# two are indistinguishable in the output.
+#
+# Add to this list deliberately, in a commit, or not at all.
+RECORDED_BUNDLES = (
+    ("US", datetime.date(2017, 3, 11)),
+    ("US", datetime.date(2018, 5, 12)),
+    ("TR", datetime.date(2018, 8, 18)),
+    ("US", datetime.date(2019, 7, 13)),
+    ("US", datetime.date(2020, 11, 7)),
+    ("TR", datetime.date(2021, 3, 27)),
+)
 
-    Anything anchored in the current year is a live daily-run bundle rather than
-    a harvested historical one, and is not what the pilot scores.
-    """
-    with data_push._transaction() as cur:
-        cur.execute("""
-            SELECT country_iso2, as_of, count(*) FROM article_digest
-             WHERE as_of < %s GROUP BY 1, 2 ORDER BY 2, 1
-        """, (datetime.date(datetime.date.today().year, 1, 1),))
-        return [(c, d, n) for c, d, n in cur.fetchall()]
+
+def recorded_bundles() -> list:
+    """The pinned acceptance set, with each bundle's current article count."""
+    out = []
+    for iso2, as_of in RECORDED_BUNDLES:
+        start, end = snapshot_select.window(as_of)
+        out.append((iso2, as_of, len(store.read_window(iso2, start, end))))
+    return out
 
 
 def fresh_bundles(per_country: int, seed: int) -> list:
