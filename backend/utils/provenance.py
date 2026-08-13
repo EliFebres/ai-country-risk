@@ -177,11 +177,21 @@ def stage1_health(items: List[Dict]) -> Dict[str, Any]:
     """
     items = [it for it in (items or []) if isinstance(it, dict)]
     degraded = [it for it in items if not isinstance(it.get("digest"), dict)]
+    # A third state between "digested" and "degraded". The runaway retry sends
+    # the first 6,000 characters, so what comes back is a digest of a truncated
+    # article rather than of the article — better evidence than a truncated body,
+    # and not the same thing as a clean digest. Recording it as clean would be a
+    # recovery that silently changed what the evidence was.
+    truncated = [it for it in items
+                 if isinstance(it.get("digest"), dict)
+                 and it["digest"].get("digest_source") == "truncated-retry"]
     return {
         "articles": len(items),
         "digested": len(items) - len(degraded),
         "degraded": len(degraded),
         "degraded_ids": sorted(str(it.get("id")) for it in degraded if it.get("id"))[:20],
+        "truncated": len(truncated),
+        "truncated_ids": sorted(str(it.get("id")) for it in truncated if it.get("id"))[:20],
     }
 
 

@@ -38,6 +38,11 @@ logger = logging.getLogger(__name__)
 # this module does not import the masking package just to read one key.
 _SWEPT_TITLE_KEY = "masked_title"
 
+# Marks a digest built from a deliberately shortened article. Present only on
+# those, so an ordinary digest's bytes — and therefore its prompt hash — are
+# exactly what they were before the retry existed.
+DIGEST_SOURCE_KEY = "digest_source"
+
 
 class ContentCache(Protocol):
     """A digest cache keyed on content rather than on ``(country, as_of, url)``.
@@ -317,10 +322,22 @@ def digest_articles(
                 recovered = 0
                 for n, res in zip(retry_idx, retry):
                     if isinstance(res, dict):
+                        # A recovered digest is a digest of a *truncated*
+                        # article, not of the article. Stamped so a snapshot
+                        # cannot record it as a clean one: a recovery that
+                        # silently changes what the evidence is would be the
+                        # same class of bug as everything else this branch found.
+                        #
+                        # Set inside the digest so it survives into the cache and
+                        # marks every later snapshot that reuses it. Absent on a
+                        # normal digest rather than false, so ordinary prompts
+                        # keep their exact bytes and stay comparable to rows
+                        # written before this existed.
+                        res[DIGEST_SOURCE_KEY] = "truncated-retry"
                         results[n] = res
                         recovered += 1
-                logger.info("[%s] recovered %d/%d runaway digest(s)",
-                            iso2, recovered, len(retry_idx))
+                logger.info("[%s] recovered %d/%d runaway digest(s) from "
+                            "truncated text", iso2, recovered, len(retry_idx))
 
             # Results come back in input order — map by index, never by
             # completion order, so output order stays deterministic.

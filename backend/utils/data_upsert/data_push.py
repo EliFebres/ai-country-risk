@@ -1044,7 +1044,10 @@ def read_stage1_degradation(as_of: Optional[datetime.date] = None,
     Only rows with at least one degraded article come back: a clean run should
     print nothing rather than forty-eight zeroes.
     """
-    where, params = ["(input_manifest -> 'stage1' ->> 'degraded')::int > 0"], []
+    where, params = [
+        "(COALESCE((input_manifest -> 'stage1' ->> 'degraded')::int, 0)"
+        " + COALESCE((input_manifest -> 'stage1' ->> 'truncated')::int, 0)) > 0"
+    ], []
     if as_of:
         where.append("as_of = %s")
         params.append(as_of)
@@ -1057,7 +1060,10 @@ def read_stage1_degradation(as_of: Optional[datetime.date] = None,
                    (input_manifest -> 'stage1' ->> 'articles')::int AS articles,
                    (input_manifest -> 'stage1' ->> 'digested')::int AS digested,
                    (input_manifest -> 'stage1' ->> 'degraded')::int AS degraded,
-                   input_manifest -> 'stage1' -> 'degraded_ids'     AS degraded_ids
+                   COALESCE((input_manifest -> 'stage1' ->> 'truncated')::int, 0)
+                       AS truncated,
+                   input_manifest -> 'stage1' -> 'degraded_ids'     AS degraded_ids,
+                   input_manifest -> 'stage1' -> 'truncated_ids'    AS truncated_ids
               FROM risk_snapshot
              WHERE input_manifest IS NOT NULL AND {' AND '.join(where)}
              ORDER BY as_of DESC, country_iso2

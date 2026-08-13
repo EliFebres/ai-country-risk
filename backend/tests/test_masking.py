@@ -457,3 +457,27 @@ class TestOutletFingerprinting:
             self.row("KR", "ZZ", 0.0, 10, 10),
         ])
         assert got["nyt_share_gap"] is None
+
+
+class TestThePromptCoversPeopleWithoutOffices:
+    """A probe named "Neymar" as its reason for identifying Brazil.
+
+    Rule 2 mapped a named person to their *office*, and an athlete has not got
+    one — so a footballer fell through a rule that looked complete. It is a gap
+    rather than a ceiling: unlike a failed coup or a World Cup match, a person's
+    name carries no evidence the roles cannot carry.
+    """
+
+    def test_both_passes_name_the_officeless_case(self):
+        for prompt in (rewrite._DIGEST_SWEEP_PROMPT, rewrite._REWRITE_PROMPT):
+            assert "no office" in prompt
+            assert "footballer" in prompt
+
+    def test_it_does_not_reintroduce_the_country_through_the_role(self):
+        """"the national team's striker" would put back exactly what the name
+        gave away, which is how a mask rule turns into a leak."""
+        assert "never a role that implies where they play" in rewrite._MASK_RULES
+
+    def test_the_rule_is_shared_rather_than_duplicated(self):
+        assert rewrite._MASK_RULES in rewrite._DIGEST_SWEEP_PROMPT
+        assert rewrite._MASK_RULES in rewrite._REWRITE_PROMPT

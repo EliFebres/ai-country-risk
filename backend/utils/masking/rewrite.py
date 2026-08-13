@@ -74,10 +74,12 @@ _MASK_RULES = """\
 counts. Never round, never drop, never convert one. Numbers are evidence.
 2. Replace every proper noun with the functional role it plays. A named person \
 becomes their office ("the president", "the finance minister", "the central \
-bank governor"). A named party becomes "the governing party" or "the main \
-opposition party". A named company becomes "a large domestic bank" or similar. \
-A named place becomes "the capital", "a major city" or "a neighbouring \
-country".
+bank governor"). A person with no office becomes what they are known for — a \
+footballer, a striker, a pop singer, a novelist, a business magnate — never \
+their name, and never a role that implies where they play or who they play \
+for. A named party becomes "the governing party" or "the main opposition \
+party". A named company becomes "a large domestic bank" or similar. A named \
+place becomes "the capital", "a major city" or "a neighbouring country".
 3. This applies to *every* country, not only the one being described. Never \
 name a foreign country, a foreign leader, a foreign city or a foreign \
 institution: "another country", "a foreign leader", "a major foreign economy".

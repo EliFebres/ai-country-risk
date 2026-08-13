@@ -320,10 +320,11 @@ def stage1_degradation(roster: Optional[List[str]] = None) -> Dict[str, Any]:
     per: Dict[str, Dict[str, int]] = {}
     for row in rows:
         bucket = per.setdefault(row["country_iso2"], {"snapshots": 0, "articles": 0,
-                                                      "degraded": 0})
+                                                      "degraded": 0, "truncated": 0})
         bucket["snapshots"] += 1
         bucket["articles"] += row["articles"] or 0
         bucket["degraded"] += row["degraded"] or 0
+        bucket["truncated"] += row.get("truncated") or 0
     return {
         "affected_snapshots": len(rows),
         "per_country": {
@@ -420,8 +421,9 @@ def render(roster: Optional[List[str]] = None) -> None:
         print("  Every article in every snapshot was digested.")
     for iso2, row in degradation["per_country"].items():
         print(f"  {iso2:<4} {row['snapshots']:>4} snapshot(s) affected, "
-              f"{row['degraded']:>4}/{row['articles']:<5} article(s) degraded "
-              f"({_fmt(row['degraded_share'])})")
+              f"{row['degraded']:>4}/{row['articles']:<5} degraded "
+              f"({_fmt(row['degraded_share'])}), "
+              f"{row.get('truncated', 0):>4} truncated-retry")
 
 
 def _fmt(value: Optional[float]) -> str:

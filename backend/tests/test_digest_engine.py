@@ -556,3 +556,68 @@ class TestTheDigestOutputIsCapped:
         from backend.utils.ai import client as ai_client
 
         assert "max_tokens" not in inspect.getsource(ai_client.build_chat)
+
+
+class TestATruncatedRetryIsStamped:
+    """A recovered digest is a digest of a truncated article, not of the article.
+
+    The retry sends the first 6,000 characters. Recording what comes back as a
+    clean digest would be a recovery that silently changed what the evidence is —
+    the same class as every other bug this branch has turned up.
+    """
+
+    def _wire(self, monkeypatch, runnable):
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setattr(data_push, "read_article_digests", lambda iso2, as_of: {})
+        monkeypatch.setattr(data_push, "upsert_article_digests", lambda rows: None)
+        monkeypatch.setattr(digest_engine.ai_client, "build_digest_chat",
+                            lambda key: _FakeChat(runnable))
+
+    def test_a_recovered_digest_carries_its_provenance(self, monkeypatch):
+        runnable = _RunawayThenRecover()
+        self._wire(monkeypatch, runnable)
+        it = _item("a1", text="x" * 20000, link="http://x/1")
+        digest_engine.digest_articles([it], country_display="a country",
+                                      iso2="PT", as_of=AS_OF)
+        assert it["digest"][digest_engine.DIGEST_SOURCE_KEY] == "truncated-retry"
+
+    def test_an_ordinary_digest_carries_no_marker(self, monkeypatch):
+        """Absent rather than false, so a normal digest's bytes — and therefore
+        its prompt hash — are exactly what they were before the retry existed."""
+        runnable = _RunawayThenRecover()
+        runnable.calls.append(0)          # skip straight to the success branch
+        self._wire(monkeypatch, runnable)
+        it = _item("a1", text="short", link="http://x/1")
+        digest_engine.digest_articles([it], country_display="a country",
+                                      iso2="PT", as_of=AS_OF)
+        assert digest_engine.DIGEST_SOURCE_KEY not in it["digest"]
+
+    def test_stage1_health_counts_it_apart_from_degraded(self):
+        from backend.utils import provenance
+
+        health = provenance.stage1_health([
+            {"id": "a1", "digest": _digest(50.0)},
+            {"id": "a2", "digest": {**_digest(50.0),
+                                    "digest_source": "truncated-retry"}},
+            {"id": "a3", "digest": None},
+        ])
+        assert health["articles"] == 3
+        assert health["degraded"] == 1 and health["degraded_ids"] == ["a3"]
+        # Digested, and not cleanly — three states, not two.
+        assert health["digested"] == 2
+        assert health["truncated"] == 1 and health["truncated_ids"] == ["a2"]
+
+    def test_the_marker_survives_into_the_cache_row(self, monkeypatch):
+        """It is set inside the digest, so every later snapshot reusing that
+        cached digest is marked too."""
+        rows = []
+        runnable = _RunawayThenRecover()
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+        monkeypatch.setattr(data_push, "read_article_digests", lambda iso2, as_of: {})
+        monkeypatch.setattr(data_push, "upsert_article_digests", rows.extend)
+        monkeypatch.setattr(digest_engine.ai_client, "build_digest_chat",
+                            lambda key: _FakeChat(runnable))
+        digest_engine.digest_articles(
+            [_item("a1", text="x" * 20000, link="http://x/1")],
+            country_display="a country", iso2="PT", as_of=AS_OF)
+        assert rows[0]["digest"][digest_engine.DIGEST_SOURCE_KEY] == "truncated-retry"
