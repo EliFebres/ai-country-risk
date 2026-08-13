@@ -376,3 +376,41 @@ class TestDigestCache:
 
     def test_an_empty_ask_does_not_query(self, db):
         assert db.read_digest_cache([], "gpt-4o-mini-2024-07-18", "named") == {}
+
+
+class TestACountryOutsideTheRosterIsNotAnError:
+    """BR left `PILOT_ROSTER` at the projection and its harvest stayed.
+
+    That only works if nothing treats "in the store, not in the roster" as a
+    fault. Harvesting is the part that costs somebody else's rate limit; scoring
+    is the part that costs money. Adding BR back has to be `--country BR` and a
+    scoring bill, never a re-crawl — so the store must stay readable for a
+    country the default run ignores.
+    """
+
+    def test_the_dropped_country_still_resolves_a_display_name(self):
+        """`score_one` looks the name up before it does anything else. If this
+        raised, re-adding BR later would fail at the first anchor."""
+        from backend.utils.history import config
+
+        assert "BR" not in config.PILOT_ROSTER
+        assert config.country_name("BR") == "Brazil"
+
+    def test_a_typo_in_the_roster_still_fails_loudly(self):
+        """The other half of the same rule: an unknown code must raise, or a
+        harvest starts against an empty query and reports success."""
+        from backend.utils.history import config
+
+        with pytest.raises(KeyError):
+            config.country_name("XX")
+
+    def test_the_masking_roster_is_the_full_roster_not_the_pilot_one(self):
+        """The cut must not narrow masking. If `DEFAULT_ROSTER` tracked
+        `PILOT_ROSTER`, dropping BR would stop "Brazil" being masked out of
+        every other country's bundle — a leak introduced by a budget decision."""
+        from backend.utils.history import config
+        from backend.utils.masking import gazetteer
+
+        assert "BR" in gazetteer.DEFAULT_ROSTER
+        assert len(gazetteer.DEFAULT_ROSTER) > len(config.PILOT_ROSTER)
+        assert gazetteer.scan("Brazil devalued.", list(gazetteer.DEFAULT_ROSTER))

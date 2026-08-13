@@ -12,12 +12,26 @@ the pilot's shape is one file to read and one file to change.
 
 from backend.utils import constants
 
-# Five countries, chosen for how differently they behave rather than for size.
+# Four countries, chosen for how differently they behave rather than for size.
 # US is mandated (and is the hardest case for the Guardian window subdivision —
 # it has an order of magnitude more coverage than the rest). TR is a crisis EM,
-# BR a mid EM, PT a quiet DM, KR calm-with-one-shock. If the machine produces a
-# defensible series for all five it is not overfitted to loud countries.
-PILOT_ROSTER: list[str] = ["US", "TR", "BR", "PT", "KR"]
+# PT a quiet DM, KR calm-with-one-shock. If the machine produces a defensible
+# series for all four it is not overfitted to loud countries.
+#
+# BR was the fifth and came out at the projection. Turkey already carries the
+# crisis-EM case — currency collapse, central-bank interference, an inflation
+# regime the model has to read without being told where it is — and Brazil was
+# the most redundant of the five against it. Cutting the least differentiated
+# country is the right thing to lose when the projection needs to lose one.
+#
+# **Its harvest stays.** 14,576 articles, their digests and their checkpoints
+# remain in the store, because harvesting is the part that costs somebody else's
+# rate limit and scoring is the part that costs money. Adding BR back later is
+# `--country BR` and about $26 of pure scoring with no re-crawl. Nothing about
+# this cut touches the substrate, and no code path treats a country that is in
+# `historical_article` but not in this list as an error — it is simply not in
+# the default run.
+PILOT_ROSTER: list[str] = ["US", "TR", "PT", "KR"]
 
 # Ten years back. The Guardian and NYT archives reach further; where the blend
 # stops being honest is what the step-4 recovery curve is for.

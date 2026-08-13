@@ -17,7 +17,21 @@ import pytest
 from backend.utils.history import config
 from backend.utils.masking import gazetteer as gz, rewrite
 
-ROSTER = config.PILOT_ROSTER
+# What the live gate actually scans. `assert_clean` and `mask_foreign` default to
+# `gazetteer.DEFAULT_ROSTER` — all forty-eight countries — and nothing in
+# production passes a shorter list.
+#
+# This was `config.PILOT_ROSTER`, and it broke the moment BR left that list at the
+# projection: "R$" stopped being masked out of a US bundle *in the test*, while
+# production masked it exactly as it always had. A test a roster change can turn
+# red without any behaviour changing is testing its own fixture — and the same
+# wiring can turn one green the same way, which is the version nobody notices.
+ROSTER = list(gz.DEFAULT_ROSTER)
+
+# The pilot four, for the two assertions that really are about them: the deep
+# curation — regions, a named central bank — is only claimed for the countries
+# the pilot scores, and the other forty-four sit in the thin tier by design.
+PILOT = config.PILOT_ROSTER
 
 
 class TestTheCountryDisappears:
@@ -134,7 +148,7 @@ class TestRegionsIdentifyToo:
         assert "Douro" not in masked
 
     def test_every_pilot_country_carries_regions(self):
-        for iso2 in ROSTER:
+        for iso2 in PILOT:
             assert gz.COUNTRIES[iso2].get("regions"), iso2
 
     def test_numbers_survive_region_masking(self):
@@ -273,7 +287,7 @@ class TestTheMapItself:
             assert set(entry) <= set(gz.ROLES), iso2
 
     def test_every_pilot_country_is_curated_to_its_central_bank(self):
-        for iso2 in ROSTER:
+        for iso2 in PILOT:
             entry = gz.COUNTRIES[iso2]
             assert entry.get("names") and entry.get("central_bank"), iso2
 
