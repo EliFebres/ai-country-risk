@@ -29,12 +29,13 @@ import os
 
 import pytest
 
-from backend.utils import data_retrieval
+from backend.llm import payload as data_retrieval
 from backend.news_fetching import snapshot_select as sel
-from backend.utils.history import config, score, usage
+from backend.llm import usage
+from backend.utils.history import config, score
 from backend.data_upsert import store
 from backend.data_fetching.vintage import lags, restamp
-from backend.utils.masking import gazetteer as gz, rewrite
+from backend.llm import gazetteer as gz, rewrite
 from backend.news_fetching import core
 
 AS_OF = datetime.date(2018, 6, 15)
@@ -736,7 +737,7 @@ class TestTheTokenCapsAreSetWhereTheyWereBreached:
     def test_the_digest_chat_caps_its_output(self):
         """Uncapped, a loop costs $0.0098; capped it costs $0.0006. Over a
         2,188-snapshot pilot that is ~$10 of pure waste against a $130 guard."""
-        from backend.utils.ai import client as ai_client
+        from backend.llm import client as ai_client
         assert ai_client._DIGEST_MAX_TOKENS <= 2048
 
     def test_the_rewrite_gets_more_than_a_digest(self):
@@ -744,7 +745,7 @@ class TestTheTokenCapsAreSetWhereTheyWereBreached:
         the median harvested body is ~5,300 characters and cannot come back
         inside 1,024 tokens, so it died at the ceiling and the article degraded
         to title-only — 71% of stored bodies, with nothing but a WARNING."""
-        from backend.utils.ai import client as ai_client
+        from backend.llm import client as ai_client
         assert ai_client.rewrite_max_tokens("x" * 5300) > ai_client._DIGEST_MAX_TOKENS
         assert ai_client.rewrite_max_tokens("x" * 500) == ai_client._DIGEST_MAX_TOKENS
         assert ai_client.rewrite_max_tokens("x" * 10_000_000) < 16384

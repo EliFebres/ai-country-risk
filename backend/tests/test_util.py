@@ -23,7 +23,7 @@ import pandas as pd
 import pytest
 
 from backend.main import _every, _weekly
-from backend.utils import data_retrieval as dr
+from backend.llm import payload as dr
 from backend.util import market_hours
 from backend.utils import lint, metrics
 

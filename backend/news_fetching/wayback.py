@@ -32,7 +32,7 @@ from typing import Dict, List, Optional, Tuple
 import requests
 
 from backend.util import http
-from backend.utils.ai import client as ai_client
+from backend.llm import client as ai_client
 from backend.data_upsert import store
 from backend.utils.history import config
 from backend.news_fetching import core

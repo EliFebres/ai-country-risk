@@ -34,8 +34,8 @@ import json
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
-from backend.utils.ai import client as ai_client
-from backend.utils.masking import gazetteer
+from backend.llm import client as ai_client
+from backend.llm import gazetteer
 
 logger = logging.getLogger(__name__)
 

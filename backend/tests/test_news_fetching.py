@@ -403,7 +403,7 @@ class TestLeakageScanPolicy:
     def test_it_uses_the_cheap_model(self):
         # The scan runs over thousands of bodies. The scoring model would be an
         # order of magnitude more expensive for a boolean.
-        from backend.utils.ai import client as ai_client
+        from backend.llm import client as ai_client
         assert wayback.ai_client.build_digest_chat is ai_client.build_digest_chat
 
 

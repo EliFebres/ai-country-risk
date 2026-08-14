@@ -27,8 +27,8 @@ from typing import Dict, List, Optional, Protocol, Sequence
 
 from langchain_core.messages import SystemMessage
 
-import backend.utils.ai.constants as ai_constants
-from backend.utils.ai import client as ai_client
+import backend.llm.constants as ai_constants
+from backend.llm import client as ai_client
 from backend.data_upsert import data_push
 from backend.news_fetching import core as news_core
 
@@ -135,7 +135,7 @@ def _content_sha(text: str, masked: bool) -> str:
         # Imported here rather than at module scope: `masking.rewrite` imports
         # this module's neighbours, and a top-level import closes the cycle.
         # Same reason as the lazy import in `digest_articles`.
-        from backend.utils.masking import gazetteer, rewrite
+        from backend.llm import gazetteer, rewrite
         prefix = f"masked:{gazetteer.MASK_MAP_VERSION}:{rewrite.SWEEP_VERSION}\n"
     else:
         prefix = ""
@@ -356,7 +356,7 @@ def digest_articles(
                     # The headline rides along in the same call: it is sent for
                     # every article, digest or not, and had only ever been
                     # gazetteer-masked.
-                    from backend.utils.masking import rewrite as _rewrite
+                    from backend.llm import rewrite as _rewrite
                     clean = _rewrite.sweep_digest(res, api_key,
                                                   title=str(it.get("title") or ""))
                     if clean is not None:

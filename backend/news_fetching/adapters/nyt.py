@@ -43,7 +43,7 @@ import requests
 from backend.util import http
 from backend.data_upsert import store
 from backend.utils.history import config
-from backend.utils.masking import gazetteer
+from backend.llm import gazetteer
 from backend.news_fetching import article_ranking, core
 
 logger = logging.getLogger(__name__)

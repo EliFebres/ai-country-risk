@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 load_dotenv("backend/.env")
 
 from backend.util import constants
-from backend.utils import data_retrieval as dr
+from backend.llm import payload as dr
 from backend.data_upsert import data_push
 
 _BLOCKS = ("friction_inputs", "uncertainty_inputs",

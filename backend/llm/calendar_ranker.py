@@ -25,9 +25,9 @@ from langchain_core.messages import SystemMessage
 from langchain_core.runnables import Runnable
 
 import backend.util.constants as constants
-import backend.utils.ai.constants as ai_constants
+import backend.llm.constants as ai_constants
 from backend.util import dates
-from backend.utils.ai import client as ai_client
+from backend.llm import client as ai_client
 
 logger = logging.getLogger(__name__)
 

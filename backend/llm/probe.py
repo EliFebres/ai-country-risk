@@ -22,7 +22,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.utils.ai import client as ai_client
+from backend.llm import client as ai_client
 from backend.utils.history import config
 
 logger = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ def bundle_text(items: List[Dict[str, Any]],
     """
     # Imported here rather than at module scope: `langchain_llm` imports this
     # module's neighbours, and a top-level import closes the cycle.
-    from backend.utils.ai import langchain_llm
+    from backend.llm import langchain_llm
 
     chosen = set(fulltext_ids or ())
     parts = []

@@ -49,12 +49,13 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 
 from backend.utils import pipeline  # noqa: E402
-from backend.utils.ai import client as ai_client, digest_engine  # noqa: E402
+from backend.llm import client as ai_client, digest_engine  # noqa: E402
 from backend.data_upsert import data_push  # noqa: E402
 from backend.data_upsert import store  # noqa: E402
 from backend.news_fetching import snapshot_select  # noqa: E402
-from backend.utils.history import config, usage  # noqa: E402
-from backend.utils.masking import gazetteer, probe, rewrite  # noqa: E402
+from backend.llm import usage  # noqa: E402
+from backend.utils.history import config  # noqa: E402
+from backend.llm import gazetteer, probe, rewrite  # noqa: E402
 
 # The acceptance set: the six historical bundles that had left a digest-cache
 # trace as of 2026-08-12, which is every trace the 2026-08-03 probe run left
@@ -235,7 +236,7 @@ def leaking_text(result: dict, iso2: str) -> list:
     a *person* is none of those. The names that actually leak are invisible to
     it, which is the entire reason the model sweep exists.
     """
-    from backend.utils.ai import langchain_llm
+    from backend.llm import langchain_llm
     masked = rewrite.mask_items(result["items"], iso2)
     chosen = set(result.get("fulltext_ids") or ())
     roster = list(gazetteer.DEFAULT_ROSTER)
