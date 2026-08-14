@@ -548,6 +548,63 @@ class TestTheDigestOutputIsCapped:
 
         assert ai_client._DIGEST_MAX_TOKENS <= 2048
 
+
+class TestTheRewriteGetsItsOwnBudget:
+    """The digest cap is right for a digest and fatal for the mask rewrite.
+
+    Both call `build_digest_chat`. A digest is five short strings and a number,
+    so 1,024 tokens is generous. The rewrite's own prompt says "changing nothing
+    else, do not summarise" — its output is as long as its input, and the median
+    harvested body is ~5,300 characters. It cannot come back inside 1,024 tokens
+    at any characters-per-token ratio, so it died at the ceiling and the article
+    degraded to title-only: 71% of stored bodies, on the two or three articles
+    per snapshot the scorer reads whole, with nothing but a WARNING to say so.
+    """
+
+    def test_a_median_body_gets_more_than_a_digest(self):
+        from backend.utils.ai import client as ai_client
+
+        assert ai_client.rewrite_max_tokens("x" * 5300) > ai_client._DIGEST_MAX_TOKENS
+
+    def test_a_short_body_behaves_exactly_as_before(self):
+        """The floor is the digest cap, so nothing that used to work changes."""
+        from backend.utils.ai import client as ai_client
+
+        assert ai_client.rewrite_max_tokens("x" * 500) == ai_client._DIGEST_MAX_TOKENS
+
+    def test_the_budget_errs_long_rather_than_short(self):
+        """Running out mid-rewrite costs the article; over-provisioning costs
+        nothing, because `max_tokens` is a ceiling and billing is on emission."""
+        from backend.utils.ai import client as ai_client
+
+        # Four characters per token is the usual English ratio; the budget must
+        # clear it with room, or the estimate itself becomes the guillotine.
+        body = "x" * 24000
+        assert ai_client.rewrite_max_tokens(body) >= len(body) / 4
+
+    def test_a_runaway_still_stops_below_the_model_ceiling(self):
+        """The cap that caused this exists for a real reason — the stage-1 model
+        loops to 16,384 and dies there. Proportional is not uncapped."""
+        from backend.utils.ai import client as ai_client
+
+        assert ai_client.rewrite_max_tokens("x" * 10_000_000) < 16384
+
+    def test_the_rewrite_asks_for_the_bigger_budget(self, monkeypatch):
+        """The seam itself: the cap has to reach the chat the rewrite builds."""
+        from backend.utils.ai import client as ai_client
+        from backend.utils.masking import rewrite
+
+        asked = {}
+
+        def _build(api_key, max_tokens=ai_client._DIGEST_MAX_TOKENS):
+            asked["max_tokens"] = max_tokens
+            raise RuntimeError("far enough")
+
+        monkeypatch.setattr(ai_client, "build_digest_chat", _build)
+        # Fails closed, as designed — the assertion is about what it asked for.
+        assert rewrite.rewrite_body("x" * 12000, "k") == ""
+        assert asked["max_tokens"] > ai_client._DIGEST_MAX_TOKENS
+
     def test_the_scoring_chat_is_not_capped(self):
         """The scorer's schema is large and its output is the product. A cap
         there would truncate a score, which is a different kind of bug."""

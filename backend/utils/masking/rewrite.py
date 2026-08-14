@@ -361,11 +361,20 @@ def rewrite_body(text: str, api_key: str, model_chat: Optional[Any] = None) -> s
     empty, the caller gets the empty string and the article degrades to its
     masked title rather than being sent with a name in it. Being short one body
     costs a week some evidence; one leaked name costs the whole comparison.
+
+    Failing closed is only the right trade while it is rare. It stopped being
+    rare when the digest output cap landed: this call shares `build_digest_chat`
+    and inherited a 1,024-token ceiling sized for a five-field summary, while its
+    own prompt says "changing nothing else, do not summarise" — so the output has
+    to be about as long as the input, and 71% of harvested bodies cannot fit.
+    Every one of those degraded, quietly, on the articles the scorer reads whole.
+    The budget is now sized from the text being rewritten.
     """
     if not text:
         return ""
     try:
-        chat = model_chat or ai_client.build_digest_chat(api_key)
+        chat = model_chat or ai_client.build_digest_chat(
+            api_key, max_tokens=ai_client.rewrite_max_tokens(text))
         result = chat.with_structured_output(
             schema=_REWRITE_SCHEMA, strict=True).invoke(_REWRITE_PROMPT.format(text=text))
     except Exception as exc:  # noqa: BLE001
