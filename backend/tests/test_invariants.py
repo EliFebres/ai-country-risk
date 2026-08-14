@@ -32,7 +32,7 @@ import pytest
 from backend.utils import data_retrieval
 from backend.utils.history import config, score, snapshot_select as sel, usage
 from backend.data_upsert import store
-from backend.utils.history.vintage import lags, restamp
+from backend.data_fetching.vintage import lags, restamp
 from backend.utils.masking import gazetteer as gz, rewrite
 from backend.utils.news_fetching import core
 

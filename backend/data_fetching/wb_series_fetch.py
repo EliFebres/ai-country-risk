@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Mapping, Optional
 import pandas as pd
 
 from backend.util import constants
-from backend.utils.data_fetching import fetch_metrics
+from backend.data_fetching import fetch_metrics
 from backend.data_upsert import data_push
 
 logger = logging.getLogger(__name__)

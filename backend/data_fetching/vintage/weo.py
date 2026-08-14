@@ -33,8 +33,8 @@ from backend.util import constants
 
 logger = logging.getLogger(__name__)
 
-VINTAGE_DIR = (pathlib.Path(__file__).resolve().parents[4]
-               / "backend" / "data" / "curated" / "weo_vintages")
+VINTAGE_DIR = (pathlib.Path(__file__).resolve().parents[2]
+               / "data" / "curated" / "weo_vintages")
 
 # WEO subject codes worth carrying, mapped onto this project's indicator codes.
 # Deliberately short: the panel already holds the World Bank's version of most

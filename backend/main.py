@@ -56,7 +56,7 @@ load_dotenv()  # also pick up a repo-root/cwd .env, without overriding
 from backend.util import constants
 from backend.utils import pipeline, prices
 from backend.util.dates import utc_minute_iso
-from backend.utils.data_fetching import country_data_fetch
+from backend.data_fetching import country_data_fetch
 from backend.data_upsert import data_push
 
 logger = logging.getLogger("main")

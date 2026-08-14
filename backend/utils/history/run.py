@@ -47,7 +47,7 @@ from backend.data_upsert import data_push  # noqa: E402
 from backend.data_upsert import store  # noqa: E402
 from backend.utils.history import config, reports, score, wayback  # noqa: E402
 from backend.utils.history.adapters import gdelt, guardian, nyt  # noqa: E402
-from backend.utils.history.vintage import lags, monthly, restamp, weo  # noqa: E402
+from backend.data_fetching.vintage import lags, monthly, restamp, weo  # noqa: E402
 
 logger = logging.getLogger("history")
 

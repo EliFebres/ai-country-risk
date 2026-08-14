@@ -30,7 +30,7 @@ from backend.utils import pipeline
 from backend.utils.ai import constants as ai_constants
 from backend.utils.ai import langchain_llm as llm
 from backend.utils.ai import policy
-from backend.utils.data_fetching import curated_loader
+from backend.data_fetching import curated_loader
 from backend.utils.history import config
 from backend.utils.masking import gazetteer, probe, rewrite
 

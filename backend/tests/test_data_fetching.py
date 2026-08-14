@@ -20,9 +20,9 @@ import pytest
 
 from backend.util import constants
 from backend.utils import data_retrieval
-from backend.utils.data_fetching import curated_loader as cl
-from backend.utils.data_fetching import imf_macro_fetch as imf
-from backend.utils.history.vintage import lags, monthly, restamp, weo
+from backend.data_fetching import curated_loader as cl
+from backend.data_fetching import imf_macro_fetch as imf
+from backend.data_fetching.vintage import lags, monthly, restamp, weo
 
 HEADER = ("WEO Country Code\tISO\tWEO Subject Code\tCountry\tSubject Descriptor\t"
           "Units\tScale\t2016\t2017\t2018\t2019\t2020\tEstimates Start After")

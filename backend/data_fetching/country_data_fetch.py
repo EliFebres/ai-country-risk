@@ -20,14 +20,14 @@ import pandas as pd
 from typing import Mapping
 
 from backend.util import constants
-import backend.utils.data_fetching.fetch_metrics as fetch_metrics
-import backend.utils.data_fetching.political_corruption_fetch as political_corruption_fetch
+import backend.data_fetching.fetch_metrics as fetch_metrics
+import backend.data_fetching.political_corruption_fetch as political_corruption_fetch
 
 logger = logging.getLogger(__name__)
 
 # Parquet panel store: backend/data/wb_panel_wide (this file is in
 # backend/utils/data_fetching/).
-PANEL_DIR = pathlib.Path(__file__).resolve().parents[2] / "data" / "wb_panel_wide"
+PANEL_DIR = pathlib.Path(__file__).resolve().parents[1] / "data" / "wb_panel_wide"
 
 
 def ingest_panel_wide(panel: pd.DataFrame, country_code: str, root: pathlib.Path) -> None:

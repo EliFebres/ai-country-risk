@@ -43,9 +43,9 @@ from backend.util import constants
 
 logger = logging.getLogger(__name__)
 
-CURATED_CSV = pathlib.Path(__file__).resolve().parents[2] / "data" / "curated.csv"
+CURATED_CSV = pathlib.Path(__file__).resolve().parents[1] / "data" / "curated.csv"
 
-STRUCTURAL_FACTS = (pathlib.Path(__file__).resolve().parents[2]
+STRUCTURAL_FACTS = (pathlib.Path(__file__).resolve().parents[1]
                     / "data" / "curated" / "structural_facts.yaml")
 
 # The fields the payload will carry. Anything else in the file is ignored rather

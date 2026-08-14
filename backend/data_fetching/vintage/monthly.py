@@ -12,7 +12,7 @@ snapshot sees no monthly macro at all, silently, because a row published in
 snapshot reads 2026's revisions of 2018's CPI. Neither is a backfill.
 
 So each row is re-stamped with when its print actually became public: period end
-plus a publication lag, from :mod:`backend.utils.history.vintage.lags`. The lags
+plus a publication lag, from :mod:`backend.data_fetching.vintage.lags`. The lags
 live there rather than here because they belong to the publisher, not to the
 fetcher — and because the same table has to date the annual and quarterly rows
 this module never touches.
@@ -23,7 +23,7 @@ and carries ``as_of`` as a column rather than in the key. That is now the
 intended behaviour rather than a hazard: an ``as_of`` naming when a print landed
 is more truthful than one naming when this project happened to fetch it, and the
 live payload's staleness numbers become right rather than merely stable. The
-migration in :mod:`backend.utils.history.vintage.restamp` does the same thing to
+migration in :mod:`backend.data_fetching.vintage.restamp` does the same thing to
 the rows already stored, and dumps them first.
 """
 
@@ -32,9 +32,9 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.util import constants
-from backend.utils.data_fetching import bis_bulk_fetch, imf_macro_fetch
+from backend.data_fetching import bis_bulk_fetch, imf_macro_fetch
 from backend.utils.history import config
-from backend.utils.history.vintage import lags
+from backend.data_fetching.vintage import lags
 
 logger = logging.getLogger(__name__)
 

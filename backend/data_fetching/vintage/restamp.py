@@ -43,12 +43,12 @@ import pathlib
 from typing import Any, Dict, List, Optional, Tuple
 
 from backend.data_upsert import data_push
-from backend.utils.history.vintage import lags
+from backend.data_fetching.vintage import lags
 
 logger = logging.getLogger(__name__)
 
-BACKUP_DIR = (pathlib.Path(__file__).resolve().parents[4]
-              / "backend" / "data" / "backups")
+BACKUP_DIR = (pathlib.Path(__file__).resolve().parents[2]
+              / "data" / "backups")
 
 # The scheme a row carries when nothing better is known about its vintage —
 # `data_push.upsert_indicator_series`'s own default, and therefore the mark of a

@@ -26,7 +26,7 @@ from typing import Any, Dict, List, Optional
 from backend.util import constants
 from backend.util import market_hours
 from backend.data_upsert import data_push
-from backend.utils.data_fetching import fmp_prices_fetch
+from backend.data_fetching import fmp_prices_fetch
 
 logger = logging.getLogger("prices")
 
