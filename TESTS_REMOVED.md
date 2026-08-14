@@ -1,6 +1,6 @@
 # What the test cut removed, and what it costs
 
-The suite went from 9,244 lines of `test_*.py` across 37 files to 4,155 across
+The suite went from 9,244 lines of `test_*.py` across 37 files to 4,120 across
 6, to hit an under-4,000 target that was then relaxed slightly to buy back two
 things worth more than the budget. This is the ledger of what stopped being
 guarded, so it can be re-added selectively rather than re-derived.
