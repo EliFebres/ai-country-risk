@@ -87,7 +87,6 @@ def rebuild(iso2: str, as_of: datetime.date, items: list = None) -> dict:
     evidence = dr.build_evidence_payload(
         iso2, as_of=as_of, panel=dr.query_macro_panel(iso2),
         series=data_push.read_indicator_series(iso2),
-        recent=data_push.read_recent_indicators(iso2),
         fx_regimes=constants.FX_REGIMES, elections=constants.ELECTIONS,
         vintage_as_of=as_of)
     # Two payloads, and the manifest wants the other one. `macro_vintages` reads

@@ -142,6 +142,19 @@ def _content_sha(text: str, masked: bool) -> str:
     return hashlib.sha256((prefix + text).encode("utf-8")).hexdigest()
 
 
+def _default_cache():
+    """The content-addressed store, imported lazily to keep the layering.
+
+    ``data_upsert.store`` imports this package's neighbours, so a module-level
+    import closes a cycle. Same reason as the lazy import in ``_content_sha``.
+    """
+    try:
+        from backend.data_upsert import store
+        return store
+    except Exception:  # noqa: BLE001 - no database is a cold cache, not an error
+        return None
+
+
 def digest_coverage(
     items: List[Dict],
     *,
@@ -166,34 +179,21 @@ def digest_coverage(
     bought twenty digests. Asking the cache is the only answer that cannot drift
     from the key.
     """
-    per_snapshot: Dict[str, Dict] = {}
+    if content_cache is None:
+        content_cache = _default_cache()
+    if content_cache is None:
+        return [_content_sha(article_input_text(item), masked) for item in items]
+
+    missing = [_content_sha(article_input_text(item), masked) for item in items]
+    mode = "masked" if masked else "named"
     try:
-        per_snapshot = data_push.read_article_digests(iso2, as_of)
+        hits = content_cache.read_digest_cache(
+            sorted(set(missing)), ai_client.DIGEST_MODEL_NAME, mode)
     except Exception as exc:  # noqa: BLE001 - an unreadable cache is a full miss
         logger.warning("[%s] digest cache read failed (%s); assuming no coverage",
                        iso2, exc)
-
-    missing: List[str] = []
-    for item in items:
-        sha = _content_sha(article_input_text(item), masked)
-        url = news_core.dedupe_key(item)
-        hit = per_snapshot.get(url) if url else None
-        if hit and hit.get("content_sha256") == sha and isinstance(hit.get("digest"), dict):
-            continue
-        missing.append(sha)
-
-    if missing and content_cache is not None:
-        mode = "masked" if masked else "named"
-        try:
-            hits = content_cache.read_digest_cache(
-                sorted(set(missing)), ai_client.DIGEST_MODEL_NAME, mode)
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("[%s] content digest cache read failed (%s); "
-                           "assuming no coverage", iso2, exc)
-            hits = {}
-        missing = [sha for sha in missing if sha not in hits]
-
-    return missing
+        hits = {}
+    return [sha for sha in missing if sha not in hits]
 
 
 def digest_articles(
@@ -267,26 +267,28 @@ def digest_articles(
     if not items:
         return items
 
-    cache: Dict[str, Dict] = {}
-    try:
-        cache = data_push.read_article_digests(iso2, as_of)
-    except Exception as exc:
-        logger.warning("[%s] digest cache read failed (%s); digesting everything", iso2, exc)
+    if content_cache is None:
+        content_cache = _default_cache()
 
-    # Classify every item: cache hit (annotate now) or pending (model call).
-    urls: List[str] = []
-    texts: List[str] = []
+    urls: List[str] = [news_core.dedupe_key(it) for it in items]
+    texts: List[str] = [article_input_text(it) for it in items]
+    shas: List[str] = [_content_sha(text, masked) for text in texts]
+    mode = "masked" if masked else "named"
+
+    hits: Dict[str, Dict] = {}
+    if content_cache is not None:
+        try:
+            hits = content_cache.read_digest_cache(
+                sorted(set(shas)), ai_client.DIGEST_MODEL_NAME, mode)
+        except Exception as exc:  # noqa: BLE001 - an unreadable cache is a miss
+            logger.warning("[%s] digest cache read failed (%s); digesting everything",
+                           iso2, exc)
+
     pending_idx: List[int] = []
     cached = 0
     for i, it in enumerate(items):
-        text = article_input_text(it)
-        url = news_core.dedupe_key(it)
-        urls.append(url)
-        texts.append(text)
-
-        sha = _content_sha(text, masked)
-        hit = cache.get(url) if url else None
-        if hit and hit.get("content_sha256") == sha and isinstance(hit.get("digest"), dict):
+        hit = hits.get(shas[i])
+        if hit and isinstance(hit.get("digest"), dict):
             it["digest"] = hit["digest"]
             it["stage1_severity"] = _severity_or_none(hit.get("stage1_severity"))
             cached += 1
@@ -294,30 +296,7 @@ def digest_articles(
             it["digest"] = None
             it["stage1_severity"] = None
             pending_idx.append(i)
-
-    # Second chance for the misses: the same article in last week's snapshot has
-    # a different `as_of` and so missed above, but its digest is byte-identical.
     from_content = 0
-    if pending_idx and content_cache is not None:
-        mode = "masked" if masked else "named"
-        shas = {i: _content_sha(texts[i], masked) for i in pending_idx}
-        try:
-            hits = content_cache.read_digest_cache(
-                sorted(set(shas.values())), ai_client.DIGEST_MODEL_NAME, mode)
-        except Exception as exc:
-            logger.warning("[%s] content digest cache read failed (%s); "
-                           "digesting everything", iso2, exc)
-            hits = {}
-        still_pending = []
-        for i in pending_idx:
-            hit = hits.get(shas[i])
-            if hit and isinstance(hit.get("digest"), dict):
-                items[i]["digest"] = hit["digest"]
-                items[i]["stage1_severity"] = _severity_or_none(hit.get("stage1_severity"))
-                from_content += 1
-            else:
-                still_pending.append(i)
-        pending_idx = still_pending
 
     ok = 0
     swept = 0
@@ -418,30 +397,17 @@ def digest_articles(
                 it["digest"] = res
                 it["stage1_severity"] = _severity_or_none(res.get("stage1_severity"))
                 ok += 1
-                if urls[i]:  # no url → nothing to key the cache row on
-                    new_rows.append({
-                        "country_iso2": iso2,
-                        "as_of": as_of,
-                        "url": urls[i],
-                        "published_at": it.get("published"),
-                        "content_sha256": _content_sha(texts[i], masked),
-                        "digest": res,
-                        "stage1_severity": it["stage1_severity"],
-                        "model_id": ai_client.DIGEST_MODEL_NAME,
-                    })
-            if new_rows:
+                new_rows.append({
+                    "content_sha256": shas[i],
+                    "digest": res,
+                    "stage1_severity": it["stage1_severity"],
+                })
+            if new_rows and content_cache is not None:
                 try:
-                    data_push.upsert_article_digests(new_rows)
-                except Exception as exc:
+                    content_cache.write_digest_cache(
+                        new_rows, ai_client.DIGEST_MODEL_NAME, mode)
+                except Exception as exc:  # noqa: BLE001 - a cache write is not the work
                     logger.warning("[%s] digest cache write failed: %s", iso2, exc)
-                if content_cache is not None:
-                    try:
-                        content_cache.write_digest_cache(
-                            new_rows, ai_client.DIGEST_MODEL_NAME,
-                            "masked" if masked else "named")
-                    except Exception as exc:
-                        logger.warning("[%s] content digest cache write failed: %s",
-                                       iso2, exc)
 
     # Apply the swept headline however the digest arrived — fresh, per-day cache
     # or content cache. Doing it here rather than at each of the three sites is

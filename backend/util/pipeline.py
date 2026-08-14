@@ -259,13 +259,17 @@ def refresh_calendar() -> None:
 
 
 def refresh_imf_indicators() -> None:
-    """Refresh fast-moving indicators (Inflation) from the IMF into
-    ``recent_indicator``.
+    """Refresh fast-moving indicators (Inflation) from the IMF.
 
-    World Bank values are annual and lag 1-2 years; the front-end prefers this
-    fresher monthly value and falls back to the WB annual one when a country
-    has no IMF observation. Guarded per-country so an IMF gap or outage never
-    blocks the risk loop. No-op when no indicators are configured.
+    World Bank values are annual and lag 1-2 years; the fresher monthly print
+    wins over them in the payload. Guarded per-country so an IMF gap or outage
+    never blocks the risk loop. No-op when no indicators are configured.
+
+    One call and one write. This used to fetch the same series twice — once as
+    a latest print for ``recent_indicator`` and once as a full history for
+    ``indicator_series`` — because the latest-print table could not carry the
+    volatility windows. It was the same data in two tables, and `_resolve`
+    already picks the freshest observation out of the history.
     """
     if not constants.IMF_RECENT_INDICATORS:
         return
@@ -273,15 +277,10 @@ def refresh_imf_indicators() -> None:
     refreshed = 0
     for c in constants.COUNTRY_ROSTER:
         try:
-            recent = imf_macro_fetch.fetch_recent_indicators(c["iso3"])
-            if recent:
-                data_push.upsert_recent_indicators(c["iso2"], recent)
-                refreshed += 1
-            # The same source as a full history, for the volatility windows.
-            # `recent_indicator` holds one row per country and cannot carry it.
             rows = imf_macro_fetch.fetch_series_rows(c["iso2"], c["iso3"])
             if rows:
                 data_push.upsert_indicator_series(rows)
+                refreshed += 1
         except Exception:
             logger.exception("[imf-refresh] %s ERROR", c["iso2"])
     logger.info("[imf-refresh] refreshed %d/%d countries", refreshed, len(constants.COUNTRY_ROSTER))
@@ -455,7 +454,6 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         as_of=as_of,
         panel=_safe(lambda: llm_payload.query_macro_panel(iso2), iso2, "panel"),
         series=_safe(lambda: data_push.read_indicator_series(iso2), iso2, "series") or {},
-        recent=_safe(lambda: data_push.read_recent_indicators(iso2), iso2, "recent") or {},
         fx_regimes=constants.FX_REGIMES,
         elections=constants.ELECTIONS,
         # Static, so it needs no vintage bound and is read the same way for a

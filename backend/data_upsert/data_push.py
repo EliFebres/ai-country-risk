@@ -5,9 +5,10 @@ those tables directly — so this module's SQL *is* the contract between the two
 halves of the project. Change a column name here and the Next.js server
 breaks; there is no API layer in between to absorb it.
 
-The project has no migration tool, so each writer owns its table's DDL and
-issues ``CREATE TABLE IF NOT EXISTS`` before writing. That keeps a fresh
-database self-provisioning at the cost of a cheap no-op statement per call.
+The DDL lives in :mod:`backend.data_upsert.schema`, which builds all ten tables
+from nothing. Each writer used to own its own ``CREATE TABLE IF NOT EXISTS``,
+which meant the schema was defined in twenty places and five of the tables
+existed only as a fenced SQL block in a README.
 
 All writes go through ``_transaction()``, which owns connect/commit/rollback/
 close. Upserts use ``COALESCE`` where a transient null (a symbol missing from
@@ -103,15 +104,6 @@ def _to_ts_or_none(s: Optional[str]) -> Optional[datetime.datetime]:
         return None
 
 
-# The `country` table is operator-provisioned (see backend/README.md), but the
-# map-position columns were added later, so bring an existing database up to
-# date without a migration tool.
-_COUNTRY_GEO_DDL = """
-ALTER TABLE country ADD COLUMN IF NOT EXISTS lat DOUBLE PRECISION;
-ALTER TABLE country ADD COLUMN IF NOT EXISTS lng DOUBLE PRECISION;
-"""
-
-
 def upsert_countries(roster: List[Dict[str, Any]]) -> None:
     """Seed the `country` table from the roster: names and map positions.
 
@@ -148,7 +140,6 @@ def upsert_countries(roster: List[Dict[str, Any]]) -> None:
         rows.append((entry["iso2"], entry["name"], float(entry["lat"]), float(entry["lng"])))
 
     with _transaction() as cur:
-        cur.execute(_COUNTRY_GEO_DDL)
         extras.execute_values(
             cur,
             """
@@ -213,20 +204,6 @@ class _SnapshotData(NamedTuple):
     # articles name their country. Never None: an unstamped row in a series that
     # spans a regime change is indistinguishable from a wrong one.
     scoring_mode: str = "named"
-
-
-class _ArticleRow(NamedTuple):
-    """One risk_snapshot_article row; field order matches the INSERT columns."""
-    country_iso2: str
-    as_of: datetime.date
-    rank: int
-    url: str
-    title: Optional[str]
-    source: Optional[str]
-    published_at: Optional[datetime.datetime]
-    impact: Optional[float]
-    summary: Optional[str]
-    image_url: Optional[str]
 
 
 def payload_as_of(payload: Dict[str, Any]) -> datetime.date:
@@ -337,51 +314,28 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
 # perception/policy split added columns to it: both horizons raw and gated, the
 # model's sub-factor detail, and the provenance stamps. Additive and idempotent
 # so an existing database comes up to date without a migration tool.
-_RISK_SNAPSHOT_DDL = """
-ALTER TABLE risk_snapshot
-  ADD COLUMN IF NOT EXISTS raw_score_12m     DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS raw_score_3m      DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS score_3m          DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS subscores         JSONB,
-  ADD COLUMN IF NOT EXISTS raw_subscores     JSONB,
-  ADD COLUMN IF NOT EXISTS subscore_evidence JSONB,
-  ADD COLUMN IF NOT EXISTS condition_flags   JSONB,
-  ADD COLUMN IF NOT EXISTS article_scores    JSONB,
-  ADD COLUMN IF NOT EXISTS applied_rules     JSONB,
-  ADD COLUMN IF NOT EXISTS evidence_coverage DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS model_id          TEXT,
-  ADD COLUMN IF NOT EXISTS prompt_version    TEXT,
-  ADD COLUMN IF NOT EXISTS policy_version    TEXT,
-  ADD COLUMN IF NOT EXISTS legal_gate        JSONB,
-  ADD COLUMN IF NOT EXISTS input_manifest    JSONB,
-  ADD COLUMN IF NOT EXISTS friction_score          DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS order_uncertainty_score DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS information_score       DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS edge_vitality           DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS non_investable          BOOLEAN,
-  -- Which scoring regime produced this row: 'named' (the article text names the
-  -- country) or 'masked' (it does not). Every row is stamped, including this
-  -- one and every one the daily run has written since. A ten-year series that
-  -- changes regime half way through and does not say so is not a series.
-  ADD COLUMN IF NOT EXISTS scoring_mode            TEXT;
-"""
-
 # ALTER TABLE takes an ACCESS EXCLUSIVE lock even when every column already
 # exists, and the country loop calls upsert_snapshot once per country. Run it
 # once per process instead. Set only after the transaction commits, so a
 # rolled-back run re-issues it.
-_risk_snapshot_ddl_done = False
-
-
 def _json_or_none(value: Any) -> Optional[extras.Json]:
     """Wrap a value for a JSONB column, leaving None as SQL NULL."""
     return None if value is None else extras.Json(value)
 
 
-def _article_rows(country: str, as_of: datetime.date,
-                  top_articles: List[Dict[str, Any]]) -> List[_ArticleRow]:
-    """Build risk_snapshot_article rows, dropping malformed entries."""
-    rows: List[_ArticleRow] = []
+def _article_rows(top_articles: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """The top three, normalised, in rank order, ready for the JSONB column.
+
+    Was its own table keyed ``(country, as_of, rank)`` with a
+    ``rank BETWEEN 1 AND 3`` CHECK. An ordered array says the same thing on the
+    row that owns it, which means the constraint is gone and
+    ``article_ranking.ensure_top_three`` is the only guard left — covered by
+    ``testing/test_news_fetching.py::TestEnsureTopThree``.
+
+    Malformed entries are dropped rather than raising: a bad image URL must not
+    cost a country its score.
+    """
+    rows: List[Dict[str, Any]] = []
     for a in top_articles:
         if not isinstance(a, dict):
             continue
@@ -389,19 +343,20 @@ def _article_rows(country: str, as_of: datetime.date,
         url = (a.get("url") or "").strip()
         if not url or rank not in (1, 2, 3):
             continue
-        rows.append(_ArticleRow(
-            country_iso2=country,
-            as_of=as_of,
-            rank=int(rank),
-            url=url,
-            title=a.get("title"),
-            source=a.get("source"),
-            published_at=_to_ts_or_none(a.get("published_at")),
-            impact=(float(a["impact"]) if (a.get("impact") is not None) else None),
-            summary=a.get("summary"),
-            image_url=_image_url_or_none(a.get("image")),
-        ))
-    return rows
+        published_at = _to_ts_or_none(a.get("published_at"))
+        rows.append({
+            "rank": int(rank),
+            "url": url,
+            "title": a.get("title"),
+            "source": a.get("source"),
+            # JSONB, so a datetime has to become a string here rather than
+            # relying on the adapter to do it.
+            "published_at": published_at.isoformat() if published_at else None,
+            "impact": (float(a["impact"]) if a.get("impact") is not None else None),
+            "summary": a.get("summary"),
+            "image_url": _image_url_or_none(a.get("image")),
+        })
+    return sorted(rows, key=lambda r: r["rank"])
 
 
 def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
@@ -442,16 +397,11 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
     to know which convention a stored row follows; the two are not comparable
     for a sanctioned country.
     """
-    global _risk_snapshot_ddl_done
-
     _require_db_url()  # fail fast before any parsing work
     data = _parse_snapshot_payload(payload)
-    rows_art = _article_rows(data.country, data.as_of, data.top_articles)
+    rows_art = _article_rows(data.top_articles)
 
     with _transaction() as cur:
-        if not _risk_snapshot_ddl_done:
-            cur.execute(_RISK_SNAPSHOT_DDL)
-
         # 0) Ensure the parent 'country' row exists for the FK
         cur.execute(
             """
@@ -462,50 +412,7 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
             (data.country, country_name),
         )
 
-        # 1) Indicators + yearly series
-        for ind_name, ind_data in data.indicators.items():
-            unit = data.units[ind_name]  # rely on your existing contract; raises if missing
-
-            # 1a) Upsert indicator row, capture its id
-            cur.execute(
-                """
-                INSERT INTO indicator (name, unit)
-                VALUES (%s, %s)
-                ON CONFLICT (name)
-                DO UPDATE SET unit = EXCLUDED.unit
-                RETURNING id;
-                """,
-                (ind_name, unit),
-            )
-            ind_id = cur.fetchone()[0]
-
-            # 1b) Prepare yearly rows (skip nulls)
-            series = (ind_data or {}).get("series", {}) or {}
-            rows_yv: List[Tuple[str, int, int, float]] = []
-            for year, val in series.items():
-                if val is None:
-                    continue
-                try:
-                    yr_int = int(year)
-                    val_f = float(val)
-                except Exception:
-                    continue
-                rows_yv.append((data.country, ind_id, yr_int, val_f))
-
-            if rows_yv:
-                extras.execute_values(
-                    cur,
-                    """
-                    INSERT INTO yearly_value (country_iso2, indicator_id, yr, value)
-                    VALUES %s
-                    ON CONFLICT (country_iso2, indicator_id, yr)
-                    DO UPDATE SET value = EXCLUDED.value
-                    """,
-                    rows_yv,
-                    page_size=1000,
-                )
-
-        # 2) Risk snapshot (latest AI score for the run date). `score` is the
+        # 1) Risk snapshot (latest AI score for the run date). `score` is the
         #    model's own 12-month judgement on the 0-1 scale — same column, same
         #    scale, same front-end reader, but as of policy_version p2.0 no code
         #    adjusts it. Everything else is additive: the four ledger scores and
@@ -523,14 +430,14 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
             INSERT INTO risk_snapshot (
               country_iso2, as_of, score, bullet_summary,
               score_3m, raw_score_12m, raw_score_3m,
-              subscores, subscore_evidence, condition_flags,
+              ledger_scores, subscore_evidence, condition_flags,
               article_scores, applied_rules, evidence_coverage, legal_gate,
               model_id, prompt_version, policy_version, input_manifest,
               friction_score, order_uncertainty_score, information_score,
-              edge_vitality, non_investable, scoring_mode
+              edge_vitality, non_investable, scoring_mode, top_articles
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s)
+                    %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (country_iso2, as_of)
             DO UPDATE SET
               score             = EXCLUDED.score,
@@ -538,7 +445,7 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
               score_3m          = COALESCE(EXCLUDED.score_3m,          risk_snapshot.score_3m),
               raw_score_12m     = COALESCE(EXCLUDED.raw_score_12m,     risk_snapshot.raw_score_12m),
               raw_score_3m      = COALESCE(EXCLUDED.raw_score_3m,      risk_snapshot.raw_score_3m),
-              subscores         = COALESCE(EXCLUDED.subscores,         risk_snapshot.subscores),
+              ledger_scores     = COALESCE(EXCLUDED.ledger_scores,     risk_snapshot.ledger_scores),
               subscore_evidence = COALESCE(EXCLUDED.subscore_evidence, risk_snapshot.subscore_evidence),
               condition_flags   = COALESCE(EXCLUDED.condition_flags,   risk_snapshot.condition_flags),
               friction_score          = COALESCE(EXCLUDED.friction_score,          risk_snapshot.friction_score),
@@ -554,9 +461,11 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
               prompt_version    = COALESCE(EXCLUDED.prompt_version,    risk_snapshot.prompt_version),
               policy_version    = COALESCE(EXCLUDED.policy_version,    risk_snapshot.policy_version),
               input_manifest    = COALESCE(EXCLUDED.input_manifest,    risk_snapshot.input_manifest),
+              top_articles      = COALESCE(EXCLUDED.top_articles,      risk_snapshot.top_articles),
               -- Not COALESCEd: the mode of the run that just wrote is the mode
               -- of the row, and a re-score in the other regime must say so.
-              scoring_mode      = EXCLUDED.scoring_mode
+              scoring_mode      = EXCLUDED.scoring_mode,
+              updated_at        = now()
             """,
             (
                 data.country, data.as_of,
@@ -574,156 +483,9 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                 data.friction_score, data.order_uncertainty_score,
                 data.information_score, data.edge_vitality, data.non_investable,
                 data.scoring_mode,
+                _json_or_none(rows_art or None),
             ),
         )
-
-        # 3) Optional: write the top-3 links for this snapshot (includes image_url)
-        if rows_art:
-            extras.execute_values(
-                cur,
-                """
-                INSERT INTO risk_snapshot_article
-                  (country_iso2, as_of, rank, url, title, source, published_at, impact, summary, image_url)
-                VALUES %s
-                ON CONFLICT (country_iso2, as_of, rank)
-                DO UPDATE SET
-                  url          = EXCLUDED.url,
-                  title        = EXCLUDED.title,
-                  source       = EXCLUDED.source,
-                  published_at = EXCLUDED.published_at,
-                  impact       = EXCLUDED.impact,
-                  summary      = EXCLUDED.summary,
-                  image_url    = EXCLUDED.image_url,
-                  updated_at   = now()
-                """,
-                rows_art,
-                page_size=10,
-            )
-
-    # Committed — the columns are there for the rest of this process.
-    _risk_snapshot_ddl_done = True
-
-
-_RECENT_INDICATOR_DDL = """
-CREATE TABLE IF NOT EXISTS recent_indicator (
-    country_iso2 CHAR(2)  NOT NULL,
-    indicator    TEXT     NOT NULL,        -- display name, matches indicator.name
-    period       DATE     NOT NULL,        -- end-of-period date of the observation
-    freq         CHAR(1)  NOT NULL CHECK (freq IN ('M','Q','A')),
-    value        DOUBLE PRECISION NOT NULL,
-    unit         TEXT,
-    source       TEXT,
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    PRIMARY KEY (country_iso2, indicator)
-);
-"""
-
-
-def upsert_recent_indicators(country_iso2: str, indicators: Dict[str, Dict[str, Any]]) -> None:
-    """Upsert the freshest sub-annual observation per (country, indicator).
-
-    Self-contained: ensures the ``recent_indicator`` table exists (the project has
-    no migration tool; this adds one table without touching the pre-created risk
-    schema), then upserts one row per (country, indicator) keyed by the indicator's
-    display name. The front-end prefers these values over the World Bank annual
-    ``yearly_value`` and falls back to the annual one when a country has no fresh
-    row for an indicator.
-
-    Args:
-        country_iso2: ISO-2 country code (the DB country key, e.g. ``'AR'``).
-        indicators: ``{indicator_name: {value, period (date), freq, unit?, source?}}``
-            as produced by ``imf_macro_fetch.fetch_recent_indicators`` (keyed back
-            from ISO-3 to ISO-2 by the caller). Rows missing value/period/freq are
-            skipped.
-
-    No-op if ``country_iso2`` is blank or ``indicators`` is empty.
-    """
-    _require_db_url()  # fail fast even when there is nothing to write
-    if not country_iso2 or not indicators:
-        return
-
-    rows: List[Tuple] = []
-    for name, d in indicators.items():
-        if not isinstance(d, dict):
-            continue
-        value = d.get("value")
-        period = d.get("period")
-        freq = d.get("freq")
-        if value is None or period is None or freq not in ("M", "Q", "A"):
-            continue
-        try:
-            value = float(value)
-        except (TypeError, ValueError):
-            continue
-        rows.append((country_iso2, name, period, freq, value, d.get("unit"), d.get("source")))
-
-    if not rows:
-        return
-
-    with _transaction() as cur:
-        cur.execute(_RECENT_INDICATOR_DDL)
-        extras.execute_values(
-            cur,
-            """
-            INSERT INTO recent_indicator
-              (country_iso2, indicator, period, freq, value, unit, source)
-            VALUES %s
-            ON CONFLICT (country_iso2, indicator)
-            DO UPDATE SET
-              period     = EXCLUDED.period,
-              freq       = EXCLUDED.freq,
-              value      = EXCLUDED.value,
-              unit       = EXCLUDED.unit,
-              source     = EXCLUDED.source,
-              updated_at = now()
-            """,
-            rows,
-            page_size=100,
-        )
-
-
-def read_recent_indicators(country_iso2: str) -> Dict[str, Dict[str, Any]]:
-    """Return one country's freshest sub-annual observations, keyed by indicator name.
-
-    The read side of :func:`upsert_recent_indicators`. The evidence payload needs
-    it so the *fresher* monthly print wins over the World Bank annual value for
-    the same indicator — until this existed, only the front-end saw the monthly
-    number and the model scored on a figure up to two years stale.
-
-    Args:
-        country_iso2: ISO-2 country code.
-
-    Returns:
-        ``{indicator_name: {value, period (date), freq, unit, source}}``. Empty
-        when the country has no rows, or when the table does not exist yet — a
-        payload must still build on a database where the IMF refresh has never
-        run, so the missing-table case degrades to "no fresh values" rather than
-        raising.
-    """
-    _require_db_url()
-    if not country_iso2:
-        return {}
-
-    out: Dict[str, Dict[str, Any]] = {}
-    with _transaction() as cur:
-        cur.execute(_RECENT_INDICATOR_DDL)
-        cur.execute(
-            """
-            SELECT indicator, value, period, freq, unit, source
-            FROM recent_indicator
-            WHERE country_iso2 = %s
-            """,
-            (country_iso2,),
-        )
-        for indicator, value, period, freq, unit, source in cur.fetchall():
-            out[indicator] = {
-                "value": float(value) if value is not None else None,
-                "period": period,
-                "freq": freq,
-                "unit": unit,
-                "source": source,
-            }
-    return out
 
 
 # The generic series store: one row per (country, indicator, freq, period), with
@@ -731,65 +493,21 @@ def read_recent_indicators(country_iso2: str) -> Dict[str, Dict[str, Any]]:
 # added by the friction framework — the new World Bank codes, the IMF monthly
 # series, the curated drop folder — writes here.
 #
-# Why a second table rather than an extension of `recent_indicator`: that one is
-# keyed (country, indicator) and holds exactly the latest print, which is what
-# the front-end wants. Volatility and trend need the *history*, so this table is
-# keyed by period too. The parquet panel and `recent_indicator` are left exactly
-# as they are; nothing is migrated.
+# It is now the only macro store. `recent_indicator` held one latest print per
+# (country, indicator) and was written from the same IMF call that already wrote
+# the full history here, so it was the same data twice; the parquet panel held
+# the World Bank annuals and is gone the same way. Freshest-wins is resolved by
+# `payload._resolve` across one table rather than merged across three.
 #
 # `as_of` is when the value became known to us, which is not the period it
 # describes: a 2024 annual figure first published in mid-2025 is stale by a year
 # on the day we fetch it, and the payload can only say so if both dates are
 # stored. `vintage_scheme` records which revision policy produced the value,
 # reserving room for a first-release series later without a column rename.
-_INDICATOR_SERIES_DDL = """
-CREATE TABLE IF NOT EXISTS indicator_series (
-  country_iso2   TEXT NOT NULL,
-  indicator_code TEXT NOT NULL,
-  freq           TEXT NOT NULL,          -- 'M' | 'Q' | 'A'
-  period         TEXT NOT NULL,          -- '2026-06' | '2026Q1' | '2025'
-  value          DOUBLE PRECISION,
-  as_of          DATE NOT NULL,          -- when this value became known to us
-  source         TEXT NOT NULL,
-  vintage_scheme TEXT NOT NULL DEFAULT 'as-published-latest',
-  -- `as_of` is IN the key, and leaving it out made the whole vintage layer
-  -- inert. One row per (country, indicator, period) means the April 2018 WEO
-  -- edition's estimate of 2017 growth and the October 2018 edition's revision
-  -- of the same number are the same row, and the second load silently replaces
-  -- the first. Loading fifteen editions kept 941 rows out of ~13,000 — all from
-  -- whichever edition happened to load last — so a 2018 snapshot would have
-  -- read 2023's revision of 2018 while `vintage_scheme` said
-  -- 'as-published-edition' and looked correct.
-  --
-  -- Multiple rows per period is exactly what `payload._resolve` already
-  -- expects: it collapses same-period copies to the newest `as_of` not after
-  -- the anchor. The key was the only thing preventing it from ever seeing more
-  -- than one.
-  PRIMARY KEY (country_iso2, indicator_code, freq, period, as_of)
-);
-"""
-
 # Widening an existing table's primary key. Separate from the CREATE because
 # `CREATE TABLE IF NOT EXISTS` does nothing to a table that already exists, so
 # every deployment that ran before this would have kept the narrow key and
 # quietly kept collapsing vintages.
-_INDICATOR_SERIES_PK_MIGRATION = """
-DO $$
-BEGIN
-  IF EXISTS (
-    SELECT 1 FROM information_schema.key_column_usage
-    WHERE table_name = 'indicator_series'
-      AND constraint_name = 'indicator_series_pkey'
-    GROUP BY constraint_name
-    HAVING count(*) = 4
-  ) THEN
-    ALTER TABLE indicator_series DROP CONSTRAINT indicator_series_pkey;
-    ALTER TABLE indicator_series
-      ADD PRIMARY KEY (country_iso2, indicator_code, freq, period, as_of);
-  END IF;
-END $$;
-"""
-
 _SERIES_FREQS = ("M", "Q", "A")
 
 
@@ -852,8 +570,6 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
         return
 
     with _transaction() as cur:
-        cur.execute(_INDICATOR_SERIES_DDL)
-        cur.execute(_INDICATOR_SERIES_PK_MIGRATION)
         extras.execute_values(
             cur,
             """
@@ -894,7 +610,6 @@ def read_indicator_series(country_iso2: str) -> Dict[str, List[Dict[str, Any]]]:
 
     out: Dict[str, List[Dict[str, Any]]] = {}
     with _transaction() as cur:
-        cur.execute(_INDICATOR_SERIES_DDL)
         cur.execute(
             """
             SELECT indicator_code, freq, period, value, as_of, source, vintage_scheme
@@ -920,18 +635,6 @@ def read_indicator_series(country_iso2: str) -> Dict[str, List[Dict[str, Any]]]:
 # scored. Advisory — nothing reads this table to change a score, and the
 # pipeline does not block on a finding. It exists so the disagreements the old
 # enforcement layer used to silently overwrite are visible instead.
-_RISK_LINT_DDL = """
-CREATE TABLE IF NOT EXISTS risk_lint (
-  country_iso2 TEXT NOT NULL,
-  as_of        DATE NOT NULL,
-  rule         TEXT NOT NULL,
-  detail       JSONB,
-  created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-  PRIMARY KEY (country_iso2, as_of, rule)
-);
-"""
-
-
 def upsert_lint_findings(findings: List[Dict[str, Any]]) -> None:
     """Record one run's lint findings.
 
@@ -951,12 +654,12 @@ def upsert_lint_findings(findings: List[Dict[str, Any]]) -> None:
     if not findings:
         return
 
-    # Deduplicated by primary key before the insert. Postgres rejects an
-    # ON CONFLICT statement that proposes the same key twice ("cannot affect row
-    # a second time"), and lint is supposed to be the non-blocking part of the
-    # run — a duplicate rule must not raise where a contradiction was the whole
-    # point. Last one wins, matching the DO UPDATE below.
-    by_key: Dict[Tuple[str, datetime.date, str], Tuple] = {}
+    # Deduplicated by rule within each snapshot before the write. Two findings
+    # sharing a rule used to make Postgres reject the whole INSERT ("cannot
+    # affect row a second time"), and lint is supposed to be the non-blocking
+    # part of the run — a duplicate rule must not raise where a contradiction
+    # was the whole point. Last one wins.
+    by_snapshot: Dict[Tuple[str, datetime.date], Dict[str, Dict[str, Any]]] = {}
     for finding in findings:
         if not isinstance(finding, dict):
             continue
@@ -965,22 +668,28 @@ def upsert_lint_findings(findings: List[Dict[str, Any]]) -> None:
         rule = finding.get("rule")
         if not iso2 or not rule or not isinstance(as_of, datetime.date):
             continue
-        key = (str(iso2), as_of, str(rule))
-        by_key[key] = (*key, _json_or_none(finding.get("detail")))
+        by_snapshot.setdefault((str(iso2), as_of), {})[str(rule)] = {
+            "rule": str(rule), "detail": finding.get("detail"),
+        }
 
-    rows = list(by_key.values())
-    if not rows:
+    if not by_snapshot:
         return
 
+    # An INSERT rather than an UPDATE, because lint runs *before* the snapshot
+    # is written: phase 5 lints what phase 7 stores. Writing the key alone
+    # leaves a stub whose score is NULL, and `upsert_snapshot` fills it in
+    # without touching `lint` — so the two are order-independent, which an
+    # UPDATE would not be.
+    rows = [(iso2, as_of, _json_or_none(sorted(rules.values(), key=lambda f: f["rule"])))
+            for (iso2, as_of), rules in by_snapshot.items()]
     with _transaction() as cur:
-        cur.execute(_RISK_LINT_DDL)
         extras.execute_values(
             cur,
             """
-            INSERT INTO risk_lint (country_iso2, as_of, rule, detail)
+            INSERT INTO risk_snapshot (country_iso2, as_of, lint)
             VALUES %s
-            ON CONFLICT (country_iso2, as_of, rule)
-            DO UPDATE SET detail = EXCLUDED.detail, created_at = now()
+            ON CONFLICT (country_iso2, as_of)
+            DO UPDATE SET lint = EXCLUDED.lint, updated_at = now()
             """,
             rows,
             page_size=100,
@@ -1016,13 +725,21 @@ def read_lint_findings(as_of: Optional[datetime.date] = None,
     if since:
         where.append("as_of >= %s")
         params.append(since)
-    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    where.append("lint IS NOT NULL")
+    clause = f"WHERE {' AND '.join(where)}"
     with _transaction() as cur:
-        cur.execute(_RISK_LINT_DDL)
+        # One row per finding, unnested back out of the array on the snapshot
+        # that owns it, so callers keep the flat shape they had when this was
+        # its own table.
         cur.execute(f"""
-            SELECT country_iso2, as_of, rule, detail, created_at
-              FROM risk_lint {clause}
-             ORDER BY as_of DESC, country_iso2, rule
+            SELECT s.country_iso2, s.as_of,
+                   f ->> 'rule'  AS rule,
+                   f -> 'detail' AS detail,
+                   s.updated_at  AS created_at
+              FROM risk_snapshot s
+              CROSS JOIN LATERAL jsonb_array_elements(s.lint) AS f
+             {clause}
+             ORDER BY s.as_of DESC, s.country_iso2, rule
         """, tuple(params))
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
@@ -1070,30 +787,6 @@ def read_stage1_degradation(as_of: Optional[datetime.date] = None,
         """, tuple(params))
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
-
-
-_ECON_EVENT_DDL = """
-CREATE TABLE IF NOT EXISTS economic_calendar_event (
-    id           BIGSERIAL PRIMARY KEY,
-    event_time   TIMESTAMPTZ NOT NULL,
-    country_code TEXT NOT NULL,
-    country_name TEXT NOT NULL,
-    event        TEXT NOT NULL,
-    importance   TEXT NOT NULL CHECK (importance IN ('h','m','l')),
-    currency     TEXT,
-    previous     DOUBLE PRECISION,
-    estimate     DOUBLE PRECISION,
-    actual       DOUBLE PRECISION,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (event_time, country_code, event)
-);
--- AI importance ranking (US-tilted). Added idempotently so an already-created
--- table picks up the columns without a migration tool.
-ALTER TABLE economic_calendar_event ADD COLUMN IF NOT EXISTS ai_importance DOUBLE PRECISION;
-ALTER TABLE economic_calendar_event ADD COLUMN IF NOT EXISTS ai_rationale  TEXT;
-ALTER TABLE economic_calendar_event ADD COLUMN IF NOT EXISTS ai_scored_at  TIMESTAMPTZ;
-"""
 
 
 def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
@@ -1158,7 +851,6 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
         return
 
     with _transaction() as cur:
-        cur.execute(_ECON_EVENT_DDL)
 
         extras.execute_values(
             cur,
@@ -1189,35 +881,6 @@ def upsert_economic_events(events: List[Dict[str, Any]]) -> None:
         cur.execute(
             "DELETE FROM economic_calendar_event WHERE event_time < now() - interval '1 day'"
         )
-
-
-_MARKET_PRICE_DDL = """
-CREATE TABLE IF NOT EXISTS market_price (
-    symbol        TEXT PRIMARY KEY,
-    label         TEXT NOT NULL,
-    asset_class   TEXT NOT NULL CHECK (asset_class IN ('stocks','bonds','crypto','commodities')),
-    source_symbol TEXT,
-    is_yield      BOOLEAN NOT NULL DEFAULT FALSE,
-    px            DOUBLE PRECISION,
-    chg           DOUBLE PRECISION,   -- 1D  (% for prices, points for yields)
-    q             DOUBLE PRECISION,   -- 1Q
-    ytd           DOUBLE PRECISION,   -- YTD
-    sort_order    INTEGER NOT NULL DEFAULT 0,
-    updated_at    TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-"""
-
-_PRICE_REFERENCE_DDL = """
-CREATE TABLE IF NOT EXISTS price_reference (
-    symbol                 TEXT PRIMARY KEY,
-    ref_q                  DOUBLE PRECISION,
-    ref_q_date             DATE,
-    ref_ytd                DOUBLE PRECISION,
-    ref_ytd_date           DATE,
-    reference_refreshed_on DATE,
-    updated_at             TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-"""
 
 
 def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
@@ -1268,7 +931,6 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
         return
 
     with _transaction() as cur:
-        cur.execute(_MARKET_PRICE_DDL)
 
         extras.execute_values(
             cur,
@@ -1298,16 +960,19 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
 def read_price_references() -> Dict[str, Dict[str, Any]]:
     """Return stored 1Q/YTD reference closes, keyed by symbol.
 
-    Ensures the ``price_reference`` table exists first so the daemon can call this
-    on startup before any write. Each value is
+    On the same row as the live quote now. They were two tables because they
+    tick at different rates — a quote every half hour, a reference once a day —
+    but that is a cadence, not a key: both are facts about one symbol.
+
+    Each value is
     ``{ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on}``.
     """
     with _transaction() as cur:
-        cur.execute(_PRICE_REFERENCE_DDL)
         cur.execute(
             """
             SELECT symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on
-              FROM price_reference
+              FROM market_price
+             WHERE reference_refreshed_on IS NOT NULL
             """
         )
         out: Dict[str, Dict[str, Any]] = {}
@@ -1329,6 +994,12 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
     produced by ``fmp_prices_fetch.fetch_reference_closes`` keyed back to the
     internal symbol). Lets a restarted daemon skip the historical fetch when it
     already ran today. No-op if ``refs`` is empty.
+
+    An UPDATE rather than an upsert, because the row belongs to the quote: a
+    symbol's ``label`` and ``asset_class`` come from the asset universe in
+    ``constants`` and are written by :func:`upsert_market_prices`. A reference
+    for a symbol that has never been quoted is skipped and logged rather than
+    inventing a half-row to hang it on.
     """
     _require_db_url()  # fail fast even when there is nothing to write
     if not refs:
@@ -1336,12 +1007,12 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
 
     rows: List[Tuple] = [
         (
-            symbol,
             r.get("ref_q"),
             r.get("ref_q_date"),
             r.get("ref_ytd"),
             r.get("ref_ytd_date"),
             refreshed_on,
+            symbol,
         )
         for symbol, r in refs.items()
         if isinstance(r, dict)
@@ -1350,50 +1021,27 @@ def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datet
         return
 
     with _transaction() as cur:
-        cur.execute(_PRICE_REFERENCE_DDL)
-        extras.execute_values(
-            cur,
+        cur.executemany(
             """
-            INSERT INTO price_reference
-              (symbol, ref_q, ref_q_date, ref_ytd, ref_ytd_date, reference_refreshed_on)
-            VALUES %s
-            ON CONFLICT (symbol)
-            DO UPDATE SET
-              ref_q                  = EXCLUDED.ref_q,
-              ref_q_date             = EXCLUDED.ref_q_date,
-              ref_ytd                = EXCLUDED.ref_ytd,
-              ref_ytd_date           = EXCLUDED.ref_ytd_date,
-              reference_refreshed_on = EXCLUDED.reference_refreshed_on,
-              updated_at             = now()
+            UPDATE market_price
+               SET ref_q                  = %s,
+                   ref_q_date             = %s,
+                   ref_ytd                = %s,
+                   ref_ytd_date           = %s,
+                   reference_refreshed_on = %s,
+                   updated_at             = now()
+             WHERE symbol = %s
             """,
             rows,
-            page_size=100,
         )
-
-
-_NEWS_ALERT_DDL = """
-CREATE TABLE IF NOT EXISTS news_alert (
-    id           BIGSERIAL PRIMARY KEY,
-    as_of        DATE        NOT NULL,
-    global_rank  SMALLINT    NOT NULL,
-    country_iso2 CHAR(2)     NOT NULL,
-    country_name TEXT,
-    url          TEXT        NOT NULL,
-    title        TEXT,
-    source       TEXT,
-    published_at TIMESTAMPTZ,
-    summary      TEXT,
-    image_url    TEXT,
-    topic        TEXT        NOT NULL,
-    severity     TEXT        NOT NULL CHECK (severity IN ('Critical','Caution','Watch')),
-    importance   DOUBLE PRECISION,
-    rationale    TEXT,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (as_of, global_rank)
-);
-CREATE INDEX IF NOT EXISTS idx_news_alert_as_of ON news_alert (as_of);
-"""
+        cur.execute(
+            "SELECT count(*) FROM market_price WHERE symbol = ANY(%s)",
+            (list(refs),),
+        )
+        matched = cur.fetchone()[0]
+    if matched < len(rows):
+        logger.info("[prices] %d reference close(s) had no quote row yet; "
+                    "they land on the next refresh", len(rows) - matched)
 
 
 class _NewsAlertRow(NamedTuple):
@@ -1484,7 +1132,6 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
         return
 
     with _transaction() as cur:
-        cur.execute(_NEWS_ALERT_DDL)
 
         # Replace-today semantics: clear this run date, then insert the ranked set.
         cur.execute("DELETE FROM news_alert WHERE as_of = %s", (as_of,))
@@ -1500,120 +1147,6 @@ def upsert_news_alerts(alerts: List[Dict[str, Any]], as_of: datetime.date) -> No
             rows,
             page_size=100,
         )
-
-
-_ARTICLE_DIGEST_DDL = """
-CREATE TABLE IF NOT EXISTS article_digest (
-  country_iso2    TEXT        NOT NULL,
-  as_of           DATE        NOT NULL,
-  url             TEXT        NOT NULL,
-  published_at    TIMESTAMPTZ,
-  content_sha256  TEXT,
-  digest          JSONB       NOT NULL,
-  stage1_severity DOUBLE PRECISION,
-  model_id        TEXT,
-  PRIMARY KEY (country_iso2, as_of, url)
-);
-"""
-
-
-def upsert_article_digests(digests: List[Dict[str, Any]]) -> None:
-    """Upsert one country/day's stage-1 article digests (the digest cache).
-
-    Self-contained: ensures the ``article_digest`` table exists, then upserts
-    by ``(country_iso2, as_of, url)``. ``content_sha256`` is the hash of the
-    article text the digest was computed from, so a same-day re-run with
-    unchanged text can reuse the row instead of re-calling the model.
-
-    Each digest dict (as built by ``ai.digest_engine``):
-      - country_iso2, as_of (datetime.date), url   (the cache key; required)
-      - digest                                     (the model's extraction dict; required)
-      - published_at                               (ISO string or None)
-      - content_sha256, stage1_severity, model_id  (may be None)
-
-    No-op if ``digests`` is empty. Rows missing a key field are skipped.
-    """
-    _require_db_url()  # fail fast even when there is nothing to write
-    if not digests:
-        return
-
-    rows: List[Tuple] = []
-    for d in digests:
-        if not isinstance(d, dict):
-            continue
-        iso2 = (d.get("country_iso2") or "").strip()
-        as_of = d.get("as_of")
-        url = (d.get("url") or "").strip()
-        digest = d.get("digest")
-        if not iso2 or not isinstance(as_of, datetime.date) or not url or not isinstance(digest, dict):
-            continue
-        try:
-            severity = float(d["stage1_severity"]) if d.get("stage1_severity") is not None else None
-        except (TypeError, ValueError):
-            severity = None
-        rows.append(
-            (
-                iso2,
-                as_of,
-                url,
-                _to_ts_or_none(d.get("published_at")),
-                d.get("content_sha256"),
-                extras.Json(digest),
-                severity,
-                d.get("model_id"),
-            )
-        )
-
-    if not rows:
-        return
-
-    with _transaction() as cur:
-        cur.execute(_ARTICLE_DIGEST_DDL)
-        extras.execute_values(
-            cur,
-            """
-            INSERT INTO article_digest
-              (country_iso2, as_of, url, published_at,
-               content_sha256, digest, stage1_severity, model_id)
-            VALUES %s
-            ON CONFLICT (country_iso2, as_of, url)
-            DO UPDATE SET
-              published_at    = COALESCE(EXCLUDED.published_at, article_digest.published_at),
-              content_sha256  = EXCLUDED.content_sha256,
-              digest          = EXCLUDED.digest,
-              stage1_severity = EXCLUDED.stage1_severity,
-              model_id        = EXCLUDED.model_id
-            """,
-            rows,
-            page_size=20,
-        )
-
-
-def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, Dict[str, Any]]:
-    """Return one country/day's cached digests, keyed by article url.
-
-    Ensures the ``article_digest`` table exists first so the pipeline can call
-    this before the first write ever happens. Each value is
-    ``{content_sha256, digest, stage1_severity}``.
-    """
-    with _transaction() as cur:
-        cur.execute(_ARTICLE_DIGEST_DDL)
-        cur.execute(
-            """
-            SELECT url, content_sha256, digest, stage1_severity
-              FROM article_digest
-             WHERE country_iso2 = %s AND as_of = %s
-            """,
-            (country_iso2, as_of),
-        )
-        out: Dict[str, Dict[str, Any]] = {}
-        for url, sha, digest, severity in cur.fetchall():
-            out[url] = {
-                "content_sha256": sha,
-                "digest": digest,
-                "stage1_severity": severity,
-            }
-    return out
 
 
 # --- Identifiability probe results -------------------------------------------
@@ -1643,30 +1176,6 @@ def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, D
 # distribution and kept only its argmax, and a stored `ZZ @ 0.0` could not be
 # told apart from a failed call. The first 26 rows are that loss, and they
 # cannot be recovered — the only fix is to stop repeating it.
-
-_PROBE_RESULT_DDL = """
-CREATE TABLE IF NOT EXISTS probe_result (
-  country_iso2      TEXT NOT NULL,
-  as_of             DATE NOT NULL,
-  mask_map_version  TEXT NOT NULL,
-  sweep_version     TEXT NOT NULL,
-  probe_model       TEXT NOT NULL,
-  probe_version     TEXT NOT NULL,
-  guess             TEXT,
-  confidence        DOUBLE PRECISION,
-  evidence          TEXT,
-  identified        BOOLEAN,
-  n_articles        INT,
-  git_sha           TEXT,
-  probed_at         TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (country_iso2, as_of, mask_map_version, sweep_version,
-               probe_model, probe_version)
-);
-ALTER TABLE probe_result
-  ADD COLUMN IF NOT EXISTS alternatives              JSONB,
-  ADD COLUMN IF NOT EXISTS insufficient_information  BOOLEAN;
-"""
-
 
 def upsert_probe_result(
     country_iso2: str,
@@ -1707,37 +1216,36 @@ def upsert_probe_result(
         return
     try:
         with _transaction() as cur:
-            cur.execute(_PROBE_RESULT_DDL)
             cur.execute(
                 """
-                INSERT INTO probe_result
-                  (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
-                   probe_version, guess, confidence, evidence, identified,
-                   alternatives, insufficient_information,
-                   n_articles, git_sha, probed_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
-                ON CONFLICT (country_iso2, as_of, mask_map_version, sweep_version,
-                             probe_model, probe_version)
-                DO UPDATE SET
-                  guess        = EXCLUDED.guess,
-                  confidence   = EXCLUDED.confidence,
-                  evidence     = EXCLUDED.evidence,
-                  identified   = EXCLUDED.identified,
-                  alternatives = EXCLUDED.alternatives,
-                  insufficient_information = EXCLUDED.insufficient_information,
-                  n_articles   = EXCLUDED.n_articles,
-                  git_sha      = EXCLUDED.git_sha,
-                  probed_at    = EXCLUDED.probed_at
+                INSERT INTO snapshot_diagnostic
+                  (country_iso2, as_of, kind, variant, detail)
+                VALUES (%s, %s, 'probe', %s, %s)
+                ON CONFLICT (country_iso2, as_of, kind, variant)
+                DO UPDATE SET detail = EXCLUDED.detail, created_at = now()
                 """,
-                (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
-                 probe_version,
-                 str(guess.get("country") or ""),
-                 float(guess.get("confidence") or 0.0),
-                 str(guess.get("evidence") or ""),
-                 str(guess.get("country") or "").upper() == country_iso2.upper(),
-                 _json_or_none(guess.get("alternatives") or None),
-                 bool(guess.get("insufficient_information")),
-                 n_articles, os.environ.get("GIT_SHA") or None),
+                (country_iso2, as_of,
+                 # The variant carries the whole version tuple, because that is
+                 # what identifies a measurement: two sweeps shared mask map g5,
+                 # so a key without the sweep would let a re-probe overwrite the
+                 # baseline it was supposed to be compared against.
+                 f"{mask_map_version}:{sweep_version}:{probe_model}:{probe_version}",
+                 extras.Json({
+                     "mask_map_version": mask_map_version,
+                     "sweep_version": sweep_version,
+                     "probe_model": probe_model,
+                     "probe_version": probe_version,
+                     "guess": str(guess.get("country") or ""),
+                     "confidence": float(guess.get("confidence") or 0.0),
+                     "evidence": str(guess.get("evidence") or ""),
+                     "identified": (str(guess.get("country") or "").upper()
+                                    == country_iso2.upper()),
+                     "alternatives": guess.get("alternatives") or None,
+                     "insufficient_information": bool(
+                         guess.get("insufficient_information")),
+                     "n_articles": n_articles,
+                     "git_sha": os.environ.get("GIT_SHA") or None,
+                 })),
             )
     except Exception:
         logger.exception("[%s %s] probe result not recorded; the snapshot stands",
@@ -1753,22 +1261,37 @@ def read_probe_results(country_iso2: Optional[str] = None,
     message. Filters are optional and compose: no arguments returns everything,
     a version pair returns one masking behaviour's baseline.
     """
-    where, params = [], []
-    for column, value in (("country_iso2", country_iso2),
-                          ("mask_map_version", mask_map_version),
-                          ("sweep_version", sweep_version)):
+    where, params = ["kind = 'probe'"], []
+    if country_iso2:
+        where.append("country_iso2 = %s")
+        params.append(country_iso2)
+    # The versions live inside `detail` now, so they are filtered as JSONB
+    # rather than as columns. Same selectivity at this scale — the whole table
+    # is tens of rows — and it keeps the key one string instead of four.
+    for field, value in (("mask_map_version", mask_map_version),
+                         ("sweep_version", sweep_version)):
         if value:
-            where.append(f"{column} = %s")
+            where.append(f"detail ->> '{field}' = %s")
             params.append(value)
-    clause = f"WHERE {' AND '.join(where)}" if where else ""
     with _transaction() as cur:
-        cur.execute(_PROBE_RESULT_DDL)
         cur.execute(f"""
-            SELECT country_iso2, as_of, mask_map_version, sweep_version, probe_model,
-                   probe_version, guess, confidence, evidence, identified,
-                   alternatives, insufficient_information,
-                   n_articles, git_sha, probed_at
-              FROM probe_result {clause}
+            SELECT country_iso2, as_of,
+                   detail ->> 'mask_map_version'  AS mask_map_version,
+                   detail ->> 'sweep_version'     AS sweep_version,
+                   detail ->> 'probe_model'       AS probe_model,
+                   detail ->> 'probe_version'     AS probe_version,
+                   detail ->> 'guess'             AS guess,
+                   (detail ->> 'confidence')::float8 AS confidence,
+                   detail ->> 'evidence'          AS evidence,
+                   (detail ->> 'identified')::boolean AS identified,
+                   detail -> 'alternatives'       AS alternatives,
+                   (detail ->> 'insufficient_information')::boolean
+                       AS insufficient_information,
+                   (detail ->> 'n_articles')::int AS n_articles,
+                   detail ->> 'git_sha'           AS git_sha,
+                   created_at                     AS probed_at
+              FROM snapshot_diagnostic
+             WHERE {' AND '.join(where)}
              ORDER BY as_of DESC, country_iso2
         """, tuple(params))
         cols = [d[0] for d in cur.description]
@@ -1780,37 +1303,32 @@ def read_probe_results(country_iso2: Optional[str] = None,
 # every tick to decide what is overdue, so a restart or a week of downtime
 # catches up instead of silently skipping a run.
 
-_JOB_RUN_DDL = """
-CREATE TABLE IF NOT EXISTS job_run (
-    job      TEXT PRIMARY KEY,
-    last_run TIMESTAMPTZ NOT NULL
-);
-"""
-
-
 def read_job_runs() -> Dict[str, datetime.datetime]:
     """Return ``{job: last_run}`` for every scheduled job that has ever run.
 
-    Ensures the ``job_run`` table exists first, so the first boot against a
-    fresh database works without anyone provisioning it. Values are
-    timezone-aware (Postgres ``TIMESTAMPTZ``), safe to compare against
-    ``datetime.now(timezone.utc)``.
+    Values are timezone-aware (Postgres ``TIMESTAMPTZ``), safe to compare
+    against ``datetime.now(timezone.utc)``.
+
+    A scheduler job is a row in ``run_ledger`` like any other completed work,
+    using the sentinel defaults for the country, anchor and variant it does not
+    have. It was its own two-column table for no reason other than being
+    written first.
     """
     with _transaction() as cur:
-        cur.execute(_JOB_RUN_DDL)
-        cur.execute("SELECT job, last_run FROM job_run")
+        cur.execute("SELECT job_type, completed_at FROM run_ledger "
+                    "WHERE country_iso2 = '' AND variant = ''")
         return {job: last_run for job, last_run in cur.fetchall()}
 
 
 def mark_job_run(job: str) -> None:
     """Stamp ``job`` as having just finished successfully."""
     with _transaction() as cur:
-        cur.execute(_JOB_RUN_DDL)
         cur.execute(
             """
-            INSERT INTO job_run (job, last_run)
-            VALUES (%s, now())
-            ON CONFLICT (job) DO UPDATE SET last_run = EXCLUDED.last_run
+            INSERT INTO run_ledger (job_type, status, completed_at)
+            VALUES (%s, 'complete', now())
+            ON CONFLICT (job_type, country_iso2, as_of, variant)
+            DO UPDATE SET status = 'complete', completed_at = now()
             """,
             (job,),
         )

@@ -776,59 +776,54 @@ class TestARebuildKnowsWhetherItIsFree:
         return [digest_engine._content_sha(digest_engine.article_input_text(i), masked)
                 for i in self.ITEMS]
 
-    def test_a_fully_cached_snapshot_reports_no_missing_digests(self, monkeypatch):
-        shas = self._shas()
-        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
-                            lambda iso2, as_of: {
-                                f"https://e.test/{n}": {"content_sha256": sha,
-                                                        "digest": {"what": "x"}}
-                                for n, sha in zip((1, 2), shas)})
-        assert digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True) == []
-
-    def test_an_uncached_snapshot_reports_every_article(self, monkeypatch):
-        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
-                            lambda iso2, as_of: {})
-        missing = digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True)
-        assert missing == self._shas()
-
-    def test_the_content_cache_is_the_second_chance(self, monkeypatch):
-        """The same article in last week's snapshot has a different `as_of` and
-        misses the per-snapshot cache, but its digest is byte-identical."""
-        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
-                            lambda iso2, as_of: {})
-
+    def _cache(self, seeded=()):
         class _Content:
-            def read_digest_cache(self, hashes, model, mode):
-                return {h: {"digest": {"what": "x"}} for h in hashes}
+            rows = set(seeded)
 
+            def read_digest_cache(self, hashes, model, mode):
+                return {h: {"digest": {"what": "x"}} for h in hashes if h in self.rows}
+
+        return _Content()
+
+    def test_a_fully_cached_snapshot_reports_no_missing_digests(self):
         assert digest_engine.digest_coverage(
             self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
-            content_cache=_Content()) == []
+            content_cache=self._cache(self._shas())) == []
+
+    def test_an_uncached_snapshot_reports_every_article(self):
+        assert digest_engine.digest_coverage(
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
+            content_cache=self._cache()) == self._shas()
 
     def test_a_mask_map_bump_alone_invalidates_every_masked_digest(self, monkeypatch):
-        """The case the sweep-only guard could not see."""
-        cached = self._shas()
-        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
-                            lambda iso2, as_of: {
-                                f"https://e.test/{n}": {"content_sha256": sha,
-                                                        "digest": {"what": "x"}}
-                                for n, sha in zip((1, 2), cached)})
+        """The case the sweep-only guard could not see: the cache key is
+        `masked:{mask_map_version}:{sweep_version}`, so a gazetteer bump moves
+        every hash even though the article text is untouched."""
+        cache = self._cache(self._shas())
         monkeypatch.setattr(gz, "MASK_MAP_VERSION", "g99")
         missing = digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True)
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True, content_cache=cache)
         assert len(missing) == 2, "a gazetteer bump must miss every masked digest"
-        assert set(missing).isdisjoint(cached)
+        assert set(missing).isdisjoint(cache.rows)
 
-    def test_an_unreadable_cache_counts_as_no_coverage(self, monkeypatch):
+    def test_a_named_digest_is_not_served_to_a_masked_run(self):
+        """Both halves of the same article, and they must not collide: a named
+        digest reaching a masked prompt puts a president's name in it with every
+        gate reporting clean."""
+        cache = self._cache(self._shas(masked=False))
+        assert digest_engine.digest_coverage(
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
+            content_cache=cache) == self._shas(masked=True)
+
+    def test_an_unreadable_cache_counts_as_no_coverage(self):
         """Fails in the direction that refuses to spend, not the one that does."""
-        def boom(iso2, as_of):
-            raise RuntimeError("db down")
+        class _Boom:
+            def read_digest_cache(self, *a, **k):
+                raise RuntimeError("db down")
 
-        monkeypatch.setattr(digest_engine.data_push, "read_article_digests", boom)
         assert len(digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True)) == 2
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
+            content_cache=_Boom())) == 2
 
     def test_the_rebuild_asks_before_it_spends(self):
         """The seam: the guard has to be the coverage call, not a version compare."""
