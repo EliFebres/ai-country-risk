@@ -53,7 +53,7 @@ import psycopg2
 from backend.util import constants
 from backend.utils import pipeline
 from backend.utils.data_fetching import country_data_fetch
-from backend.utils.data_upsert import data_push
+from backend.data_upsert import data_push
 
 log = logging.getLogger("live-check")
 

@@ -34,8 +34,9 @@ import logging
 import statistics
 from typing import Any, Dict, List, Optional
 
-from backend.utils.data_upsert import data_push
-from backend.utils.history import config, store
+from backend.data_upsert import data_push
+from backend.data_upsert import store
+from backend.utils.history import config
 from backend.utils.masking import probe
 
 logger = logging.getLogger(__name__)

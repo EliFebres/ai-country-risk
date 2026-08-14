@@ -35,7 +35,8 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from backend.utils import pipeline
-from backend.utils.history import config, snapshot_select, store, usage
+from backend.data_upsert import store
+from backend.utils.history import config, snapshot_select, usage
 
 logger = logging.getLogger(__name__)
 
@@ -268,7 +269,7 @@ def _masked_series(iso2: str, since: Optional[datetime.date] = None,
     in this list*: an unfiltered read puts a seven-year gap between two adjacent
     entries and calls the delta across it a week's movement.
     """
-    from backend.utils.data_upsert import data_push
+    from backend.data_upsert import data_push
     where, params = ["country_iso2 = %s", "scoring_mode = 'masked'"], [iso2]
     for column, value in (("as_of >= %s", since), ("as_of <= %s", until)):
         if value:

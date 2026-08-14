@@ -41,7 +41,8 @@ from typing import Dict, List, Optional, Tuple
 import requests
 
 from backend.util import http
-from backend.utils.history import config, store
+from backend.data_upsert import store
+from backend.utils.history import config
 from backend.utils.masking import gazetteer
 from backend.utils.news_fetching import article_ranking, core
 

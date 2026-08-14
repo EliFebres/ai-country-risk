@@ -31,7 +31,7 @@ import pytest
 
 from backend.utils import data_retrieval
 from backend.utils.history import config, score, snapshot_select as sel, usage
-from backend.utils.history import store
+from backend.data_upsert import store
 from backend.utils.history.vintage import lags, restamp
 from backend.utils.masking import gazetteer as gz, rewrite
 from backend.utils.news_fetching import core
@@ -236,7 +236,7 @@ class TestThePipelineSeam:
     def test_the_pin_reaches_every_downstream_stage(self, monkeypatch):
         """One overwrite of `_meta.generated_at` has to move the whole run."""
         from backend.utils import pipeline
-        from backend.utils.data_upsert import data_push
+        from backend.data_upsert import data_push
         seen = {}
         monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
                             lambda **kw: {"_meta": {"generated_at": "2026-08-02T00:00:00Z"}})

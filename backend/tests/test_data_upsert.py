@@ -22,7 +22,8 @@ from datetime import date
 import pytest
 
 from backend.utils import provenance
-from backend.utils.history import reports, snapshot_select, store
+from backend.data_upsert import store
+from backend.utils.history import reports, snapshot_select
 from backend.utils.news_fetching import core
 
 AS_OF = date(2026, 7, 27)
@@ -209,7 +210,7 @@ class TestTheSnapshotPayloadParsesForTheUpsert:
 
     def test_input_manifest_carried(self):
         pytest.importorskip("psycopg2")
-        from backend.utils.data_upsert import data_push
+        from backend.data_upsert import data_push
 
         manifest = {"schema_version": 1, "articles": []}
         got = data_push._parse_snapshot_payload(
@@ -219,7 +220,7 @@ class TestTheSnapshotPayloadParsesForTheUpsert:
     def test_absent_manifest_still_parses(self):
         # Constraint: a snapshot written before provenance existed must upsert.
         pytest.importorskip("psycopg2")
-        from backend.utils.data_upsert import data_push
+        from backend.data_upsert import data_push
 
         got = data_push._parse_snapshot_payload(self._payload_with())
         assert got.input_manifest is None and got.legal_gate is None
@@ -227,7 +228,7 @@ class TestTheSnapshotPayloadParsesForTheUpsert:
 
     def test_malformed_manifest_becomes_null(self):
         pytest.importorskip("psycopg2")
-        from backend.utils.data_upsert import data_push
+        from backend.data_upsert import data_push
 
         got = data_push._parse_snapshot_payload(
             self._payload_with(input_manifest="not-a-dict"))
@@ -235,7 +236,7 @@ class TestTheSnapshotPayloadParsesForTheUpsert:
 
     def test_legal_gate_carried_from_llm_output(self):
         pytest.importorskip("psycopg2")
-        from backend.utils.data_upsert import data_push
+        from backend.data_upsert import data_push
 
         gate = {"name": "Russia", "rule": "prohibition", "sources": ["eu-2022"]}
         payload = self._payload_with()

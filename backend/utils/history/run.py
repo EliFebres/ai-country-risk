@@ -43,8 +43,9 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv()
 
-from backend.utils.data_upsert import data_push  # noqa: E402
-from backend.utils.history import config, reports, score, store, wayback  # noqa: E402
+from backend.data_upsert import data_push  # noqa: E402
+from backend.data_upsert import store  # noqa: E402
+from backend.utils.history import config, reports, score, wayback  # noqa: E402
 from backend.utils.history.adapters import gdelt, guardian, nyt  # noqa: E402
 from backend.utils.history.vintage import lags, monthly, restamp, weo  # noqa: E402
 

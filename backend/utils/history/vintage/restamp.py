@@ -42,7 +42,7 @@ import logging
 import pathlib
 from typing import Any, Dict, List, Optional, Tuple
 
-from backend.utils.data_upsert import data_push
+from backend.data_upsert import data_push
 from backend.utils.history.vintage import lags
 
 logger = logging.getLogger(__name__)

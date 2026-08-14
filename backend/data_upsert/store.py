@@ -31,7 +31,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 import psycopg2.extras as extras
 
 from backend.utils import provenance
-from backend.utils.data_upsert import data_push
+from backend.data_upsert import data_push
 from backend.utils.history import config
 from backend.utils.news_fetching import core
 

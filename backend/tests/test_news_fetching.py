@@ -100,7 +100,7 @@ class TestNoAdapterForksTheCore:
         # The exemption above must not become a silently untagged corpus: rows
         # with no `_theme` are classified from their text at the store boundary,
         # which is what fills the same per-theme floor the live run uses.
-        from backend.utils.history import store
+        from backend.data_upsert import store
         assert "core.classify_themes" in inspect.getsource(store.article_row)
 
     @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)

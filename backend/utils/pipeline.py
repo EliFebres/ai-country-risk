@@ -31,7 +31,7 @@ from backend.utils.ai import client as ai_client
 from backend.utils.data_fetching import (
     bis_bulk_fetch, curated_loader, fmp_calendar_fetch, imf_macro_fetch, wb_series_fetch,
 )
-from backend.utils.data_upsert import data_push
+from backend.data_upsert import data_push
 from backend.utils.masking import gazetteer, probe, rewrite
 from backend.utils.news_fetching import article_enrichment, article_ranking
 

@@ -34,7 +34,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 import requests
 
 from backend.util import constants
-from backend.utils.data_upsert import data_push
+from backend.data_upsert import data_push
 
 logger = logging.getLogger(__name__)
 
