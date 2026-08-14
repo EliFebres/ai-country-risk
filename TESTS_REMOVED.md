@@ -1,8 +1,25 @@
 # What the test cut removed, and what it costs
 
-The suite went from 9,244 lines of `test_*.py` across 37 files to 3,824 across
-6, to hit an under-4,000 target. This is the ledger of what stopped being
+The suite went from 9,244 lines of `test_*.py` across 37 files to 4,155 across
+6, to hit an under-4,000 target that was then relaxed slightly to buy back two
+things worth more than the budget. This is the ledger of what stopped being
 guarded, so it can be re-added selectively rather than re-derived.
+
+## Restored after the first pass
+
+Two items came back, and the reasoning is worth keeping next to the ledger:
+
+- **The identifiability probe's scoring** (`test_llm.py`) — all four outcomes,
+  the null control arm, the per-country spread, the distribution that exposes
+  an over-named country. It is the meter that says whether masking held;
+  unpinned, a lenient scorer reports a clean corpus that is leaking and nothing
+  else catches it. Outlet fingerprinting stayed out.
+- **The metric oracles for the headline wedge and the volatility measures**
+  (`test_util.py`) — `frictional_extraction`, `conversion_loss`, `rolling_vol`,
+  `monetary_dilution`, `real_policy_rate`. Hand-computed arithmetic against a
+  pure function is the best test-per-line in the codebase: it checks
+  correctness independently of the implementation, so it survives a rewrite of
+  the thing it tests.
 
 Everything here **passed** when it was deleted. Nothing was removed because it
 was wrong; it was removed because a budget required it. Commits `68773a5`
@@ -22,19 +39,20 @@ the cause of those defects, because the suite was not the cause.
 
 ## Highest risk
 
-### 1. The identifiability probe's scoring
-**Was:** `test_masking.py` — the four outcomes (correct-confident, wrong-confident,
-declined, insufficient-information), the null control arm, outlet fingerprinting,
-per-country hit rates and the spread that is the actual meter, and the two-run
-comparison behind `scripts/probe_bundles`.
+### 1. Outlet fingerprinting and the two-run masking comparison
+**Was:** `test_masking.py` — whether the probe is reading the evidence or the
+newspaper (the source mix per outcome, and the positive gap that is the
+fingerprinting shape), plus `TestComparingTwoMaskingBehaviours`, the consumer of
+`probe_result` behind `scripts/probe_bundles`: a bundle the sweep fixed reports
+as fixed, one that got worse reports as regressed, and a bundle only one run
+covered is kept rather than dropped.
 
-**Still guarded:** that a probe result is *stored* rather than only logged, and
-that a failed probe never blocks a snapshot (`test_llm.py`).
+**Still guarded:** the probe's own scoring, restored in full — see above.
 
-**Risk:** the probe is the instrument that says whether masking held. How it
-scores an answer is now unpinned, so a change that makes it systematically
-lenient would report clean masking on a leaking corpus. Nothing else measures
-this. **Re-add first if you re-add anything.**
+**Risk:** the probe can still be verified as correct; what is no longer checked
+is whether a *change* to masking made things better or worse across two runs.
+That comparison is how the 2026-08-03 sweep was validated. Re-add before the
+next masking change, not before the pilot.
 
 ### 2. The prompt's required-phrase inventory
 **Was:** `test_prompt_v3.py` — the three-door event test, edge protection,
@@ -49,20 +67,23 @@ costs nothing at import time and changes every score in the roster. The
 tripwire against re-added enforcement survives; the guard against silent
 deletion does not.
 
-### 3. Per-metric arithmetic
+### 3. Per-metric arithmetic, the families outside the wedge
 **Was:** `test_metrics.py` — hand-computed cases for doom loop, Rome gap,
-monetary dilution, real policy rate, precommitted share, wage-productivity gap,
-dependency trajectory, rolling vol, FX monthly returns, suppressed-vol flag and
-instrument quality. Each was computed from the docstring's stated definition
-rather than from the code, so it failed if the definition drifted.
+precommitted share, wage-productivity gap, dependency trajectory, FX monthly
+returns, suppressed-vol flag and instrument quality. Each was computed from the
+docstring's stated definition rather than from the code, so it failed if the
+definition drifted.
 
 **Still guarded:** the coercion guard (absent → `None`, never a fabricated
 zero; `True` is not a number; NaN is absence), no metric consulting another
-country, and oracle cases for `conversion_loss` and `frictional_extraction`
-(`test_util.py`).
+country, and full oracles for `conversion_loss`, `frictional_extraction`,
+`rolling_vol`, `monetary_dilution` and `real_policy_rate` — the headline wedge
+and the volatility measures (`test_util.py`).
 
-**Risk:** a slip in any of the eleven unguarded families produces a well-formed
-payload and a confident score built on a wrong wedge.
+**Risk:** a slip in any of the eight remaining families produces a well-formed
+payload and a confident score. `precommitted_share` is the one worth re-adding
+next: it is the only metric that marks a partial sum rather than imputing it,
+and that flag is a promise the module's docstring makes.
 
 ---
 

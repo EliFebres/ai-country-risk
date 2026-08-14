@@ -16,6 +16,7 @@ No network, no database, no clock: every store is passed in.
 
 import datetime as _dt
 import inspect
+import math
 from datetime import date, datetime, timedelta, timezone
 
 import pandas as pd
@@ -245,6 +246,20 @@ class TestTheWedge:
         assert metrics.frictional_extraction(34.0, 0.22) == pytest.approx(7.48, abs=1e-6)
         assert metrics.frictional_extraction(45.0, 0.0) == pytest.approx(0.0, abs=1e-6)
 
+    def test_frictional_extraction_composes_with_conversion_loss(self):
+        # The two halves of the wedge, end to end: a 1.2 GE z-score and 0.18
+        # corruption give a 0.22 loss, and 34% of GDP through it is 7.48%.
+        loss = metrics.conversion_loss(1.2, 0.18)
+        assert metrics.frictional_extraction(34.0, loss) == pytest.approx(7.48, abs=1e-6)
+
+    def test_zero_take_is_no_friction(self):
+        assert metrics.frictional_extraction(0.0, 0.9) == pytest.approx(0.0, abs=1e-6)
+
+    @pytest.mark.parametrize(("take", "loss"),
+                             [(None, 0.2), (30.0, None), (None, None)])
+    def test_frictional_extraction_missing_half_is_none(self, take, loss):
+        assert metrics.frictional_extraction(take, loss) is None
+
     def test_no_metric_consults_any_other_country(self):
         # The whole point of dropping roster normalization: the same inputs give
         # the same answer regardless of call order or surrounding data.
@@ -252,6 +267,79 @@ class TestTheWedge:
         metrics.conversion_loss(-2.0, 0.9)
         metrics.conversion_loss(2.4, 0.02)
         assert metrics.conversion_loss(1.2, 0.18) == first
+
+
+class TestMonetaryDilution:
+    def test_hand_computed(self):
+        assert metrics.monetary_dilution(14.5, 2.3) == pytest.approx(12.2, abs=1e-6)
+
+    def test_negative_when_output_outpaces_money(self):
+        assert metrics.monetary_dilution(1.5, 4.0) == pytest.approx(-2.5, abs=1e-6)
+
+    @pytest.mark.parametrize(("money", "output"),
+                             [(None, 2.0), (10.0, None), (None, None)])
+    def test_missing_half_is_none(self, money, output):
+        assert metrics.monetary_dilution(money, output) is None
+
+
+class TestRealPolicyRate:
+    def test_hand_computed_positive(self):
+        assert metrics.real_policy_rate(11.25, 4.8) == pytest.approx(6.45, abs=1e-6)
+
+    def test_deeply_negative(self):
+        assert metrics.real_policy_rate(8.5, 61.2) == pytest.approx(-52.7, abs=1e-6)
+
+    def test_zero_rate_is_a_reading_not_an_absence(self):
+        assert metrics.real_policy_rate(0.0, 2.4) == pytest.approx(-2.4, abs=1e-6)
+
+    @pytest.mark.parametrize(("rate", "cpi"),
+                             [(None, 2.0), (5.0, None), (None, None)])
+    def test_missing_half_is_none(self, rate, cpi):
+        assert metrics.real_policy_rate(rate, cpi) is None
+
+
+class TestRollingVol:
+    """Coverage floor is the load-bearing part: thin windows must not report."""
+
+    def test_hand_computed_sample_stdev(self):
+        # sample stdev of [2, 4, 4, 4, 5, 5, 7, 9] = sqrt(32/7) = 2.13809...
+        assert metrics.rolling_vol([2, 4, 4, 4, 5, 5, 7, 9], 8) == \
+            pytest.approx(math.sqrt(32.0 / 7.0), abs=1e-6)
+
+    def test_only_the_trailing_window_is_used(self):
+        # The leading 100s are outside the window and must not affect the answer.
+        series = [100, 100, 100, 2, 4, 4, 4, 5, 5, 7, 9]
+        assert metrics.rolling_vol(series, 8) == \
+            pytest.approx(math.sqrt(32.0 / 7.0), abs=1e-6)
+
+    def test_coverage_floor_exactly_met(self):
+        # window 4, coverage floor 3.0, three present -> reports.
+        assert metrics.rolling_vol([1.0, None, 3.0, 5.0], 4) is not None
+
+    def test_below_coverage_floor_is_none(self):
+        # window 4, coverage floor 3.0, two present -> "we don't know".
+        assert metrics.rolling_vol([1.0, None, None, 5.0], 4) is None
+
+    def test_short_series_is_none(self):
+        # 5 observations cannot support a 36-month volatility.
+        assert metrics.rolling_vol([1.0, 2.0, 3.0, 4.0, 5.0], 36) is None
+
+    def test_constant_series_is_zero_volatility(self):
+        assert metrics.rolling_vol([3.0] * 24, 24) == pytest.approx(0.0, abs=1e-6)
+
+    def test_single_usable_point_is_none(self):
+        assert metrics.rolling_vol([4.0, None], 2) is None
+
+    @pytest.mark.parametrize("series", [None, [], ()])
+    def test_empty_series_is_none(self, series):
+        assert metrics.rolling_vol(series, 24) is None
+
+    @pytest.mark.parametrize("window", [0, 1, -5, None, True, 2.5, "24"])
+    def test_unusable_window_is_none_not_an_exception(self, window):
+        assert metrics.rolling_vol([1.0, 2.0, 3.0], window) is None
+
+    def test_non_numeric_entries_are_gaps(self):
+        assert metrics.rolling_vol(["x", "y", "z", "w"], 4) is None
 
 
 # ---------------------------------------------------------------------------

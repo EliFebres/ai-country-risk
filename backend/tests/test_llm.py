@@ -31,7 +31,7 @@ from backend.utils.ai import langchain_llm as llm
 from backend.utils.ai import policy
 from backend.utils.data_fetching import curated_loader
 from backend.utils.history import config
-from backend.utils.masking import gazetteer, rewrite
+from backend.utils.masking import gazetteer, probe, rewrite
 
 AS_OF = date(2024, 5, 6)
 SANCTIONED_DAY = date(2023, 1, 1)   # after Russia's effective_from (2022-06-06)
@@ -932,3 +932,211 @@ class TestTheSchemaIsStrict:
         # had snapshots scored under it, so each gets its own stamp rather than
         # rewriting history under the previous wording.
         assert ai_constants.PROMPT_VERSION == "v4.0-masked-production"
+
+
+# ---------------------------------------------------------------------------
+# The identifiability probe — the meter that says whether masking held
+# ---------------------------------------------------------------------------
+#
+# Everything above asserts that masking *ran*. This asserts that the instrument
+# measuring whether it *worked* is itself sound. A probe that scores leniently
+# reports a clean corpus that is leaking, and nothing else in the suite catches
+# that — which is why it survived the cut ahead of everything else.
+
+
+class _ProbeChat:
+    """Stands in for `ai_client.build_digest_chat(...)`."""
+
+    def __init__(self, result=None, raises=None):
+        self._result, self._raises = result, raises
+        self.prompts = []
+
+    def with_structured_output(self, schema=None, strict=False):
+        return self
+
+    def invoke(self, prompt):
+        self.prompts.append(prompt)
+        if self._raises:
+            raise self._raises
+        return self._result
+
+
+def _probe_item(**over):
+    base = dict(
+        title="Turkey's central bank holds rates as the lira slides",
+        snippet="Ankara held rates on Wednesday.",
+        text="The Central Bank of Turkey held rates at 24% on Wednesday in Ankara.",
+        link="https://www.theguardian.com/world/2018/mar/14/turkey-lira-central-bank",
+        _theme="order",
+    )
+    base.update(over)
+    return base
+
+
+class TestTheProbeReadsAnAnswer:
+    def test_it_returns_a_guess(self):
+        chat = _ProbeChat({"country": "TR", "confidence": 0.8,
+                           "evidence": "85% inflation",
+                           "alternatives": [{"country": "TR", "probability": 0.7},
+                                            {"country": "AR", "probability": 0.2}],
+                           "insufficient_information": False})
+        got = probe.probe([_probe_item()], "k", model_chat=chat)
+        assert got["country"] == "TR" and got["confidence"] == 0.8
+        assert got["alternatives"][0] == {"country": "TR", "probability": 0.7}
+        assert got["insufficient_information"] is False
+
+    def test_a_model_that_omits_the_distribution_still_parses(self):
+        """The distribution is new; a stray response without it must degrade to
+        an empty list rather than taking the probe down."""
+        chat = _ProbeChat({"country": "TR", "confidence": 0.8, "evidence": "x"})
+        got = probe.probe([_probe_item()], "k", model_chat=chat)
+        assert got["alternatives"] == [] and got["insufficient_information"] is False
+
+    def test_a_malformed_alternative_is_dropped_not_fatal(self):
+        chat = _ProbeChat({"country": "TR", "confidence": 0.5, "evidence": "x",
+                           "alternatives": [{"country": "TR", "probability": "high"},
+                                            {"country": "BR", "probability": 0.3},
+                                            "nonsense"]})
+        got = probe.probe([_probe_item()], "k", model_chat=chat)
+        assert got["alternatives"] == [{"country": "BR", "probability": 0.3}]
+
+    def test_insufficient_information_is_carried_through(self):
+        """The answer that lets a prior admit it is a prior. Losing it would put
+        the meter back to reporting base rates as identifications."""
+        chat = _ProbeChat({"country": "US", "confidence": 0.4,
+                           "evidence": "base rates", "insufficient_information": True})
+        assert probe.probe([_probe_item()], "k",
+                           model_chat=chat)["insufficient_information"]
+
+    def test_the_bundle_never_contains_urls(self):
+        # ".../2018/mar/14/turkey-lira-central-bank" would hand over the answer.
+        chat = _ProbeChat({"country": "ZZ", "confidence": 0.1, "evidence": "-"})
+        probe.probe([_probe_item()], "k", model_chat=chat)
+        assert "theguardian.com" not in chat.prompts[0]
+
+    def test_a_failed_probe_is_not_recorded_as_an_identification(self):
+        # The opposite of the leakage scan's fail-closed: this is a
+        # measurement, and a failed measurement must not read as a hit.
+        got = probe.probe([_probe_item()], "k",
+                          model_chat=_ProbeChat(raises=RuntimeError("model down")))
+        assert got["country"] == "ZZ" and got["confidence"] == 0.0
+
+    def test_an_empty_bundle_is_not_a_guess(self):
+        assert probe.probe([], "k")["country"] == "ZZ"
+
+
+class TestTheFourOutcomes:
+    """Two buckets misread this corpus in both directions.
+
+    PT on a quiet week came back "GB at 0.70". Counting only correct hits calls
+    that a clean miss and understates what the bundle carried — the text was
+    legible enough to place confidently in Western Europe. Counting confidence
+    alone calls it a leak and overstates it — masking held; the model named the
+    wrong country.
+    """
+
+    def test_a_correct_confident_guess_is_identified(self):
+        assert probe.classify("TR", {"country": "TR", "confidence": 0.85}) == "identified"
+
+    def test_a_wrong_confident_guess_is_its_own_category(self):
+        """PT 2021-07-05, exactly."""
+        assert probe.classify("PT", {"country": "GB", "confidence": 0.70}) == "wrong"
+
+    def test_a_declined_guess_is_no_guess(self):
+        assert probe.classify("PT", {"country": "ZZ", "confidence": 0.0}) == "no_guess"
+
+    def test_insufficient_information_is_no_guess_even_when_named(self):
+        """The model may name a country and say it is guessing from base rates.
+        That is not an identification and must not be counted as one."""
+        assert probe.classify("PT", {"country": "US", "confidence": 0.4,
+                                     "insufficient_information": True}) == "no_guess"
+
+    def test_a_low_confidence_correct_guess_is_uncertain_not_identified(self):
+        assert probe.classify("KR", {"country": "KR", "confidence": 0.2}) == "uncertain"
+
+    def test_the_summary_carries_all_four(self):
+        got = probe.summarize([
+            {"country_iso2": "PT", "guess": {"country": "GB", "confidence": 0.7}},
+            {"country_iso2": "PT", "guess": {"country": "ZZ", "confidence": 0.0}},
+            {"country_iso2": "TR", "guess": {"country": "TR", "confidence": 0.9}},
+        ])
+        assert got["totals"] == {"identified": 1, "wrong": 1,
+                                 "uncertain": 0, "no_guess": 1}
+        # PT was never identified and was placed once: two different facts, and
+        # the old single rate could express only the first.
+        assert got["per_country"]["PT"]["rate"] == 0.0
+        assert got["per_country"]["PT"]["placed_rate"] == 0.5
+
+
+class TestTheSpreadIsTheMeter:
+    def test_hit_rates_are_per_country(self):
+        got = probe.summarize([
+            {"country_iso2": "US", "guess": {"country": "US", "confidence": 0.9}},
+            {"country_iso2": "US", "guess": {"country": "US", "confidence": 0.9}},
+            {"country_iso2": "PT", "guess": {"country": "ZZ", "confidence": 0.1}},
+            {"country_iso2": "PT", "guess": {"country": "ES", "confidence": 0.3}},
+        ])
+        assert got["per_country"]["US"]["rate"] == 1.0
+        assert got["per_country"]["PT"]["rate"] == 0.0
+
+    def test_the_spread_is_the_meter_not_any_single_rate(self):
+        # The US is expected at the ceiling. If every country sits up there
+        # with it, masking is not working.
+        got = probe.summarize([
+            {"country_iso2": "US", "guess": {"country": "US", "confidence": 0.9}},
+            {"country_iso2": "PT", "guess": {"country": "ZZ", "confidence": 0.1}},
+        ])
+        assert got["ceiling"] == 1.0 and got["spread"] == 1.0
+
+    def test_no_results_is_not_a_crash(self):
+        assert probe.summarize([])["spread"] == 0.0
+
+
+class TestTheControlArm:
+    """Every identifiability number is unreadable without this.
+
+    A probe forced to name a country names the one its prior favours, and on a
+    roster containing the United States that is the United States — so "US
+    identified at 0.85" and "the model always says US" produce identical output.
+    The null bundle is the only thing that separates them.
+    """
+
+    def test_the_null_bundle_names_no_country(self):
+        blob = json.dumps(probe.null_bundle(20), ensure_ascii=False)
+        assert gazetteer.scan(blob, list(gazetteer.DEFAULT_ROSTER)) == []
+
+    def test_it_matches_a_real_snapshots_size(self):
+        """A six-article bundle and a twenty-article one are not the same test:
+        volume is itself a signal the probe uses."""
+        assert len(probe.null_bundle(20)) == 20
+        assert len(probe.null_bundle(7)) == 7
+
+    def test_it_keeps_numbers_because_magnitudes_are_the_signal(self):
+        """Stripping the numbers would make the control easier than the thing it
+        is a control for — the probe cites magnitudes when it names the US."""
+        assert any(any(ch.isdigit() for ch in it["digest"]["numbers"])
+                   for it in probe.null_bundle(6))
+
+    def test_it_has_the_shape_the_prompt_builder_expects(self):
+        entries = probe.bundle_text(probe.null_bundle(4))
+        assert entries and "central bank" in entries
+
+    def test_the_distribution_exposes_an_over_named_country(self):
+        results = [{"country_iso2": c, "guess": {"country": "US", "confidence": 0.9}}
+                   for c in ("US", "TR", "BR", "PT")]
+        got = probe.distribution(results)
+        assert got["guessed"]["US"] == 4
+        # Named in 4 of 4 while being the truth in 1 of 4: the prior, visible.
+        assert got["over_representation"]["US"] == 0.75
+
+    def test_a_calibrated_probe_shows_no_over_representation(self):
+        results = [{"country_iso2": c, "guess": {"country": c, "confidence": 0.9}}
+                   for c in ("US", "TR", "BR", "PT")]
+        assert set(probe.distribution(results)["over_representation"].values()) == {0.0}
+
+    def test_insufficient_information_is_counted(self):
+        results = [{"country_iso2": "PT",
+                    "guess": {"country": "US", "insufficient_information": True}},
+                   {"country_iso2": "PT",
+                    "guess": {"country": "PT", "insufficient_information": False}}]
+        assert probe.distribution(results)["insufficient_information"] == 1
