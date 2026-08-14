@@ -19,13 +19,17 @@ costs a ten-year series.
 No network: the chat object is injected.
 """
 
+import contextlib
+import inspect
 import json
 from datetime import date
 
 import pytest
+from psycopg2 import extras
 
 from backend.utils import pipeline
 from backend.utils.ai import langchain_llm as llm
+from backend.utils.data_upsert import data_push
 from backend.utils.masking import gazetteer, rewrite
 
 AS_OF = date(2024, 5, 6)
@@ -418,6 +422,95 @@ class TestTheProductionProbe:
                        % pipeline._PROBE_EVERY_NTH_COUNTRY == 0)
         got = pipeline._identifiability([{"title": "x"}], sampled, AS_OF)
         assert got["country"] == "PT" and got["confidence"] == 1.0
+
+    def test_the_call_binds_against_the_real_writer(self, monkeypatch):
+        """Every stub above takes ``*a, **kw``, and the database does not.
+
+        The call site omitted ``probe_version`` — keyword-only, no default, and
+        part of the row's primary key, so it could not have been defaulted away.
+        That raised ``TypeError`` before the writer's own try/except could see
+        it, out of an expression evaluated inside the ``masking=`` argument to
+        ``build_input_manifest``, where the manifest's except swallowed it and
+        wrote ``input_manifest = NULL``.
+
+        So one masked snapshot in six lost its whole provenance — article
+        hashes, mask versions, stage-1 health, the lot — to a missing keyword,
+        and the probe it had just paid for was discarded on the way to the
+        table. A permissive stub can never catch that. This one binds.
+        """
+        signature = inspect.signature(data_push.upsert_probe_result)
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(pipeline.probe, "probe",
+                            lambda *_a, **_k: {"country": "PT", "confidence": 0.8,
+                                               "evidence": "the Douro"})
+        monkeypatch.setattr(pipeline.data_push, "upsert_probe_result",
+                            lambda *a, **kw: signature.bind(*a, **kw))
+        sampled = next(iso2 for iso2 in ("US", "TR", "BR", "PT", "KR", "IN", "JP", "DE")
+                       if pipeline.zlib.crc32(f"{iso2}:{AS_OF.toordinal()}".encode())
+                       % pipeline._PROBE_EVERY_NTH_COUNTRY == 0)
+        pipeline._identifiability([{"title": "x"}], sampled, AS_OF)
+
+
+class TestTheProbeKeepsItsDistribution:
+    """The top three were asked for, validated, returned — and dropped.
+
+    `_PROBE_SCHEMA` requires three ranked countries with probabilities and a
+    flag saying the model is guessing; `probe()` truncates and returns both.
+    `probe_result` stored neither, so twenty-six paid-for measurements kept only
+    their argmax, and a row reading `ZZ @ 0.00` could not be told apart from a
+    failed API call. Same shape as the WEO loader writing rows nothing read and
+    the probe leaving no trace: computed, then dropped.
+    """
+
+    GUESS = {
+        "country": "ZZ", "confidence": 0.0, "evidence": "no country is named",
+        "insufficient_information": True,
+        "alternatives": [{"country": "PT", "probability": 0.4},
+                         {"country": "ES", "probability": 0.3},
+                         {"country": "GB", "probability": 0.2}],
+    }
+
+    def _captured(self, monkeypatch, guess):
+        """Run the writer against a cursor that records instead of executing."""
+        statements = []
+
+        class Recorder:
+            def execute(self, sql, params=None):
+                statements.append((sql, params))
+
+        @contextlib.contextmanager
+        def fake_transaction():
+            yield Recorder()
+
+        monkeypatch.setattr(data_push, "_transaction", fake_transaction)
+        data_push.upsert_probe_result(
+            "PT", AS_OF, guess, mask_map_version="g5", sweep_version="s",
+            probe_model="m", probe_version="p", n_articles=20)
+        # The DDL is statement one; the INSERT is the one carrying parameters.
+        return next((sql, params) for sql, params in statements if params)
+
+    def test_the_alternatives_reach_the_insert(self, monkeypatch):
+        sql, params = self._captured(monkeypatch, self.GUESS)
+        assert "alternatives" in sql and "insufficient_information" in sql
+        # Wrapped for JSONB rather than str()'d — a Python repr with single
+        # quotes is not JSON and Postgres would take it as text.
+        stored = next(p for p in params if isinstance(p, extras.Json))
+        assert stored.adapted == self.GUESS["alternatives"]
+        assert True in params, "the insufficient_information flag was dropped"
+
+    def test_no_alternatives_is_null_rather_than_an_empty_list(self, monkeypatch):
+        """An older probe offered none. NULL says "not measured"; `[]` says
+        "measured, and the model named nobody", and those are different."""
+        _, params = self._captured(monkeypatch, {"country": "PT", "confidence": 0.9})
+        assert not any(isinstance(p, extras.Json) for p in params)
+
+    def test_the_insert_lists_as_many_columns_as_it_passes(self, monkeypatch):
+        """The bug this class exists for was a keyword that went missing between
+        two lines. Counting placeholders is the cheapest guard against the same
+        thing happening to a column."""
+        sql, params = self._captured(monkeypatch, self.GUESS)
+        columns = sql.split("(", 1)[1].split(")", 1)[0]
+        assert len(columns.split(",")) == len(params) + 1, "now() is the spare"
 
 
 class TestTheFullTextRewriteCache:

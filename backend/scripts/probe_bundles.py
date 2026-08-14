@@ -211,6 +211,13 @@ def leaking_text(result: dict, iso2: str) -> list:
     return out
 
 
+def _alternatives(guess: dict) -> str:
+    """The ranked top-3 as one line, or a note that the probe offered none."""
+    alts = guess.get("alternatives") or []
+    return ", ".join(f"{a.get('country')}={float(a.get('probability') or 0):.2f}"
+                     for a in alts) or "none offered"
+
+
 def run(bundles: list, label: str, show_leaks: bool) -> None:
     """Probe every bundle, store each result, and print the diff."""
     api_key = os.getenv("OPENAI_API_KEY")
@@ -247,6 +254,11 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
                   f"conf={guess.get('confidence'):.2f}  "
                   f"{'IDENTIFIED' if hit else 'not identified'}"
                   f"{'  DEGRADED=' + str(len(outcome['degraded'])) if outcome['degraded'] else ''}")
+            # The top-3, not just the argmax. A bundle the probe ranks the truth
+            # second at 0.45 is not masked, and every line above this one reports
+            # it as a clean miss.
+            print(f"      top-3   : {_alternatives(guess)}"
+                  f"{'  (insufficient_information)' if guess.get('insufficient_information') else ''}")
             print(f"      evidence: {str(guess.get('evidence'))[:220]}")
             if hit:
                 still_named.append((iso2, as_of, outcome))
@@ -345,12 +357,10 @@ def run_control(repeats: int, size: int) -> None:
             bundle = probe.null_bundle(size)
             guess = probe.probe(bundle, api_key)
             results.append({"country_iso2": "ZZ", "guess": guess})
-            alts = ", ".join(f"{a['country']}={a['probability']:.2f}"
-                             for a in guess.get("alternatives") or [])
             print(f"  [{i + 1}] guess={guess.get('country'):<3} "
                   f"conf={guess.get('confidence'):.2f}  "
                   f"insufficient={str(guess.get('insufficient_information')):<5} "
-                  f"[{alts}]")
+                  f"[{_alternatives(guess)}]")
             print(f"      {str(guess.get('evidence'))[:200]}")
 
     print(f"\n  metered spend: ${meter.spend_usd:.4f} ({meter.calls} calls)")

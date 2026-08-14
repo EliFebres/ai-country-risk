@@ -198,11 +198,22 @@ def _identifiability(items: List[Dict], iso2: str, as_of: date,
     # exists where a snapshot does; this one is queryable across masking
     # versions, which is what a re-probe needs to diff against. The last probe
     # run left its results in a commit message and six incidental cache rows.
+    #
+    # `probe_version` is not optional and never was: it is part of the row's
+    # primary key, so a row without it cannot be told apart from one probed by a
+    # different prompt. Omitting it did not degrade the measurement — it raised
+    # `TypeError` before the writer's own try/except could see it, out of an
+    # expression being evaluated inside the `masking=` argument to
+    # `build_input_manifest`, where the manifest's own except swallowed it and
+    # wrote `input_manifest = NULL`. One in six masked snapshots therefore lost
+    # its entire provenance to a missing keyword argument, silently, and the
+    # tests missed it because they stub this writer with `lambda *a, **kw`.
     data_push.upsert_probe_result(
         iso2, as_of, guess,
         mask_map_version=gazetteer.MASK_MAP_VERSION,
         sweep_version=rewrite.SWEEP_VERSION,
         probe_model=ai_client.DIGEST_MODEL_NAME,
+        probe_version=probe.PROBE_VERSION,
         n_articles=len(items),
     )
     return guess

@@ -1635,6 +1635,14 @@ def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, D
 # `SWEEP_VERSION` is that `mask_map_version` does not identify a masking
 # behaviour on its own — two sweeps shared g5 — so a key without it would let a
 # re-probe silently overwrite the baseline it was supposed to be compared with.
+#
+# `alternatives` and `insufficient_information` were computed and dropped. The
+# schema asks the model for its three most likely countries with probabilities
+# and for a flag saying it is guessing; `probe()` validates both and returns
+# them; this table stored neither. So a run cost real money to measure a
+# distribution and kept only its argmax, and a stored `ZZ @ 0.0` could not be
+# told apart from a failed call. The first 26 rows are that loss, and they
+# cannot be recovered — the only fix is to stop repeating it.
 
 _PROBE_RESULT_DDL = """
 CREATE TABLE IF NOT EXISTS probe_result (
@@ -1654,6 +1662,9 @@ CREATE TABLE IF NOT EXISTS probe_result (
   PRIMARY KEY (country_iso2, as_of, mask_map_version, sweep_version,
                probe_model, probe_version)
 );
+ALTER TABLE probe_result
+  ADD COLUMN IF NOT EXISTS alternatives              JSONB,
+  ADD COLUMN IF NOT EXISTS insufficient_information  BOOLEAN;
 """
 
 
@@ -1676,9 +1687,12 @@ def upsert_probe_result(
             have changed.
         as_of: the bundle's anchor.
         guess: a ``masking.probe.probe`` result — ``{country, confidence,
-            evidence}``. The evidence string is kept in full: "which country is
-            this" is answered by the guess, but "why did masking fail here" is
-            only ever answered by the text it quoted back.
+            evidence, alternatives, insufficient_information}``. The evidence
+            string is kept in full: "which country is this" is answered by the
+            guess, but "why did masking fail here" is only ever answered by the
+            text it quoted back. The ranked alternatives are kept for the same
+            reason in a different direction: a bundle the probe places second at
+            0.45 is not masked, and the argmax alone says it is.
         mask_map_version, sweep_version: the masking behaviour being measured.
             Both, for the reason in this section's comment.
         probe_model: the model that guessed, since a cheaper or smarter probe
@@ -1699,18 +1713,21 @@ def upsert_probe_result(
                 INSERT INTO probe_result
                   (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
                    probe_version, guess, confidence, evidence, identified,
+                   alternatives, insufficient_information,
                    n_articles, git_sha, probed_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
                 ON CONFLICT (country_iso2, as_of, mask_map_version, sweep_version,
                              probe_model, probe_version)
                 DO UPDATE SET
-                  guess      = EXCLUDED.guess,
-                  confidence = EXCLUDED.confidence,
-                  evidence   = EXCLUDED.evidence,
-                  identified = EXCLUDED.identified,
-                  n_articles = EXCLUDED.n_articles,
-                  git_sha    = EXCLUDED.git_sha,
-                  probed_at  = EXCLUDED.probed_at
+                  guess        = EXCLUDED.guess,
+                  confidence   = EXCLUDED.confidence,
+                  evidence     = EXCLUDED.evidence,
+                  identified   = EXCLUDED.identified,
+                  alternatives = EXCLUDED.alternatives,
+                  insufficient_information = EXCLUDED.insufficient_information,
+                  n_articles   = EXCLUDED.n_articles,
+                  git_sha      = EXCLUDED.git_sha,
+                  probed_at    = EXCLUDED.probed_at
                 """,
                 (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
                  probe_version,
@@ -1718,6 +1735,8 @@ def upsert_probe_result(
                  float(guess.get("confidence") or 0.0),
                  str(guess.get("evidence") or ""),
                  str(guess.get("country") or "").upper() == country_iso2.upper(),
+                 _json_or_none(guess.get("alternatives") or None),
+                 bool(guess.get("insufficient_information")),
                  n_articles, os.environ.get("GIT_SHA") or None),
             )
     except Exception:
@@ -1747,6 +1766,7 @@ def read_probe_results(country_iso2: Optional[str] = None,
         cur.execute(f"""
             SELECT country_iso2, as_of, mask_map_version, sweep_version, probe_model,
                    probe_version, guess, confidence, evidence, identified,
+                   alternatives, insufficient_information,
                    n_articles, git_sha, probed_at
               FROM probe_result {clause}
              ORDER BY as_of DESC, country_iso2
