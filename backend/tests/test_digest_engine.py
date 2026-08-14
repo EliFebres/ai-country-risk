@@ -543,7 +543,7 @@ class TestTheRunawayRetry:
 class TestTheDigestOutputIsCapped:
     def test_the_digest_chat_caps_its_output(self):
         """Uncapped, a loop costs $0.0098; capped it costs $0.0006. Over a
-        2,615-snapshot pilot that is ~$12 of pure waste against a $130 guard."""
+        2,188-snapshot pilot that is ~$10 of pure waste against a $130 guard."""
         from backend.utils.ai import client as ai_client
 
         assert ai_client._DIGEST_MAX_TOKENS <= 2048

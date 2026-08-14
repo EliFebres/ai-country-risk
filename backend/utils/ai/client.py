@@ -46,8 +46,8 @@ def build_chat(api_key: str) -> ChatOpenAI:
 # and the article ends up degraded either way; the cap decides only whether the
 # loop costs $0.0098 or $0.0006.
 #
-# Over a 2,615-snapshot pilot at the observed failure rate that is the difference
-# between roughly $12 of pure waste and roughly $0.75, against a $130 guard.
+# Over a 2,188-snapshot pilot at the observed failure rate that is the difference
+# between roughly $10 of pure waste and roughly $0.65, against a $130 guard.
 _DIGEST_MAX_TOKENS = 1024
 
 

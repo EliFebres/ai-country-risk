@@ -61,7 +61,9 @@ class TestAnchors:
                                  datetime.date(2019, 12, 31))) == 52
 
     def test_ten_years_is_the_pilot_size(self):
-        """~522 per country x 5 is the 2,610 the budget was built on."""
+        """523 per country x 4 is the 2,092 masked snapshots the budget is built
+        on; the two diagnostic arms add 96 on top of it. It was x 5 and 2,610
+        until BR came out at the projection."""
         days = score.anchors(datetime.date.fromisoformat(config.PILOT_START),
                              datetime.date(2026, 8, 3))
         assert 515 <= len(days) <= 530
@@ -131,7 +133,7 @@ class TestFailureIsRecordedNotRaised:
 
         A masked snapshot that names its country is mislabelled rather than
         degraded, so refusing to send it is right. Refusing to send it at anchor
-        1,800 of 2,615 and taking the other 815 with it is not — and the euro
+        1,500 of 2,188 and taking the other 688 with it is not — and the euro
         symbol that survived the foreign pass would have raised this on any
         bundle quoting a foreign currency figure, which is not a rare bundle.
         """
@@ -347,7 +349,7 @@ class TestProjection:
     def test_the_refusal_says_how_to_get_a_real_one(self, monkeypatch):
         monkeypatch.setattr(score.store, "read_runs", lambda mode=None: [])
         with pytest.raises(score.NoObservedCost, match="gate-2"):
-            score.projection(2615)
+            score.projection(2188)
 
     def test_it_prices_one_arm_when_asked(self, monkeypatch):
         """The arms are not interchangeable — the diagnostic ones reuse their

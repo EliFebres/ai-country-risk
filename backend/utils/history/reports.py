@@ -182,7 +182,7 @@ def evidence_texture(roster: Optional[List[str]] = None) -> Dict[str, Any]:
     """Source mix and the full-vs-abstract split, per country per year.
 
     Read from the article manifests the masked runs already store, so this
-    costs a query rather than a re-assembly of 2,610 snapshots. A divergence
+    costs a query rather than a re-assembly of 2,092 snapshots. A divergence
     that tracks the abstract share is a statement about evidence thinness, not
     about masking, and this is how that gets ruled in or out.
     """
