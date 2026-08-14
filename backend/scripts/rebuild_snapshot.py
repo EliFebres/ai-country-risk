@@ -80,9 +80,25 @@ def rebuild(iso2: str, as_of: datetime.date) -> dict:
         recent=data_push.read_recent_indicators(iso2),
         fx_regimes=constants.FX_REGIMES, elections=constants.ELECTIONS,
         vintage_as_of=as_of)
+    # Two payloads, and the manifest wants the other one. `macro_vintages` reads
+    # `_meta` and `indicators`, which live on the *panel* payload — the evidence
+    # payload has neither, so passing it here made every block of vintage
+    # metadata come back None and the diff report `DIFFERS` on every row ever
+    # written. A verifier that always fails is not a verifier, and it fails in
+    # the direction that reads as "the store is broken".
+    #
+    # Built with `pipeline`'s own constants and its one `generated_at` pin, so
+    # the rebuild reads the same panel the scorer did rather than one assembled
+    # to look similar.
+    panel = dr.prepare_llm_payload_pretty(
+        country_iso=iso2, indicators=constants.ALL_INDICATORS,
+        since=pipeline._PAYLOAD_SINCE_YEAR,
+        lookback=pipeline._PAYLOAD_LOOKBACK_YEARS,
+        deltas=pipeline._PAYLOAD_DELTA_HORIZONS)
+    panel.setdefault("_meta", {})["generated_at"] = as_of.isoformat()
     return provenance.build_input_manifest(
         items=scored, prompt_entries=langchain_llm.prompt_entries(scored),
-        fulltext_ids=fulltext_ids, payload=evidence,
+        fulltext_ids=fulltext_ids, payload=panel,
         model_id=ai_client.MODEL_NAME, prompt_version=None, policy_version=None,
         seed=ai_client.SEED,
         masking={"scoring_mode": "masked",
@@ -102,6 +118,23 @@ def main() -> None:
     if not old:
         print(f"no stored manifest for {iso2} {as_of}")
         return
+
+    # Refuse before spending, rather than reporting a mismatch after. The sweep
+    # version is a prefix inside every masked digest's cache key, so a row
+    # written under a different one has no reachable digests at all: the rebuild
+    # would call the model for all twenty articles, produce prose the stored row
+    # never contained, and report a drift it had just created. Costing money to
+    # manufacture a failure is worse than declining to check.
+    stored_sweep = (old.get("masking") or {}).get("sweep_version")
+    if stored_sweep and stored_sweep != rewrite.SWEEP_VERSION:
+        print(f"\n{iso2} {as_of} was written under sweep {stored_sweep}; this "
+              f"tree is {rewrite.SWEEP_VERSION}. Every masked digest is keyed on "
+              f"that version, so nothing of this row is in the cache and a "
+              f"rebuild would re-digest it at full price to compare it against "
+              f"prose it never had. Not reproducible across a masking change, by "
+              f"construction — rebuild a row written by the current tree.")
+        return
+
     new = rebuild(iso2, as_of)
 
     print(f"\n=== rebuild {iso2} {as_of} ===")

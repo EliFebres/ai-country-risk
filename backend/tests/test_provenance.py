@@ -175,6 +175,40 @@ class TestMacroVintages:
         assert provenance.macro_vintages({})["vintage_scheme"] == "as-published-latest"
         assert provenance.macro_vintages(None)["latest_year_by_indicator"] == {}
 
+    def test_the_evidence_payload_is_the_wrong_one_and_says_so_in_nulls(self):
+        """Why the rebuild script has to build the panel payload itself.
+
+        There are two payloads in the pipeline. `build_evidence_payload` makes
+        the one the model reads as evidence; `prepare_llm_payload_pretty` makes
+        the panel, and only the panel carries `_meta` and `indicators`. Handed
+        the evidence payload, this function does not raise — it degrades every
+        field to None, so a rebuilt manifest diffs cleanly against nothing and
+        reports `DIFFERS` on a row that was fine. A silent None is the failure
+        mode worth pinning.
+        """
+        evidence_shaped = {"structural": {"a": 1}, "series": {}, "recent": {}}
+        got = provenance.macro_vintages(evidence_shaped)
+        assert got["panel_source"] is None
+        assert got["panel_generated_at"] is None
+        assert got["latest_year"] is None
+        assert got["latest_year_by_indicator"] == {}
+
+
+class TestTheRebuildScriptReadsTheSamePayloadTheScorerWrote:
+    """`rebuild_snapshot` is `input_manifest`'s only consumer, and it was
+    comparing a manifest built from the panel payload against one built from the
+    evidence payload. Every rebuild reported `macro_vintages DIFFERS`, on every
+    row, for a reason that had nothing to do with the row."""
+
+    def test_it_builds_the_panel_payload(self):
+        import inspect
+
+        from backend.scripts import rebuild_snapshot
+
+        source = inspect.getsource(rebuild_snapshot.rebuild)
+        assert "prepare_llm_payload_pretty" in source
+        assert "payload=panel" in source, "the manifest must get the panel"
+
 
 class TestBuildInputManifest:
     def _build(self, monkeypatch, **over):
