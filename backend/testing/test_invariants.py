@@ -33,7 +33,7 @@ from backend.llm import digest_engine, payload
 from backend.news_fetching import snapshot_select as sel
 from backend.llm import usage
 from backend.util import config, score
-from backend.data_upsert import store
+from backend.data_upsert import schema, store
 from backend.data_fetching.vintage import lags, restamp
 from backend.llm import gazetteer as gz, rewrite
 from backend.news_fetching import core
@@ -48,7 +48,7 @@ ROSTER = list(gz.DEFAULT_ROSTER)
 
 
 def row(**over):
-    """One `historical_article` row as `store.read_window` returns it."""
+    """One `article` row as `store.read_window` returns it."""
     base = dict(
         url="https://www.theguardian.com/world/2018/jun/01/story",
         publisher_link=None,
@@ -450,7 +450,7 @@ class TestNoRosterTermSurvivesForAnyCountry:
 
 @pytest.fixture
 def ledger(monkeypatch):
-    """An in-memory stand-in for `history_run_ledger`."""
+    """An in-memory stand-in for the snapshot rows of `run_ledger`."""
     rows = []
     monkeypatch.setattr(score.store, "write_run",
                         lambda as_of, iso2, mode, **kw: rows.append(
@@ -899,21 +899,16 @@ def db(monkeypatch):
     """Point the store at the test database and start from an empty table."""
     monkeypatch.setenv("DATABASE_URL", TEST_DB)
     with store._transaction() as cur:
-        cur.execute(store._HISTORICAL_ARTICLE_DDL)
-        cur.execute(store._HARVEST_CHECKPOINT_DDL)
-        cur.execute(store._RUN_LEDGER_DDL)
-        cur.execute(store._DIGEST_CACHE_DDL)
-        cur.execute("DELETE FROM historical_article")
-        cur.execute("DELETE FROM harvest_checkpoint")
-        cur.execute("DELETE FROM history_run_ledger")
-        cur.execute("DELETE FROM history_digest_cache")
+        schema.create_all(cur)
+        for table in ("article", "run_ledger", "llm_artifact", "snapshot_diagnostic"):
+            cur.execute(f"DELETE FROM {table}")
     return store
 
 
 def one(url=URL):
     with store._transaction() as cur:
         cur.execute("SELECT body, body_status, body_vintage, source_system, "
-                    "content_sha256 FROM historical_article WHERE url = %s", (url,))
+                    "content_sha256 FROM article WHERE url = %s", (url,))
         return cur.fetchone()
 
 
@@ -923,7 +918,7 @@ class TestTheWriteIsIdempotent:
         db.upsert_articles([article_row()])
         db.upsert_articles([article_row()])
         with store._transaction() as cur:
-            cur.execute("SELECT COUNT(*) FROM historical_article")
+            cur.execute("SELECT COUNT(*) FROM article")
             assert cur.fetchone()[0] == 1
 
     def test_a_checkpoint_upsert_is_idempotent(self, db):
@@ -931,7 +926,7 @@ class TestTheWriteIsIdempotent:
             db.write_checkpoint("guardian", "PT", datetime.date(2018, 1, 1),
                                 datetime.date(2018, 12, 31), items_written=n)
         with store._transaction() as cur:
-            cur.execute("SELECT COUNT(*) FROM harvest_checkpoint")
+            cur.execute("SELECT COUNT(*) FROM run_ledger WHERE job_type = 'harvest'")
             assert cur.fetchone()[0] == 1
 
 

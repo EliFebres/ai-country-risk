@@ -22,7 +22,7 @@ from datetime import date
 import pytest
 
 from backend.util import provenance
-from backend.data_upsert import store
+from backend.data_upsert import schema, store
 from backend.news_fetching import snapshot_select
 from backend.util import reports
 from backend.news_fetching import core
@@ -507,21 +507,16 @@ def db(monkeypatch):
     """Point the store at the test database and start from an empty table."""
     monkeypatch.setenv("DATABASE_URL", TEST_DB)
     with store._transaction() as cur:
-        cur.execute(store._HISTORICAL_ARTICLE_DDL)
-        cur.execute(store._HARVEST_CHECKPOINT_DDL)
-        cur.execute(store._RUN_LEDGER_DDL)
-        cur.execute(store._DIGEST_CACHE_DDL)
-        cur.execute("DELETE FROM historical_article")
-        cur.execute("DELETE FROM harvest_checkpoint")
-        cur.execute("DELETE FROM history_run_ledger")
-        cur.execute("DELETE FROM history_digest_cache")
+        schema.create_all(cur)
+        for table in ("article", "run_ledger", "llm_artifact", "snapshot_diagnostic"):
+            cur.execute(f"DELETE FROM {table}")
     return store
 
 
 def one(url=URL):
     with store._transaction() as cur:
         cur.execute("SELECT body, body_status, body_vintage, source_system, "
-                    "content_sha256 FROM historical_article WHERE url = %s", (url,))
+                    "content_sha256 FROM article WHERE url = %s", (url,))
         return cur.fetchone()
 
 

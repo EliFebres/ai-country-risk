@@ -1,6 +1,6 @@
-"""The article substrate: raw harvested text, and what we know about it.
+"""The article substrate, the run ledger, and the model-output cache.
 
-Three harvesters fill this table from three different archives, and a fourth
+Three harvesters fill `article` from three different archives, and a fourth
 stage goes back over it recovering the bodies the archives did not hand over.
 They all write through here, which is what lets one rule live in one place —
 notably the only rule that really matters at this layer:
@@ -16,22 +16,23 @@ get it wrong, and re-running a harvester is always safe.
 **Bodies here are raw and unmasked, always.** Masking is a transform applied at
 the scoring boundary, never at harvest: a masked body would make the mask map
 unversionable, and the store useless the day the gazetteer improves.
-``content_sha256`` therefore hashes the unmasked body, so the digest cache can
-key on ``(content_sha256, digest_model, mode)`` and hold the named and masked
+``content_sha256`` therefore hashes the unmasked body, so `llm_artifact` can key
+on ``(content_sha256, kind, version, mode)`` and hold the named and masked
 variants of one article side by side.
 
-Following the rest of the backend, this writer owns its DDL and issues
-``CREATE TABLE IF NOT EXISTS`` before writing — the project has no migration
-tool, and a self-provisioning table costs one cheap no-op per call.
+The DDL lives in :mod:`backend.data_upsert.schema`, not here. Every writer used
+to issue its own ``CREATE TABLE IF NOT EXISTS`` before writing, which meant the
+schema was defined in twenty places and a fresh clone could not build itself.
 """
 
 import datetime
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 import psycopg2.extras as extras
 
 from backend.util import provenance
 from backend.data_upsert import data_push
+from backend.data_upsert.schema import BODY_STATUSES  # noqa: F401  (re-exported)
 from backend.util import config
 from backend.news_fetching import core
 
@@ -46,38 +47,8 @@ _transaction = data_push._transaction
 # back to 'pending' and buy it a second (billable) leakage scan. Only
 # `mark_body` — the recovery stage, which is authoritative — may move a status
 # downward.
-BODY_STATUSES: Tuple[str, ...] = ("pending", "failed", "degraded-title-only", "recovered")
-_STATUS_RANK = "array_position(ARRAY['pending','failed','degraded-title-only','recovered'], %s)"
-
-_HISTORICAL_ARTICLE_DDL = """
-CREATE TABLE IF NOT EXISTS historical_article (
-  url             TEXT PRIMARY KEY,
-  publisher_link  TEXT,
-  country_iso2    TEXT NOT NULL,
-  source_system   TEXT NOT NULL,
-  published_at    TIMESTAMPTZ NOT NULL,
-  title           TEXT,
-  abstract        TEXT,
-  body            TEXT,
-  body_vintage    TEXT,
-  body_status     TEXT NOT NULL,
-  wayback_url     TEXT,
-  content_sha256  TEXT,
-  themes          TEXT[],
-  tier            TEXT NOT NULL DEFAULT 'full',
-  harvested_at    TIMESTAMPTZ NOT NULL
-);
-CREATE INDEX IF NOT EXISTS ix_histart_country_date
-  ON historical_article (country_iso2, published_at);
-"""
-
-_HARVEST_CHECKPOINT_DDL = """
-CREATE TABLE IF NOT EXISTS harvest_checkpoint (
-  source_system TEXT, country_iso2 TEXT, window_start DATE, window_end DATE,
-  status TEXT, items_written INT, note TEXT, updated_at TIMESTAMPTZ,
-  PRIMARY KEY (source_system, country_iso2, window_start)
-);
-"""
+_STATUS_RANK = ("array_position(ARRAY['"
+                + "','".join(BODY_STATUSES) + "'], %s)")
 
 
 # ---------------------------------------------------------------------------
@@ -98,7 +69,7 @@ def article_row(
     wayback_url: Optional[str] = None,
     harvested_at: Optional[datetime.datetime] = None,
 ) -> Dict[str, Any]:
-    """Map one canonical article item onto a ``historical_article`` row.
+    """Map one canonical article item onto an ``article`` row.
 
     Pure — no database, no clock unless you leave ``harvested_at`` to default —
     so an adapter's payload-to-row path is testable against a fixture.
@@ -108,7 +79,7 @@ def article_row(
             and topped up by ``core.classify_themes``, so a row always carries
             every theme its text supports, not only the query that found it.
         country_iso2: the country this harvest was for.
-        source_system: ``'guardian'`` | ``'gdelt'`` | ``'nyt'``.
+        source_system: ``'guardian'`` | ``'gdelt'`` | ``'nyt'`` | ``'google-news'``.
         body_status: one of :data:`BODY_STATUSES`.
         body_vintage: ``'api-native'`` | ``'wayback-YYYYMMDD'`` |
             ``'live-refetch'``, or None while the body is still pending.
@@ -203,34 +174,33 @@ def upsert_articles(rows: Sequence[Dict[str, Any]]) -> int:
 
     values = [tuple(r[c] for c in _ROW_COLUMNS) for r in best.values()]
     with _transaction() as cur:
-        cur.execute(_HISTORICAL_ARTICLE_DDL)
         extras.execute_values(
             cur,
             f"""
-            INSERT INTO historical_article ({", ".join(_ROW_COLUMNS)})
+            INSERT INTO article ({", ".join(_ROW_COLUMNS)})
             VALUES %s
             ON CONFLICT (url) DO UPDATE SET
               -- A body always beats a stub, whichever arrived second.
-              body           = COALESCE(EXCLUDED.body, historical_article.body),
+              body           = COALESCE(EXCLUDED.body, article.body),
               body_vintage   = CASE WHEN EXCLUDED.body IS NOT NULL
                                     THEN EXCLUDED.body_vintage
-                                    ELSE historical_article.body_vintage END,
+                                    ELSE article.body_vintage END,
               content_sha256 = CASE WHEN EXCLUDED.body IS NOT NULL
                                     THEN EXCLUDED.content_sha256
-                                    ELSE historical_article.content_sha256 END,
+                                    ELSE article.content_sha256 END,
               -- A harvester may raise a status but never lower one.
               body_status    = CASE WHEN {_STATUS_RANK % "EXCLUDED.body_status"}
-                                       > {_STATUS_RANK % "historical_article.body_status"}
+                                       > {_STATUS_RANK % "article.body_status"}
                                     THEN EXCLUDED.body_status
-                                    ELSE historical_article.body_status END,
+                                    ELSE article.body_status END,
               -- Whoever holds the body owns the provenance that goes with it.
               source_system  = CASE WHEN EXCLUDED.body IS NOT NULL
                                     THEN EXCLUDED.source_system
-                                    ELSE historical_article.source_system END,
-              title          = COALESCE(EXCLUDED.title, historical_article.title),
-              abstract       = COALESCE(EXCLUDED.abstract, historical_article.abstract),
-              publisher_link = COALESCE(EXCLUDED.publisher_link, historical_article.publisher_link),
-              wayback_url    = COALESCE(EXCLUDED.wayback_url, historical_article.wayback_url),
+                                    ELSE article.source_system END,
+              title          = COALESCE(EXCLUDED.title, article.title),
+              abstract       = COALESCE(EXCLUDED.abstract, article.abstract),
+              publisher_link = COALESCE(EXCLUDED.publisher_link, article.publisher_link),
+              wayback_url    = COALESCE(EXCLUDED.wayback_url, article.wayback_url),
               themes         = EXCLUDED.themes,
               tier           = EXCLUDED.tier,
               harvested_at   = EXCLUDED.harvested_at
@@ -264,10 +234,9 @@ def mark_body(
         raise ValueError(f"body_status must be one of {BODY_STATUSES}, got {body_status!r}")
 
     with _transaction() as cur:
-        cur.execute(_HISTORICAL_ARTICLE_DDL)
         cur.execute(
             """
-            UPDATE historical_article
+            UPDATE article
                SET body           = %s,
                    body_status    = %s,
                    body_vintage   = %s,
@@ -294,22 +263,31 @@ def read_pending(limit: Optional[int] = None,
         where.append("source_system = %s")
         params.append(source_system)
     sql = (f"SELECT url, country_iso2, source_system, published_at, title "
-           f"FROM historical_article WHERE {' AND '.join(where)} "
+           f"FROM article WHERE {' AND '.join(where)} "
            f"ORDER BY published_at, url")
     if limit:
         sql += " LIMIT %s"
         params.append(limit)
 
     with _transaction() as cur:
-        cur.execute(_HISTORICAL_ARTICLE_DDL)
         cur.execute(sql, tuple(params))
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 # ---------------------------------------------------------------------------
-# Checkpoints
+# The run ledger — every unit of work, whatever kind
 # ---------------------------------------------------------------------------
+# Harvest windows, scored anchors and the scheduler's own jobs all answer the
+# same question — what finished, when, with what status — and used to answer it
+# in three tables with three key shapes. One table, one `job_type`, and the
+# sentinel defaults on `country_iso2` / `as_of` / `variant` are what let a
+# scheduler job with no country share a primary key with a scored anchor that
+# has a country, a date and a mode.
+#
+# They still fail differently, and that difference lives in the callers rather
+# than in the storage: a harvest window is re-runnable for free, a scored
+# snapshot costs money and must never be paid for twice.
 
 def completed_windows(source_system: str, country_iso2: str) -> set:
     """Window start dates already harvested for this source and country.
@@ -319,11 +297,11 @@ def completed_windows(source_system: str, country_iso2: str) -> set:
     quota and a Wayback drain spans hours of a service that will rate-limit it.
     """
     with _transaction() as cur:
-        cur.execute(_HARVEST_CHECKPOINT_DDL)
         cur.execute(
             """
-            SELECT window_start FROM harvest_checkpoint
-             WHERE source_system = %s AND country_iso2 = %s AND status = 'done'
+            SELECT as_of FROM run_ledger
+             WHERE job_type = 'harvest' AND variant = %s
+               AND country_iso2 = %s AND status = 'done'
             """,
             (source_system, country_iso2),
         )
@@ -342,46 +320,21 @@ def write_checkpoint(
 ) -> None:
     """Stamp one (source, country, window) as finished. Idempotent."""
     with _transaction() as cur:
-        cur.execute(_HARVEST_CHECKPOINT_DDL)
         cur.execute(
             """
-            INSERT INTO harvest_checkpoint
-              (source_system, country_iso2, window_start, window_end,
-               status, items_written, note, updated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, now())
-            ON CONFLICT (source_system, country_iso2, window_start) DO UPDATE SET
-              window_end    = EXCLUDED.window_end,
-              status        = EXCLUDED.status,
-              items_written = EXCLUDED.items_written,
-              note          = EXCLUDED.note,
-              updated_at    = EXCLUDED.updated_at
+            INSERT INTO run_ledger
+              (job_type, country_iso2, as_of, variant, status, completed_at, detail)
+            VALUES ('harvest', %s, %s, %s, %s, now(), %s)
+            ON CONFLICT (job_type, country_iso2, as_of, variant) DO UPDATE SET
+              status       = EXCLUDED.status,
+              completed_at = EXCLUDED.completed_at,
+              detail       = EXCLUDED.detail
             """,
-            (source_system, country_iso2, window_start, window_end,
-             status, items_written, note),
+            (country_iso2, window_start, source_system, status,
+             data_push._json_or_none({"window_end": window_end.isoformat(),
+                                      "items_written": items_written,
+                                      "note": note})),
         )
-
-
-# ---------------------------------------------------------------------------
-# The run ledger — what has been scored, at what cost, and where it landed
-# ---------------------------------------------------------------------------
-# `harvest_checkpoint` above tracks collection; this tracks scoring. They stay
-# separate tables because they answer different questions and fail differently:
-# a harvest window is re-runnable for free, a scored snapshot costs money and
-# must never be paid for twice.
-
-_RUN_LEDGER_DDL = """
-CREATE TABLE IF NOT EXISTS history_run_ledger (
-  as_of        DATE NOT NULL,
-  country_iso2 TEXT NOT NULL,
-  mode         TEXT NOT NULL,
-  status       TEXT NOT NULL,
-  spend_usd    DOUBLE PRECISION,
-  manifest     JSONB,
-  result       JSONB,
-  updated_at   TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (as_of, country_iso2, mode)
-);
-"""
 
 
 def write_run(
@@ -397,15 +350,21 @@ def write_run(
     """Record the outcome of scoring one country on one date. Idempotent.
 
     Args:
-        mode: ``'masked'`` or ``'named'`` — see :data:`config.SCORING_MODES`.
+        mode: one of :data:`config.SCORING_MODES`.
         status: ``'complete'`` | ``'failed'`` | ``'skipped'``. Only
             ``'complete'`` makes a re-run skip the date.
         manifest: the provenance manifest — ``scoring_mode``, ``mask_map_version``,
             and per-article ``source_system`` + ``body_vintage`` — so a row can
             be rebuilt, or found to be unrebuildable.
-        result: the model output. Populated for ``'named'`` runs, whose scores
-            have nowhere else to live; ``None`` for ``'masked'`` runs, which are
-            in ``risk_snapshot`` where the front end can read them.
+        result: the model output. Populated for the diagnostic arms, whose
+            scores have nowhere else to live; ``None`` for ``'masked'`` runs,
+            which are in ``risk_snapshot`` where the front end reads them.
+
+    The run itself goes to ``run_ledger`` whatever the mode — an arm is still
+    work that completed, and splitting it out would fork resume and spend
+    accounting into two code paths for one concept. A *result* goes to
+    ``snapshot_diagnostic``, which is where everything measuring the instrument
+    rather than the country lives.
 
     Raises:
         ValueError: on a mode outside :data:`config.SCORING_MODES` — a typo here
@@ -415,22 +374,32 @@ def write_run(
         raise ValueError(f"mode must be one of {config.SCORING_MODES}, got {mode!r}")
 
     with _transaction() as cur:
-        cur.execute(_RUN_LEDGER_DDL)
         cur.execute(
             """
-            INSERT INTO history_run_ledger
-              (as_of, country_iso2, mode, status, spend_usd, manifest, result, updated_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, now())
-            ON CONFLICT (as_of, country_iso2, mode) DO UPDATE SET
-              status     = EXCLUDED.status,
-              spend_usd  = EXCLUDED.spend_usd,
-              manifest   = COALESCE(EXCLUDED.manifest, history_run_ledger.manifest),
-              result     = COALESCE(EXCLUDED.result, history_run_ledger.result),
-              updated_at = EXCLUDED.updated_at
+            INSERT INTO run_ledger
+              (job_type, country_iso2, as_of, variant, status, completed_at,
+               spend_usd, detail)
+            VALUES ('snapshot', %s, %s, %s, %s, now(), %s, %s)
+            ON CONFLICT (job_type, country_iso2, as_of, variant) DO UPDATE SET
+              status       = EXCLUDED.status,
+              spend_usd    = EXCLUDED.spend_usd,
+              completed_at = EXCLUDED.completed_at,
+              detail       = COALESCE(EXCLUDED.detail, run_ledger.detail)
             """,
-            (as_of, country_iso2, mode, status, spend_usd,
-             data_push._json_or_none(manifest), data_push._json_or_none(result)),
+            (country_iso2, as_of, mode, status, spend_usd,
+             data_push._json_or_none({"manifest": manifest} if manifest else None)),
         )
+        if result is not None:
+            cur.execute(
+                """
+                INSERT INTO snapshot_diagnostic
+                  (country_iso2, as_of, kind, variant, detail)
+                VALUES (%s, %s, 'arm', %s, %s)
+                ON CONFLICT (country_iso2, as_of, kind, variant) DO UPDATE SET
+                  detail = EXCLUDED.detail
+                """,
+                (country_iso2, as_of, mode, data_push._json_or_none(result)),
+            )
 
 
 def completed_runs(mode: str, country_iso2: Optional[str] = None) -> set:
@@ -440,13 +409,13 @@ def completed_runs(mode: str, country_iso2: Optional[str] = None) -> set:
     country is retried rather than silently skipped — the same rule
     :func:`completed_windows` uses for harvests.
     """
-    sql = ["SELECT as_of FROM history_run_ledger WHERE mode = %s AND status = 'complete'"]
+    sql = ["SELECT as_of FROM run_ledger "
+           "WHERE job_type = 'snapshot' AND variant = %s AND status = 'complete'"]
     params: List[Any] = [mode]
     if country_iso2:
         sql.append("AND country_iso2 = %s")
         params.append(country_iso2)
     with _transaction() as cur:
-        cur.execute(_RUN_LEDGER_DDL)
         cur.execute(" ".join(sql), tuple(params))
         return {row[0] for row in cur.fetchall()}
 
@@ -459,51 +428,52 @@ def total_spend_usd() -> float:
     zero and quietly spend it twice.
     """
     with _transaction() as cur:
-        cur.execute(_RUN_LEDGER_DDL)
-        cur.execute("SELECT COALESCE(SUM(spend_usd), 0) FROM history_run_ledger")
+        cur.execute("SELECT COALESCE(SUM(spend_usd), 0) FROM run_ledger")
         return float(cur.fetchone()[0])
 
 
 def read_runs(mode: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Ledger rows, oldest first — what ``reports.py`` renders its meters from."""
-    where = "WHERE mode = %s" if mode else ""
+    """Ledger rows, oldest first — what ``reports.py`` renders its meters from.
+
+    The arm's ``result`` is joined back from ``snapshot_diagnostic`` rather than
+    duplicated into the ledger, so there is one copy of a measured score and it
+    lives with the other measurements.
+    """
+    where = "AND r.variant = %s" if mode else ""
     with _transaction() as cur:
-        cur.execute(_RUN_LEDGER_DDL)
         cur.execute(f"""
-            SELECT as_of, country_iso2, mode, status, spend_usd, manifest, result
-              FROM history_run_ledger {where}
-             ORDER BY country_iso2, as_of, mode
+            SELECT r.as_of, r.country_iso2, r.variant AS mode, r.status,
+                   r.spend_usd, r.detail -> 'manifest' AS manifest,
+                   d.detail AS result
+              FROM run_ledger r
+              LEFT JOIN snapshot_diagnostic d
+                     ON d.country_iso2 = r.country_iso2
+                    AND d.as_of        = r.as_of
+                    AND d.variant      = r.variant
+                    AND d.kind         = 'arm'
+             WHERE r.job_type = 'snapshot' {where}
+             ORDER BY r.country_iso2, r.as_of, r.variant
         """, (mode,) if mode else ())
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 # ---------------------------------------------------------------------------
-# The digest cache — the one that makes a weekly cadence affordable
+# The model-output cache — the one that makes a weekly cadence affordable
 # ---------------------------------------------------------------------------
 # Weekly anchors with a 30-day window overlap about four times, so without a
 # cache the pilot would pay to digest each article four times over. Keyed on
-# content rather than on (country, as_of) like the daily run's `article_digest`,
-# because the same article appears in four different snapshots and its digest is
-# identical in all of them.
+# content because the same article appears in four different snapshots and its
+# digest is identical in all of them.
 #
 # `mode` is in the key because the masked and named digests of one article are
-# genuinely different texts, and must never be served for each other.
+# genuinely different texts, and must never be served for each other. `kind`
+# separates a digest from a full-text rewrite, which are the same shape of fact
+# — this model, this version, this text, this output — and used to be two
+# tables saying it twice.
 
-_DIGEST_CACHE_DDL = """
-CREATE TABLE IF NOT EXISTS history_digest_cache (
-  content_sha256  TEXT NOT NULL,
-  digest_model    TEXT NOT NULL,
-  mode            TEXT NOT NULL,
-  digest          JSONB NOT NULL,
-  stage1_severity DOUBLE PRECISION,
-  created_at      TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (content_sha256, digest_model, mode)
-);
-"""
-
-
-def read_digest_cache(hashes: Sequence[str], digest_model: str, mode: str) -> Dict[str, Dict[str, Any]]:
+def read_digest_cache(hashes: Sequence[str], digest_model: str,
+                      mode: str) -> Dict[str, Dict[str, Any]]:
     """Cached digests for these content hashes, keyed by hash.
 
     A miss is an absent key, never a null row: the caller re-digests whatever is
@@ -513,19 +483,20 @@ def read_digest_cache(hashes: Sequence[str], digest_model: str, mode: str) -> Di
     if not hashes:
         return {}
     with _transaction() as cur:
-        cur.execute(_DIGEST_CACHE_DDL)
         cur.execute(
             """
-            SELECT content_sha256, digest, stage1_severity
-              FROM history_digest_cache
-             WHERE content_sha256 = ANY(%s) AND digest_model = %s AND mode = %s
+            SELECT content_sha256, payload, stage1_severity
+              FROM llm_artifact
+             WHERE kind = 'digest' AND content_sha256 = ANY(%s)
+               AND version = %s AND mode = %s
             """,
             (list(hashes), digest_model, mode),
         )
         return {r[0]: {"digest": r[1], "stage1_severity": r[2]} for r in cur.fetchall()}
 
 
-def write_digest_cache(rows: Sequence[Dict[str, Any]], digest_model: str, mode: str) -> int:
+def write_digest_cache(rows: Sequence[Dict[str, Any]], digest_model: str,
+                       mode: str) -> int:
     """Cache digests by content hash.
 
     Args:
@@ -537,7 +508,7 @@ def write_digest_cache(rows: Sequence[Dict[str, Any]], digest_model: str, mode: 
         How many rows were written.
     """
     values = [
-        (r["content_sha256"], digest_model, mode,
+        (r["content_sha256"], "digest", digest_model, mode,
          data_push._json_or_none(r["digest"]), r.get("stage1_severity"))
         for r in rows
         if r.get("content_sha256") and isinstance(r.get("digest"), dict)
@@ -545,52 +516,18 @@ def write_digest_cache(rows: Sequence[Dict[str, Any]], digest_model: str, mode: 
     if not values:
         return 0
     with _transaction() as cur:
-        cur.execute(_DIGEST_CACHE_DDL)
         extras.execute_values(
             cur,
             """
-            INSERT INTO history_digest_cache
-              (content_sha256, digest_model, mode, digest, stage1_severity, created_at)
+            INSERT INTO llm_artifact
+              (content_sha256, kind, version, mode, payload, stage1_severity)
             VALUES %s
-            ON CONFLICT (content_sha256, digest_model, mode) DO NOTHING
+            ON CONFLICT (content_sha256, kind, version, mode) DO NOTHING
             """,
-            [v + (datetime.datetime.now(datetime.timezone.utc),) for v in values],
+            values,
             page_size=200,
         )
     return len(values)
-
-
-# ---------------------------------------------------------------------------
-# The full-text rewrite cache — what makes a snapshot reproducible at all
-# ---------------------------------------------------------------------------
-# The two or three bodies the scorer reads end to end are rewritten by a model,
-# and until this table existed that output was kept nowhere. Two consequences,
-# and the second is the one that mattered.
-#
-# It was paid for repeatedly: weekly anchors over a 30-day window put the same
-# article in about four consecutive snapshots, and a top-severity article stays
-# top-severity across all four, so the same body was rewritten four times.
-#
-# And the snapshot could not be rebuilt. `input_manifest` hashes the bytes the
-# model read, and for these articles those bytes were generated prose that no
-# longer existed anywhere. Re-running produced a different sentence and a
-# different hash, so the manifest's promise — this row can be reproduced —
-# failed on precisely the three articles the scorer weighted most heavily.
-#
-# Keyed like the digest cache: content hash, prompt version, mode. The content
-# hash is over the *masked* text, so a gazetteer change lands in the key without
-# the gazetteer version needing to be part of it.
-
-_REWRITE_CACHE_DDL = """
-CREATE TABLE IF NOT EXISTS history_rewrite_cache (
-  content_sha256  TEXT NOT NULL,
-  rewrite_version TEXT NOT NULL,
-  mode            TEXT NOT NULL,
-  rewritten       TEXT NOT NULL,
-  created_at      TIMESTAMPTZ NOT NULL,
-  PRIMARY KEY (content_sha256, rewrite_version, mode)
-);
-"""
 
 
 def read_rewrite_cache(hashes: Sequence[str], rewrite_version: str,
@@ -604,12 +541,12 @@ def read_rewrite_cache(hashes: Sequence[str], rewrite_version: str,
     if not hashes:
         return {}
     with _transaction() as cur:
-        cur.execute(_REWRITE_CACHE_DDL)
         cur.execute(
             """
-            SELECT content_sha256, rewritten
-              FROM history_rewrite_cache
-             WHERE content_sha256 = ANY(%s) AND rewrite_version = %s AND mode = %s
+            SELECT content_sha256, payload ->> 'rewritten'
+              FROM llm_artifact
+             WHERE kind = 'rewrite' AND content_sha256 = ANY(%s)
+               AND version = %s AND mode = %s
             """,
             (list(hashes), rewrite_version, mode),
         )
@@ -626,22 +563,22 @@ def write_rewrite_cache(rows: Sequence[Dict[str, Any]], rewrite_version: str,
             failure would degrade the article on every future snapshot rather
             than letting the next run try again.
     """
-    values = [(r["content_sha256"], rewrite_version, mode, r["rewritten"])
+    values = [(r["content_sha256"], "rewrite", rewrite_version, mode,
+               data_push._json_or_none({"rewritten": r["rewritten"]}))
               for r in rows
               if r.get("content_sha256") and (r.get("rewritten") or "").strip()]
     if not values:
         return 0
     with _transaction() as cur:
-        cur.execute(_REWRITE_CACHE_DDL)
         extras.execute_values(
             cur,
             """
-            INSERT INTO history_rewrite_cache
-              (content_sha256, rewrite_version, mode, rewritten, created_at)
+            INSERT INTO llm_artifact
+              (content_sha256, kind, version, mode, payload)
             VALUES %s
-            ON CONFLICT (content_sha256, rewrite_version, mode) DO NOTHING
+            ON CONFLICT (content_sha256, kind, version, mode) DO NOTHING
             """,
-            [v + (datetime.datetime.now(datetime.timezone.utc),) for v in values],
+            values,
             page_size=200,
         )
     return len(values)
@@ -652,9 +589,8 @@ def write_rewrite_cache(rows: Sequence[Dict[str, Any]], rewrite_version: str,
 # ---------------------------------------------------------------------------
 
 def _rows(sql: str, params: Iterable[Any] = ()) -> List[Dict[str, Any]]:
-    """Run one read against the substrate, ensuring the table exists first."""
+    """Run one read against the substrate."""
     with _transaction() as cur:
-        cur.execute(_HISTORICAL_ARTICLE_DDL)
         cur.execute(sql, tuple(params))
         cols = [d[0] for d in cur.description]
         return [dict(zip(cols, row)) for row in cur.fetchall()]
@@ -665,7 +601,7 @@ def counts_by_year() -> List[Dict[str, Any]]:
     return _rows("""
         SELECT source_system, country_iso2,
                EXTRACT(YEAR FROM published_at)::int AS year, COUNT(*)::int AS n
-          FROM historical_article
+          FROM article
          GROUP BY 1, 2, 3 ORDER BY 1, 2, 3
     """)
 
@@ -681,7 +617,7 @@ def counts_by_month(source_system: Optional[str] = None) -> List[Dict[str, Any]]
     return _rows(f"""
         SELECT country_iso2, date_trunc('month', published_at)::date AS month,
                COUNT(*)::int AS n
-          FROM historical_article {where}
+          FROM article {where}
          GROUP BY 1, 2 ORDER BY 1, 2
     """, (source_system,) if source_system else ())
 
@@ -695,7 +631,7 @@ def recovery_curve() -> List[Dict[str, Any]]:
     return _rows("""
         SELECT source_system, EXTRACT(YEAR FROM published_at)::int AS year,
                body_status, body_vintage, tier, COUNT(*)::int AS n
-          FROM historical_article
+          FROM article
          GROUP BY 1, 2, 3, 4, 5 ORDER BY 1, 2, 3, 4, 5
     """)
 
@@ -715,7 +651,7 @@ def read_window(iso2: str, start: datetime.datetime,
     return _rows("""
         SELECT url, publisher_link, title, abstract, body, body_status,
                body_vintage, source_system, published_at, themes, tier
-          FROM historical_article
+          FROM article
          WHERE country_iso2 = %s AND published_at >= %s AND published_at < %s
          ORDER BY published_at DESC, url ASC
     """, (iso2, start, end))
@@ -732,4 +668,4 @@ def existing_urls(urls: Sequence[str]) -> set:
     if not urls:
         return set()
     return {r["url"] for r in _rows(
-        "SELECT url FROM historical_article WHERE url = ANY(%s)", (list(urls),))}
+        "SELECT url FROM article WHERE url = ANY(%s)", (list(urls),))}
