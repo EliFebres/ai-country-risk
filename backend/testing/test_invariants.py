@@ -366,22 +366,44 @@ class TestSurvivesTheVintageBound:
         # …and is still refused by an anchor before it was published.
         assert payload._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
 
-    def test_the_world_bank_panel_still_survives_the_same_bound(self):
-        """The store that was already right must not be broken by fixing the other.
+    def test_the_world_bank_annuals_still_survive_the_same_bound(self):
+        """The store that was already right must not be broken by moving it.
 
-        `_panel_observations` stamps each annual value with its own year end,
-        which is why the panel was the only thing a historical payload could see
-        before this migration. Pinned here because nothing else would notice if
-        it changed.
+        The annuals were the only thing a historical payload could see before
+        the restamp migration, because the Parquet reader stamped each value
+        with its own year end. They are ordinary `indicator_series` rows now,
+        written by `country_data_fetch.panel_rows`, and the stamp has to survive
+        the move — nothing else would notice if it did not.
         """
         import pandas as pd
-        panel = pd.DataFrame({"year": [2017, 2018, 2024], "gdp": [1.0, 2.0, 3.0]})
-        observations = payload._panel_observations(panel, "gdp")
-        assert [o.as_of for o in observations] == [
+
+        from backend.data_fetching import country_data_fetch
+
+        panel = pd.DataFrame({"POL_CORRUPTION": [1.0, 2.0, 3.0]},
+                             index=[2017, 2018, 2024])
+        rows = country_data_fetch.panel_rows(panel, "PT")
+        assert [r["as_of"] for r in rows] == [
             datetime.date(2017, 12, 31), datetime.date(2018, 12, 31),
             datetime.date(2024, 12, 31)]
+        assert {r["freq"] for r in rows} == {"A"}
+
+        observations = payload._series_observations(rows)
         kept = payload._resolve(observations, as_of=datetime.date(2019, 6, 1))
         assert [o.period for o in kept] == ["2017", "2018"]
+
+    def test_the_current_years_annual_is_not_stamped_in_the_future(self):
+        """A year-end stamp on the current year claims a publication date months
+        from now, which reads as negative staleness in the live payload and is
+        plainly false — the value is already in the table. Same cap `restamp`
+        applies to its own estimates."""
+        import pandas as pd
+
+        from backend.data_fetching import country_data_fetch
+
+        today = datetime.date.today()
+        panel = pd.DataFrame({"POL_CORRUPTION": [1.0]}, index=[today.year])
+        row, = country_data_fetch.panel_rows(panel, "PT")
+        assert row["as_of"] <= today
 
     def test_a_lag_that_is_too_short_is_the_dangerous_direction(self):
         # Erring long is the design: a short lag hands a snapshot a number

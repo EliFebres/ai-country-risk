@@ -10,9 +10,9 @@ last finished, and runs whatever is overdue:
               the IMF's fresher-than-annual indicators and the three-ledger
               sources, then score every country in the roster and publish the
               global alerts.
-  • panels  — every 30 days. Rebuilds every ``wb_panel_wide`` partition so
-              World Bank revisions and newly published years land, which the
-              incremental backfill alone would never pick up.
+  • panels  — every 30 days. Refetches every country's World Bank annuals so
+              revisions and newly published years land, which the incremental
+              backfill alone would never pick up.
 
 Because "when did this last run" lives in the ``job_run`` table rather than in
 memory, the schedule survives a restart or a redeploy: a box that was down for

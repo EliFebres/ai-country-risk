@@ -1,10 +1,15 @@
-"""Read side of the macro panel: Parquet in, LLM-ready payload out.
+"""Read side of the macro store: Postgres in, LLM-ready payload out.
 
-``main.py`` writes each country's World Bank panel to
-``backend/data/wb_panel_wide/country_code=XX/*.parquet`` (see
-``data_fetching/country_data_fetch.ingest_panel_wide``); this module reads it
-back with DuckDB and shapes it into the compact JSON payload the risk prompt
-and the database upsert both consume.
+Every observation lives in ``indicator_series`` — annual World Bank figures,
+IMF monthly prints, BIS rates, per-edition WEO vintages and curated values
+alike. This module resolves them into the compact JSON payload the risk prompt
+and the provenance manifest both consume.
+
+It used to read a Parquet panel under ``backend/data`` with DuckDB, alongside
+two other stores holding overlapping copies of the same numbers. One store
+means freshest-wins is a single resolution rather than a three-way merge, and
+means a clone with an empty database builds its macro by fetching rather than
+by finding files somebody copied in.
 
 The payload is deliberately "pretty": indicators carry their display names and
 units, values are rounded, and only a short recent window plus a couple of
@@ -21,7 +26,6 @@ import calendar
 import json
 import logging
 import re
-import duckdb
 import pathlib
 import pandas as pd
 
@@ -37,9 +41,8 @@ from backend.util.dates import utc_minute_iso
 logger = logging.getLogger(__name__)
 
 
-# Anchor all data paths to the backend/ folder (this file lives in backend/util/)
-BACKEND_DIR = pathlib.Path(__file__).resolve().parents[1]   # .../backend
-DATA_DIR    = BACKEND_DIR / "data" / "wb_panel_wide"        # .../backend/data/wb_panel_wide
+# The macro panel used to be Parquet under backend/data; it is Postgres now,
+# so this module reads no files at all.
 
 _ISO_CODE_RE = re.compile(r"[A-Z]{2,3}")
 
@@ -68,46 +71,60 @@ def _validate_iso_code(value: object, param: str) -> str:
 
 
 def query_macro_panel(country_iso_code: str) -> pd.DataFrame:
-    """Load one country's macro panel (years >= 2000) from Parquet.
+    """One country's annual macro panel, years >= 2000, from ``indicator_series``.
+
+    Was a DuckDB read over a Parquet partition under ``backend/data``. The
+    annuals now live in Postgres like every other observation, so there is one
+    macro store instead of two with different vintage semantics — and a clone
+    with an empty database builds this by fetching rather than by finding files
+    somebody copied in.
+
+    The shape is unchanged: a ``year`` column plus one column per registry
+    ``panel_col``, so ``prepare_llm_payload_pretty`` and the provenance manifest
+    read exactly what they read before.
 
     Args:
-        country_iso_code: 2- or 3-letter uppercase ISO code naming the
-            partition to read.
+        country_iso_code: 2- or 3-letter uppercase ISO code.
 
     Returns:
-        Year-ordered DataFrame with one column per indicator.
-
-    Raises:
-        TypeError: if ``country_iso_code`` is not a string.
-        ValueError: if it is not a valid ISO code.
-        FileNotFoundError: if the country has no Parquet partition yet — the
-            backfill in ``main.ensure_missing_country_panels`` has not run for it.
+        Year-ordered wide DataFrame. Empty (with no columns) when the country
+        has no annual rows yet, which is a country awaiting its first fetch
+        rather than an error — the old Parquet path raised FileNotFoundError
+        here and made a missing panel fatal to a score.
     """
     _validate_iso_code(country_iso_code, "country_iso_code")
 
-    part_dir = DATA_DIR / f"country_code={country_iso_code}"
-    parquet_files = sorted(part_dir.glob("*.parquet"))
+    from backend.data_upsert import data_push
 
-    if not parquet_files:
-        raise FileNotFoundError(
-            f"No parquet files found for {country_iso_code} at {part_dir}/*.parquet\n"
-            f"HINTS:\n"
-            f"  • Ensure writes go to {DATA_DIR}\n"
-            f"  • Run the backfill (main.ensure_missing_country_panels) or confirm\n"
-            f"    the country exists in constants.COUNTRY_ROSTER\n"
-            f"  • Check permissions / paths in your runtime environment"
-        )
+    by_code = data_push.read_indicator_series(country_iso_code)
+    # code -> the column name the panel used, for the indicators that had one.
+    columns = {code: str(spec["panel_col"])
+               for code, spec in constants.INDICATOR_REGISTRY.items()
+               if spec.get("panel_col")}
 
-    # Use glob form so DuckDB can read the full partition if multiple files exist
-    parquet_glob = (part_dir / "*.parquet").as_posix()
+    wide: Dict[int, Dict[str, Any]] = {}
+    for code, column in columns.items():
+        newest: Dict[int, tuple] = {}
+        for row in by_code.get(code) or []:
+            if row.get("freq") != "A" or row.get("value") is None:
+                continue
+            try:
+                year = int(str(row["period"])[:4])
+            except (TypeError, ValueError):
+                continue
+            if year < 2000:
+                continue
+            # Several vintages of one year: the newest as_of is the panel's
+            # value, matching what the Parquet held (a single latest figure).
+            seen = newest.get(year)
+            if seen is None or row["as_of"] > seen[0]:
+                newest[year] = (row["as_of"], float(row["value"]))
+        for year, (_, value) in newest.items():
+            wide.setdefault(year, {})[column] = value
 
-    sql = f"""
-        SELECT *
-        FROM read_parquet('{parquet_glob}')
-        WHERE year >= 2000
-        ORDER BY year
-    """
-    return duckdb.sql(sql).df()
+    if not wide:
+        return pd.DataFrame()
+    return pd.DataFrame([{"year": y, **cols} for y, cols in sorted(wide.items())])
 
 
 def prepare_llm_payload_pretty(
@@ -164,6 +181,26 @@ def prepare_llm_payload_pretty(
 
     # ---- load & filter panel ----------------------------------------------
     df = query_macro_panel(country_iso)
+    if df.empty:
+        # A country whose macro has not been fetched yet. The Parquet path
+        # raised FileNotFoundError here, which made a missing panel fatal to a
+        # score; on a freshly bootstrapped database that is every country until
+        # the first fetch finishes, so it degrades to an empty payload instead.
+        logger.warning("[%s] no annual macro rows yet; payload has no indicators",
+                       country_iso)
+        return {
+            "country": country_iso,
+            "latest_year": None,
+            "indicators": {},
+            "_meta": {
+                "units": constants.UNITS,
+                "delta_basis": "Δ values are absolute changes in the indicator's "
+                               "own unit, not percent changes",
+                "source": "World Bank",
+                "generated_at": utc_minute_iso(datetime.now(timezone.utc)),
+                "series_lookback": lookback,
+            },
+        }
     df = df[df.year >= since]
 
     latest_year = int(df["year"].max())
@@ -214,7 +251,6 @@ def prepare_llm_payload_pretty(
             "source": "World Bank",
             "generated_at": utc_minute_iso(datetime.now(timezone.utc)),
             "series_lookback": lookback,
-            "data_dir": str(DATA_DIR),
         },
     }
 
@@ -298,30 +334,6 @@ class _Observation(NamedTuple):
     dated: bool = False
 
 
-def _panel_observations(panel: pd.DataFrame, panel_col: str) -> List[_Observation]:
-    """Read one indicator's annual history out of the parquet panel.
-
-    ``as_of`` for a panel value is the end of its own year: the panel carries no
-    record of when the World Bank published it, and claiming the fetch date
-    would understate the staleness the model is supposed to see.
-    """
-    if panel_col not in panel.columns:
-        return []
-    observations: List[_Observation] = []
-    for year, value in panel.set_index("year")[panel_col].dropna().items():
-        try:
-            period = str(int(year))
-            numeric = float(value)
-        except (TypeError, ValueError):
-            continue
-        period_end = date(int(year), 12, 31)
-        observations.append(_Observation(
-            value=numeric, period=period, freq="A", period_end=period_end,
-            as_of=period_end, source="World Bank panel",
-        ))
-    return observations
-
-
 def _series_observations(rows: List[dict]) -> List[_Observation]:
     """Convert ``indicator_series`` rows into observations, dropping unusable ones."""
     observations: List[_Observation] = []
@@ -343,22 +355,6 @@ def _series_observations(rows: List[dict]) -> List[_Observation]:
             dated=True,
         ))
     return observations
-
-
-def _recent_observation(entry: Optional[dict]) -> Optional[_Observation]:
-    """Convert a ``recent_indicator`` row into an observation, or None."""
-    if not isinstance(entry, dict):
-        return None
-    value, period, freq = entry.get("value"), entry.get("period"), entry.get("freq")
-    if value is None or not isinstance(period, date) or freq not in ("M", "Q", "A"):
-        return None
-    label = (period.strftime("%Y-%m") if freq == "M"
-             else f"{period.year}Q{(period.month - 1) // 3 + 1}" if freq == "Q"
-             else str(period.year))
-    return _Observation(
-        value=float(value), period=label, freq=str(freq), period_end=period,
-        as_of=period, source=str(entry.get("source") or "IMF"),
-    )
 
 
 def _resolve(observations: List[_Observation],
@@ -500,9 +496,7 @@ def build_evidence_payload(
     country_iso2: str,
     *,
     as_of: date,
-    panel: Optional[pd.DataFrame] = None,
     series: Optional[Dict[str, List[dict]]] = None,
-    recent: Optional[Dict[str, dict]] = None,
     fx_regimes: Optional[Dict[str, str]] = None,
     elections: Optional[Dict[str, List[dict]]] = None,
     vintage_as_of: Optional[date] = None,
@@ -519,9 +513,7 @@ def build_evidence_payload(
         as_of: the date being scored. Staleness is measured against this, never
             against the clock, so re-running an old date reports the staleness
             that was true then.
-        panel: the parquet macro panel, from :func:`query_macro_panel`.
         series: ``indicator_series`` rows, from ``data_push.read_indicator_series``.
-        recent: latest prints, from ``data_push.read_recent_indicators``.
         fx_regimes: currency regimes, from ``constants.FX_REGIMES``.
         elections: election calendar, from ``constants.ELECTIONS``.
         vintage_as_of: for a historical backfill, the newest data vintage this
@@ -546,23 +538,12 @@ def build_evidence_payload(
         ``staleness_days`` and ``source`` so the model can weigh a fresh reading
         differently from a stale one.
     """
-    panel = panel if panel is not None else pd.DataFrame()
     series = series or {}
-    recent = recent or {}
 
     # --- resolve every registry indicator across all three stores ------------
     resolved: Dict[str, List[_Observation]] = {}
     for code, spec in constants.INDICATOR_REGISTRY.items():
-        observations: List[_Observation] = []
-        panel_col = spec.get("panel_col")
-        if panel_col and not panel.empty:
-            observations += _panel_observations(panel, str(panel_col))
-        observations += _series_observations(series.get(code, []))
-        recent_name = spec.get("recent_name")
-        if recent_name:
-            fresh = _recent_observation(recent.get(str(recent_name)))
-            if fresh:
-                observations.append(fresh)
+        observations = _series_observations(series.get(code, []))
         merged = _resolve(observations, vintage_as_of)
         if merged:
             resolved[code] = merged

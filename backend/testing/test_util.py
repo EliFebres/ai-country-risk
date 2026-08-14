@@ -19,7 +19,6 @@ import inspect
 import math
 from datetime import date, datetime, timedelta, timezone
 
-import pandas as pd
 import pytest
 
 from backend.main import _every, _weekly
@@ -28,12 +27,6 @@ from backend.util import market_hours
 from backend.util import lint, metrics
 
 AS_OF = _dt.date(2026, 7, 27)
-
-
-def panel(**columns) -> pd.DataFrame:
-    """A parquet-shaped panel: a `year` column plus one column per indicator."""
-    years = columns.pop("years", [2022, 2023, 2024, 2025])
-    return pd.DataFrame({"year": years, **columns})
 
 
 def series_rows(code, values, *, freq="M", start="2026-01", as_of=AS_OF,
@@ -55,9 +48,30 @@ def series_rows(code, values, *, freq="M", start="2026-01", as_of=AS_OF,
     return {code: rows}
 
 
+def annual(code, values, *, start=2022, source="World Bank"):
+    """Annual rows as `country_data_fetch.panel_rows` writes them: one per year,
+    stamped 31 December of the year they describe."""
+    return {code: [{"period": str(start + i), "freq": "A", "value": v,
+                    "as_of": _dt.date(start + i, 12, 31), "source": source}
+                   for i, v in enumerate(values)]}
+
+
+def merge(*stores):
+    """Concatenate per-code row lists.
+
+    `{**a, **b}` replaces on a shared key rather than concatenating, which
+    silently drops one side when both hold the same indicator — the exact
+    mistake these tests are about.
+    """
+    out = {}
+    for store in stores:
+        for code, rows in store.items():
+            out.setdefault(code, []).extend(rows)
+    return out
+
+
 def build(**kwargs):
     """Build a payload for PT with sensible empty defaults."""
-    kwargs.setdefault("panel", pd.DataFrame())
     return dr.build_evidence_payload("PT", as_of=AS_OF, **kwargs)
 
 
@@ -135,25 +149,14 @@ class TestFreshestValueWins:
     and the series store at once. Pick wrong and the model scores a crisis on
     last year's annual average."""
 
-    def test_monthly_series_beats_the_annual_panel(self):
-        # The panel says 2.34 for 2025, the monthly series says 3.8 for 2026-06.
-        payload = build(
-            panel=panel(INFLATION=[7.8, 4.3, 2.4, 2.34]),
-            series=series_rows("CPI.YOY", [3.3, 3.5, 3.8], start="2026-04"),
-        )
+    def test_a_monthly_print_beats_an_annual_one(self):
+        # The annual row says 2.34 for 2025, the monthly says 3.8 for 2026-06.
+        payload = build(series=merge(
+            annual("CPI.YOY", [7.8, 4.3, 2.4, 2.34]),
+            series_rows("CPI.YOY", [3.3, 3.5, 3.8], start="2026-04")))
         entry = payload["uncertainty_inputs"]["Inflation (% y/y)"]
         assert entry["value"] == 3.8
         assert entry["period"] == "2026-06" and entry["freq"] == "M"
-
-    def test_recent_indicator_also_competes(self):
-        payload = build(
-            panel=panel(INFLATION=[7.8, 4.3, 2.4, 2.34]),
-            recent={"Inflation (% y/y)": {
-                "value": 3.9, "period": _dt.date(2026, 6, 30), "freq": "M",
-                "unit": "% y/y", "source": "IMF",
-            }},
-        )
-        assert payload["uncertainty_inputs"]["Inflation (% y/y)"]["value"] == 3.9
 
     def test_same_period_resolves_to_the_newer_as_of(self):
         # Two stores hold the same period; the one we learned more recently wins.
@@ -167,11 +170,9 @@ class TestFreshestValueWins:
 
     def test_an_older_monthly_print_does_not_beat_a_newer_annual(self):
         # Resolution is by the period covered, not by frequency rank.
-        payload = build(
-            panel=panel(INFLATION=[1.0, 2.0, 3.0, 4.0],
-                        years=[2023, 2024, 2025, 2026]),
-            series=series_rows("CPI.YOY", [9.9], start="2024-01"),
-        )
+        payload = build(series=merge(
+            annual("CPI.YOY", [1.0, 2.0, 3.0, 4.0], start=2023),
+            series_rows("CPI.YOY", [9.9], start="2024-01")))
         assert payload["uncertainty_inputs"]["Inflation (% y/y)"]["value"] == 4.0
 
     def test_the_payload_has_every_ledger_section_and_is_stamped(self):
@@ -184,13 +185,12 @@ class TestFreshestValueWins:
         assert meta["vintage_scheme"] == "as-published-latest"
 
     def test_indicators_land_in_their_declared_ledger(self):
-        payload = build(
-            panel=panel(INFLATION=[1.0, 2.0, 3.0, 4.0]),
-            series={**series_rows("IQ.SPI.OVRL", [64.0], freq="A", start="2024",
-                                  source="World Bank SPI"),
-                    **series_rows("IC.BUS.NDNS.ZS", [5.1], freq="A", start="2024",
-                                  source="World Bank WDI")},
-        )
+        payload = build(series=merge(
+            annual("CPI.YOY", [1.0, 2.0, 3.0, 4.0]),
+            series_rows("IQ.SPI.OVRL", [64.0], freq="A", start="2024",
+                        source="World Bank SPI"),
+            series_rows("IC.BUS.NDNS.ZS", [5.1], freq="A", start="2024",
+                        source="World Bank WDI")))
         assert "Inflation (% y/y)" in payload["uncertainty_inputs"]
         assert "Statistical performance (0–100)" in payload["information_inputs"]
         assert "New business density (per 1,000 working-age)" in payload["edge_inputs"]

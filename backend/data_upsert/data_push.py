@@ -587,6 +587,23 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
         )
 
 
+def has_annual_series(country_iso2: str) -> bool:
+    """Whether this country has any annual macro rows yet.
+
+    What makes the World Bank backfill incremental. Was
+    ``has_country_partition``, which asked the filesystem whether a Parquet
+    directory held a file; the same question, asked of the store that now holds
+    the answer.
+    """
+    with _transaction() as cur:
+        cur.execute(
+            "SELECT EXISTS (SELECT 1 FROM indicator_series "
+            " WHERE country_iso2 = %s AND freq = 'A')",
+            (country_iso2,),
+        )
+        return bool(cur.fetchone()[0])
+
+
 def read_indicator_series(country_iso2: str) -> Dict[str, List[Dict[str, Any]]]:
     """Return one country's stored series, grouped by indicator code.
 
