@@ -36,6 +36,7 @@ Usage:
 """
 
 import argparse
+import logging
 import pathlib
 import sys
 
@@ -49,6 +50,8 @@ from backend.util import http  # noqa: E402
 from backend.news_fetching import wayback  # noqa: E402
 from backend.util import config  # noqa: E402
 from backend.data_fetching.vintage import weo  # noqa: E402
+
+logger = logging.getLogger(__name__)
 
 _MONTHS = {4: "Apr", 10: "Oct"}
 
@@ -209,6 +212,32 @@ def fetch(year: int, month: int, directory: pathlib.Path, force: bool,
         if body and _keep(body, target, "the Wayback Machine"):
             return True
     return False
+
+
+def fetch_all(directory: pathlib.Path = None, *, force: bool = False,
+              archive: bool = True) -> int:
+    """Download every reachable edition. Returns how many landed.
+
+    The callable half of ``main``, so the bootstrap can fetch editions without
+    shelling out to a CLI and parsing its printed output. Missing editions are
+    logged rather than raised: the pilot can run without a vintage, it just
+    runs on as-published-latest macro and its stamps have to say so.
+    """
+    directory = directory or weo.VINTAGE_DIR
+    directory.mkdir(parents=True, exist_ok=True)
+    start, end = int(config.PILOT_START[:4]), 2026
+
+    landed = 0
+    missing = []
+    for year, month in editions(start, end):
+        if fetch(year, month, directory, force, archive):
+            landed += 1
+        else:
+            missing.append(f"{year}-{month:02d}")
+    if missing:
+        logger.warning("[weo] %d edition(s) unreachable and skipped: %s",
+                       len(missing), ", ".join(missing))
+    return landed
 
 
 def main() -> None:

@@ -7,7 +7,8 @@ the 2024 annual average of ~220% when the current monthly y/y print is ~32%).
 A few of those indicators exist at monthly/quarterly frequency from the IMF; this
 module fetches the **freshest observation** for each one configured in
 ``constants.IMF_RECENT_INDICATORS`` so the rest of the pipeline can store it in
-``recent_indicator`` and let the front-end prefer it over the annual value.
+``indicator_series``, where the payload's freshest-wins resolution prefers
+it over the annual value.
 
 Source: the current IMF Data API (SDMX 2.1) at ``constants.IMF_DATA_ENDPOINT``.
 The legacy IFS host (``dataservices.imf.org``) was retired. The country dimension
@@ -138,44 +139,6 @@ def _fetch_latest_obs(dataflow: str, key: str, *, start_period: str) -> Optional
     return observations[-1] if observations else None
 
 
-def fetch_recent_indicators(iso3: str) -> Dict[str, Dict[str, Any]]:
-    """Freshest sub-annual observation per configured indicator for one country.
-
-    Args:
-        iso3: ISO-3 country code (the IMF country-dimension key, e.g. ``'ARG'``).
-
-    Returns:
-        ``{indicator_display_name: {value, period (date), freq, unit, source}}``.
-        Indicators with no usable IMF observation are simply omitted, so the
-        result may be empty (callers should treat that as "no refresh available").
-    """
-    out: Dict[str, Dict[str, Any]] = {}
-    if not iso3:
-        return out
-
-    # A short window is enough — we only keep the single latest print. Two full
-    # years back guarantees at least one observation even for laggy reporters.
-    start_period = str(_dt.date.today().year - 2)
-
-    for name, spec in constants.IMF_RECENT_INDICATORS.items():
-        key = spec["key"].format(iso3=iso3)
-        latest = _fetch_latest_obs(spec["dataflow"], key, start_period=start_period)
-        if latest is None:
-            continue
-        time_period, value = latest
-        period = _period_to_date(time_period)
-        if period is None:
-            continue
-        out[name] = {
-            "value": round(value, 2),
-            "period": period,
-            "freq": spec.get("freq", "M"),
-            "unit": spec.get("unit"),
-            "source": "IMF",
-        }
-    return out
-
-
 def _period_to_series_key(time_period: str, freq: str) -> Optional[str]:
     """Convert an SDMX ``TIME_PERIOD`` to the ``indicator_series`` period format.
 
@@ -209,7 +172,7 @@ def fetch_series_rows(
 ) -> list:
     """Fetch one country's IMF history as ``indicator_series`` rows.
 
-    The counterpart to :func:`fetch_recent_indicators`: same source and same
+    Same source and same
     client, but keeping the whole series instead of only its last point, because
     volatility needs the history.
 
@@ -249,6 +212,4 @@ def fetch_series_rows(
 
 if __name__ == "__main__":  # pragma: no cover - manual smoke test
     logging.basicConfig(level=logging.INFO)
-    for code in ("ARG", "NGA", "PAK", "USA", "DEU"):
-        print(code, fetch_recent_indicators(code))
     print("PT series rows:", len(fetch_series_rows("PT", "PRT")))

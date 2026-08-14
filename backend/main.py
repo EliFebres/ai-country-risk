@@ -78,6 +78,7 @@ STOP = threading.Event()
 # working argparse when it was a script, so this dispatches rather than
 # re-declaring them; --help on a subcommand is that module's own help.
 SUBCOMMANDS = {
+    "bootstrap": ("backend.util.bootstrap", "build an empty database into a working one"),
     "backfill":  ("backend.util.run", "harvest, score and report the backfill"),
     "rebuild":   ("backend.util.rebuild_snapshot", "re-derive a stored snapshot and diff it"),
     "probe":     ("backend.util.probe_bundles", "re-probe stored bundles for identifiability"),

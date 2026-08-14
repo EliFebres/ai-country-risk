@@ -156,6 +156,40 @@ def upsert_countries(roster: List[Dict[str, Any]]) -> None:
         )
 
 
+def upsert_structural_facts(facts: Dict[str, Dict[str, Any]]) -> None:
+    """Attach each country's structural block to its roster row.
+
+    The facts masking removed and cannot replace: whether a country issues a
+    reserve currency, whether it can devalue, which income group it is in.
+    Hand-researched and cited, shipped as data in the repo, and written here so
+    a bootstrapped database has them before the first score rather than after
+    somebody notices the block is missing.
+
+    Countries absent from ``facts`` keep whatever they have — five of
+    forty-eight are filled and the rest are legitimately blank, so this must not
+    blank the filled ones on a partial load.
+    """
+    _require_db_url()
+    if not facts:
+        return
+    rows = [(iso2, extras.Json(block)) for iso2, block in facts.items()
+            if isinstance(block, dict) and block]
+    if not rows:
+        return
+    with _transaction() as cur:
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO country (iso2, name, structural)
+            VALUES %s
+            ON CONFLICT (iso2) DO UPDATE SET structural = EXCLUDED.structural
+            """,
+            [(iso2, iso2, block) for iso2, block in rows],
+            template="(%s, %s, %s)",
+            page_size=100,
+        )
+
+
 class _SnapshotData(NamedTuple):
     """Validated fields pulled out of an upsert_snapshot payload.
 
