@@ -23,7 +23,7 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from backend.llm import client as ai_client
-from backend.utils.history import config
+from backend.util import config
 
 logger = logging.getLogger(__name__)
 

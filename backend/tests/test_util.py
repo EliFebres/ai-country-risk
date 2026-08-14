@@ -25,7 +25,7 @@ import pytest
 from backend.main import _every, _weekly
 from backend.llm import payload as dr
 from backend.util import market_hours
-from backend.utils import lint, metrics
+from backend.util import lint, metrics
 
 AS_OF = _dt.date(2026, 7, 27)
 

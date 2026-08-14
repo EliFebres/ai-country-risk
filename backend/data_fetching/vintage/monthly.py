@@ -33,7 +33,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.util import constants
 from backend.data_fetching import bis_bulk_fetch, imf_macro_fetch
-from backend.utils.history import config
+from backend.util import config
 from backend.data_fetching.vintage import lags
 
 logger = logging.getLogger(__name__)

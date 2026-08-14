@@ -26,12 +26,12 @@ import pytest
 import yaml
 
 from backend.util import constants
-from backend.utils import pipeline
+from backend.util import pipeline
 from backend.llm import constants as ai_constants
 from backend.llm import langchain_llm as llm
 from backend.util import policy
 from backend.data_fetching import curated_loader
-from backend.utils.history import config
+from backend.util import config
 from backend.llm import gazetteer, probe, rewrite
 
 AS_OF = date(2024, 5, 6)
@@ -398,7 +398,7 @@ class TestTheFullTextRewriteCache:
         return [{"id": "a1", "text": "The minister resigned in the capital."}]
 
     def test_a_cached_body_is_reused_instead_of_re_rewritten(self, monkeypatch):
-        from backend.utils import provenance
+        from backend.util import provenance
 
         monkeypatch.setenv("OPENAI_API_KEY", "k")
         monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
@@ -468,7 +468,7 @@ class TestTheFullTextRewriteCache:
         """What makes `rebuild_snapshot` free. A rebuild that had to call the
         model would be paying to compare a fresh non-deterministic value against
         a stored one, which is not a comparison."""
-        from backend.utils import provenance
+        from backend.util import provenance
 
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         monkeypatch.setattr(pipeline.rewrite, "rewrite_body",

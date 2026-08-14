@@ -31,7 +31,7 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from dateutil.relativedelta import relativedelta
 
 from backend.util import constants
-from backend.utils import metrics, provenance
+from backend.util import metrics, provenance
 from backend.util.dates import utc_minute_iso
 
 logger = logging.getLogger(__name__)

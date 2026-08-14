@@ -51,7 +51,7 @@ load_dotenv()
 import psycopg2
 
 from backend.util import constants
-from backend.utils import pipeline
+from backend.util import pipeline
 from backend.data_fetching import country_data_fetch
 from backend.data_upsert import data_push
 

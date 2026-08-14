@@ -22,7 +22,7 @@ import re
 import pytest
 
 from backend.news_fetching import snapshot_select as sel, wayback
-from backend.utils.history import config
+from backend.util import config
 from backend.news_fetching.adapters import gdelt, guardian, nyt
 from backend.news_fetching import article_enrichment as ae
 from backend.news_fetching import article_ranking, core, source_filter

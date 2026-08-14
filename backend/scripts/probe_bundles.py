@@ -48,13 +48,13 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 
-from backend.utils import pipeline  # noqa: E402
+from backend.util import pipeline  # noqa: E402
 from backend.llm import client as ai_client, digest_engine  # noqa: E402
 from backend.data_upsert import data_push  # noqa: E402
 from backend.data_upsert import store  # noqa: E402
 from backend.news_fetching import snapshot_select  # noqa: E402
 from backend.llm import usage  # noqa: E402
-from backend.utils.history import config  # noqa: E402
+from backend.util import config  # noqa: E402
 from backend.llm import gazetteer, probe, rewrite  # noqa: E402
 
 # The acceptance set: the six historical bundles that had left a digest-cache
@@ -166,7 +166,7 @@ def fresh_bundles(per_country: int) -> list:
 
 def snapshot_select_anchors() -> list:
     """Every pilot anchor, quarterly-thinned so the scan is not a decade of reads."""
-    from backend.utils.history import score
+    from backend.util import score
     every = score.anchors(datetime.date.fromisoformat(config.PILOT_START),
                           datetime.date.today())
     return [a for a in every if a.day <= 7 and a.month % 3 == 1]

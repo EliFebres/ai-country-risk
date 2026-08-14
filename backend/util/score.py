@@ -34,11 +34,11 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from backend.utils import pipeline
+from backend.util import pipeline
 from backend.data_upsert import store
 from backend.news_fetching import snapshot_select
 from backend.llm import usage
-from backend.utils.history import config
+from backend.util import config
 
 logger = logging.getLogger(__name__)
 

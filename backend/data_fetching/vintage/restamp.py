@@ -31,9 +31,9 @@ every value arrived the morning of the last bulk fetch. That is a correction, an
 ``--diff`` prints its size for one country before anybody commits to it.
 
 Usage:
-    python -m backend.utils.history.run restamp --diff      # show, change nothing
-    python -m backend.utils.history.run restamp             # dump, then write
-    python -m backend.utils.history.run restamp --revert F  # put a dump back
+    python -m backend.util.run restamp --diff      # show, change nothing
+    python -m backend.util.run restamp             # dump, then write
+    python -m backend.util.run restamp --revert F  # put a dump back
 """
 
 import csv

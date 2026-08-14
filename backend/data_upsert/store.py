@@ -30,9 +30,9 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import psycopg2.extras as extras
 
-from backend.utils import provenance
+from backend.util import provenance
 from backend.data_upsert import data_push
-from backend.utils.history import config
+from backend.util import config
 from backend.news_fetching import core
 
 # The project's one connect/commit/rollback/close helper. Private to data_push

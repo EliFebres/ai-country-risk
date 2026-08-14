@@ -42,12 +42,12 @@ load_dotenv(PROJECT_ROOT / "backend" / ".env")
 
 from backend.util import constants  # noqa: E402
 from backend.llm import payload as dr  # noqa: E402
-from backend.utils import pipeline, provenance  # noqa: E402
+from backend.util import pipeline, provenance  # noqa: E402
 from backend.llm import client as ai_client, digest_engine, langchain_llm  # noqa: E402
 from backend.data_upsert import data_push  # noqa: E402
 from backend.data_upsert import store  # noqa: E402
 from backend.news_fetching import snapshot_select  # noqa: E402
-from backend.utils.history import config  # noqa: E402
+from backend.util import config  # noqa: E402
 from backend.llm import gazetteer, rewrite  # noqa: E402
 
 

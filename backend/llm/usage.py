@@ -35,7 +35,7 @@ from typing import Any, Dict, Iterator, Optional
 from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain_core.tracers.context import register_configure_hook
 
-from backend.utils.history import config
+from backend.util import config
 
 logger = logging.getLogger(__name__)
 

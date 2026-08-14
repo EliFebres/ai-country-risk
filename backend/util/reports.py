@@ -36,7 +36,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.data_upsert import data_push
 from backend.data_upsert import store
-from backend.utils.history import config
+from backend.util import config
 from backend.llm import probe
 
 logger = logging.getLogger(__name__)

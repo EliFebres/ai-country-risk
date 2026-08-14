@@ -21,10 +21,10 @@ from datetime import date
 
 import pytest
 
-from backend.utils import provenance
+from backend.util import provenance
 from backend.data_upsert import store
 from backend.news_fetching import snapshot_select
-from backend.utils.history import reports
+from backend.util import reports
 from backend.news_fetching import core
 
 AS_OF = date(2026, 7, 27)
@@ -332,7 +332,7 @@ class TestLintFindingsAreReadBackNotJustWritten:
         ]
 
     def test_the_daily_run_logs_what_lint_found(self, monkeypatch, caplog):
-        from backend.utils import pipeline
+        from backend.util import pipeline
 
         monkeypatch.setattr(pipeline.data_push, "read_lint_findings",
                             lambda **_kw: self.findings())
@@ -347,7 +347,7 @@ class TestLintFindingsAreReadBackNotJustWritten:
 
     def test_a_summary_failure_never_touches_the_run(self, monkeypatch):
         """It runs after every write the run was going to make."""
-        from backend.utils import pipeline
+        from backend.util import pipeline
 
         def boom(**_kw):
             raise RuntimeError("db down")
@@ -386,7 +386,7 @@ class TestStage1DegradationIsSurfaced:
         ]
 
     def test_the_daily_run_warns_about_degraded_snapshots(self, monkeypatch, caplog):
-        from backend.utils import pipeline
+        from backend.util import pipeline
 
         monkeypatch.setattr(pipeline.data_push, "read_lint_findings", lambda **_kw: [])
         monkeypatch.setattr(pipeline.data_push, "read_stage1_degradation",

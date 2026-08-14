@@ -32,7 +32,7 @@ import pytest
 from backend.llm import payload as data_retrieval
 from backend.news_fetching import snapshot_select as sel
 from backend.llm import usage
-from backend.utils.history import config, score
+from backend.util import config, score
 from backend.data_upsert import store
 from backend.data_fetching.vintage import lags, restamp
 from backend.llm import gazetteer as gz, rewrite
@@ -201,7 +201,7 @@ class TestThePipelineSeam:
     """
 
     def test_the_daily_run_still_fetches_and_enriches(self, monkeypatch):
-        from backend.utils import pipeline
+        from backend.util import pipeline
         called = []
         monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
                             lambda **kw: {"_meta": {"generated_at": "2026-08-02T00:00:00Z"}})
@@ -219,7 +219,7 @@ class TestThePipelineSeam:
         assert called == ["fetch", "enrich"]
 
     def test_a_historical_run_neither_fetches_nor_enriches(self, monkeypatch):
-        from backend.utils import pipeline
+        from backend.util import pipeline
         called = []
         monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
                             lambda **kw: {"_meta": {"generated_at": "2026-08-02T00:00:00Z"}})
@@ -237,7 +237,7 @@ class TestThePipelineSeam:
 
     def test_the_pin_reaches_every_downstream_stage(self, monkeypatch):
         """One overwrite of `_meta.generated_at` has to move the whole run."""
-        from backend.utils import pipeline
+        from backend.util import pipeline
         from backend.data_upsert import data_push
         seen = {}
         monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
