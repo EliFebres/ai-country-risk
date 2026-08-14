@@ -251,3 +251,119 @@ class TestLogFindings:
         with caplog.at_level("INFO"):
             lint.log_findings([])
         assert caplog.text == ""
+
+
+class TestFindingsAreReadBackNotJustWritten:
+    """The half of observe-only that was missing.
+
+    Enforcement was deleted on the argument that a contradiction would be written
+    down next to the score and looked at. `upsert_lint_findings` had been writing
+    `risk_lint` on every run since; nothing anywhere read it. A tripwire with no
+    reader is not a safety net, and the argument for deleting enforcement was
+    only sound with the reader in place.
+
+    The DB is faked — conftest promises no database — so what these assert is
+    that the summary and the report actually *consult* the store and shape what
+    they find, which is precisely what nothing did before.
+    """
+
+    def findings(self):
+        return [
+            {"country_iso2": "RU", "as_of": date(2026, 7, 28),
+             "rule": "war_flag_vs_low_score", "detail": {"score_12m": 44},
+             "created_at": None},
+            {"country_iso2": "TR", "as_of": date(2026, 7, 28),
+             "rule": "war_flag_vs_low_score", "detail": {"score_12m": 51},
+             "created_at": None},
+            {"country_iso2": "TR", "as_of": date(2026, 7, 28),
+             "rule": "suppressed_calm_vs_low_uncertainty", "detail": {},
+             "created_at": None},
+        ]
+
+    def test_the_daily_run_logs_what_lint_found(self, monkeypatch, caplog):
+        from backend.utils import pipeline
+
+        monkeypatch.setattr(pipeline.data_push, "read_lint_findings",
+                            lambda **_kw: self.findings())
+        monkeypatch.setattr(pipeline.data_push, "read_stage1_degradation",
+                            lambda **_kw: [])
+        with caplog.at_level("WARNING"):
+            pipeline.log_run_summary(as_of=date(2026, 7, 28))
+        assert "3 finding(s)" in caplog.text
+        assert "war_flag_vs_low_score" in caplog.text
+        # Named, so the reader knows where to look rather than only how many.
+        assert "RU" in caplog.text and "TR" in caplog.text
+
+    def test_the_daily_run_says_so_when_lint_is_quiet(self, monkeypatch, caplog):
+        from backend.utils import pipeline
+
+        monkeypatch.setattr(pipeline.data_push, "read_lint_findings", lambda **_kw: [])
+        monkeypatch.setattr(pipeline.data_push, "read_stage1_degradation",
+                            lambda **_kw: [])
+        with caplog.at_level("INFO"):
+            pipeline.log_run_summary(as_of=date(2026, 7, 28))
+        assert "no findings" in caplog.text
+
+    def test_a_summary_failure_never_touches_the_run(self, monkeypatch, caplog):
+        """It runs after every write the run was going to make."""
+        from backend.utils import pipeline
+
+        def boom(**_kw):
+            raise RuntimeError("db down")
+
+        monkeypatch.setattr(pipeline.data_push, "read_lint_findings", boom)
+        monkeypatch.setattr(pipeline.data_push, "read_stage1_degradation", boom)
+        pipeline.log_run_summary(as_of=date(2026, 7, 28))   # must not raise
+
+    def test_the_report_groups_findings_by_rule(self, monkeypatch):
+        from backend.utils.history import reports
+
+        monkeypatch.setattr(reports.data_push, "read_lint_findings",
+                            lambda **_kw: self.findings())
+        got = reports.lint_findings(["RU", "TR"])
+        assert got["total"] == 3
+        assert got["by_rule"]["war_flag_vs_low_score"]["countries"] == ["RU", "TR"]
+        # A rule firing across the roster is a different problem from one
+        # country tripping one rule, so the count has to survive the grouping.
+        assert got["by_rule"]["war_flag_vs_low_score"]["n"] == 2
+
+    def test_the_report_ignores_countries_outside_the_roster(self, monkeypatch):
+        from backend.utils.history import reports
+
+        monkeypatch.setattr(reports.data_push, "read_lint_findings",
+                            lambda **_kw: self.findings())
+        assert reports.lint_findings(["RU"])["total"] == 1
+
+
+class TestDegradationIsSurfaced:
+    """`28a8889` recorded stage-1 degradation so that "the scorer read digests"
+    and "the scorer read truncated bodies" would stop being indistinguishable.
+    Nothing read the block, so they stayed exactly as indistinguishable."""
+
+    def rows(self):
+        return [
+            {"country_iso2": "PT", "as_of": date(2026, 7, 28), "articles": 20,
+             "digested": 17, "degraded": 3, "degraded_ids": ["a4", "a9", "a15"]},
+            {"country_iso2": "PT", "as_of": date(2026, 7, 21), "articles": 20,
+             "digested": 19, "degraded": 1, "degraded_ids": ["a2"]},
+        ]
+
+    def test_the_daily_run_warns_about_degraded_snapshots(self, monkeypatch, caplog):
+        from backend.utils import pipeline
+
+        monkeypatch.setattr(pipeline.data_push, "read_lint_findings", lambda **_kw: [])
+        monkeypatch.setattr(pipeline.data_push, "read_stage1_degradation",
+                            lambda **_kw: self.rows())
+        with caplog.at_level("WARNING"):
+            pipeline.log_run_summary(as_of=date(2026, 7, 28))
+        assert "truncated bodies" in caplog.text and "PT" in caplog.text
+
+    def test_the_report_aggregates_the_degraded_share(self, monkeypatch):
+        from backend.utils.history import reports
+
+        monkeypatch.setattr(reports.data_push, "read_stage1_degradation",
+                            lambda **_kw: self.rows())
+        got = reports.stage1_degradation(["PT"])
+        assert got["affected_snapshots"] == 2
+        assert got["per_country"]["PT"]["degraded"] == 4
+        assert got["per_country"]["PT"]["degraded_share"] == 0.1

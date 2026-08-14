@@ -87,6 +87,17 @@ venv.bak/
 # there is nothing here worth versioning.
 backend/data/wb_panel_wide
 
+# IMF WEO editions, ~9MB of tab-delimited text each and twenty-one of them.
+# Bulk third-party data, re-fetchable by backend/scripts/fetch_weo_vintages.py,
+# and nothing about them is this project's. The README beside them IS tracked —
+# it is the only part anybody needs to read.
+backend/data/curated/weo_vintages/*.xls
+
+# Pre-migration dumps from vintage/restamp.py. Operator-local by definition:
+# they exist to undo one machine's migration, and a dump from another machine
+# would restore dates that machine had.
+backend/data/backups/
+
 # backend/data/curated.csv is TRACKED on purpose: it is public reference data an
 # operator types in by hand, its `as_of` is a column rather than the file mtime,
 # and a clone that reproduces scores is worth more than keeping the drops out of

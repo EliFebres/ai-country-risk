@@ -30,6 +30,20 @@ from typing import Any, Dict, Iterable, List, Optional
 # reader can tell a missing field from a field that never existed.
 _SCHEMA_VERSION = 1
 
+# Which evidence contract the model was scored against — the set of indicators
+# the payload can carry. Bump on any change to `INDICATOR_REGISTRY`'s membership
+# or to what a ledger section may contain.
+#
+# The prompt and the mask map were already versioned; this was the third thing
+# that changes what the model sees and the only one a reader could not date. Two
+# scores built on different indicator sets are not comparable, and without this
+# nothing in the row says which set it was.
+#
+#   p1  the registry as it stood through the masked cutover
+#   p2  adds the IMF WEO block — aggregate real GDP growth, gross debt, net
+#       lending and the current account, all edition-vintaged
+PAYLOAD_VERSION = "p2"
+
 # How the macro panel this snapshot consumed relates to real point-in-time data.
 # "as-published-latest" means: latest published values, silently revised by the
 # World Bank over time. Phase B's first-release panel writes "first-release"
@@ -111,6 +125,13 @@ def article_manifest_entry(item: Dict,
         # article rows. `publisher_link` is the pre-resolution fallback.
         "url": item.get("link") or item.get("publisher_link") or None,
         "source": item.get("source") or None,
+        # An NYT archive row is a headline and two sentences; a Guardian row is a
+        # body. Both count as one article everywhere else, so without this the
+        # only record of how thin a snapshot's evidence was is the ration log of
+        # the run that built it. `reports.evidence_texture` exists to answer
+        # "did the divergence track the abstract share" and was reading a key
+        # nothing wrote, so it answered 0.000 for every country-year.
+        "tier": item.get("tier") or None,
         # The item key is `published`; `published_at` only exists on output rows.
         "published_at": item.get("published") or None,
         "content_sha256": text_sha256(body),
@@ -145,6 +166,40 @@ def build_article_manifest(items: List[Dict],
         article_manifest_entry(it, by_id.get(it.get("id")), in_fulltext=it.get("id") in full)
         for it in (items or []) if isinstance(it, dict)
     ]
+
+
+def stage1_health(items: List[Dict]) -> Dict[str, Any]:
+    """How much of this snapshot the scorer read as digests rather than as text.
+
+    A stage-1 failure is silent by design — the article still reaches the model,
+    just in the pre-digest title+summary shape — so a bundle where a third of
+    the digests failed scores fine and says nothing. That matters twice over:
+    the fallback carries a truncated body instead of a structured digest, which
+    is different evidence, and it carries it at several times the token cost.
+
+    A probe run over twenty stored bundles had at least one failure in six of
+    them, all of them the digest model running to its 16,384-token output limit
+    on a prompt of one to four thousand. That is a third of the sample scoring
+    on partly-degraded evidence, and the divergence meter is the deliverable.
+    """
+    items = [it for it in (items or []) if isinstance(it, dict)]
+    degraded = [it for it in items if not isinstance(it.get("digest"), dict)]
+    # A third state between "digested" and "degraded". The runaway retry sends
+    # the first 6,000 characters, so what comes back is a digest of a truncated
+    # article rather than of the article — better evidence than a truncated body,
+    # and not the same thing as a clean digest. Recording it as clean would be a
+    # recovery that silently changed what the evidence was.
+    truncated = [it for it in items
+                 if isinstance(it.get("digest"), dict)
+                 and it["digest"].get("digest_source") == "truncated-retry"]
+    return {
+        "articles": len(items),
+        "digested": len(items) - len(degraded),
+        "degraded": len(degraded),
+        "degraded_ids": sorted(str(it.get("id")) for it in degraded if it.get("id"))[:20],
+        "truncated": len(truncated),
+        "truncated_ids": sorted(str(it.get("id")) for it in truncated if it.get("id"))[:20],
+    }
 
 
 def _latest_year_of(series: Any) -> Optional[int]:
@@ -203,7 +258,8 @@ def build_input_manifest(*,
                          model_id: Optional[str],
                          prompt_version: Optional[str],
                          policy_version: Optional[str],
-                         seed: Optional[int]) -> Dict[str, Any]:
+                         seed: Optional[int],
+                         masking: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Everything one snapshot needs to be reproducible.
 
     Args:
@@ -216,6 +272,18 @@ def build_input_manifest(*,
         prompt_version: ``ai.constants.PROMPT_VERSION`` at call time.
         policy_version: ``ai.policy.POLICY_VERSION`` at call time.
         seed: the determinism seed (``ai.client.SEED``).
+        masking: the regime this row was scored under —
+            ``{scoring_mode, mask_map_version, mask_integrity_status,
+            structural_fields, identifiability}``. Omitted for a named run.
+
+            It belongs in the manifest rather than beside it because the
+            manifest's promise is reproducibility, and under masking the bytes
+            the model saw are not the bytes in the database: without the mask
+            map's version the same articles re-mask differently and the row
+            cannot be rebuilt. ``structural_fields`` counts the structural block
+            because it is filled for five countries of forty-eight, and that
+            asymmetry has to be visible in the data rather than only in a
+            comment.
 
     Returns:
         The dict stored in ``risk_snapshot.input_manifest``. ``git_sha`` comes
@@ -225,10 +293,13 @@ def build_input_manifest(*,
     return {
         "schema_version": _SCHEMA_VERSION,
         "articles": build_article_manifest(items, prompt_entries, fulltext_ids),
+        "stage1": stage1_health(items),
         "macro_vintages": macro_vintages(payload),
         "model_id": model_id,
         "prompt_version": prompt_version,
         "policy_version": policy_version,
+        "payload_version": PAYLOAD_VERSION,
         "seed": seed,
         "git_sha": os.environ.get("GIT_SHA") or None,
+        **({"masking": masking} if masking else {}),
     }

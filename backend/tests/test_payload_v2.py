@@ -324,6 +324,76 @@ class TestSuppressedVolFlag:
         assert entry["fx_volatility_24m"] is not None
 
 
+class TestTheLoaderToPayloadContract:
+    """The assertion whose absence let the WEO loader run inert for its whole life.
+
+    Nineteen editions parsed, sixteen thousand rows written, correct-looking
+    counts in every log — and no value ever reached a payload, because the
+    loader's target codes were not registry keys and its periods were dates
+    where the reader expects bare years. Every existing test asserted the
+    loader's own output shape. None asserted that a written row is a read row.
+
+    A missing indicator is omitted from the payload rather than nulled, so a
+    broken loader and a country with no data are byte-identical. This closes
+    that: for every registry indicator, a stored row must arrive.
+    """
+
+    def test_every_registry_indicator_can_reach_the_payload(self):
+        from backend.utils import constants
+        missing = []
+        for code, spec in constants.INDICATOR_REGISTRY.items():
+            freq = str(spec["freq"])
+            if freq == "M":
+                rows = series_rows(code, [1.5, 2.5, 3.5], freq="M", start="2026-04")
+            elif freq == "Q":
+                rows = {code: [{"period": f"2025Q{q}", "freq": "Q", "value": 1.0 + q,
+                                "as_of": AS_OF, "source": str(spec["source"])}
+                               for q in (1, 2, 3)]}
+            else:
+                rows = series_rows(code, [1.5, 2.5, 3.5], freq=freq, start="2023")
+            payload = build(series=rows)
+            labels = set()
+            for block in ("friction_inputs", "uncertainty_inputs",
+                          "information_inputs", "edge_inputs"):
+                labels |= set((payload.get(block) or {}).keys())
+            if str(spec["label"]) not in labels:
+                missing.append(code)
+        assert not missing, (
+            f"{len(missing)} indicator(s) accept a stored row and never appear in "
+            f"a payload: {missing}")
+
+    def test_a_dated_period_is_rejected_rather_than_silently_dropped(self):
+        """The exact WEO defect: an annual period written as a date.
+
+        `_period_to_date` returns None for "2023-12-31" at freq A, and the row
+        vanishes. Pinned so the shape is at least visible in a test rather than
+        only in a payload nobody diffed.
+        """
+        good = build(series={"CPI.YOY": [{"period": "2023", "freq": "A", "value": 1.0,
+                                          "as_of": AS_OF, "source": "IMF WEO 2024-04"}]})
+        bad = build(series={"CPI.YOY": [{"period": "2023-12-31", "freq": "A", "value": 1.0,
+                                         "as_of": AS_OF, "source": "IMF WEO 2024-04"}]})
+        assert any("Inflation" in k for k in (good.get("uncertainty_inputs") or {}))
+        assert not any("Inflation" in k for k in (bad.get("uncertainty_inputs") or {}))
+
+    def test_the_weo_block_arrives_with_its_edition_as_the_source(self):
+        from backend.utils import constants
+        rows = {}
+        for code in ("WEO.NGDP_RPCH", "WEO.GGXWDG_NGDP",
+                     "WEO.GGXCNL_NGDP", "WEO.BCA_NGDPD"):
+            rows.update(series_rows(code, [1.0, 2.0], freq="A", start="2023",
+                                    source="IMF WEO 2025-04"))
+        payload = build(series=rows)
+        seen = {}
+        for block in ("friction_inputs", "uncertainty_inputs"):
+            seen.update(payload.get(block) or {})
+        for code in ("WEO.NGDP_RPCH", "WEO.GGXWDG_NGDP",
+                     "WEO.GGXCNL_NGDP", "WEO.BCA_NGDPD"):
+            label = str(constants.INDICATOR_REGISTRY[code]["label"])
+            assert label in seen, f"{code} did not reach the payload"
+            assert seen[label]["source"] == "IMF WEO 2025-04"
+
+
 class TestTokenBudget:
     def test_a_fully_populated_country_stays_within_budget(self):
         # Every registry indicator present with a full monthly history — the

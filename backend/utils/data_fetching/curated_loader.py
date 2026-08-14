@@ -37,11 +37,111 @@ import pathlib
 import re
 from typing import Any, Dict, List, Optional
 
+import yaml
+
 from backend.utils import constants
 
 logger = logging.getLogger(__name__)
 
 CURATED_CSV = pathlib.Path(__file__).resolve().parents[2] / "data" / "curated.csv"
+
+STRUCTURAL_FACTS = (pathlib.Path(__file__).resolve().parents[2]
+                    / "data" / "curated" / "structural_facts.yaml")
+
+# The fields the payload will carry. Anything else in the file is ignored rather
+# than rejected: the YAML is a document people annotate, and an extra key is a
+# note, not a corruption. An unknown *value* for a known field is a different
+# matter and is dropped loudly below.
+_STRUCTURAL_FIELDS = ("region", "income_group", "commodity_exporter",
+                      "monetary_sovereignty", "reserve_currency")
+
+# Closed vocabularies. A typo here would reach the model as a fact, and unlike a
+# number there is nothing about "constrainted" that looks wrong downstream.
+#
+# `region` is closed for a second reason, found by running the block through the
+# mask. The World Bank's own region names do not survive it: "Latin America and
+# Caribbean" masks to "another country and Caribbean", because "America" is a
+# name form for the US, and "North America" masks to "the region" — so the one
+# country whose region vanished entirely was the United States, while every
+# other country kept theirs. An asymmetry like that is not a lost field, it is a
+# signature.
+#
+# These values are chosen to pass through the gazetteer unchanged for all
+# forty-eight countries, which `test_structural_facts` asserts rather than
+# assumes. They are coarser than the World Bank's, and that is a gain here: the
+# model needs the neighbourhood, not the address.
+_STRUCTURAL_VOCAB = {
+    "region": {"Americas", "Europe", "Africa", "Middle East", "Central Asia",
+               "South Asia", "East Asia and Pacific"},
+    "income_group": {"low", "lower-middle", "upper-middle", "high"},
+    "monetary_sovereignty": {"full", "constrained", "pegged", "dollarized"},
+    "reserve_currency": {"major", "regional", "none"},
+}
+
+
+def load_structural_facts(path: Optional[pathlib.Path] = None) -> Dict[str, Dict[str, Any]]:
+    """The static half of the structural block, per country.
+
+    Masking removes the country's name and with it a set of legitimate priors —
+    that a reserve-currency issuer's fiscal arithmetic differs in kind, that a
+    currency-union member cannot devalue. Those are structure rather than
+    reputation, and this file restates them so the model reasons from the page
+    instead of from what it remembers about a name.
+
+    Same contract as :func:`load_curated_series` in the direction that matters:
+    an absent file is silent, because five of forty-eight countries are filled
+    and the rest are legitimately blank. It differs in the other direction — a
+    malformed entry is dropped with a warning rather than raised, because unlike
+    a curated *series* row this file is read on the live scoring path for every
+    country, and one bad block must not cost forty-seven countries their run.
+
+    Returns:
+        ``{iso2: {field: value}}``, carrying only known fields with in-vocabulary
+        values. Sources and retrieval dates stay in the file: they are for the
+        reader, and the model is shown the fact rather than its footnote.
+    """
+    path = path or STRUCTURAL_FACTS
+    if not path.exists():
+        return {}
+
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            raw = yaml.safe_load(handle) or {}
+    except (OSError, yaml.YAMLError) as exc:
+        logger.warning("structural_facts.yaml: cannot read (%s); no country gets a "
+                       "structural block this run", exc)
+        return {}
+
+    roster = _roster_iso2()
+    out: Dict[str, Dict[str, Any]] = {}
+    for iso2, block in raw.items():
+        code = str(iso2).strip().upper()
+        if code not in roster or not isinstance(block, dict):
+            continue
+        facts: Dict[str, Any] = {}
+        for field in _STRUCTURAL_FIELDS:
+            entry = block.get(field)
+            # Every fact is `{value, source, retrieved}`. A bare scalar is
+            # somebody having dropped the citation, which is the one thing this
+            # file exists to make impossible — so it is refused, not accepted.
+            if not isinstance(entry, dict) or "value" not in entry:
+                if entry is not None:
+                    logger.warning("structural_facts.yaml: %s.%s has no cited value; "
+                                   "dropped", code, field)
+                continue
+            value = entry["value"]
+            vocab = _STRUCTURAL_VOCAB.get(field)
+            if vocab and str(value) not in vocab:
+                logger.warning("structural_facts.yaml: %s.%s = %r is outside %s; "
+                               "dropped", code, field, value, sorted(vocab))
+                continue
+            facts[field] = value
+        if facts:
+            out[code] = facts
+
+    logger.info("[structural] %d of %d countries have a structural block",
+                len(out), len(roster))
+    return out
 
 _COLUMNS = ["country_iso2", "indicator_code", "period", "value", "as_of"]
 

@@ -71,7 +71,7 @@ A job that has never run is always due, so a fresh database bootstraps itself on
 boot. A job is stamped **only when it succeeds**, so a failure retries on the next tick
 rather than waiting out its whole interval. To force one, delete its `job_run` row.
 
-*Running the full ETL across the 48-country roster (see [COUNTRY_COVERAGE.md](../COUNTRY_COVERAGE.md)) can take several minutes due to polite pacing of feed resolution and per-article fetches. It runs on the same thread as the prices tick, so prices do not refresh while it works.*
+*Running the full ETL across the 48-country roster (`constants.COUNTRY_ROSTER`) can take several minutes due to polite pacing of feed resolution and per-article fetches. It runs on the same thread as the prices tick, so prices do not refresh while it works.*
 
 ---
 

@@ -16,20 +16,14 @@ import html
 import httpx
 import asyncio
 import feedparser
-import trafilatura
 import datetime as dt
-import logging
 
 from typing import List, Dict
 from urllib.parse import urlencode, quote_plus, urlparse
 
+from backend.utils.news_fetching import core
 from backend.utils.news_fetching.url_resolver import resolve_google_news_url
 from backend.utils.news_fetching.source_filter import is_blocked_url
-
-
-# Quiet noisy warnings from trafilatura
-logging.getLogger("trafilatura").setLevel(logging.ERROR)
-logging.getLogger("trafilatura.core").setLevel(logging.ERROR)
 
 UA = "Mozilla/5.0 (compatible; ai-country-risk/1.0)"
 
@@ -87,8 +81,7 @@ async def _fetch_text_async(url: str, client: httpx.AsyncClient, max_chars: int 
         r = await client.get(url, timeout=15)
         r.raise_for_status()
         # Provide URL context to trafilatura for better extraction heuristics
-        text = trafilatura.extract(r.text, url=str(r.url)) or ""
-        return text[:max_chars]
+        return core.extract_body(r.text, url=str(r.url))[:max_chars]
     except Exception:
         return ""
 
@@ -107,8 +100,7 @@ def _fetch_text_sync(url: str, client: httpx.Client, max_chars: int = 3000) -> s
 
         r = client.get(url, timeout=15)
         r.raise_for_status()
-        text = trafilatura.extract(r.text, url=str(r.url)) or ""
-        return text[:max_chars]
+        return core.extract_body(r.text, url=str(r.url))[:max_chars]
     except Exception:
         return ""
 
@@ -120,11 +112,7 @@ async def _expand_items_async(entries: List[Dict], max_articles: int, max_chars:
     through untouched; a per-article failure yields an empty body, never an
     exception.
     """
-    urls = [
-        (e.get("publisher_link") or e.get("link"))
-        for e in entries[:max_articles]
-        if (e.get("publisher_link") or e.get("link"))
-    ]
+    urls = [core.dedupe_key(e) for e in entries[:max_articles] if core.dedupe_key(e)]
     async with httpx.AsyncClient(follow_redirects=True, headers={"User-Agent": UA}) as client:
         texts = await asyncio.gather(
             *(_fetch_text_async(u, client, max_chars) for u in urls),
@@ -142,11 +130,7 @@ async def _expand_items_async(entries: List[Dict], max_articles: int, max_chars:
 
 def _expand_items_sync(entries: List[Dict], max_articles: int, max_chars: int) -> List[Dict]:
     """Synchronous twin of ``_expand_items_async``, same contract."""
-    urls = [
-        (e.get("publisher_link") or e.get("link"))
-        for e in entries[:max_articles]
-        if (e.get("publisher_link") or e.get("link"))
-    ]
+    urls = [core.dedupe_key(e) for e in entries[:max_articles] if core.dedupe_key(e)]
     with httpx.Client(follow_redirects=True, headers={"User-Agent": UA}) as client:
         texts = [_fetch_text_sync(u, client, max_chars) for u in urls]
     out = []
@@ -169,13 +153,15 @@ def gnews_rss(
     Return Google News RSS items (English/US feed, max 30 days old), each
     expanded with the article's extracted main text and a plain-text summary.
 
-    Each item contains:
+    Items are ``core.normalize_item`` dicts — the same canonical shape every
+    historical adapter emits — carrying:
       - 'title':          str
       - 'link':           str (original Google News link)
       - 'publisher_link': str (resolved publisher URL)
       - 'published':      ISO8601 str or None
       - 'source':         str (publisher name if available)
       - 'snippet':        str (PLAIN TEXT, links removed)
+      - '_theme':         None here; the caller tags it with the query that found it
       - 'snippet_html':   str (original RSS summary with HTML)
       - 'text', 'word_count'              (extracted body, may be empty)
       - 'summary', 'summary_word_count'   (first summary_words of text/snippet)
@@ -217,15 +203,15 @@ def gnews_rss(
         if is_blocked_url(publisher_link) or is_blocked_url(raw_link):
             continue
 
-        items.append({
-            "title": getattr(e, "title", "") or "",
-            "link": raw_link,                     # keep original for reference
-            "publisher_link": publisher_link,     # use this for fetching content
-            "published": published_dt.isoformat().replace("+00:00", "Z") if published_dt else None,
-            "source": source_title,
-            "snippet": plain_summary,
-            "snippet_html": raw_summary,
-        })
+        items.append(core.normalize_item(
+            title=getattr(e, "title", "") or "",
+            link=raw_link,                     # keep original for reference
+            publisher_link=publisher_link,     # use this for fetching content
+            published=published_dt.isoformat().replace("+00:00", "Z") if published_dt else None,
+            source=source_title,
+            snippet=plain_summary,
+            snippet_html=raw_summary,
+        ))
 
         # Stop once we have enough recent items
         if len(items) >= max_results:

@@ -211,6 +211,38 @@ INDICATOR_REGISTRY: dict[str, dict[str, object]] = {
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "GINI_INDEX", "recent_name": None,
     },
+    # --- the IMF WEO block ---------------------------------------------------
+    # Sourced from the per-edition WEO files rather than the World Bank, because
+    # for these four the *revision* is the story: the IMF's estimate of a year's
+    # debt ratio published in April differs from October's and from today's, and
+    # all three look identical in the payload. Every value carries the edition
+    # that published it, so a snapshot reads the number that existed then.
+    #
+    # Aggregate real GDP growth is its own entry rather than being folded into
+    # NY.GDP.PCAP.KD.ZG: per-capita growth differs from it by population growth,
+    # which is exactly the gap that matters in a shrinking or a fast-growing
+    # population, and serving one as the other would be a wrong number rather
+    # than a missing one.
+    "WEO.NGDP_RPCH": {
+        "label": "Real GDP growth (% y/y)", "unit": "% y/y",
+        "ledger": "uncertainty", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "WEO.GGXWDG_NGDP": {
+        "label": "Government gross debt (% GDP)", "unit": "% GDP",
+        "ledger": "friction", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "WEO.GGXCNL_NGDP": {
+        "label": "Government net lending/borrowing (% GDP)", "unit": "% GDP",
+        "ledger": "friction", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
+    "WEO.BCA_NGDPD": {
+        "label": "Current account balance (% GDP)", "unit": "% GDP",
+        "ledger": "uncertainty", "source": "IMF WEO", "freq": "A",
+        "panel_col": None, "recent_name": None,
+    },
     "SP.POP.DPND.OL": {
         "label": "Old-age dependency ratio", "unit": "% working-age population",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
@@ -302,6 +334,32 @@ INDICATOR_REGISTRY: dict[str, dict[str, object]] = {
         "label": "Total reserves (USD)", "unit": "USD",
         "ledger": "uncertainty", "source": "IMF IRFCL (manual)", "freq": "M",
         "panel_col": None, "recent_name": None,
+    },
+    # The time-varying half of the structural block. Masking strips the priors a
+    # country's name carried, and `structural_facts.yaml` restates the ones that
+    # never move. These three move every year, so a single current value used
+    # for a 2016 snapshot would be a future leak — the same error as scoring
+    # 2018 on 2026's revisions. They live here instead, load through curated.csv,
+    # and inherit the vintage bound for free.
+    #
+    # Currently empty, and honestly so: debt composition by currency and by
+    # holder is published per country by national debt agencies and inside IMF
+    # Article IV staff reports, mostly as PDF tables, with no free
+    # machine-readable series covering the roster. Absent beats estimated.
+    "GOV.DEBT.FX.SHARE": {
+        "label": "Government debt in foreign currency (% of total)", "unit": "% of total",
+        "ledger": "uncertainty", "source": "National debt agencies / IMF Article IV",
+        "freq": "A", "panel_col": None, "recent_name": None,
+    },
+    "GOV.DEBT.DOMESTIC.SHARE": {
+        "label": "Government debt held by residents (% of total)", "unit": "% of total",
+        "ledger": "uncertainty", "source": "National debt agencies / IMF Article IV",
+        "freq": "A", "panel_col": None, "recent_name": None,
+    },
+    "NIIP.GDP": {
+        "label": "Net international investment position (% GDP)", "unit": "% of GDP",
+        "ledger": "uncertainty", "source": "IMF Balance of Payments / IIP",
+        "freq": "A", "panel_col": None, "recent_name": None,
     },
     "WUI.INDEX": {
         "label": "World Uncertainty Index", "unit": "index",
@@ -499,8 +557,8 @@ PRICE_ASSETS: list[dict] = [
 # Country roster — the single source of truth for the run universe.
 # ---------------------------------------------------------------------------
 # The coverage rule, in one sentence: every country in the MSCI Developed and
-# Emerging Markets indices, plus Russia. See COUNTRY_COVERAGE.md at the repo
-# root for the full rationale, including why each excluded country is out.
+# Emerging Markets indices, plus Russia. Anything outside those indices is out,
+# however newsworthy — the rule decides membership, not case-by-case judgement.
 #
 # MSCI is the arbiter rather than our own judgement: it maintains the
 # investable-universe classification that the dashboard's audience already

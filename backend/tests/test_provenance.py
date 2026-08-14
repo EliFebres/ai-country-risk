@@ -71,6 +71,19 @@ class TestArticleManifestEntry:
         got = provenance.article_manifest_entry({"id": "a1", "published": "2026-05-01T09:00:00Z"})
         assert got["published_at"] == "2026-05-01T09:00:00Z"
 
+    def test_carries_the_tier(self):
+        # An NYT archive row is a headline and two sentences and a Guardian row
+        # is a body; both count as one article everywhere else. Without this the
+        # only record of a snapshot's evidence thinness is the ration log of the
+        # run that built it, and `reports.evidence_texture` reported 0.000.
+        got = provenance.article_manifest_entry({"id": "a1", "tier": "abstract-only"})
+        assert got["tier"] == "abstract-only"
+
+    def test_an_untiered_item_is_none_rather_than_absent(self):
+        # The live daily path sets no tier. A key that is present and None is
+        # readable as "not measured"; a missing key reads as a bug.
+        assert provenance.article_manifest_entry({"id": "a1"})["tier"] is None
+
     def test_in_prompt_follows_prompt_entry(self):
         without = provenance.article_manifest_entry({"id": "a1"})
         with_entry = provenance.article_manifest_entry({"id": "a1"}, {"id": "a1", "title": "t"})
@@ -174,6 +187,40 @@ class TestMacroVintages:
     def test_empty_payload_does_not_raise(self):
         assert provenance.macro_vintages({})["vintage_scheme"] == "as-published-latest"
         assert provenance.macro_vintages(None)["latest_year_by_indicator"] == {}
+
+    def test_the_evidence_payload_is_the_wrong_one_and_says_so_in_nulls(self):
+        """Why the rebuild script has to build the panel payload itself.
+
+        There are two payloads in the pipeline. `build_evidence_payload` makes
+        the one the model reads as evidence; `prepare_llm_payload_pretty` makes
+        the panel, and only the panel carries `_meta` and `indicators`. Handed
+        the evidence payload, this function does not raise — it degrades every
+        field to None, so a rebuilt manifest diffs cleanly against nothing and
+        reports `DIFFERS` on a row that was fine. A silent None is the failure
+        mode worth pinning.
+        """
+        evidence_shaped = {"structural": {"a": 1}, "series": {}, "recent": {}}
+        got = provenance.macro_vintages(evidence_shaped)
+        assert got["panel_source"] is None
+        assert got["panel_generated_at"] is None
+        assert got["latest_year"] is None
+        assert got["latest_year_by_indicator"] == {}
+
+
+class TestTheRebuildScriptReadsTheSamePayloadTheScorerWrote:
+    """`rebuild_snapshot` is `input_manifest`'s only consumer, and it was
+    comparing a manifest built from the panel payload against one built from the
+    evidence payload. Every rebuild reported `macro_vintages DIFFERS`, on every
+    row, for a reason that had nothing to do with the row."""
+
+    def test_it_builds_the_panel_payload(self):
+        import inspect
+
+        from backend.scripts import rebuild_snapshot
+
+        source = inspect.getsource(rebuild_snapshot.rebuild)
+        assert "prepare_llm_payload_pretty" in source
+        assert "payload=panel" in source, "the manifest must get the panel"
 
 
 class TestBuildInputManifest:

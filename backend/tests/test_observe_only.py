@@ -196,7 +196,11 @@ class TestNothingElseAssignsAScore:
     def test_only_langchain_llm_writes_the_score_key(self):
         # Any other module building a dict with a "score" key is either a second
         # scorer or a mutation of this one's output.
-        pattern = re.compile(r'"score"\s*:')
+        # Not preceded by `==`: `elif args.command == "score":` is a comparison,
+        # not a dict literal, and the CLI grew a subcommand by that name. The
+        # exclusion costs the tripwire nothing — a second scorer writes
+        # `{"score": x}` or `d["score"] = x`, and the latter has its own test.
+        pattern = re.compile(r'(?<!== )"score"\s*:')
         offenders = [
             str(path.relative_to(BACKEND))
             for path, source in self._python_sources()

@@ -33,12 +33,17 @@ import backend.utils.ai.constants as ai_constants
 from backend.utils.ai import client as ai_client
 from backend.utils.ai import digest_engine
 from backend.utils.ai import policy
+from backend.utils.masking import rewrite
 
 logger = logging.getLogger(__name__)
 
 # Prompt cap for the legacy fallback path only (stage 1 entirely down): the
 # digest path sends every fetched article.
 _MAX_PROMPT_ARTICLES = 10
+
+# What a masked run calls the country in the prompt. Matches the gazetteer's
+# own `names` role, so a masked body and its label read as the same document.
+MASKED_COUNTRY_LABEL = "the country"
 
 # Matches the maxLength on RISK_SCHEMA_V3.bullet_summary.
 _MAX_SUMMARY_CHARS = 800
@@ -52,14 +57,30 @@ _MAX_FULLTEXT_CHARS = 12_000
 # -------------------------
 # Helpers for prompt I/O
 # -------------------------
+# The fallback shape falls through to `text` when there is no summary, and the
+# historical Guardian rows are exactly that case: a full body and no abstract. A
+# digest is ~400 characters; an uncapped body is a median of 5,400 and a p90 of
+# 12,400, so a single stage-1 failure was quietly spending fourteen to thirty
+# times a digest's prompt budget on one article — and the whole point of stage 1
+# is that the scorer reads digests, not bodies.
+#
+# 1,200 is what this field was always meant to hold: the feed blurb the legacy
+# shape was built around, before there were digests or full bodies at all.
+_FALLBACK_SUMMARY_CHARS = 1200
+
+
 def _legacy_entry(it: Dict) -> Dict:
     """The pre-digest prompt shape for one article: title + summary only."""
+    summary = (it.get("summary") or it.get("text") or it.get("snippet") or "").strip()
     return {
         "id": it.get("id") or "",
         "source": (it.get("source") or "").strip(),
         "published_at": (it.get("published") or "")[:10],
         "title": (it.get("title") or "").strip(),
-        "summary": (it.get("summary") or it.get("text") or it.get("snippet") or "").strip(),
+        "summary": summary[:_FALLBACK_SUMMARY_CHARS],
+        # So a reader can tell "the scorer saw a digest" from "the scorer saw a
+        # truncated body because stage 1 failed on this one".
+        **({"digest_degraded": True} if not isinstance(it.get("digest"), dict) else {}),
     }
 
 
@@ -229,6 +250,7 @@ def country_llm_score(
     articles: List[Dict],
     as_of: date,
     fulltext_ids: Optional[List[str]] = None,
+    mask_iso2: Optional[str] = None,
 ) -> Dict[str, object]:
     """Score one country at both horizons under the friction framework.
 
@@ -253,6 +275,11 @@ def country_llm_score(
         fulltext_ids: ids whose full text the model should read (from
             ``digest_engine.select_fulltext_ids``); empty/None means no
             FULL_TEXT section.
+        mask_iso2: score this country without naming it. Everything the model
+            will see — the evidence payload, the articles, the country label —
+            is run through the gazetteer and then through the integrity gate,
+            which raises rather than sends a payload that still names a roster
+            country. None is the old named behavior, byte for byte.
 
     Returns:
         A dict whose first keys keep their historical names and 0-1 scale:
@@ -303,6 +330,13 @@ def country_llm_score(
     # date gets that date's rules.
     iso2 = _extract_iso2(payload)
 
+    if mask_iso2:
+        # After `_extract_iso2`, so the sanctions lookup keeps the real code
+        # while the prompt never learns it.
+        payload = rewrite.mask_payload(payload, mask_iso2)
+        articles = rewrite.mask_items(articles, mask_iso2)
+        country_display = MASKED_COUNTRY_LABEL
+
     evidence_json = json.dumps(payload, ensure_ascii=False)
     article_digests_json = _digests_to_json(articles)
     has_digests = any(isinstance(it.get("digest"), dict) for it in articles if isinstance(it, dict))
@@ -327,6 +361,21 @@ def country_llm_score(
         full_text_block=fulltext_block if fulltext_block != "(none)"
         else "(no full-text articles supplied)",
     )
+
+    if mask_iso2:
+        # The gate, on the serialized blocks rather than on the objects they
+        # came from. Those objects carry fields the model never sees — the
+        # article URLs, which name the country in their paths and mask into
+        # nonsense if touched — so scanning them means either a gate that cries
+        # wolf on every snapshot or an allow-list of what to scan, which is the
+        # same allow-list that already let `content` and `summary` through.
+        #
+        # Not the whole prompt either: the template's own worked examples name
+        # Australia and China, and they are instructions rather than evidence
+        # about anyone. These four strings are every byte the prompt carries
+        # that came from this country's data.
+        rewrite.assert_clean([evidence_json, article_digests_json,
+                              fulltext_block, country_display])
 
     # Client construction is inside the guard, not just the call: a malformed
     # key or a langchain init error is as much a "this country did not score" as

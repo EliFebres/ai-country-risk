@@ -24,8 +24,7 @@ from typing import Dict, List
 
 import requests
 
-from backend.utils.dates import parse_date_for_sort
-from backend.utils.news_fetching import article_ranking, fetch_links
+from backend.utils.news_fetching import article_ranking, core, fetch_links
 from backend.utils.news_fetching.advanced_scraper import crawlbase_token
 from backend.utils.news_fetching.advanced_scraper import scrape_one as crawlbase_scrape_one
 from backend.utils.news_fetching.simple_scraper import get_article_assets
@@ -38,36 +37,18 @@ logger = logging.getLogger(__name__)
 _RELEVANCE_THRESHOLD = 0.3
 
 # Body text stored per article; also the cap requested from the feed expander.
-_MAX_CONTENT_CHARS = 24000
+# Shared with the historical harvesters, so both paths hold the same size of
+# evidence per article.
+_MAX_CONTENT_CHARS = core.MAX_BODY_CHARS
 
-# Query themes, one per ledger the prompt actually scores plus a catch-all.
-#
-# The previous set — broad, government, economic, security — predated the
-# friction framework and covered two ledgers out of four: nothing looked for
-# taxes, permits, courts, press freedom, the statistics office, business
-# formation or education. The prompt asks for evidence on all four, and for
-# skilled departure it says outright that articles are its ONLY instrument,
-# there being no data series for it. A retrieval layer that cannot surface those
-# stories leaves the model to score that ledger on the macro panel alone.
-#
-# Order matters: `broad` runs LAST. De-duplication below is first-seen-wins, so
-# a story a specific theme also found keeps the specific tag — and the per-theme
-# floor is only meaningful if the specific themes get to claim their own
-# articles before the catch-all does.
-_QUERY_THEMES: dict[str, str] = {
-    "friction":    '"{c}" (tax OR taxation OR customs OR permit OR licence OR '
-                   'bureaucracy OR corruption OR court ruling OR regulation)',
-    "order":       '"{c}" (government OR president OR prime minister OR parliament OR '
-                   'election OR cabinet OR coup OR protest OR central bank OR '
-                   'interest rate OR inflation OR currency OR default OR IMF)',
-    "security":    '"{c}" (military OR defense OR conflict OR war OR attack OR '
-                   'sanctions OR security OR terrorism OR unrest)',
-    "information": '"{c}" (press freedom OR journalist OR censorship OR '
-                   'statistics office OR audit OR judiciary OR court independence)',
-    "edge":        '"{c}" (startup OR entrepreneur OR business registration OR '
-                   'university OR research OR emigration OR skilled workers leaving)',
-    "broad":       '"{c}"',
-}
+# The query themes, the theme-floor selection, and the two dedupe keys now live
+# in `news_fetching.core`, because the historical harvesters need exactly the
+# same behavior and a second copy would be a silent disagreement about what
+# "the 20 articles" means. These aliases keep this module's own vocabulary.
+_QUERY_THEMES = core.THEME_QUERIES
+_headline_key = core.headline_key
+_by_relevance = core.by_relevance
+_select_with_theme_floor = core.select_with_theme_floor
 
 # 6 x 10 fetches the same ~60 raw items the old 4 x 15 did: six themes at no
 # extra scrape cost, and the same <=20 articles reach the paid digest stage.
@@ -76,79 +57,6 @@ _PER_QUERY_RESULTS = 10
 # Slots each theme is guaranteed in the returned list. 6 x 2 = 12 of 20; the
 # remaining 8 fill by relevance.
 _PER_THEME_FLOOR = 2
-
-
-def _headline_key(title: str) -> str:
-    """Normalize a headline so syndicated copies of one wire story collapse.
-
-    A wire story runs at a dozen outlets under the same headline and a different
-    URL, so the publisher-URL key below cannot see them as one. Each copy costs a
-    stage-1 digest call. The model's ``topic_group`` clustering does merge them
-    at scoring time, so the duplicates never reach the dashboard — they are pure
-    spend, which is the worst kind of bug to leave in: invisible in the output.
-
-    Google News appends " - Publisher" to every title, so the last such segment
-    goes; the rest is lowercased and stripped of punctuation and whitespace runs.
-    Matching is exact after that, deliberately: fuzzy matching would start
-    collapsing genuinely different stories about the same subject, and two
-    stories are worth more to the model than one.
-    """
-    text = (title or "").rsplit(" - ", 1)[0]        # drop the publisher suffix
-    return " ".join("".join(c if c.isalnum() else " " for c in text.lower()).split())
-
-
-def _by_relevance(items: List[Dict]) -> List[Dict]:
-    """Most relevant first, ties broken toward the more recent article."""
-    return sorted(
-        items,
-        key=lambda x: (x.get("relevance_score", 0.0), parse_date_for_sort(x.get("published"))),
-        reverse=True,
-    )
-
-
-def _select_with_theme_floor(items: List[Dict], max_articles: int, per_theme: int) -> List[Dict]:
-    """Guarantee each theme a share of the budget, then fill by relevance.
-
-    Without this the budget is spent by one global relevance sort, and a theme
-    whose news is quiet this week loses every slot to whichever theme is loudest
-    — so adding a query would buy nothing but the fetch. An election week would
-    return twenty election stories and the friction and information ledgers would
-    be scored on the macro panel alone.
-
-    A theme with nothing to offer forfeits its quota rather than shrinking the
-    result: the floor is a guarantee against crowding out, not a requirement that
-    every theme produce news.
-
-    Args:
-        items: scored articles, each tagged with ``_theme``.
-        max_articles: total cap on the returned list.
-        per_theme: slots reserved for each theme before the open fill.
-
-    Returns:
-        Up to ``max_articles`` items, most relevant first.
-    """
-    ranked = _by_relevance(items)
-    quota = {theme: per_theme for theme in _QUERY_THEMES}
-    picked: List[Dict] = []
-    taken = set()
-
-    for item in ranked:                       # first pass: spend each theme's quota
-        if len(picked) >= max_articles:
-            break
-        theme = item.get("_theme")
-        if quota.get(theme, 0) > 0:
-            quota[theme] -= 1
-            picked.append(item)
-            taken.add(id(item))
-
-    for item in ranked:                       # second pass: fill the remainder
-        if len(picked) >= max_articles:
-            break
-        if id(item) not in taken:
-            picked.append(item)
-
-    # The caller assigns ids a1..aN by position, so hand back the familiar order.
-    return _by_relevance(picked)
 
 
 def fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict]:
@@ -183,32 +91,48 @@ def fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict]
         )
 
         for item in items:
-            # Key on the resolved publisher URL, not the Google wrapper: two
-            # queries returning the same story get different wrapper links, and
-            # a duplicate costs a stage-1 digest call and inflates its own
-            # topic_group in the model's clustering. gnews_rss resolves this for
-            # every entry already, so it is free here.
-            url = item.get("publisher_link") or item.get("link", "")
+            # `core.dedupe_key` keys on the resolved publisher URL, not the
+            # Google wrapper: two queries returning the same story get different
+            # wrapper links, and a duplicate costs a stage-1 digest call and
+            # inflates its own topic_group in the model's clustering. gnews_rss
+            # resolves this for every entry already, so it is free here.
+            url = core.dedupe_key(item)
             headline = _headline_key(item.get("title"))
             if not url or url in seen_urls or (headline and headline in seen_headlines):
                 continue
             seen_urls.add(url)
             if headline:
                 seen_headlines.add(headline)
+            # Which query found it is the better evidence, so it stays primary;
+            # `ensure_theme` is the content-classifier fallback and is a no-op
+            # here. It runs anyway so the live path and the historical one tag
+            # an untagged item by the same rule rather than two.
             item["_theme"] = theme
-            all_items.append(item)
+            all_items.append(core.ensure_theme(item))
 
     for item in all_items:
         item["relevance_score"] = article_ranking.score_relevance(item, country_name)
 
-    filtered = [it for it in all_items if it.get("relevance_score", 0) >= _RELEVANCE_THRESHOLD]
-
-    # Thin coverage: the floor is meaningless when there is nothing to ration, so
-    # drop the bar and take the best of the raw pool, as before.
-    if len(filtered) < article_ranking.TOP_N:
-        logger.info("[%s] Only %d high-relevance items (>=%.1f). Relaxing threshold to ensure 3.",
-                    country_name, len(filtered), _RELEVANCE_THRESHOLD)
-        return _by_relevance(all_items)[:max(max_articles, article_ranking.TOP_N)]
+    # The threshold is a preference, not a cap. It used to be both, and the two
+    # readings disagreed exactly where it mattered: with fewer than TOP_N items
+    # over the bar the bar came off and the country got a full twenty by rank,
+    # but with TOP_N or more it got *only those*. So a week where two articles
+    # cleared 0.3 was scored on twenty, and a week where three cleared was
+    # scored on three — evidence falling as relevance rose, discontinuously, at
+    # the one place a country's coverage is most likely to sit.
+    #
+    # Filling from the cleared items first and topping up by rank keeps what the
+    # threshold was for (relevant articles come first) and drops what it was
+    # never for (throwing away the budget).
+    pool = _by_relevance(all_items)
+    cleared = [it for it in pool if it.get("relevance_score", 0) >= _RELEVANCE_THRESHOLD]
+    if len(cleared) < max_articles:
+        logger.info("[%s] %d item(s) over the %.1f bar; topping up to %d by rank.",
+                    country_name, len(cleared), _RELEVANCE_THRESHOLD, max_articles)
+        seen = {id(it) for it in cleared}
+        filtered = cleared + [it for it in pool if id(it) not in seen]
+    else:
+        filtered = cleared
 
     selected = _select_with_theme_floor(filtered, max_articles, _PER_THEME_FLOOR)
     logger.info("[%s] %d/%d articles kept, themes: %s", country_name, len(selected),

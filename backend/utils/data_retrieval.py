@@ -26,7 +26,9 @@ import pathlib
 import pandas as pd
 
 from datetime import date, datetime, timedelta, timezone
-from typing import Dict, List, NamedTuple, Optional
+from typing import Any, Dict, List, NamedTuple, Optional
+
+from dateutil.relativedelta import relativedelta
 
 from backend.utils import constants, metrics, provenance
 from backend.utils.dates import utc_minute_iso
@@ -244,7 +246,11 @@ _RESERVES_TREND_MONTHS = 6
 # payload builder that reaches the network to count its own tokens is a payload
 # builder that fails offline.
 _CHARS_PER_TOKEN = 4
-_TOKEN_BUDGET = 2500
+# Raised from 2500 with payload version p2, which added the four WEO indicators.
+# A fully-populated country came to ~2514. Sized against the contract rather
+# than trimmed to fit the old number: four annual series cost about 1% more
+# tokens for about 19% more indicators, which is the trade worth making.
+_TOKEN_BUDGET = 2800
 
 
 def _period_to_date(period: str, freq: str) -> Optional[date]:
@@ -284,6 +290,11 @@ class _Observation(NamedTuple):
     period_end: date
     as_of: date
     source: str
+    # Whether `as_of` is a real publication date or a stand-in. The panel has no
+    # record of when the World Bank published a figure, so it uses the year's
+    # end; that is a placeholder wearing the shape of a vintage, and it must
+    # never outrank an edition that really was published on its date.
+    dated: bool = False
 
 
 def _panel_observations(panel: pd.DataFrame, panel_col: str) -> List[_Observation]:
@@ -324,6 +335,11 @@ def _series_observations(rows: List[dict]) -> List[_Observation]:
         observations.append(_Observation(
             value=float(value), period=str(period), freq=str(freq),
             period_end=period_end, as_of=as_of, source=str(row.get("source") or "unknown"),
+            # `indicator_series` rows carry an as_of that was decided when the
+            # row was written — a WEO edition date, or a publication-lag stamp —
+            # rather than derived from the period. That is what `dated` means,
+            # and it is what lets a real vintage outrank the panel's year-end.
+            dated=True,
         ))
     return observations
 
@@ -344,7 +360,8 @@ def _recent_observation(entry: Optional[dict]) -> Optional[_Observation]:
     )
 
 
-def _resolve(observations: List[_Observation]) -> List[_Observation]:
+def _resolve(observations: List[_Observation],
+             as_of: Optional[date] = None) -> List[_Observation]:
     """Merge one indicator's copies from every store, freshest copy winning.
 
     An indicator can live in three places at once — the annual panel, the
@@ -354,12 +371,31 @@ def _resolve(observations: List[_Observation]) -> List[_Observation]:
 
     This is what puts a monthly CPI print in front of the model instead of an
     annual average up to two years stale.
+
+    Args:
+        as_of: when scoring a past date, the newest vintage that may be used.
+            "Freshest wins" becomes "freshest that existed yet wins", and both
+            observations *published* after the date and periods *covering* time
+            after it are dropped. Without this a 2018 snapshot is scored on
+            2026's revisions of 2018 — the macro twin of reading tomorrow's
+            news, and quieter, because a revised number looks exactly like an
+            unrevised one.
     """
+    if as_of is not None:
+        observations = [o for o in observations
+                        if o.as_of <= as_of and o.period_end <= as_of]
+
+    # A real vintage always outranks a synthesized one, whatever the dates say.
+    # The panel stamps every annual figure with 31 December of its own year, so
+    # between the year end and the next WEO edition — January to March, a
+    # quarter of the anchors — that placeholder was beating the edition that
+    # actually existed, and the snapshot silently read today's revision of last
+    # year instead of the number a reader could have had.
     best: Dict[str, _Observation] = {}
     for obs in observations:
         key = f"{obs.freq}:{obs.period}"
         current = best.get(key)
-        if current is None or obs.as_of > current.as_of:
+        if current is None or (obs.dated, obs.as_of) > (current.dated, current.as_of):
             best[key] = obs
 
     # Sort by the period the value describes, not by when we learned it: an
@@ -380,7 +416,13 @@ def _trend(observations: List[_Observation], years: int) -> Optional[float]:
     if not observations:
         return None
     latest = observations[-1]
-    target = latest.period_end.replace(year=latest.period_end.year - years)
+    # `relativedelta`, not `.replace(year=...)`: a monthly observation for
+    # February ends on the 29th in a leap year, and `date(2020, 2, 29).replace(
+    # year=2019)` raises rather than returning anything. It is not hypothetical
+    # — it is every snapshot anchored in the months after a leap February, which
+    # in the pilot window is 2016, 2020 and 2024. `relativedelta` clamps to the
+    # 28th, which is what "a year before this" means for a month-end.
+    target = latest.period_end - relativedelta(years=years)
 
     tolerance = timedelta(days=183)
     candidates = [o for o in observations if abs((o.period_end - target).days) <= tolerance.days]
@@ -426,7 +468,11 @@ def _stamp(observations: List[_Observation], code: str, as_of: date) -> Optional
             entry[key] = trend
     if code in _LONG_HISTORY_CODES:
         # The two indicators whose path matters as much as their level.
-        cutoff = as_of.replace(year=as_of.year - _LONG_HISTORY_YEARS)
+        # Same leap-day trap as `_trend`, one step further out: this one takes
+        # the anchor rather than an observation, so it fires on any run whose
+        # own date is 29 February — which for the daily run is the whole roster,
+        # every leap year.
+        cutoff = as_of - relativedelta(years=_LONG_HISTORY_YEARS)
         entry["history"] = {
             o.period: round(o.value, 2) for o in observations if o.period_end >= cutoff
         }
@@ -458,6 +504,8 @@ def build_evidence_payload(
     recent: Optional[Dict[str, dict]] = None,
     fx_regimes: Optional[Dict[str, str]] = None,
     elections: Optional[Dict[str, List[dict]]] = None,
+    vintage_as_of: Optional[date] = None,
+    structural: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> dict:
     """Build the three-ledger evidence payload the scoring model receives.
 
@@ -475,6 +523,20 @@ def build_evidence_payload(
         recent: latest prints, from ``data_push.read_recent_indicators``.
         fx_regimes: currency regimes, from ``constants.FX_REGIMES``.
         elections: election calendar, from ``constants.ELECTIONS``.
+        vintage_as_of: for a historical backfill, the newest data vintage this
+            snapshot is allowed to see. Deliberately separate from ``as_of``
+            and defaulting to None, so the daily run is unaffected: passing
+            today's date would drop the current year's annual figures, whose
+            period ends in December. Only a historical run wants that, and a
+            historical run wants it badly — otherwise a 2018 score is built on
+            2026's revisions of 2018.
+        structural: static per-country facts, from
+            ``curated_loader.load_structural_facts``. Masking removes the
+            country's name and with it the priors the name carried; this puts
+            the structural ones back as stated evidence. Deliberately not
+            time-varying — anything that moves year to year is an
+            ``indicator_series`` row with its own vintage, or it would be a
+            future leak on every historical snapshot.
 
     Returns:
         ``{_meta, friction_inputs, uncertainty_inputs, information_inputs,
@@ -500,7 +562,7 @@ def build_evidence_payload(
             fresh = _recent_observation(recent.get(str(recent_name)))
             if fresh:
                 observations.append(fresh)
-        merged = _resolve(observations)
+        merged = _resolve(observations, vintage_as_of)
         if merged:
             resolved[code] = merged
 
@@ -638,7 +700,12 @@ def build_evidence_payload(
         "_meta": {
             "country": country_iso2,
             "as_of": as_of.isoformat(),
-            "vintage_scheme": provenance._VINTAGE_SCHEME,
+            # Which regime built this payload, not a constant. A vintage-bounded
+            # build is point-in-time; reporting it as "as-published-latest" told
+            # the audit record the exact opposite of what happened, and the
+            # manifest is the only place that difference is ever visible.
+            "vintage_scheme": ("point-in-time" if vintage_as_of is not None
+                               else provenance._VINTAGE_SCHEME),
             "staleness_basis": (
                 "staleness_days counts from the end of the period a value describes "
                 "to as_of: how old the reading is. `as_of` on each value is a "
@@ -650,6 +717,22 @@ def build_evidence_payload(
         **sections,
         "computed": computed,
     }
+
+    # The facts identity used to imply, stated because masking took identity
+    # away. Omitted entirely when the country has no block, exactly as an
+    # indicator with no observation is omitted: an empty `structural` key would
+    # read to the model as "this country has no structure", which is false and
+    # is worse than silence.
+    country_structural = (structural or {}).get(country_iso2)
+    if country_structural:
+        payload["structural"] = {
+            **country_structural,
+            "note": (
+                "Facts about this country that do not change year to year, "
+                "supplied because the country is not named. Reason from these "
+                "rather than from any guess about which country this is."
+            ),
+        }
 
     estimated_tokens = len(json.dumps(payload, ensure_ascii=False)) // _CHARS_PER_TOKEN
     log = logger.warning if estimated_tokens > _TOKEN_BUDGET else logger.info

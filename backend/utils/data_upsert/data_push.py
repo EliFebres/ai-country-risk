@@ -208,6 +208,11 @@ class _SnapshotData(NamedTuple):
     # (``provenance.build_input_manifest``). Payload-level, not part of
     # ``llm_output`` — it describes the inputs, not the model's answer.
     input_manifest: Optional[Dict[str, Any]] = None
+    # Which scoring regime produced the row. Defaults to 'named' because that is
+    # what every caller who does not say otherwise is doing — the daily run's
+    # articles name their country. Never None: an unstamped row in a series that
+    # spans a regime change is indistinguishable from a wrong one.
+    scoring_mode: str = "named"
 
 
 class _ArticleRow(NamedTuple):
@@ -324,6 +329,7 @@ def _parse_snapshot_payload(payload: Dict[str, Any]) -> _SnapshotData:
         prompt_version=llm_out.get("prompt_version"),
         policy_version=llm_out.get("policy_version"),
         input_manifest=input_manifest,
+        scoring_mode=payload.get("scoring_mode") or "named",
     )
 
 
@@ -352,7 +358,12 @@ ALTER TABLE risk_snapshot
   ADD COLUMN IF NOT EXISTS order_uncertainty_score DOUBLE PRECISION,
   ADD COLUMN IF NOT EXISTS information_score       DOUBLE PRECISION,
   ADD COLUMN IF NOT EXISTS edge_vitality           DOUBLE PRECISION,
-  ADD COLUMN IF NOT EXISTS non_investable          BOOLEAN;
+  ADD COLUMN IF NOT EXISTS non_investable          BOOLEAN,
+  -- Which scoring regime produced this row: 'named' (the article text names the
+  -- country) or 'masked' (it does not). Every row is stamped, including this
+  -- one and every one the daily run has written since. A ten-year series that
+  -- changes regime half way through and does not say so is not a series.
+  ADD COLUMN IF NOT EXISTS scoring_mode            TEXT;
 """
 
 # ALTER TABLE takes an ACCESS EXCLUSIVE lock even when every column already
@@ -516,10 +527,10 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
               article_scores, applied_rules, evidence_coverage, legal_gate,
               model_id, prompt_version, policy_version, input_manifest,
               friction_score, order_uncertainty_score, information_score,
-              edge_vitality, non_investable
+              edge_vitality, non_investable, scoring_mode
             )
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s)
+                    %s, %s, %s, %s, %s, %s)
             ON CONFLICT (country_iso2, as_of)
             DO UPDATE SET
               score             = EXCLUDED.score,
@@ -542,7 +553,10 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
               model_id          = COALESCE(EXCLUDED.model_id,          risk_snapshot.model_id),
               prompt_version    = COALESCE(EXCLUDED.prompt_version,    risk_snapshot.prompt_version),
               policy_version    = COALESCE(EXCLUDED.policy_version,    risk_snapshot.policy_version),
-              input_manifest    = COALESCE(EXCLUDED.input_manifest,    risk_snapshot.input_manifest)
+              input_manifest    = COALESCE(EXCLUDED.input_manifest,    risk_snapshot.input_manifest),
+              -- Not COALESCEd: the mode of the run that just wrote is the mode
+              -- of the row, and a re-score in the other regime must say so.
+              scoring_mode      = EXCLUDED.scoring_mode
             """,
             (
                 data.country, data.as_of,
@@ -559,6 +573,7 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                 _json_or_none(data.input_manifest),
                 data.friction_score, data.order_uncertainty_score,
                 data.information_score, data.edge_vitality, data.non_investable,
+                data.scoring_mode,
             ),
         )
 
@@ -737,8 +752,42 @@ CREATE TABLE IF NOT EXISTS indicator_series (
   as_of          DATE NOT NULL,          -- when this value became known to us
   source         TEXT NOT NULL,
   vintage_scheme TEXT NOT NULL DEFAULT 'as-published-latest',
-  PRIMARY KEY (country_iso2, indicator_code, freq, period)
+  -- `as_of` is IN the key, and leaving it out made the whole vintage layer
+  -- inert. One row per (country, indicator, period) means the April 2018 WEO
+  -- edition's estimate of 2017 growth and the October 2018 edition's revision
+  -- of the same number are the same row, and the second load silently replaces
+  -- the first. Loading fifteen editions kept 941 rows out of ~13,000 — all from
+  -- whichever edition happened to load last — so a 2018 snapshot would have
+  -- read 2023's revision of 2018 while `vintage_scheme` said
+  -- 'as-published-edition' and looked correct.
+  --
+  -- Multiple rows per period is exactly what `data_retrieval._resolve` already
+  -- expects: it collapses same-period copies to the newest `as_of` not after
+  -- the anchor. The key was the only thing preventing it from ever seeing more
+  -- than one.
+  PRIMARY KEY (country_iso2, indicator_code, freq, period, as_of)
 );
+"""
+
+# Widening an existing table's primary key. Separate from the CREATE because
+# `CREATE TABLE IF NOT EXISTS` does nothing to a table that already exists, so
+# every deployment that ran before this would have kept the narrow key and
+# quietly kept collapsing vintages.
+_INDICATOR_SERIES_PK_MIGRATION = """
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.key_column_usage
+    WHERE table_name = 'indicator_series'
+      AND constraint_name = 'indicator_series_pkey'
+    GROUP BY constraint_name
+    HAVING count(*) = 4
+  ) THEN
+    ALTER TABLE indicator_series DROP CONSTRAINT indicator_series_pkey;
+    ALTER TABLE indicator_series
+      ADD PRIMARY KEY (country_iso2, indicator_code, freq, period, as_of);
+  END IF;
+END $$;
 """
 
 _SERIES_FREQS = ("M", "Q", "A")
@@ -804,16 +853,16 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
 
     with _transaction() as cur:
         cur.execute(_INDICATOR_SERIES_DDL)
+        cur.execute(_INDICATOR_SERIES_PK_MIGRATION)
         extras.execute_values(
             cur,
             """
             INSERT INTO indicator_series
               (country_iso2, indicator_code, freq, period, value, as_of, source, vintage_scheme)
             VALUES %s
-            ON CONFLICT (country_iso2, indicator_code, freq, period)
+            ON CONFLICT (country_iso2, indicator_code, freq, period, as_of)
             DO UPDATE SET
               value          = EXCLUDED.value,
-              as_of          = EXCLUDED.as_of,
               source         = EXCLUDED.source,
               vintage_scheme = EXCLUDED.vintage_scheme
             """,
@@ -936,6 +985,91 @@ def upsert_lint_findings(findings: List[Dict[str, Any]]) -> None:
             rows,
             page_size=100,
         )
+
+
+def read_lint_findings(as_of: Optional[datetime.date] = None,
+                       country_iso2: Optional[str] = None,
+                       since: Optional[datetime.date] = None) -> List[Dict[str, Any]]:
+    """Lint findings, newest first — the half of this tripwire that was missing.
+
+    ``lint.check`` runs for every country on every run and `upsert_lint_findings`
+    has been writing this table since the enforcement layer was deleted. Nothing
+    read it back. The observe-only decision was justified on the argument that a
+    contradiction would be *written down next to the score and looked at*, and
+    for as long as nothing surfaced them the second half of that sentence was not
+    true — the table was a place findings went, not a place anyone saw them.
+
+    Args:
+        as_of: one run's findings.
+        country_iso2: one country's.
+        since: everything from this date forward, for a trend rather than a
+            snapshot — a rule that fires constantly is a prompt problem, and
+            that only shows up across days.
+    """
+    where, params = [], []
+    if as_of:
+        where.append("as_of = %s")
+        params.append(as_of)
+    if country_iso2:
+        where.append("country_iso2 = %s")
+        params.append(country_iso2)
+    if since:
+        where.append("as_of >= %s")
+        params.append(since)
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    with _transaction() as cur:
+        cur.execute(_RISK_LINT_DDL)
+        cur.execute(f"""
+            SELECT country_iso2, as_of, rule, detail, created_at
+              FROM risk_lint {clause}
+             ORDER BY as_of DESC, country_iso2, rule
+        """, tuple(params))
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def read_stage1_degradation(as_of: Optional[datetime.date] = None,
+                            since: Optional[datetime.date] = None
+                            ) -> List[Dict[str, Any]]:
+    """Snapshots whose scorer read truncated bodies instead of digests.
+
+    Read straight out of `risk_snapshot.input_manifest`, where
+    ``provenance.stage1_health`` has been recording it since `28a8889`. That
+    commit's stated purpose was that "the scorer read digests" and "the scorer
+    read truncated bodies" would stop being indistinguishable after the fact.
+    They stayed indistinguishable, because the block had no reader — the same
+    shape as the WEO loader whose rows nothing resolved and the probe whose
+    results lived in a commit message.
+
+    Only rows with at least one degraded article come back: a clean run should
+    print nothing rather than forty-eight zeroes.
+    """
+    where, params = [
+        "(COALESCE((input_manifest -> 'stage1' ->> 'degraded')::int, 0)"
+        " + COALESCE((input_manifest -> 'stage1' ->> 'truncated')::int, 0)) > 0"
+    ], []
+    if as_of:
+        where.append("as_of = %s")
+        params.append(as_of)
+    if since:
+        where.append("as_of >= %s")
+        params.append(since)
+    with _transaction() as cur:
+        cur.execute(f"""
+            SELECT country_iso2, as_of,
+                   (input_manifest -> 'stage1' ->> 'articles')::int AS articles,
+                   (input_manifest -> 'stage1' ->> 'digested')::int AS digested,
+                   (input_manifest -> 'stage1' ->> 'degraded')::int AS degraded,
+                   COALESCE((input_manifest -> 'stage1' ->> 'truncated')::int, 0)
+                       AS truncated,
+                   input_manifest -> 'stage1' -> 'degraded_ids'     AS degraded_ids,
+                   input_manifest -> 'stage1' -> 'truncated_ids'    AS truncated_ids
+              FROM risk_snapshot
+             WHERE input_manifest IS NOT NULL AND {' AND '.join(where)}
+             ORDER BY as_of DESC, country_iso2
+        """, tuple(params))
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 _ECON_EVENT_DDL = """
@@ -1480,6 +1614,165 @@ def read_article_digests(country_iso2: str, as_of: datetime.date) -> Dict[str, D
                 "stage1_severity": severity,
             }
     return out
+
+
+# --- Identifiability probe results -------------------------------------------
+# What the probe guessed, kept rather than logged.
+#
+# The probe ran twenty bundles on 2026-08-03 and left six traces, all of them
+# incidental — `article_digest` rows written as a side effect of digesting. The
+# result itself, fifteen of twenty identified with the leaking evidence quoted,
+# survives only in a commit message. So the sweep fix that followed cannot be
+# measured against the thing it was meant to fix, and the next masking change
+# will be in the same position.
+#
+# That is the same shape as the WEO loader writing rows nothing read and the
+# digest cache the history path never called: the producer looked fine and
+# nothing recorded whether it worked. A probe is a measurement, and a
+# measurement nobody stores is an opinion.
+#
+# Keyed on both masking versions, not just the map. The whole finding behind
+# `SWEEP_VERSION` is that `mask_map_version` does not identify a masking
+# behaviour on its own — two sweeps shared g5 — so a key without it would let a
+# re-probe silently overwrite the baseline it was supposed to be compared with.
+#
+# `alternatives` and `insufficient_information` were computed and dropped. The
+# schema asks the model for its three most likely countries with probabilities
+# and for a flag saying it is guessing; `probe()` validates both and returns
+# them; this table stored neither. So a run cost real money to measure a
+# distribution and kept only its argmax, and a stored `ZZ @ 0.0` could not be
+# told apart from a failed call. The first 26 rows are that loss, and they
+# cannot be recovered — the only fix is to stop repeating it.
+
+_PROBE_RESULT_DDL = """
+CREATE TABLE IF NOT EXISTS probe_result (
+  country_iso2      TEXT NOT NULL,
+  as_of             DATE NOT NULL,
+  mask_map_version  TEXT NOT NULL,
+  sweep_version     TEXT NOT NULL,
+  probe_model       TEXT NOT NULL,
+  probe_version     TEXT NOT NULL,
+  guess             TEXT,
+  confidence        DOUBLE PRECISION,
+  evidence          TEXT,
+  identified        BOOLEAN,
+  n_articles        INT,
+  git_sha           TEXT,
+  probed_at         TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY (country_iso2, as_of, mask_map_version, sweep_version,
+               probe_model, probe_version)
+);
+ALTER TABLE probe_result
+  ADD COLUMN IF NOT EXISTS alternatives              JSONB,
+  ADD COLUMN IF NOT EXISTS insufficient_information  BOOLEAN;
+"""
+
+
+def upsert_probe_result(
+    country_iso2: str,
+    as_of: datetime.date,
+    guess: Dict[str, Any],
+    *,
+    mask_map_version: str,
+    sweep_version: str,
+    probe_model: str,
+    probe_version: str,
+    n_articles: Optional[int] = None,
+) -> None:
+    """Record what the probe guessed about one masked bundle.
+
+    Args:
+        country_iso2: the truth, so ``identified`` can be stored rather than
+            recomputed by whoever reads this later against a roster that may
+            have changed.
+        as_of: the bundle's anchor.
+        guess: a ``masking.probe.probe`` result — ``{country, confidence,
+            evidence, alternatives, insufficient_information}``. The evidence
+            string is kept in full: "which country is this" is answered by the
+            guess, but "why did masking fail here" is only ever answered by the
+            text it quoted back. The ranked alternatives are kept for the same
+            reason in a different direction: a bundle the probe places second at
+            0.45 is not masked, and the argmax alone says it is.
+        mask_map_version, sweep_version: the masking behaviour being measured.
+            Both, for the reason in this section's comment.
+        probe_model: the model that guessed, since a cheaper or smarter probe
+            measures a different thing.
+        n_articles: bundle size, so a thin week is not read as good masking.
+
+    Never raises on a write failure — the probe is a measurement attached to a
+    snapshot that is otherwise fine, and losing the measurement must not cost
+    the score. It logs instead.
+    """
+    if not isinstance(guess, dict):
+        return
+    try:
+        with _transaction() as cur:
+            cur.execute(_PROBE_RESULT_DDL)
+            cur.execute(
+                """
+                INSERT INTO probe_result
+                  (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
+                   probe_version, guess, confidence, evidence, identified,
+                   alternatives, insufficient_information,
+                   n_articles, git_sha, probed_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, now())
+                ON CONFLICT (country_iso2, as_of, mask_map_version, sweep_version,
+                             probe_model, probe_version)
+                DO UPDATE SET
+                  guess        = EXCLUDED.guess,
+                  confidence   = EXCLUDED.confidence,
+                  evidence     = EXCLUDED.evidence,
+                  identified   = EXCLUDED.identified,
+                  alternatives = EXCLUDED.alternatives,
+                  insufficient_information = EXCLUDED.insufficient_information,
+                  n_articles   = EXCLUDED.n_articles,
+                  git_sha      = EXCLUDED.git_sha,
+                  probed_at    = EXCLUDED.probed_at
+                """,
+                (country_iso2, as_of, mask_map_version, sweep_version, probe_model,
+                 probe_version,
+                 str(guess.get("country") or ""),
+                 float(guess.get("confidence") or 0.0),
+                 str(guess.get("evidence") or ""),
+                 str(guess.get("country") or "").upper() == country_iso2.upper(),
+                 _json_or_none(guess.get("alternatives") or None),
+                 bool(guess.get("insufficient_information")),
+                 n_articles, os.environ.get("GIT_SHA") or None),
+            )
+    except Exception:
+        logger.exception("[%s %s] probe result not recorded; the snapshot stands",
+                         country_iso2, as_of)
+
+
+def read_probe_results(country_iso2: Optional[str] = None,
+                       mask_map_version: Optional[str] = None,
+                       sweep_version: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Stored probe results, newest bundle first.
+
+    What makes a re-probe a diff against a table rather than against a commit
+    message. Filters are optional and compose: no arguments returns everything,
+    a version pair returns one masking behaviour's baseline.
+    """
+    where, params = [], []
+    for column, value in (("country_iso2", country_iso2),
+                          ("mask_map_version", mask_map_version),
+                          ("sweep_version", sweep_version)):
+        if value:
+            where.append(f"{column} = %s")
+            params.append(value)
+    clause = f"WHERE {' AND '.join(where)}" if where else ""
+    with _transaction() as cur:
+        cur.execute(_PROBE_RESULT_DDL)
+        cur.execute(f"""
+            SELECT country_iso2, as_of, mask_map_version, sweep_version, probe_model,
+                   probe_version, guess, confidence, evidence, identified,
+                   alternatives, insufficient_information,
+                   n_articles, git_sha, probed_at
+              FROM probe_result {clause}
+             ORDER BY as_of DESC, country_iso2
+        """, tuple(params))
+        cols = [d[0] for d in cur.description]
+        return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
 # --- Scheduler bookkeeping ---------------------------------------------------

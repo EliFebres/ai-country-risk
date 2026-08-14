@@ -40,8 +40,22 @@ class TestDigestsToJson:
     def test_degraded_item_gets_legacy_summary_shape(self):
         items = [{"id": "a1", "title": "T", "digest": None, "summary": "sum"}]
         got = json.loads(llm._digests_to_json(items))[0]
-        assert set(got) == {"id", "source", "published_at", "title", "summary"}
+        assert set(got) == {"id", "source", "published_at", "title", "summary",
+                            "digest_degraded"}
         assert got["summary"] == "sum"
+        assert got["digest_degraded"] is True
+
+    def test_a_degraded_body_is_capped_rather_than_sent_whole(self):
+        """Guardian rows have a body and no abstract, so the fallback fell
+        through to the full text — a median of 5,400 characters against a
+        digest's 400, at fourteen times the prompt cost, silently."""
+        items = [{"id": "a1", "title": "T", "digest": None, "text": "x" * 20000}]
+        got = json.loads(llm._digests_to_json(items))[0]
+        assert len(got["summary"]) == llm._FALLBACK_SUMMARY_CHARS
+
+    def test_a_digested_item_is_not_marked_degraded(self):
+        items = [{"id": "a1", "title": "T", "digest": _digest(42.0), "stage1_severity": 42.0}]
+        assert "digest_degraded" not in json.loads(llm._digests_to_json(items))[0]
 
     def test_all_items_included_no_ten_cap(self):
         items = [{"id": f"a{i}", "title": "T", "digest": _digest(1.0), "stage1_severity": 1.0}
@@ -94,11 +108,28 @@ class TestPromptTemplates:
 
     def test_digest_prompt_placeholders(self):
         prompt = ai_constants.DIGEST_PROMPT.format(
-            country="Portugal", article_text="Some article text."
+            country="Portugal", article_text="Some article text.", mask_rule=""
         )
         assert "Some article text." in prompt
         assert "Portugal" in prompt
         assert "{article_text}" not in prompt
+
+    def test_the_named_digest_prompt_carries_no_mask_rule(self):
+        prompt = ai_constants.DIGEST_PROMPT.format(
+            country="Portugal", article_text="x", mask_rule="")
+        assert "deliberately anonymous" not in prompt
+
+    def test_the_masked_digest_prompt_targets_actors_by_name(self):
+        """`actors: who did what to whom` is where names get written back in,
+        so the rule has to name that field rather than gesture at the output."""
+        prompt = ai_constants.DIGEST_PROMPT.format(
+            country="the country", article_text="x",
+            mask_rule=ai_constants.DIGEST_MASK_RULE)
+        assert "This applies to `actors` above all" in prompt
+        assert "never the president" in prompt
+        # The numbers are the evidence; a masked digest that lost them would be
+        # measuring something else entirely.
+        assert "Keep every NUMBER exactly as written" in prompt
 
     def test_digest_schema_is_strict(self):
         s = ai_constants.DIGEST_SCHEMA

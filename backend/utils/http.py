@@ -55,14 +55,21 @@ def _is_retryable_exc(exc: BaseException, retryable_status: AbstractSet[int]) ->
     return False
 
 
-def retry_transient(retryable_status: AbstractSet[int]) -> Callable:
-    """Tenacity decorator: exponential jitter 1–30s, 5 attempts, transient-only.
+def retry_transient(retryable_status: AbstractSet[int],
+                    initial: float = 1, max_wait: float = 30) -> Callable:
+    """Tenacity decorator: exponential jitter, 5 attempts, transient-only.
 
     Args:
         retryable_status: statuses considered transient for this API.
+        initial: first backoff, in seconds. Raise it above any rate limit the
+            API states, or the backoff itself violates that limit: GDELT asks
+            for one request every five seconds and answers a faster one with a
+            429, so retrying after one second turns a single throttle into five
+            guaranteed failures and loses the window.
+        max_wait: ceiling on the backoff.
     """
     return retry(
-        wait=wait_exponential_jitter(initial=1, max=30),
+        wait=wait_exponential_jitter(initial=initial, max=max_wait),
         stop=stop_after_attempt(5),
         retry=retry_if_exception(lambda exc: _is_retryable_exc(exc, retryable_status)),
         reraise=True,
