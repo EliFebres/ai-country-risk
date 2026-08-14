@@ -247,6 +247,17 @@ def leaking_text(result: dict, iso2: str) -> list:
     return out
 
 
+def _conf(value) -> str:
+    """A confidence, or a dash. Never a crash, and never 0.00 for absent.
+
+    An unprobed bundle and a bundle probed at zero confidence are opposite
+    findings — one is "no measurement", the other is "measured, and the model
+    had nothing". Printing both as 0.00 is how the report would lie; formatting
+    None with `:.2f` is how it died instead.
+    """
+    return "—" if value is None else f"{float(value):.2f}"
+
+
 def _alternatives(guess: dict) -> str:
     """The ranked top-3 as one line, or a note that the probe offered none."""
     alts = guess.get("alternatives") or []
@@ -370,13 +381,28 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
         print("    The diff below is the sum of the above. A bundle that reads")
         print("    REGRESSED may simply have got its body back; one that reads")
         print("    FIXED may have lost it. Attribution needs one mover at a time.")
+        unmeasured = 0
         for row in probe.compare(prior, current):
-            if row["fixed"] is None and row["was_guess"] is None:
+            # `compare` returns one row per bundle in *either* side and puts None
+            # where a side has nothing, deliberately — "not measured" and "no
+            # change" are different answers. The printer did not believe it: its
+            # guard skipped a row only when `fixed` and `was_guess` were *both*
+            # None, so a bundle the baseline covered and this pass did not sailed
+            # through with `now_confidence = None` and died on `:.2f`.
+            #
+            # It killed the run after every probe had been paid for and stored,
+            # between the report and the two passes still to come. That is the
+            # harness losing the finding it just bought, for the fourth time.
+            if row["was_guess"] is None or row["now_guess"] is None:
+                unmeasured += 1
                 continue
             print(f"    {row['country_iso2']} {row['as_of']}  "
-                  f"was {row['was_guess']}@{row['was_confidence']:.2f} -> "
-                  f"now {row['now_guess']}@{row['now_confidence']:.2f}  "
+                  f"was {row['was_guess']}@{_conf(row['was_confidence'])} -> "
+                  f"now {row['now_guess']}@{_conf(row['now_confidence'])}  "
                   f"{'FIXED' if row['fixed'] else 'REGRESSED' if row['regressed'] else '='}")
+        if unmeasured:
+            print(f"    ({unmeasured} bundle(s) on one side only — this pass did "
+                  f"not probe them, so they are not a change either way)")
     else:
         print("\n  no prior masking behaviour stored — this run is the baseline.")
 

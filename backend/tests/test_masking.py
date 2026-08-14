@@ -366,6 +366,29 @@ class TestComparingTwoMaskingBehaviours:
     def test_both_sides_empty_is_not_a_crash(self):
         assert probe.compare([], []) == []
 
+    def test_the_printer_survives_a_one_sided_row(self):
+        """`compare` was always right about this; its only reader was not.
+
+        A baseline of 26 bundles against a pass that probed 8 leaves 18 rows with
+        `now` unset. The report's guard skipped a row only when `fixed` and
+        `was_guess` were *both* None, so those 18 went through and died
+        formatting None with `:.2f` — after every probe had been paid for and
+        stored, and before the two passes that had not run yet.
+
+        The assertion is on the formatter rather than on `compare`, because
+        `compare` never had the bug.
+        """
+        from backend.scripts.probe_bundles import _conf
+
+        one_sided = probe.compare(
+            [self.row("US", date(2017, 3, 11), "US", 0.95, True)], [])[0]
+        assert one_sided["now_confidence"] is None
+        # A dash, not 0.00: an unprobed bundle and one probed at zero confidence
+        # are opposite findings and must not print the same.
+        assert _conf(one_sided["now_confidence"]) == "—"
+        assert _conf(one_sided["was_confidence"]) == "0.95"
+        assert _conf(0.0) == "0.00"
+
 
 class TestTheFourOutcomes:
     """Two buckets misread this corpus in both directions.
