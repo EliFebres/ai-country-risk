@@ -6,7 +6,7 @@ stamps every observation with a single ``as_of``, because for the daily run
 every observation genuinely did arrive today.
 
 For history that is wrong in whichever direction you pick. Stamp them today and
-``data_retrieval._resolve``'s vintage bound discards all of them — a 2018
+``payload._resolve``'s vintage bound discards all of them — a 2018
 snapshot sees no monthly macro at all, silently, because a row published in
 2026 was not knowable in 2018. Stamp them today and skip the bound, and a 2018
 snapshot reads 2026's revisions of 2018's CPI. Neither is a backfill.

@@ -28,7 +28,7 @@ enforcement: the model perceived, and ``ai/policy.py`` applied floors, caps and
 a sanctions override afterwards. That enforcement layer is gone. ``score`` is
 now the model's ``score_12m``, always. Sanctioned countries get a
 ``non_investable`` badge instead of a forced 1.0, and contradictions between
-flags and scores are recorded by ``utils/lint.py`` as advisory observations
+flags and scores are recorded by ``util/lint.py`` as advisory observations
 rather than corrected. The prompt says so plainly, because a model that
 pre-applies a rule it expects downstream makes its own judgement unrecoverable.
 

@@ -6,7 +6,7 @@ carries that as ``as_of``, and every bulk fetcher stamps it with the fetch date,
 because for the daily run every observation genuinely did arrive today.
 
 For a backfill that is wrong in whichever direction you pick. Stamp them today
-and ``data_retrieval._resolve``'s vintage bound discards all of them — a 2018
+and ``payload._resolve``'s vintage bound discards all of them — a 2018
 snapshot sees no macro at all, silently, because a row written in 2026 was not
 knowable in 2018. Stamp them today and skip the bound and the 2018 snapshot
 reads 2026's revisions of 2018. Neither is a backfill.

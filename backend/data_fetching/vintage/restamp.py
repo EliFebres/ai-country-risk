@@ -3,7 +3,7 @@
 Every ``indicator_series`` row written before this module carries ``as_of`` = the
 bulk-fetch date, because that is what the fetchers stamp and for the daily run it
 is true. It is also, for a backfill, catastrophic and silent:
-``data_retrieval._resolve``'s vintage bound drops any observation published after
+``payload._resolve``'s vintage bound drops any observation published after
 the anchor, so with a single fetch date on everything **a 2019 snapshot sees zero
 rows from this table** — no CPI, no exchange rate, no policy rate, none of the
 curated annual friction series. Not an error, not a warning; the payload simply

@@ -29,7 +29,7 @@ import os
 
 import pytest
 
-from backend.llm import payload as data_retrieval
+from backend.llm import payload
 from backend.news_fetching import snapshot_select as sel
 from backend.llm import usage
 from backend.util import config, score
@@ -203,7 +203,7 @@ class TestThePipelineSeam:
     def test_the_daily_run_still_fetches_and_enriches(self, monkeypatch):
         from backend.util import pipeline
         called = []
-        monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
+        monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
                             lambda **kw: {"_meta": {"generated_at": "2026-08-02T00:00:00Z"}})
         monkeypatch.setattr(pipeline.article_enrichment, "fetch_relevant_news",
                             lambda *a, **kw: called.append("fetch") or [])
@@ -221,7 +221,7 @@ class TestThePipelineSeam:
     def test_a_historical_run_neither_fetches_nor_enriches(self, monkeypatch):
         from backend.util import pipeline
         called = []
-        monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
+        monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
                             lambda **kw: {"_meta": {"generated_at": "2026-08-02T00:00:00Z"}})
         monkeypatch.setattr(pipeline.article_enrichment, "fetch_relevant_news",
                             lambda *a, **kw: called.append("fetch") or [])
@@ -240,7 +240,7 @@ class TestThePipelineSeam:
         from backend.util import pipeline
         from backend.data_upsert import data_push
         seen = {}
-        monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
+        monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
                             lambda **kw: {"_meta": {"generated_at": "2026-08-02T00:00:00Z"}})
         monkeypatch.setattr(pipeline.digest_engine, "digest_articles",
                             lambda items, **kw: seen.setdefault("digest", kw["as_of"]) and items)
@@ -249,7 +249,7 @@ class TestThePipelineSeam:
             seen["evidence"] = kw["as_of"]
             raise StopIteration
 
-        monkeypatch.setattr(pipeline.data_retrieval, "build_evidence_payload", stop)
+        monkeypatch.setattr(pipeline.llm_payload, "build_evidence_payload", stop)
 
         with pytest.raises(StopIteration):
             pipeline._process_country("Portugal", "PT", [], as_of=AS_OF, items=[])
@@ -269,13 +269,13 @@ class TestTheVintageRuleInThePayload:
     """`_resolve` is where a vintage either gets used or refused."""
 
     def observation(self, period_year, as_of, value):
-        return data_retrieval._Observation(
+        return payload._Observation(
             value=value, period=str(period_year), freq="A",
             period_end=datetime.date(period_year, 12, 31),
             as_of=as_of, source="IMF WEO")
 
     def test_the_newest_vintage_not_after_the_anchor_wins(self):
-        merged = data_retrieval._resolve([
+        merged = payload._resolve([
             self.observation(2017, datetime.date(2018, 4, 1), 2.7),
             self.observation(2017, datetime.date(2018, 10, 1), 2.8),
             self.observation(2017, datetime.date(2026, 4, 1), 3.5),
@@ -283,7 +283,7 @@ class TestTheVintageRuleInThePayload:
         assert [o.value for o in merged] == [2.7], "June 2018 knew April's estimate only"
 
     def test_a_later_vintage_is_used_once_it_exists(self):
-        merged = data_retrieval._resolve([
+        merged = payload._resolve([
             self.observation(2017, datetime.date(2018, 4, 1), 2.7),
             self.observation(2017, datetime.date(2018, 10, 1), 2.8),
         ], as_of=datetime.date(2018, 12, 1))
@@ -291,7 +291,7 @@ class TestTheVintageRuleInThePayload:
 
     def test_a_period_covering_the_future_is_refused(self):
         # In June 2018 nobody knows 2018's annual figure.
-        merged = data_retrieval._resolve([
+        merged = payload._resolve([
             self.observation(2017, datetime.date(2018, 4, 1), 2.7),
             self.observation(2018, datetime.date(2018, 4, 1), 2.3),
         ], as_of=datetime.date(2018, 6, 4))
@@ -307,15 +307,15 @@ class TestTheVintageRuleInThePayload:
         rather than the October 2017 estimate that was the newest thing anyone
         could actually have had.
         """
-        panel_stamp = data_retrieval._Observation(
+        panel_stamp = payload._Observation(
             value=1.37, period="2017", freq="A",
             period_end=datetime.date(2017, 12, 31),
             as_of=datetime.date(2017, 12, 31), source="World Bank panel", dated=False)
-        real_edition = data_retrieval._Observation(
+        real_edition = payload._Observation(
             value=1.581, period="2017", freq="A",
             period_end=datetime.date(2017, 12, 31),
             as_of=datetime.date(2017, 10, 1), source="IMF WEO 2017-10", dated=True)
-        merged = data_retrieval._resolve([panel_stamp, real_edition],
+        merged = payload._resolve([panel_stamp, real_edition],
                                          as_of=datetime.date(2018, 2, 20))
         assert [o.value for o in merged] == [1.581], "the placeholder outranked the edition"
 
@@ -325,11 +325,11 @@ class TestTheVintageRuleInThePayload:
             self.observation(2026, datetime.date(2026, 4, 1), 1.1),
             self.observation(2017, datetime.date(2026, 4, 1), 3.5),
         ]
-        assert len(data_retrieval._resolve(observations)) == 2
+        assert len(payload._resolve(observations)) == 2
 
     def test_build_evidence_payload_defaults_to_no_vintage_filter(self):
         import inspect
-        sig = inspect.signature(data_retrieval.build_evidence_payload)
+        sig = inspect.signature(payload.build_evidence_payload)
         assert sig.parameters["vintage_as_of"].default is None
 
 
@@ -351,20 +351,20 @@ class TestSurvivesTheVintageBound:
                 **kwargs}
 
     def test_a_fetch_dated_row_is_discarded_by_a_2019_anchor(self):
-        obs = data_retrieval._Observation(
+        obs = payload._Observation(
             value=1.2, period="2018-03", freq="M",
             period_end=lags.period_end("2018-03", "M"), as_of=self.FETCHED, source="IMF")
-        assert data_retrieval._resolve([obs], as_of=datetime.date(2019, 6, 1)) == []
+        assert payload._resolve([obs], as_of=datetime.date(2019, 6, 1)) == []
 
     def test_a_re_dated_row_survives_it(self):
         changed, _ = restamp.plan([self.stored()])
-        obs = data_retrieval._Observation(
+        obs = payload._Observation(
             value=1.2, period="2018-03", freq="M",
             period_end=lags.period_end("2018-03", "M"),
             as_of=changed[0]["as_of"], source="IMF")
-        assert data_retrieval._resolve([obs], as_of=datetime.date(2019, 6, 1)) == [obs]
+        assert payload._resolve([obs], as_of=datetime.date(2019, 6, 1)) == [obs]
         # …and is still refused by an anchor before it was published.
-        assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
+        assert payload._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
 
     def test_the_world_bank_panel_still_survives_the_same_bound(self):
         """The store that was already right must not be broken by fixing the other.
@@ -376,11 +376,11 @@ class TestSurvivesTheVintageBound:
         """
         import pandas as pd
         panel = pd.DataFrame({"year": [2017, 2018, 2024], "gdp": [1.0, 2.0, 3.0]})
-        observations = data_retrieval._panel_observations(panel, "gdp")
+        observations = payload._panel_observations(panel, "gdp")
         assert [o.as_of for o in observations] == [
             datetime.date(2017, 12, 31), datetime.date(2018, 12, 31),
             datetime.date(2024, 12, 31)]
-        kept = data_retrieval._resolve(observations, as_of=datetime.date(2019, 6, 1))
+        kept = payload._resolve(observations, as_of=datetime.date(2019, 6, 1))
         assert [o.period for o in kept] == ["2017", "2018"]
 
     def test_a_lag_that_is_too_short_is_the_dangerous_direction(self):

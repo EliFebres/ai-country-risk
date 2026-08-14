@@ -393,7 +393,7 @@ def main() -> None:
         if not args.anyway:
             print("GDELT is dormant: the DOC API answers ~1 call per multi-minute "
                   "window from one IP, making this harvest ~12 days with most "
-                  "windows failing. See backend/utils/history/adapters/gdelt.py.\n"
+                  "windows failing. See backend/news_fetching/adapters/gdelt.py.\n"
                   "Pass --anyway if you mean it.")
             return
         gdelt.harvest(roster=args.roster, since=args.since)

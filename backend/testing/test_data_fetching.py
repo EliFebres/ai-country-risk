@@ -19,7 +19,7 @@ import pathlib
 import pytest
 
 from backend.util import constants
-from backend.llm import payload as data_retrieval
+from backend.llm import payload
 from backend.data_fetching import curated_loader as cl
 from backend.data_fetching import imf_macro_fetch as imf
 from backend.data_fetching.vintage import lags, monthly, restamp, weo
@@ -135,7 +135,7 @@ class TestReadingAnEdition:
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
         assert rows
         for row in rows:
-            assert data_retrieval._period_to_date(row["period"], row["freq"]) is not None
+            assert payload._period_to_date(row["period"], row["freq"]) is not None
 
     def test_a_revision_actually_reaches_the_resolver(self, tmp_path):
         """End to end: two vintages of one year, resolved at two anchors.
@@ -146,15 +146,15 @@ class TestReadingAnEdition:
         april = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
         october = weo.read_edition(edition(tmp_path, "2018-10.xls", [PT_OCT2018]), ["PT"])
         observations = [
-            data_retrieval._Observation(
+            payload._Observation(
                 value=r["value"], period=r["period"], freq="A",
-                period_end=data_retrieval._period_to_date(r["period"], "A"),
+                period_end=payload._period_to_date(r["period"], "A"),
                 as_of=r["as_of"], source="IMF WEO")
             for r in april + october if r["period"] == "2017"
         ]
-        assert [o.value for o in data_retrieval._resolve(
+        assert [o.value for o in payload._resolve(
             observations, datetime.date(2018, 6, 4))] == [2.7]
-        assert [o.value for o in data_retrieval._resolve(
+        assert [o.value for o in payload._resolve(
             observations, datetime.date(2018, 12, 1))] == [2.8]
 
     def test_countries_outside_the_roster_are_dropped(self, tmp_path):
@@ -207,9 +207,9 @@ class TestAProjectionNeverReachesAConsumer:
     """
 
     def observation(self, year, vintage, value):
-        return data_retrieval._Observation(
+        return payload._Observation(
             value=value, period=str(year), freq="A",
-            period_end=data_retrieval._period_to_date(str(year), "A"),
+            period_end=payload._period_to_date(str(year), "A"),
             as_of=vintage, source=f"IMF WEO {vintage:%Y-%m}")
 
     def test_the_tail_anchor_reads_the_last_actual_not_the_forecast(self, tmp_path):
@@ -225,7 +225,7 @@ class TestAProjectionNeverReachesAConsumer:
         rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
         observations = [self.observation(int(r["period"]), r["as_of"], r["value"])
                         for r in rows]
-        resolved = data_retrieval._resolve(observations, as_of=datetime.date(2019, 6, 3))
+        resolved = payload._resolve(observations, as_of=datetime.date(2019, 6, 3))
         # `_stamp` reports the last of these as the value; 2018 must not be it.
         assert "2018" not in {o.period for o in resolved}
         assert resolved[-1].period == "2017" and resolved[-1].value == 2.7
@@ -239,7 +239,7 @@ class TestAProjectionNeverReachesAConsumer:
                 + weo.read_edition(edition(tmp_path, "2019-04.xls", [apr2019]), ["PT"]))
         observations = [self.observation(int(r["period"]), r["as_of"], r["value"])
                         for r in rows]
-        resolved = data_retrieval._resolve(observations, as_of=datetime.date(2019, 6, 3))
+        resolved = payload._resolve(observations, as_of=datetime.date(2019, 6, 3))
         assert resolved[-1].period == "2018" and resolved[-1].value == 2.4
 
 
@@ -348,13 +348,13 @@ class TestMonthlyRestamping:
         discarded by the vintage bound, so a 2018 snapshot silently loses all
         of its monthly macro."""
         stamp = lags.published_on("2018-03", "M")
-        obs = data_retrieval._Observation(
+        obs = payload._Observation(
             value=1.2, period="2018-03", freq="M",
             period_end=lags.period_end("2018-03", "M"),
             as_of=stamp, source="IMF")
-        assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 9, 3)) == [obs]
+        assert payload._resolve([obs], as_of=datetime.date(2018, 9, 3)) == [obs]
         # …and is correctly refused before it was published.
-        assert data_retrieval._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
+        assert payload._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
 
 
 # ---------------------------------------------------------------------------

@@ -21,7 +21,7 @@ the evidence earned it — which is also the only way its score series stays
 readable across the date a sanctions regime starts or ends.
 
 Contradictions between what the model flagged and what it scored are now
-recorded by ``utils.lint`` as advisory observations. Nothing corrects them.
+recorded by ``util.lint`` as advisory observations. Nothing corrects them.
 
 Everything here is **pure**: plain data in, plain data out, no network, no
 database, no clock reads. ``as_of`` is always a parameter, never

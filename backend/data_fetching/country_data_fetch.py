@@ -2,7 +2,7 @@
 
 ``backfill_missing_panels`` is the ETL's first phase — it builds a panel for
 every rostered country that doesn't have one yet and writes it to the Parquet
-store that ``data_retrieval.query_macro_panel`` reads back with DuckDB.
+store that ``payload.query_macro_panel`` reads back with DuckDB.
 ``ingest_panel_wide`` does the write, and ``merge_extra_indicators`` folds in
 the indicators that don't come from the World Bank beforehand.
 
@@ -26,7 +26,7 @@ import backend.data_fetching.political_corruption_fetch as political_corruption_
 logger = logging.getLogger(__name__)
 
 # Parquet panel store: backend/data/wb_panel_wide (this file is in
-# backend/utils/data_fetching/).
+# backend/data_fetching/).
 PANEL_DIR = pathlib.Path(__file__).resolve().parents[1] / "data" / "wb_panel_wide"
 
 
@@ -104,7 +104,7 @@ def merge_extra_indicators(
     Currently adds the OWID/V-Dem **Political Corruption Index** as a
     ``POL_CORRUPTION`` column, aligned on the panel's int year index. OWID
     often publishes a year ahead of the World Bank, so the join is an outer one
-    and the extra year is kept: ``data_retrieval`` anchors each indicator on its
+    and the extra year is kept: ``payload`` anchors each indicator on its
     own newest observation, so a longer corruption series costs the others
     nothing.
 

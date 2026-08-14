@@ -274,10 +274,10 @@ class TestThePipelineMasksBeforeItDigests:
     @staticmethod
     def _wire(monkeypatch, *, evidence=None, score=None, upsert=None):
         monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids", lambda _i: [])
-        monkeypatch.setattr(pipeline.data_retrieval, "prepare_llm_payload_pretty",
+        monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
                             lambda **_k: {"_meta": {"country": "PT",
                                                     "generated_at": AS_OF.isoformat()}})
-        monkeypatch.setattr(pipeline.data_retrieval, "build_evidence_payload",
+        monkeypatch.setattr(pipeline.llm_payload, "build_evidence_payload",
                             lambda *_a, **_k: evidence or {"_meta": {"country": "PT"}})
         monkeypatch.setattr(pipeline.langchain_llm, "country_llm_score",
                             lambda **_k: score or {"score": 0.5})

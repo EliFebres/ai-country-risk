@@ -1,11 +1,11 @@
 """The daily run's phases — the only place fetch, AI, and storage meet.
 
-Every other module under ``utils/`` owns exactly one concern: ``data_fetching``
-talks to upstream APIs, ``news_fetching`` gathers and ranks articles, ``ai``
-calls the model, ``data_upsert`` writes Postgres. Dependencies between them
-stay one-way (only ``ai.digest_engine`` reaches down into ``data_upsert``,
-for its digest cache), which is what keeps a change in one from destabilizing
-the rest.
+Each folder beside this one owns exactly one concern: ``data_fetching`` talks to
+upstream APIs, ``news_fetching`` gathers and ranks articles, ``llm`` calls the
+model, ``data_upsert`` writes Postgres. Dependencies between them stay one-way
+(``llm.digest_engine`` reaches down into ``data_upsert`` for its digest cache,
+and ``data_upsert.store`` reaches ``news_fetching.core`` to classify a row's
+themes), which is what keeps a change in one from destabilizing the rest.
 
 The work of a run, though, is inherently cross-cutting: "fetch the calendar,
 have the model rank it, store the result" touches three of those domains. That
@@ -25,7 +25,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
 from backend.util import constants
-from backend.llm import payload as data_retrieval
+from backend.llm import payload as llm_payload
 from backend.util import lint, provenance
 from backend.llm import alerts_ranker, calendar_ranker, digest_engine, langchain_llm
 from backend.llm import client as ai_client
@@ -373,7 +373,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
     #    the merged non-WB indicators (Political Corruption Index) so they
     #    reach both the LLM payload and the DB upsert.
-    payload = data_retrieval.prepare_llm_payload_pretty(
+    payload = llm_payload.prepare_llm_payload_pretty(
         country_iso=iso2,
         indicators=constants.ALL_INDICATORS,
         since=_PAYLOAD_SINCE_YEAR,
@@ -450,10 +450,10 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     #
     #     Each read degrades independently: a database or curated-file failure
     #     costs the country that evidence, not its score.
-    evidence = data_retrieval.build_evidence_payload(
+    evidence = llm_payload.build_evidence_payload(
         iso2,
         as_of=as_of,
-        panel=_safe(lambda: data_retrieval.query_macro_panel(iso2), iso2, "panel"),
+        panel=_safe(lambda: llm_payload.query_macro_panel(iso2), iso2, "panel"),
         series=_safe(lambda: data_push.read_indicator_series(iso2), iso2, "series") or {},
         recent=_safe(lambda: data_push.read_recent_indicators(iso2), iso2, "recent") or {},
         fx_regimes=constants.FX_REGIMES,

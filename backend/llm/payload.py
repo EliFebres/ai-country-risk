@@ -37,7 +37,7 @@ from backend.util.dates import utc_minute_iso
 logger = logging.getLogger(__name__)
 
 
-# Anchor all data paths to the backend/ folder (this file lives in backend/utils/)
+# Anchor all data paths to the backend/ folder (this file lives in backend/util/)
 BACKEND_DIR = pathlib.Path(__file__).resolve().parents[1]   # .../backend
 DATA_DIR    = BACKEND_DIR / "data" / "wb_panel_wide"        # .../backend/data/wb_panel_wide
 

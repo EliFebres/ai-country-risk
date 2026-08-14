@@ -47,7 +47,7 @@ _WGI_Z_MAX = 2.5
 #
 # Advisory tripwire, not policy: this threshold feeds an *input* the model reads
 # and weighs. It never modifies a score. Same standing as the constants in
-# ``utils.lint``.
+# ``util.lint``.
 _SUPPRESSED_FX_VOL_MAX = 1.5
 
 # `rolling_vol` needs most of its window present before a stdev means anything.

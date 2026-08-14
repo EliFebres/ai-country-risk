@@ -12,11 +12,11 @@ This directory contains the **data-engineering and inference pipeline** that pow
 
 ### How headline scraping works (fast first, then targeted enrichment)
 
-- All links are first processed with the **simple scraper** (`backend/utils/news_fetching/simple_scraper.py`) which:
+- All links are first processed with the **simple scraper** (`backend/news_fetching/simple_scraper.py`) which:
   - fetches each article **once**,
   - extracts a clean **summary**, **full text** (truncated for storage), and a **thumbnail** (OG/Twitter/JSON-LD with fallbacks).
 - The LLM ranks articles by impact.
-- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/utils/news_fetching/advanced_scraper.py`), and only when an article is still missing an image after the simple scraper and a Crawlbase token is available. This uses Crawlbase (JS rendering) to recover metadata while respecting `robots.txt`.
+- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/news_fetching/advanced_scraper.py`), and only when an article is still missing an image after the simple scraper and a Crawlbase token is available. This uses Crawlbase (JS rendering) to recover metadata while respecting `robots.txt`.
 
 ---
 
@@ -78,20 +78,20 @@ rather than waiting out its whole interval. To force one, delete its `job_run` r
 ## Key modules
 
 * `backend/main.py` — the scheduler loop and the job cadences; the weekly job orchestrates data payload → news → LLM scoring → DB upsert.
-* `backend/utils/prices.py` — one prices poll cycle (`PricesDaemon.tick`), called by `main.py`.
-* `backend/utils/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
-* `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata, used only for **Top-3** articles still missing an image.
-* `backend/utils/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
-* `backend/utils/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
-* `backend/utils/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
-* `backend/utils/data_fetching/fmp_calendar_fetch.py` — FMP ~14-day economic-calendar pull.
-* `backend/utils/ai/langchain_llm.py` — LLM call for risk scoring.
-* `backend/utils/ai/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
-* `backend/utils/ai/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
-* `backend/utils/data_upsert/data_push.py` — transactional upserts for every table below.
-* `backend/utils/http.py` — shared retry policy, User-Agent strings, and FMP GET wrapper.
-* `backend/utils/ai/client.py` — the scoring model name and its deterministic settings, in one place.
-* `backend/utils/dates.py` — the two datetime formats shared across modules.
+* `backend/util/prices.py` — one prices poll cycle (`PricesDaemon.tick`), called by `main.py`.
+* `backend/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
+* `backend/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata, used only for **Top-3** articles still missing an image.
+* `backend/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
+* `backend/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
+* `backend/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
+* `backend/data_fetching/fmp_calendar_fetch.py` — FMP ~14-day economic-calendar pull.
+* `backend/llm/langchain_llm.py` — LLM call for risk scoring.
+* `backend/llm/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
+* `backend/llm/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
+* `backend/data_upsert/data_push.py` — transactional upserts for every table below.
+* `backend/util/http.py` — shared retry policy, User-Agent strings, and FMP GET wrapper.
+* `backend/llm/client.py` — the scoring model name and its deterministic settings, in one place.
+* `backend/util/dates.py` — the two datetime formats shared across modules.
 
 ---
 
@@ -103,7 +103,7 @@ gate, and the price math). They touch no network and no database.
 
 ```bash
 pip install pytest
-python -m pytest backend/tests -q
+python backend/test.py
 ```
 
 ---
@@ -296,7 +296,7 @@ CREATE TABLE economic_calendar_event (
     UNIQUE (event_time, country_code, event)
 );
 
--- Live "Prices" pane. Maintained by main.py's prices tick (utils/prices.py): one
+-- Live "Prices" pane. Maintained by main.py's prices tick (util/prices.py): one
 -- row per tracked asset, upserted in place every 30 minutes. Stocks/crypto/
 -- commodities come from FMP batch-quote; US Treasury yields from FMP treasury-
 -- rates. is_yield rows carry POINT changes (shown as %); others carry % moves.
@@ -361,20 +361,20 @@ CREATE TABLE job_run (
 Unlike the prices tick, which runs every 30 minutes, these two refreshes run **once a
 week as phases of the `etl` job**:
 
-* **IMF higher-frequency macro.** `utils/data_fetching/imf_macro_fetch.py` pulls the
+* **IMF higher-frequency macro.** `data_fetching/imf_macro_fetch.py` pulls the
   freshest sub-annual prints (e.g. monthly/quarterly inflation) from the IMF SDMX 2.1
   API and upserts them into `recent_indicator`. The front-end prefers these over the
   annual World Bank `yearly_value`, so a country in a fast-moving inflation regime shows
   a current figure instead of a year-old one. The tracked set lives in `constants.IMF_RECENT_INDICATORS`.
-* **Economic calendar.** `utils/data_fetching/fmp_calendar_fetch.py` pulls the upcoming
-  ~14-day calendar from FMP; `utils/ai/calendar_ranker.py` then scores each event's
+* **Economic calendar.** `data_fetching/fmp_calendar_fetch.py` pulls the upcoming
+  ~14-day calendar from FMP; `llm/calendar_ranker.py` then scores each event's
   investor importance (`ai_importance` / `ai_rationale`) before the rows are upserted into
   `economic_calendar_event`.
 
 ## Curated inputs (`backend/data/curated.csv`)
 
 Some of what the three ledgers need has no free, stable, no-auth API. Those values are
-typed by hand into one CSV, which `utils/data_fetching/curated_loader.py` reads during
+typed by hand into one CSV, which `data_fetching/curated_loader.py` reads during
 step 0d of the ETL and upserts into `indicator_series`.
 
 ```csv
@@ -419,7 +419,7 @@ Fill them in this order. The first two unlock the most.
 | 10 | `UN.EGDI` | Optional supplement to `instrument_quality`. Biennial. **Rescale to 0–100** (the UN publishes 0–1) so it shares a scale with the other components. | UN E-Government Survey. |
 | 11 | `OECD.TAX.WEDGE` | Supplementary friction evidence: the wedge on labour specifically. Annual, percent of labour cost, single average worker. OECD members only — absent for most of the EM roster by construction. | OECD Taxing Wages, table 0.1. |
 
-Three curated inputs are **not** series and live in `utils/constants.py` instead:
+Three curated inputs are **not** series and live in `util/constants.py` instead:
 `FX_REGIMES`, `ELECTIONS` and `ROME_REFERENCE_RATIO`. Each carries its source and its
 update cadence in a comment there.
 
@@ -437,7 +437,7 @@ getting a row nobody will fill:
 If you later find a usable source for either, add one `INDICATOR_REGISTRY` entry and the
 rows go in `curated.csv` with no loader change.
 
-## Live prices feed (`utils/prices.py`)
+## Live prices feed (`util/prices.py`)
 
 `PricesDaemon.tick` keeps the bottom-bar "Prices" pane fresh. `main.py` calls it once
 per scheduler tick (`PRICES_POLL_SECONDS`, default 1800) and it upserts the latest
@@ -449,7 +449,7 @@ snapshot into `market_price`.
   Bonds pane tracks US tenors only). The tracked universe + symbol map lives in
   `constants.PRICE_ASSETS`.
 * **Cost control.** FMP quote classes are fetched only while their market is open
-  (`utils/market_hours.py`: crypto 24/7, US equities on the NYSE session, commodities on
+  (`util/market_hours.py`: crypto 24/7, US equities on the NYSE session, commodities on
   the Globex window). The yields and the 1Q/YTD reference closes refresh at most once per
   ET day.
 

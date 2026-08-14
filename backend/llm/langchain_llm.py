@@ -18,7 +18,7 @@ the rule behind it, which are stored beside the score rather than folded into
 it; ``_parse_iso_date``, ``_load_legal_rules_index`` and
 ``_legal_gate_decision`` remain importable from here as aliases onto that
 module. Contradictions between the model's flags and its scores are recorded by
-``utils/lint.py`` and corrected by nobody.
+``util/lint.py`` and corrected by nobody.
 """
 
 import os
@@ -261,7 +261,7 @@ def country_llm_score(
     Args:
         country_display: country name as it should appear in the prompt.
         payload: the three-ledger evidence from
-            ``data_retrieval.build_evidence_payload``. Its ``_meta.country``
+            ``payload.build_evidence_payload``. Its ``_meta.country``
             drives the investability lookup.
         articles: recent articles, richest first, each annotated by
             ``digest_engine.digest_articles``. Every article's digest reaches

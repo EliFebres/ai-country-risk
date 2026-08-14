@@ -51,7 +51,7 @@ _UA = http.PROJECT_UA
 # What the scan costs. gpt-4o-mini input pricing; the scan asks for one boolean
 # back, so output tokens round to nothing against a body-sized prompt.
 _SCAN_USD_PER_1M_INPUT_TOKENS = 0.15
-_CHARS_PER_TOKEN = 4   # the same estimate data_retrieval uses, for the same reason
+_CHARS_PER_TOKEN = 4   # the same estimate llm.payload uses, for the same reason
 
 _SCAN_PROMPT = """You are checking one archived news article for time leakage.
 
@@ -193,7 +193,7 @@ def scan_cost_usd(bodies: List[str]) -> float:
     """Projected spend for scanning these bodies. Deliberately an estimate.
 
     Character-count over a fixed divisor rather than a real tokenizer, for the
-    same reason ``data_retrieval`` does it: ``tiktoken`` downloads a BPE file on
+    same reason ``payload`` does it: ``tiktoken`` downloads a BPE file on
     first use, and a cost estimate that reaches the network to compute itself is
     a cost estimate that fails offline.
     """

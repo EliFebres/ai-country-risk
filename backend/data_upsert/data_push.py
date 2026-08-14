@@ -761,7 +761,7 @@ CREATE TABLE IF NOT EXISTS indicator_series (
   -- read 2023's revision of 2018 while `vintage_scheme` said
   -- 'as-published-edition' and looked correct.
   --
-  -- Multiple rows per period is exactly what `data_retrieval._resolve` already
+  -- Multiple rows per period is exactly what `payload._resolve` already
   -- expects: it collapses same-period copies to the newest `as_of` not after
   -- the anchor. The key was the only thing preventing it from ever seeing more
   -- than one.
@@ -943,7 +943,7 @@ def upsert_lint_findings(findings: List[Dict[str, Any]]) -> None:
 
     Args:
         findings: ``{country_iso2, as_of, rule, detail}`` dicts from
-            ``utils.lint.check``. Malformed entries are skipped.
+            ``util.lint.check``. Malformed entries are skipped.
 
     No-op on an empty list.
     """
@@ -1230,7 +1230,7 @@ def upsert_market_prices(rows: List[Dict[str, Any]]) -> None:
     never blanks a previously-populated cell — the daemon simply omits whole
     rows for markets it didn't poll this tick, leaving their last values intact.
 
-    Each row dict (as built by ``utils.prices``):
+    Each row dict (as built by ``util.prices``):
       - symbol, label, asset_class, source_symbol, is_yield, sort_order  (metadata)
       - px, chg, q, ytd                                                  (metrics; may be None)
 

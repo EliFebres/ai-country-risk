@@ -225,7 +225,7 @@ def macro_vintages(payload: Dict) -> Dict[str, Any]:
     to tell later whether a rating was built on a stale or a fresh panel.
 
     Args:
-        payload: the dict from ``data_retrieval.prepare_llm_payload_pretty``.
+        payload: the dict from ``payload.prepare_llm_payload_pretty``.
 
     Returns:
         A dict that always carries ``vintage_scheme``; the rest degrades to None

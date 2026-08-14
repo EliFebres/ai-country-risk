@@ -54,13 +54,13 @@ INDICATORS = {
 
 # Non-World-Bank indicators. The value is a sentinel (never sent to the WB API);
 # these are merged into each country's panel after the WB fetch (see
-# backend/utils/data_fetching/political_corruption_fetch.py and
+# backend/data_fetching/political_corruption_fetch.py and
 # country_data_fetch.merge_extra_indicators).
 EXTRA_INDICATORS = {
     "POL_CORRUPTION":     "OWID:political-corruption-index",  # V-Dem via Our World in Data
 }
 
-# Full set used by the read/DB side (data_retrieval + data_push). The fetch side
+# Full set used by the read/DB side (llm.payload + data_push). The fetch side
 # uses INDICATORS (WB-only) so the WB loop never tries to fetch the sentinel.
 ALL_INDICATORS = {**INDICATORS, **EXTRA_INDICATORS}
 
@@ -138,7 +138,7 @@ IMF_SERIES_INDICATORS: dict[str, dict[str, str]] = {
 #   * data_fetching/wb_series_fetch  — which World Bank codes to fetch
 #   * data_fetching/bis_bulk_fetch   — which BIS datasets map to which id
 #   * data_fetching/curated_loader   — the freq and source for each curated row
-#   * data_retrieval.build_evidence_payload — label, unit, ledger, and where to
+#   * payload.build_evidence_payload — label, unit, ledger, and where to
 #     look for the freshest value
 #
 # It lives here rather than beside the payload builder because `constants` is
@@ -497,12 +497,12 @@ FMP_CALENDAR_COUNTRIES: dict[str, str] = {
 # ---------------------------------------------------------------------------
 # Prices feed (bottom-bar "Prices" pane)
 # ---------------------------------------------------------------------------
-# backend/main.py polls these assets once per scheduler tick (backend/utils/
+# backend/main.py polls these assets once per scheduler tick (backend/util/
 # prices.py) and upserts them to the `market_price` table. Live prices
 # (stocks/crypto/commodities) come from FMP's batch-quote endpoint; US Treasury
 # yields come from FMP's treasury-rates endpoint. To minimize API hits, FMP
 # quote classes are fetched only while their market is open (see
-# backend/utils/market_hours.py); the yields and the 1Q/YTD reference closes
+# backend/util/market_hours.py); the yields and the 1Q/YTD reference closes
 # refresh at most once per (ET) day.
 
 # The scheduler's tick interval, and so how often live FMP quotes refresh

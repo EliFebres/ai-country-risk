@@ -8,7 +8,7 @@ April 2018 on today's number is scoring on eight years of hindsight, and nothing
 in the output would ever show it.
 
 Each WEO edition is therefore loaded as its own vintage, stamped with the
-edition's own date, and ``data_retrieval._resolve`` picks the newest vintage not
+edition's own date, and ``payload._resolve`` picks the newest vintage not
 after the snapshot's anchor.
 
 **The file format is not a spreadsheet.** The IMF ships `WEOOct2018all.xls`, and
@@ -207,7 +207,7 @@ def read_edition(path: pathlib.Path, roster: List[str]) -> List[Dict[str, Any]]:
                 "indicator_code": SUBJECTS[subject],
                 "freq": "A",
                 # A bare year, because that is what every other annual source
-                # writes and what `data_retrieval._period_to_date` parses. Dated
+                # writes and what `payload._period_to_date` parses. Dated
                 # periods ("2017-12-31") round-trip through the database fine and
                 # are then dropped by the payload builder, which is worse than
                 # failing: the editions load, the row counts look right, and not

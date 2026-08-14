@@ -1,6 +1,6 @@
 """Knobs for the History Machine.
 
-Separate from ``utils.constants`` because none of this belongs to the live daily
+Separate from ``util.constants`` because none of this belongs to the live daily
 run: the pilot roster is a deliberately small, deliberately *varied* slice
 chosen to stress the machine rather than to cover the investable universe, and
 the date floors are properties of the upstream archives, not of the product.

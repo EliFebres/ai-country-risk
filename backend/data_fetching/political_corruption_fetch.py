@@ -6,7 +6,7 @@ this module fetches it from Our World in Data's stable grapher CSV endpoint and
 exposes it per-country in the same shape the World Bank panel uses (a year-indexed
 ``pandas.Series``). The series is merged into each country's wide panel by
 ``country_data_fetch.merge_extra_indicators`` so the rest of the pipeline
-(parquet -> data_retrieval -> data_push -> Postgres) treats it like any other
+(parquet -> llm.payload -> data_push -> Postgres) treats it like any other
 indicator.
 
 Scale: 0-1, **higher = more corrupt** (opposite polarity to the WB z-score
