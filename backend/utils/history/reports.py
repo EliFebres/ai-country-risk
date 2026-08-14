@@ -203,7 +203,12 @@ def evidence_texture(roster: Optional[List[str]] = None) -> Dict[str, Any]:
         for article in articles:
             bucket["articles"] += 1
             bucket["abstract"] += int(article.get("tier") == "abstract-only")
-            source = article.get("source_system")
+            # `source`, not `source_system`. `snapshot_select.to_item` sets both
+            # to the same string, but the manifest only ever carried the first —
+            # so this meter reported guardian=0 nyt=0 abstract=0.000 for every
+            # country-year, and read as "the corpus is uniform" rather than as
+            # "nothing was measured".
+            source = article.get("source")
             if source in bucket:
                 bucket[source] += 1
 

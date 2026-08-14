@@ -125,6 +125,13 @@ def article_manifest_entry(item: Dict,
         # article rows. `publisher_link` is the pre-resolution fallback.
         "url": item.get("link") or item.get("publisher_link") or None,
         "source": item.get("source") or None,
+        # An NYT archive row is a headline and two sentences; a Guardian row is a
+        # body. Both count as one article everywhere else, so without this the
+        # only record of how thin a snapshot's evidence was is the ration log of
+        # the run that built it. `reports.evidence_texture` exists to answer
+        # "did the divergence track the abstract share" and was reading a key
+        # nothing wrote, so it answered 0.000 for every country-year.
+        "tier": item.get("tier") or None,
         # The item key is `published`; `published_at` only exists on output rows.
         "published_at": item.get("published") or None,
         "content_sha256": text_sha256(body),

@@ -71,6 +71,19 @@ class TestArticleManifestEntry:
         got = provenance.article_manifest_entry({"id": "a1", "published": "2026-05-01T09:00:00Z"})
         assert got["published_at"] == "2026-05-01T09:00:00Z"
 
+    def test_carries_the_tier(self):
+        # An NYT archive row is a headline and two sentences and a Guardian row
+        # is a body; both count as one article everywhere else. Without this the
+        # only record of a snapshot's evidence thinness is the ration log of the
+        # run that built it, and `reports.evidence_texture` reported 0.000.
+        got = provenance.article_manifest_entry({"id": "a1", "tier": "abstract-only"})
+        assert got["tier"] == "abstract-only"
+
+    def test_an_untiered_item_is_none_rather_than_absent(self):
+        # The live daily path sets no tier. A key that is present and None is
+        # readable as "not measured"; a missing key reads as a bug.
+        assert provenance.article_manifest_entry({"id": "a1"})["tier"] is None
+
     def test_in_prompt_follows_prompt_entry(self):
         without = provenance.article_manifest_entry({"id": "a1"})
         with_entry = provenance.article_manifest_entry({"id": "a1"}, {"id": "a1", "title": "t"})
