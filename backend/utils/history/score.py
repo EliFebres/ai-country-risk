@@ -194,7 +194,9 @@ def run(roster: Optional[List[str]] = None,
 # --- the diagnostic sample --------------------------------------------------
 
 def diagnostic_dates(iso2: str, per_country: Optional[int] = None,
-                     seed: int = 0) -> List[datetime.date]:
+                     seed: int = 0,
+                     since: Optional[datetime.date] = None,
+                     until: Optional[datetime.date] = None) -> List[datetime.date]:
     """The dates to score named, chosen from the finished masked series.
 
     Stratified two ways, and both matter.
@@ -211,10 +213,18 @@ def diagnostic_dates(iso2: str, per_country: Optional[int] = None,
 
     Returns fewer than ``per_country`` when the series is short; that is honest
     rather than padded.
+
+    ``since``/``until`` bound the series the sample is drawn from. Unbounded is
+    right for the pilot, where the masked arm has scored everything; it is wrong
+    for a one-year dry run, where a single leftover snapshot from another year
+    lands on the far side of the cutoff and drags a date the run never scored
+    into the plan. PT's stray 2026-08-03 row did exactly that, turning a
+    correctly-half-size six-date sample into a seven-date one that looked like
+    the stratification had gone wrong.
     """
     per_country = per_country or config.NAMED_SAMPLE_PER_COUNTRY
     cutoff = datetime.date.fromisoformat(config.CUTOFF_DATE)
-    series = _masked_series(iso2)
+    series = _masked_series(iso2, since, until)
     if len(series) < 4:
         logger.warning("[%s] masked series has %d point(s); no diagnostic sample",
                        iso2, len(series))
@@ -246,26 +256,37 @@ def diagnostic_dates(iso2: str, per_country: Optional[int] = None,
     return sorted(set(picked))
 
 
-def _masked_series(iso2: str) -> List[tuple]:
+def _masked_series(iso2: str, since: Optional[datetime.date] = None,
+                   until: Optional[datetime.date] = None) -> List[tuple]:
     """One country's finished masked scores, oldest first, as (date, score).
 
     Read from ``risk_snapshot`` rather than the ledger, because that is where
     the masked arm actually writes — the ledger holds its manifest and spend,
     not its number.
+
+    Bounded on request, because |Δscore| is computed against the *previous point
+    in this list*: an unfiltered read puts a seven-year gap between two adjacent
+    entries and calls the delta across it a week's movement.
     """
     from backend.utils.data_upsert import data_push
+    where, params = ["country_iso2 = %s", "scoring_mode = 'masked'"], [iso2]
+    for column, value in (("as_of >= %s", since), ("as_of <= %s", until)):
+        if value:
+            where.append(column)
+            params.append(value)
     with data_push._transaction() as cur:
-        cur.execute(
-            "SELECT as_of, score FROM risk_snapshot "
-            "WHERE country_iso2 = %s AND scoring_mode = 'masked' ORDER BY as_of",
-            (iso2,))
+        cur.execute(f"SELECT as_of, score FROM risk_snapshot "
+                    f"WHERE {' AND '.join(where)} ORDER BY as_of", tuple(params))
         return [(row[0], float(row[1]) if row[1] is not None else None)
                 for row in cur.fetchall()]
 
 
-def diagnostic_plan(roster: Optional[List[str]] = None) -> Dict[str, List[datetime.date]]:
+def diagnostic_plan(roster: Optional[List[str]] = None,
+                    since: Optional[datetime.date] = None,
+                    until: Optional[datetime.date] = None) -> Dict[str, List[datetime.date]]:
     """The full diagnostic sample, per country."""
-    return {iso2: diagnostic_dates(iso2) for iso2 in (roster or config.PILOT_ROSTER)}
+    return {iso2: diagnostic_dates(iso2, since=since, until=until)
+            for iso2 in (roster or config.PILOT_ROSTER)}
 
 
 # --- cost projection --------------------------------------------------------

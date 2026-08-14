@@ -228,20 +228,20 @@ class TestTheDiagnosticSample:
     def test_dates_are_stable_across_runs(self, monkeypatch):
         """A sample that redraws every run cannot be compared with itself, and
         the whole point of the arm is comparison."""
-        monkeypatch.setattr(score, "_masked_series", lambda iso2: self.series(400))
+        monkeypatch.setattr(score, "_masked_series", lambda iso2, since=None, until=None: self.series(400))
         assert score.diagnostic_dates("PT") == score.diagnostic_dates("PT")
 
     def test_both_sides_of_the_cutoff_are_sampled(self, monkeypatch):
         """"Can the model identify this country" means something different when
         the model might simply remember the week."""
-        monkeypatch.setattr(score, "_masked_series", lambda iso2: self.series(500))
+        monkeypatch.setattr(score, "_masked_series", lambda iso2, since=None, until=None: self.series(500))
         cutoff = datetime.date.fromisoformat(config.CUTOFF_DATE)
         picked = score.diagnostic_dates("PT")
         assert any(d < cutoff for d in picked) and any(d >= cutoff for d in picked)
 
     def test_the_loud_weeks_are_in_the_sample(self, monkeypatch):
         """The extremes are where masking either survives or does not."""
-        monkeypatch.setattr(score, "_masked_series", lambda iso2: self.series(400))
+        monkeypatch.setattr(score, "_masked_series", lambda iso2, since=None, until=None: self.series(400))
         picked = set(score.diagnostic_dates("PT"))
         # Weeks 10/11 and 40/41 are the pre-cutoff jumps (each step in *and*
         # out of a spike is a large delta), so the sample must contain some of
@@ -252,11 +252,11 @@ class TestTheDiagnosticSample:
         assert picked & loud
 
     def test_a_short_series_yields_fewer_dates_rather_than_padding(self, monkeypatch):
-        monkeypatch.setattr(score, "_masked_series", lambda iso2: self.series(3))
+        monkeypatch.setattr(score, "_masked_series", lambda iso2, since=None, until=None: self.series(3))
         assert len(score.diagnostic_dates("PT")) < config.NAMED_SAMPLE_PER_COUNTRY
 
     def test_no_series_yields_no_sample(self, monkeypatch):
-        monkeypatch.setattr(score, "_masked_series", lambda iso2: [])
+        monkeypatch.setattr(score, "_masked_series", lambda iso2, since=None, until=None: [])
         assert score.diagnostic_dates("PT") == []
 
     def test_a_gap_in_the_series_does_not_become_a_calm_week(self, monkeypatch):
@@ -264,8 +264,9 @@ class TestTheDiagnosticSample:
         the control group would fill with weeks that were never scored."""
         days = [datetime.date(2018, 1, 1) + datetime.timedelta(weeks=i) for i in range(40)]
         monkeypatch.setattr(score, "_masked_series",
-                            lambda iso2: [(d, None if i % 2 else 0.5)
-                                          for i, d in enumerate(days)])
+                            lambda iso2, since=None, until=None:
+                            [(d, None if i % 2 else 0.5)
+                             for i, d in enumerate(days)])
         assert score.diagnostic_dates("PT") == []
 
     def test_a_series_on_one_side_of_the_cutoff_yields_only_that_side(self, monkeypatch):
@@ -277,7 +278,7 @@ class TestTheDiagnosticSample:
         sample that rebalances is reporting twelve dates while measuring one
         era. At pilot scale every country spans both halves, so this would never
         fire in anger — which is exactly why it would be hard to notice."""
-        monkeypatch.setattr(score, "_masked_series", lambda iso2: self.series(52))
+        monkeypatch.setattr(score, "_masked_series", lambda iso2, since=None, until=None: self.series(52))
         cutoff = datetime.date.fromisoformat(config.CUTOFF_DATE)
         picked = score.diagnostic_dates("PT")
 
@@ -288,11 +289,44 @@ class TestTheDiagnosticSample:
 
     def test_the_post_cutoff_half_alone_behaves_the_same(self, monkeypatch):
         monkeypatch.setattr(score, "_masked_series",
-                            lambda iso2: self.series(52, datetime.date(2024, 1, 1)))
+                            lambda iso2, since=None, until=None: self.series(52, datetime.date(2024, 1, 1)))
         cutoff = datetime.date.fromisoformat(config.CUTOFF_DATE)
         picked = score.diagnostic_dates("PT")
         assert picked and all(d >= cutoff for d in picked)
         assert len(picked) <= config.NAMED_SAMPLE_PER_COUNTRY // 2
+
+    def test_the_window_reaches_the_query(self, monkeypatch):
+        """One stray snapshot from another year is enough to break the halves.
+
+        PT's dry run scored 2019 and the store also held a single 2026 masked
+        row from an earlier session. Unfiltered, that row sat alone on the far
+        side of the cutoff and became the whole post-cutoff era, so a correctly
+        half-size six-date sample came back with seven — one of them a date the
+        run had never scored, whose |Δ| was measured across a seven-year gap and
+        called a week's movement.
+        """
+        seen = {}
+
+        def _series(iso2, since=None, until=None):
+            seen.update(since=since, until=until)
+            return self.series(52)
+
+        monkeypatch.setattr(score, "_masked_series", _series)
+        since, until = datetime.date(2019, 1, 1), datetime.date(2019, 12, 31)
+        score.diagnostic_plan(["PT"], since=since, until=until)
+        assert seen == {"since": since, "until": until}
+
+    def test_an_unbounded_plan_is_still_the_default(self, monkeypatch):
+        """The pilot wants the whole series; only a one-year run wants a window."""
+        seen = {}
+
+        def _series(iso2, since=None, until=None):
+            seen.update(since=since, until=until)
+            return self.series(52)
+
+        monkeypatch.setattr(score, "_masked_series", _series)
+        score.diagnostic_plan(["PT"])
+        assert seen == {"since": None, "until": None}
 
 
 class TestProjection:

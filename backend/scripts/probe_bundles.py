@@ -23,7 +23,6 @@ Spend is metered from the API's own usage fields, never estimated.
 """
 
 import argparse
-import collections
 import datetime
 import os
 import pathlib
@@ -54,11 +53,6 @@ from backend.utils.ai import client as ai_client, digest_engine  # noqa: E402
 from backend.utils.data_upsert import data_push  # noqa: E402
 from backend.utils.history import config, snapshot_select, store, usage  # noqa: E402
 from backend.utils.masking import gazetteer, probe, rewrite  # noqa: E402
-
-# The seed is printed with every fresh sample and is part of the report: a
-# baseline nobody can redraw is a baseline nobody can check.
-DEFAULT_SEED = 20260812
-
 
 # The acceptance set: the six historical bundles that had left a digest-cache
 # trace as of 2026-08-12, which is every trace the 2026-08-03 probe run left
@@ -92,7 +86,7 @@ def recorded_bundles() -> list:
     return out
 
 
-def fresh_bundles(per_country: int, seed: int) -> list:
+def fresh_bundles(per_country: int) -> list:
     """A reproducible sample spanning loud and quiet weeks, per country.
 
     Stratified on article volume rather than drawn uniformly. A week whose whole
@@ -105,6 +99,18 @@ def fresh_bundles(per_country: int, seed: int) -> list:
     anchor with at least one article, rank by bundle size, and take the
     ``per_country // 2`` largest and the ``per_country // 2`` smallest, breaking
     ties on the anchor date so the draw does not depend on scan order.
+
+    There is no seed, and there used to be one printed in the report header. It
+    was never read — the draw is a total order over bundle size and date, with
+    nothing random in it. A parameter that does nothing is worse than no
+    parameter, because the report attributed its reproducibility to the seed and
+    the first person to change it would have concluded the sample was fixed. The
+    rule above is what makes this redrawable, so the rule is what gets printed.
+
+    A consequence of the rule worth stating: it yields ``2 * (per_country // 2)``
+    bundles per country, so the count is always even. Twenty bundles cannot be
+    drawn from a four-country roster. The stored "fresh 20" was five countries at
+    four each, before BR left.
     """
     anchors = snapshot_select_anchors()
     out = []
@@ -395,7 +401,6 @@ def main() -> None:
     parser.add_argument("--fresh", action="store_true",
                         help="a reproducible stratified sample across the roster")
     parser.add_argument("--per-country", type=int, default=4)
-    parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--no-leaks", action="store_true",
                         help="skip printing the text of identified bundles")
     args = parser.parse_args()
@@ -406,14 +411,18 @@ def main() -> None:
         run_control(args.control, args.control_size)
     if args.recorded:
         bundles = recorded_bundles()
-        print(f"recorded bundles (from article_digest): {len(bundles)}")
+        print(f"recorded bundles (pinned in this file): {len(bundles)}")
         run(bundles, "recorded bundles — the sweep acceptance test", not args.no_leaks)
     if args.fresh:
-        bundles = fresh_bundles(args.per_country, args.seed)
-        print(f"\nfresh sample: seed={args.seed}, {args.per_country}/country, "
-              f"rule = the {max(1, args.per_country // 2)} largest and "
-              f"{max(1, args.per_country // 2)} smallest bundles per country "
-              f"over quarterly anchors")
+        bundles = fresh_bundles(args.per_country)
+        half = max(1, args.per_country // 2)
+        # The rule, not a seed. This is the whole of what makes the sample
+        # redrawable, and it is what a later run has to match to be comparable.
+        print(f"\nfresh sample: {len(bundles)} bundle(s), "
+              f"{2 * half}/country over {len(config.PILOT_ROSTER)} countries, "
+              f"rule = the {half} largest and {half} smallest bundles per country "
+              f"over quarterly anchors, ties broken on the anchor date. No seed: "
+              f"nothing in the draw is random.")
         run(bundles, "fresh sample — the new baseline", not args.no_leaks)
     if not (args.recorded or args.fresh or args.control):
         parser.error("pass --control, --recorded, --fresh, or any combination")

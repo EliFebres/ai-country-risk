@@ -288,7 +288,15 @@ def _score(args) -> None:
 def _diagnostic(args) -> None:
     """Score the named and no-structural arms on dates chosen from the series."""
     roster = args.roster or list(config.PILOT_ROSTER)
-    plan = score.diagnostic_plan(roster)
+    # Bounded to the range the masked arm actually scored. Unbounded is right for
+    # the pilot and wrong for a one-year dry run: one leftover snapshot from
+    # another year sits on the far side of the cutoff and pulls a date nothing
+    # scored into the sample, so a correctly half-size six-date plan comes back
+    # with seven and reads as a stratification bug.
+    plan = score.diagnostic_plan(
+        roster,
+        since=datetime.date.fromisoformat(args.since) if args.since else None,
+        until=datetime.date.fromisoformat(args.until) if args.until else None)
     total = sum(len(v) for v in plan.values())
     if not total:
         print("No masked series to sample from yet. Run `score` first.")
@@ -359,6 +367,8 @@ def main() -> None:
 
     p = sub.add_parser("diagnostic")
     p.add_argument("--country", action="append", dest="roster")
+    p.add_argument("--since", help="draw the sample from anchors on or after this")
+    p.add_argument("--until", help="draw the sample from anchors on or before this")
     p.add_argument("--mode", action="append",
                    choices=config.DIAGNOSTIC_MODES,
                    help="repeatable; defaults to both diagnostic arms")
