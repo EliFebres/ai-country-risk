@@ -336,20 +336,40 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
              != (gazetteer.MASK_MAP_VERSION, rewrite.SWEEP_VERSION)]
     if prior:
         print("\n  against the previous masking behaviour:")
-        # What the diff is allowed to be attributed to, stated rather than
-        # assumed. A run that moves the mask rules and the probe prompt together
-        # measures their sum and cannot attribute a drop to either; when the
-        # probe is identical on both sides, whatever moved is the masking.
+        # What the diff may be attributed to, stated rather than assumed.
+        #
+        # An identical probe is necessary and not sufficient, and assuming it was
+        # sufficient is how this line was wrong the first time it was written.
+        # The probe reads a *bundle*, and the bundle is produced by the gazetteer,
+        # the sweep and the full-text rewrite together. Any of them moving changes
+        # what is being measured. The rewrite in particular changes the *volume*
+        # of text rather than its content: when its token budget was a digest cap,
+        # most bodies degraded to titles, and a bundle missing its bodies probes
+        # cleaner for a reason that has nothing to do with masking.
+        #
+        # So all three versions are compared, and they are named. A run that moves
+        # more than one of them measures their sum, and when two of them push in
+        # opposite directions — stricter rules, more text — the sum can be zero
+        # while neither component is.
         prior_probes = sorted({(r["probe_model"], r["probe_version"]) for r in prior})
         now_probe = (ai_client.DIGEST_MODEL_NAME, probe.PROBE_VERSION)
+        moved = []
+        if prior_probes != [now_probe]:
+            moved.append(f"the probe itself ({prior_probes} -> {now_probe})")
+        prior_sweeps = sorted({r["sweep_version"] for r in prior})
+        moved.append(f"the mask rules (sweep {'/'.join(prior_sweeps)} -> "
+                     f"{rewrite.SWEEP_VERSION})")
+        moved.append(f"the full-text rewrite (version {rewrite.REWRITE_VERSION}, "
+                     f"token budget now sized from the body — bodies that used "
+                     f"to degrade to title-only now reach the probe whole)")
         if prior_probes == [now_probe]:
-            print(f"    the instrument is unchanged — probe {now_probe[1]} on "
-                  f"{now_probe[0]} on both sides — so every difference below is "
-                  f"the mask rules. Attribution holds by construction.")
-        else:
-            print(f"    WARNING: the probe also moved ({prior_probes} -> "
-                  f"{now_probe}). This diff measures masking and instrument "
-                  f"together and cannot attribute a change to either.")
+            print(f"    the probe is unchanged: {now_probe[1]} on {now_probe[0]}, "
+                  f"both sides. That rules the instrument out and nothing else.")
+        for item in moved:
+            print(f"    MOVED: {item}")
+        print("    The diff below is the sum of the above. A bundle that reads")
+        print("    REGRESSED may simply have got its body back; one that reads")
+        print("    FIXED may have lost it. Attribution needs one mover at a time.")
         for row in probe.compare(prior, current):
             if row["fixed"] is None and row["was_guess"] is None:
                 continue
