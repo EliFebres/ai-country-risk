@@ -74,13 +74,43 @@ RECORDED_BUNDLES = (
     ("US", datetime.date(2019, 7, 13)),
     ("US", datetime.date(2020, 11, 7)),
     ("TR", datetime.date(2021, 3, 27)),
+    # The three the 2026-08-13 fresh sample identified, added deliberately per
+    # the rule above. An acceptance set of bundles that all passed cannot show a
+    # masking change working; these are the only three that failed, so they are
+    # the only three that can.
+    #
+    # TR 2017-01-02 (the failed coup) and KR 2018-07-02 (the denuclearization
+    # summit) are ceilings rather than gaps: an event that only happened in one
+    # country identifies it however well the names are masked, and no rule fixes
+    # that. They are here to be watched, not fixed.
+    ("TR", datetime.date(2017, 1, 2)),
+    ("KR", datetime.date(2018, 7, 2)),
+    # BR 2018-07-02 is the exception and the reason this list grew. It is a gap,
+    # not a ceiling — the probe named a footballer as its evidence, and rule 2
+    # mapped named people to their office while an athlete has not got one. HEAD
+    # closed that. BR left the roster, so `--fresh` will never draw this bundle
+    # again; its articles are still in the store, and this is the only direct
+    # test that the fix works. Kept out of the roster baseline in the report for
+    # exactly that reason: it is a regression test, not a sample.
+    ("BR", datetime.date(2018, 7, 2)),
 )
 
+# The one bundle in `RECORDED_BUNDLES` whose country is no longer in the roster.
+# Reported separately so a country nobody is scoring cannot move the baseline.
+OFF_ROSTER_BUNDLES = (("BR", datetime.date(2018, 7, 2)),)
 
-def recorded_bundles() -> list:
-    """The pinned acceptance set, with each bundle's current article count."""
+
+def recorded_bundles(off_roster: bool = False) -> list:
+    """The pinned acceptance set, with each bundle's current article count.
+
+    Split on roster membership. The off-roster half is one bundle — BR's World
+    Cup week, the only direct test of the rule HEAD added — and folding it into
+    the hit rate would let a country nobody is scoring move the baseline.
+    """
     out = []
     for iso2, as_of in RECORDED_BUNDLES:
+        if ((iso2, as_of) in OFF_ROSTER_BUNDLES) != off_roster:
+            continue
         start, end = snapshot_select.window(as_of)
         out.append((iso2, as_of, len(store.read_window(iso2, start, end))))
     return out
@@ -306,6 +336,20 @@ def run(bundles: list, label: str, show_leaks: bool) -> None:
              != (gazetteer.MASK_MAP_VERSION, rewrite.SWEEP_VERSION)]
     if prior:
         print("\n  against the previous masking behaviour:")
+        # What the diff is allowed to be attributed to, stated rather than
+        # assumed. A run that moves the mask rules and the probe prompt together
+        # measures their sum and cannot attribute a drop to either; when the
+        # probe is identical on both sides, whatever moved is the masking.
+        prior_probes = sorted({(r["probe_model"], r["probe_version"]) for r in prior})
+        now_probe = (ai_client.DIGEST_MODEL_NAME, probe.PROBE_VERSION)
+        if prior_probes == [now_probe]:
+            print(f"    the instrument is unchanged — probe {now_probe[1]} on "
+                  f"{now_probe[0]} on both sides — so every difference below is "
+                  f"the mask rules. Attribution holds by construction.")
+        else:
+            print(f"    WARNING: the probe also moved ({prior_probes} -> "
+                  f"{now_probe}). This diff measures masking and instrument "
+                  f"together and cannot attribute a change to either.")
         for row in probe.compare(prior, current):
             if row["fixed"] is None and row["was_guess"] is None:
                 continue
@@ -413,6 +457,11 @@ def main() -> None:
         bundles = recorded_bundles()
         print(f"recorded bundles (pinned in this file): {len(bundles)}")
         run(bundles, "recorded bundles — the sweep acceptance test", not args.no_leaks)
+        off = recorded_bundles(off_roster=True)
+        if off:
+            run(off, "off-roster regression test — reported apart from the "
+                     "baseline, because a country nobody scores must not move it",
+                not args.no_leaks)
     if args.fresh:
         bundles = fresh_bundles(args.per_country)
         half = max(1, args.per_country // 2)
