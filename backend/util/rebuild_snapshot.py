@@ -18,9 +18,10 @@ scorer weighted most heavily. This script had to skip them entirely.
 Now a full-text mismatch means a cache miss, which is a real finding: that row
 cannot be rebuilt. Rows written before the cache existed will always report it.
 
-    python -m backend.scripts.rebuild_snapshot PT 2019-06-03
+    python -m backend.util.rebuild_snapshot PT 2019-06-03
 """
 
+import argparse
 import datetime
 import json
 import pathlib
@@ -114,9 +115,12 @@ def rebuild(iso2: str, as_of: datetime.date) -> dict:
 
 
 def main() -> None:
-    iso2 = (sys.argv[1] if len(sys.argv) > 1 else "PT").upper()
-    as_of = datetime.date.fromisoformat(sys.argv[2]) if len(sys.argv) > 2 \
-        else datetime.date.today()
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("iso2", nargs="?", default="PT")
+    parser.add_argument("as_of", nargs="?", type=datetime.date.fromisoformat,
+                        default=datetime.date.today(), metavar="YYYY-MM-DD")
+    args = parser.parse_args()
+    iso2, as_of = args.iso2.upper(), args.as_of
 
     old = stored_manifest(iso2, as_of)
     if not old:

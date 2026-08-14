@@ -767,7 +767,7 @@ class TestTheRebuildScriptReadsTheSamePayloadTheScorerWrote:
     def test_it_builds_the_panel_payload(self):
         import inspect
 
-        from backend.scripts import rebuild_snapshot
+        from backend.util import rebuild_snapshot
 
         source = inspect.getsource(rebuild_snapshot.rebuild)
         assert "prepare_llm_payload_pretty" in source

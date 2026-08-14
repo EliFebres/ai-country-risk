@@ -30,9 +30,9 @@ rows from it. Everything else is deleted, and the editions still missing are
 printed at the end.
 
 Usage:
-    python -m backend.scripts.fetch_weo_vintages
-    python -m backend.scripts.fetch_weo_vintages --force      # re-fetch what exists
-    python -m backend.scripts.fetch_weo_vintages --no-archive # live URLs only
+    python -m backend.data_fetching.vintage.fetch_editions
+    python -m backend.data_fetching.vintage.fetch_editions --force      # re-fetch what exists
+    python -m backend.data_fetching.vintage.fetch_editions --no-archive # live URLs only
 """
 
 import argparse

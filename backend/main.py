@@ -25,9 +25,18 @@ there is no API layer between them. Resilience lives with the phases: each one
 logs failures with a full traceback and returns, so a flaky upstream or one bad
 country costs a single phase rather than the whole run.
 
+The scheduler is the default, not a subcommand — bare ``main.py`` is what runs
+in production. Everything else that used to live in ``scripts/`` is a
+subcommand here, so there is one executable rather than five.
+
 Usage:
-    python backend/main.py           # run forever
-    python backend/main.py --once    # one pass over every due job, then exit
+    python backend/main.py                       # run forever
+    python backend/main.py --once                # one pass over every due job
+    python backend/main.py backfill score --help # the pilot CLI
+    python backend/main.py rebuild PT 2019-06-03 # re-derive a stored snapshot
+    python backend/main.py probe --recorded      # re-probe stored bundles
+    python backend/main.py census PT             # registry vs what arrives
+    python backend/main.py weo-fetch             # download WEO editions
 """
 
 import os
@@ -35,6 +44,7 @@ import sys
 import signal
 import logging
 import pathlib
+import importlib
 import threading
 
 from datetime import datetime, timedelta, timezone
@@ -63,6 +73,33 @@ logger = logging.getLogger("main")
 
 TICK_SECONDS = constants.PRICES_POLL_SECONDS  # the shortest cadence we schedule
 STOP = threading.Event()
+
+# Subcommand -> the module whose main() owns its arguments. Each already had a
+# working argparse when it was a script, so this dispatches rather than
+# re-declaring them; --help on a subcommand is that module's own help.
+SUBCOMMANDS = {
+    "backfill":  ("backend.util.run", "harvest, score and report the backfill"),
+    "rebuild":   ("backend.util.rebuild_snapshot", "re-derive a stored snapshot and diff it"),
+    "probe":     ("backend.util.probe_bundles", "re-probe stored bundles for identifiability"),
+    "census":    ("backend.util.payload_census", "every registry indicator vs what arrives"),
+    "weo-fetch": ("backend.data_fetching.vintage.fetch_editions", "download IMF WEO editions"),
+}
+
+
+def _dispatch(argv: list) -> int:
+    """Run a subcommand, handing it the rest of the arguments as its own."""
+    module = importlib.import_module(SUBCOMMANDS[argv[0]][0])
+    sys.argv = [f"main.py {argv[0]}", *argv[1:]]
+    return module.main() or 0
+
+
+def _usage() -> None:
+    """Print the scheduler's own usage plus the subcommand list."""
+    print(__doc__.split("Usage:")[0].strip())
+    print("\nUsage:\n    python backend/main.py [--once]        run the scheduler")
+    for name, (_, blurb) in SUBCOMMANDS.items():
+        print(f"    python backend/main.py {name:<10} {blurb}")
+    print("\nAdd --help after a subcommand for its own arguments.")
 
 
 # --- Due checks --------------------------------------------------------------
@@ -143,7 +180,18 @@ def _install_signals() -> None:
 
 
 def main() -> None:
-    """Run the scheduler loop until stopped, or a single pass with ``--once``."""
+    """Dispatch a subcommand, or run the scheduler — which is the default."""
+    argv = sys.argv[1:]
+    if argv and argv[0] in SUBCOMMANDS:
+        sys.exit(_dispatch(argv))
+    if argv and argv[0] in ("-h", "--help"):
+        _usage()
+        return
+    if argv and not argv[0].startswith("-"):
+        print(f"unknown subcommand {argv[0]!r}\n")
+        _usage()
+        sys.exit(2)
+
     if not os.getenv("DATABASE_URL"):
         logger.error("DATABASE_URL is not set; every job writes, so there is nothing to do.")
         sys.exit(1)

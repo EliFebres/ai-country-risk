@@ -18,8 +18,8 @@ change gets compared against.
 
 Spend is metered from the API's own usage fields, never estimated.
 
-    python -m backend.scripts.probe_bundles --recorded
-    python -m backend.scripts.probe_bundles --fresh --per-country 4
+    python -m backend.util.probe_bundles --recorded
+    python -m backend.util.probe_bundles --fresh --per-country 4
 """
 
 import argparse

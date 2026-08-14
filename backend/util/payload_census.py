@@ -14,8 +14,9 @@ Read the STORE column first. An indicator with rows in `indicator_series` and
 nothing in the payload is a wiring bug of the kind this script exists to find.
 An indicator absent from both is just a series nobody collects for this country.
 
-    python -m backend.scripts.payload_census [ISO2] [YYYY-MM-DD]
+    python -m backend.util.payload_census [ISO2] [YYYY-MM-DD]
 """
+import argparse
 import collections
 import datetime
 import sys
@@ -68,9 +69,12 @@ def census(iso2: str, as_of: datetime.date, vintage: bool = True) -> dict:
 
 
 def main() -> None:
-    iso2 = (sys.argv[1] if len(sys.argv) > 1 else "PT").upper()
-    as_of = (datetime.date.fromisoformat(sys.argv[2]) if len(sys.argv) > 2
-             else datetime.date.today())
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("iso2", nargs="?", default="PT")
+    parser.add_argument("as_of", nargs="?", type=datetime.date.fromisoformat,
+                        default=datetime.date.today(), metavar="YYYY-MM-DD")
+    args = parser.parse_args()
+    iso2, as_of = args.iso2.upper(), args.as_of
     result = census(iso2, as_of)
 
     by_source = collections.defaultdict(list)
