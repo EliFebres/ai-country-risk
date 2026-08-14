@@ -10,7 +10,7 @@ run-plan knobs decide what gets scored and what it may cost. Both live here so
 the pilot's shape is one file to read and one file to change.
 """
 
-from backend.utils import constants
+from backend.util import constants
 
 # Four countries, chosen for how differently they behave rather than for size.
 # US is mandated (and is the hardest case for the Guardian window subdivision —

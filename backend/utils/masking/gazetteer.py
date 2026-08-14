@@ -43,7 +43,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 from babel import Locale, numbers
 
-from backend.utils import constants
+from backend.util import constants
 
 # Bump on any change to COUNTRIES, THIN or ROLES. Stamped into every masked
 # run's manifest so a score can always be traced to the mask map that produced

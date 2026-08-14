@@ -25,7 +25,8 @@ from datetime import date
 import pytest
 import yaml
 
-from backend.utils import constants, pipeline
+from backend.util import constants
+from backend.utils import pipeline
 from backend.utils.ai import constants as ai_constants
 from backend.utils.ai import langchain_llm as llm
 from backend.utils.ai import policy

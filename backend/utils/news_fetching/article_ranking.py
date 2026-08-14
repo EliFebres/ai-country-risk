@@ -16,7 +16,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List, Tuple
 
-from backend.utils.dates import parse_date_for_sort
+from backend.util.dates import parse_date_for_sort
 
 logger = logging.getLogger(__name__)
 

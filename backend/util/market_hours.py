@@ -28,7 +28,7 @@ knowing before anyone "fixes" them:
 
 from datetime import datetime, timedelta, timezone, date
 
-import backend.utils.constants as constants
+import backend.util.constants as constants
 
 
 def _nth_weekday(year: int, month: int, weekday: int, n: int) -> date:

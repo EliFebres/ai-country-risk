@@ -24,7 +24,8 @@ import pytest
 
 from backend.main import _every, _weekly
 from backend.utils import data_retrieval as dr
-from backend.utils import lint, market_hours, metrics
+from backend.util import market_hours
+from backend.utils import lint, metrics
 
 AS_OF = _dt.date(2026, 7, 27)
 
@@ -73,7 +74,7 @@ class TestTheLoaderToPayloadContract:
     """
 
     def test_every_registry_indicator_can_reach_the_payload(self):
-        from backend.utils import constants
+        from backend.util import constants
         missing = []
         for code, spec in constants.INDICATOR_REGISTRY.items():
             freq = str(spec["freq"])
@@ -112,7 +113,7 @@ class TestTheLoaderToPayloadContract:
         assert not any("Inflation" in k for k in (bad.get("uncertainty_inputs") or {}))
 
     def test_the_weo_block_arrives_with_its_edition_as_the_source(self):
-        from backend.utils import constants
+        from backend.util import constants
         codes = ("WEO.NGDP_RPCH", "WEO.GGXWDG_NGDP", "WEO.GGXCNL_NGDP",
                  "WEO.BCA_NGDPD")
         rows = {}

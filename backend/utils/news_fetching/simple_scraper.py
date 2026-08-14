@@ -23,7 +23,7 @@ from typing import Optional, Tuple, List
 
 from bs4.element import Tag
 
-from backend.utils.http import BROWSER_UA as _UA
+from backend.util.http import BROWSER_UA as _UA
 
 
 # --------------------------- HTTP / Config ---------------------------

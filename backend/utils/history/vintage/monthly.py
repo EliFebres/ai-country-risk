@@ -31,7 +31,7 @@ import datetime
 import logging
 from typing import Any, Dict, List, Optional
 
-from backend.utils import constants
+from backend.util import constants
 from backend.utils.data_fetching import bis_bulk_fetch, imf_macro_fetch
 from backend.utils.history import config
 from backend.utils.history.vintage import lags

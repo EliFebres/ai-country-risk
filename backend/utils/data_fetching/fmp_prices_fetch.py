@@ -27,8 +27,8 @@ import logging
 from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
 
-import backend.utils.constants as constants
-from backend.utils import http
+import backend.util.constants as constants
+from backend.util import http
 
 logger = logging.getLogger(__name__)
 

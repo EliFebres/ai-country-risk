@@ -53,8 +53,9 @@ load_dotenv(PROJECT_ROOT / "backend" / ".env")
 load_dotenv()  # also pick up a repo-root/cwd .env, without overriding
 
 # --- Internal Imports --------------------------------------------------------
-from backend.utils import constants, pipeline, prices
-from backend.utils.dates import utc_minute_iso
+from backend.util import constants
+from backend.utils import pipeline, prices
+from backend.util.dates import utc_minute_iso
 from backend.utils.data_fetching import country_data_fetch
 from backend.utils.data_upsert import data_push
 

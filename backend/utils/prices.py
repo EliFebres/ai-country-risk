@@ -23,8 +23,8 @@ import logging
 from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
 
-from backend.utils import constants
-from backend.utils import market_hours
+from backend.util import constants
+from backend.util import market_hours
 from backend.utils.data_upsert import data_push
 from backend.utils.data_fetching import fmp_prices_fetch
 

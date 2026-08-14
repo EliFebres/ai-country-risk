@@ -27,7 +27,7 @@ from xml.etree import ElementTree as ET
 
 import requests
 
-from backend.utils import constants
+from backend.util import constants
 
 logger = logging.getLogger(__name__)
 

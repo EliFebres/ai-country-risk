@@ -24,7 +24,7 @@ from typing import Any, Dict, List, Mapping, Optional
 
 import pandas as pd
 
-from backend.utils import constants
+from backend.util import constants
 from backend.utils.data_fetching import fetch_metrics
 from backend.utils.data_upsert import data_push
 

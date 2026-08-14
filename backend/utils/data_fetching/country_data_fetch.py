@@ -19,7 +19,7 @@ import pandas as pd
 
 from typing import Mapping
 
-from backend.utils import constants
+from backend.util import constants
 import backend.utils.data_fetching.fetch_metrics as fetch_metrics
 import backend.utils.data_fetching.political_corruption_fetch as political_corruption_fetch
 

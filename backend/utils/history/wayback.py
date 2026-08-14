@@ -31,7 +31,7 @@ from typing import Dict, List, Optional, Tuple
 
 import requests
 
-from backend.utils import http
+from backend.util import http
 from backend.utils.ai import client as ai_client
 from backend.utils.history import config, store
 from backend.utils.news_fetching import core

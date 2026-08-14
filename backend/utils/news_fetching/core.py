@@ -29,7 +29,7 @@ from typing import Dict, List, Optional
 
 import trafilatura
 
-from backend.utils.dates import parse_date_for_sort
+from backend.util.dates import parse_date_for_sort
 
 logger = logging.getLogger(__name__)
 

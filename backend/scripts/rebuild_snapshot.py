@@ -40,7 +40,8 @@ from dotenv import load_dotenv  # noqa: E402
 
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 
-from backend.utils import constants, data_retrieval as dr, pipeline, provenance  # noqa: E402
+from backend.util import constants  # noqa: E402
+from backend.utils import data_retrieval as dr, pipeline, provenance  # noqa: E402
 from backend.utils.ai import client as ai_client, digest_engine, langchain_llm  # noqa: E402
 from backend.utils.data_upsert import data_push  # noqa: E402
 from backend.utils.history import config, snapshot_select, store  # noqa: E402

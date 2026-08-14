@@ -45,7 +45,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 import requests  # noqa: E402
 
-from backend.utils import http  # noqa: E402
+from backend.util import http  # noqa: E402
 from backend.utils.history import config, wayback  # noqa: E402
 from backend.utils.history.vintage import weo  # noqa: E402
 

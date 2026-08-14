@@ -39,7 +39,7 @@ from typing import Any, Dict, List, Optional
 
 import yaml
 
-from backend.utils import constants
+from backend.util import constants
 
 logger = logging.getLogger(__name__)
 

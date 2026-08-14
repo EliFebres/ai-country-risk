@@ -20,7 +20,7 @@ from typing import Optional
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, parse_qs
 
-from backend.utils.http import BROWSER_UA as _UA
+from backend.util.http import BROWSER_UA as _UA
 
 logger = logging.getLogger(__name__)
 

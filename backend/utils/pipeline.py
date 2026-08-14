@@ -24,7 +24,8 @@ import zlib
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from backend.utils import constants, data_retrieval, lint, provenance
+from backend.util import constants
+from backend.utils import data_retrieval, lint, provenance
 from backend.utils.ai import alerts_ranker, calendar_ranker, digest_engine, langchain_llm
 from backend.utils.ai import client as ai_client
 from backend.utils.data_fetching import (

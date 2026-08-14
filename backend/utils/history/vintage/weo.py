@@ -29,7 +29,7 @@ import pathlib
 import re
 from typing import Any, Dict, Iterator, List, Optional
 
-from backend.utils import constants
+from backend.util import constants
 
 logger = logging.getLogger(__name__)
 

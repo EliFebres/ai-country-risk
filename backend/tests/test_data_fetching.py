@@ -18,7 +18,8 @@ import pathlib
 
 import pytest
 
-from backend.utils import constants, data_retrieval
+from backend.util import constants
+from backend.utils import data_retrieval
 from backend.utils.data_fetching import curated_loader as cl
 from backend.utils.data_fetching import imf_macro_fetch as imf
 from backend.utils.history.vintage import lags, monthly, restamp, weo

@@ -15,8 +15,8 @@ import pandas as pd
 from typing import List, Dict, Mapping, Optional
 from requests.exceptions import HTTPError, RequestException
 
-import backend.utils.constants as constants
-from backend.utils import http
+import backend.util.constants as constants
+from backend.util import http
 
 
 # ---------------------------- Helpers --------------------------------- #
