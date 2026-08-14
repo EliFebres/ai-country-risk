@@ -39,7 +39,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.data_upsert import store
 from backend.utils.history import config
-from backend.utils.news_fetching import article_enrichment, article_ranking, core
+from backend.news_fetching import article_enrichment, article_ranking, core
 
 logger = logging.getLogger(__name__)
 

@@ -52,7 +52,8 @@ from backend.utils import pipeline  # noqa: E402
 from backend.utils.ai import client as ai_client, digest_engine  # noqa: E402
 from backend.data_upsert import data_push  # noqa: E402
 from backend.data_upsert import store  # noqa: E402
-from backend.utils.history import config, snapshot_select, usage  # noqa: E402
+from backend.news_fetching import snapshot_select  # noqa: E402
+from backend.utils.history import config, usage  # noqa: E402
 from backend.utils.masking import gazetteer, probe, rewrite  # noqa: E402
 
 # The acceptance set: the six historical bundles that had left a digest-cache

@@ -30,11 +30,12 @@ import os
 import pytest
 
 from backend.utils import data_retrieval
-from backend.utils.history import config, score, snapshot_select as sel, usage
+from backend.news_fetching import snapshot_select as sel
+from backend.utils.history import config, score, usage
 from backend.data_upsert import store
 from backend.data_fetching.vintage import lags, restamp
 from backend.utils.masking import gazetteer as gz, rewrite
-from backend.utils.news_fetching import core
+from backend.news_fetching import core
 
 AS_OF = datetime.date(2018, 6, 15)
 COUNTRY = "PT"

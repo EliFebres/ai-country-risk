@@ -36,7 +36,8 @@ import pandas as pd
 
 from backend.utils import pipeline
 from backend.data_upsert import store
-from backend.utils.history import config, snapshot_select, usage
+from backend.news_fetching import snapshot_select
+from backend.utils.history import config, usage
 
 logger = logging.getLogger(__name__)
 

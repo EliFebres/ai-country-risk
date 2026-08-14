@@ -23,8 +23,9 @@ import pytest
 
 from backend.utils import provenance
 from backend.data_upsert import store
-from backend.utils.history import reports, snapshot_select
-from backend.utils.news_fetching import core
+from backend.news_fetching import snapshot_select
+from backend.utils.history import reports
+from backend.news_fetching import core
 
 AS_OF = date(2026, 7, 27)
 

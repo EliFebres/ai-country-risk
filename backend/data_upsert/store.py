@@ -33,7 +33,7 @@ import psycopg2.extras as extras
 from backend.utils import provenance
 from backend.data_upsert import data_push
 from backend.utils.history import config
-from backend.utils.news_fetching import core
+from backend.news_fetching import core
 
 # The project's one connect/commit/rollback/close helper. Private to data_push
 # by name only: every write in the backend goes through it, and standing up a

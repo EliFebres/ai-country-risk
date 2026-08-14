@@ -45,7 +45,8 @@ from backend.utils import data_retrieval as dr, pipeline, provenance  # noqa: E4
 from backend.utils.ai import client as ai_client, digest_engine, langchain_llm  # noqa: E402
 from backend.data_upsert import data_push  # noqa: E402
 from backend.data_upsert import store  # noqa: E402
-from backend.utils.history import config, snapshot_select  # noqa: E402
+from backend.news_fetching import snapshot_select  # noqa: E402
+from backend.utils.history import config  # noqa: E402
 from backend.utils.masking import gazetteer, rewrite  # noqa: E402
 
 

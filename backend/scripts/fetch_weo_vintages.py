@@ -46,7 +46,8 @@ if str(PROJECT_ROOT) not in sys.path:
 import requests  # noqa: E402
 
 from backend.util import http  # noqa: E402
-from backend.utils.history import config, wayback  # noqa: E402
+from backend.news_fetching import wayback  # noqa: E402
+from backend.utils.history import config  # noqa: E402
 from backend.data_fetching.vintage import weo  # noqa: E402
 
 _MONTHS = {4: "Apr", 10: "Oct"}

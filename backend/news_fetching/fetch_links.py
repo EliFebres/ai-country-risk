@@ -21,9 +21,9 @@ import datetime as dt
 from typing import List, Dict
 from urllib.parse import urlencode, quote_plus, urlparse
 
-from backend.utils.news_fetching import core
-from backend.utils.news_fetching.url_resolver import resolve_google_news_url
-from backend.utils.news_fetching.source_filter import is_blocked_url
+from backend.news_fetching import core
+from backend.news_fetching.url_resolver import resolve_google_news_url
+from backend.news_fetching.source_filter import is_blocked_url
 
 UA = "Mozilla/5.0 (compatible; ai-country-risk/1.0)"
 

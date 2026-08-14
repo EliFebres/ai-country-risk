@@ -30,7 +30,7 @@ from langchain_core.messages import SystemMessage
 import backend.utils.ai.constants as ai_constants
 from backend.utils.ai import client as ai_client
 from backend.data_upsert import data_push
-from backend.utils.news_fetching import core as news_core
+from backend.news_fetching import core as news_core
 
 logger = logging.getLogger(__name__)
 

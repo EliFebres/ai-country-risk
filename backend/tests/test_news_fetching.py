@@ -21,10 +21,11 @@ import re
 
 import pytest
 
-from backend.utils.history import config, snapshot_select as sel, wayback
-from backend.utils.history.adapters import gdelt, guardian, nyt
-from backend.utils.news_fetching import article_enrichment as ae
-from backend.utils.news_fetching import article_ranking, core, source_filter
+from backend.news_fetching import snapshot_select as sel, wayback
+from backend.utils.history import config
+from backend.news_fetching.adapters import gdelt, guardian, nyt
+from backend.news_fetching import article_enrichment as ae
+from backend.news_fetching import article_ranking, core, source_filter
 
 PUBLISHED = datetime.datetime(2018, 3, 14, 9, 30, tzinfo=datetime.timezone.utc)
 URL = "https://www.reuters.com/article/x"

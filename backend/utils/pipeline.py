@@ -33,7 +33,7 @@ from backend.data_fetching import (
 )
 from backend.data_upsert import data_push
 from backend.utils.masking import gazetteer, probe, rewrite
-from backend.utils.news_fetching import article_enrichment, article_ranking
+from backend.news_fetching import article_enrichment, article_ranking
 
 logger = logging.getLogger(__name__)
 

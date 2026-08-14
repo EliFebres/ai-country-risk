@@ -24,12 +24,12 @@ from typing import Dict, List
 
 import requests
 
-from backend.utils.news_fetching import article_ranking, core, fetch_links
-from backend.utils.news_fetching.advanced_scraper import crawlbase_token
-from backend.utils.news_fetching.advanced_scraper import scrape_one as crawlbase_scrape_one
-from backend.utils.news_fetching.simple_scraper import get_article_assets
-from backend.utils.news_fetching.source_filter import is_blocked_url
-from backend.utils.news_fetching.url_resolver import resolve_google_news_url
+from backend.news_fetching import article_ranking, core, fetch_links
+from backend.news_fetching.advanced_scraper import crawlbase_token
+from backend.news_fetching.advanced_scraper import scrape_one as crawlbase_scrape_one
+from backend.news_fetching.simple_scraper import get_article_assets
+from backend.news_fetching.source_filter import is_blocked_url
+from backend.news_fetching.url_resolver import resolve_google_news_url
 
 logger = logging.getLogger(__name__)
 
