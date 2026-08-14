@@ -29,7 +29,7 @@ import os
 
 import pytest
 
-from backend.llm import payload
+from backend.llm import digest_engine, payload
 from backend.news_fetching import snapshot_select as sel
 from backend.llm import usage
 from backend.util import config, score
@@ -752,6 +752,94 @@ class TestTheTokenCapsAreSetWhereTheyWereBreached:
 
     def test_the_leakage_scan_cap_is_the_briefed_three_dollars(self):
         assert config.LEAKAGE_SCAN_BUDGET_USD == 3.0
+
+
+class TestARebuildKnowsWhetherItIsFree:
+    """`rebuild_snapshot` advertises itself as costing nothing, and the guard
+    that made that true was checking the wrong half of the cache key.
+
+    The masked digest key is `masked:{mask_map_version}:{sweep_version}`. The
+    guard compared the stored sweep against this tree's and let the row through
+    when they matched — so a gazetteer bump alone invalidated every digest while
+    the check reported clean, and a row with no sweep recorded passed
+    unconditionally. The row that surfaced it was stamped `g3` against a `g5`
+    tree with no sweep at all: the guard passed it and the "free" rebuild would
+    have bought twenty digests.
+    """
+
+    ITEMS = [{"id": "a1", "title": "T", "text": "body one",
+              "link": "https://e.test/1"},
+             {"id": "a2", "title": "U", "text": "body two",
+              "link": "https://e.test/2"}]
+
+    def _shas(self, masked=True):
+        return [digest_engine._content_sha(digest_engine.article_input_text(i), masked)
+                for i in self.ITEMS]
+
+    def test_a_fully_cached_snapshot_reports_no_missing_digests(self, monkeypatch):
+        shas = self._shas()
+        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
+                            lambda iso2, as_of: {
+                                f"https://e.test/{n}": {"content_sha256": sha,
+                                                        "digest": {"what": "x"}}
+                                for n, sha in zip((1, 2), shas)})
+        assert digest_engine.digest_coverage(
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True) == []
+
+    def test_an_uncached_snapshot_reports_every_article(self, monkeypatch):
+        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
+                            lambda iso2, as_of: {})
+        missing = digest_engine.digest_coverage(
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True)
+        assert missing == self._shas()
+
+    def test_the_content_cache_is_the_second_chance(self, monkeypatch):
+        """The same article in last week's snapshot has a different `as_of` and
+        misses the per-snapshot cache, but its digest is byte-identical."""
+        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
+                            lambda iso2, as_of: {})
+
+        class _Content:
+            def read_digest_cache(self, hashes, model, mode):
+                return {h: {"digest": {"what": "x"}} for h in hashes}
+
+        assert digest_engine.digest_coverage(
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
+            content_cache=_Content()) == []
+
+    def test_a_mask_map_bump_alone_invalidates_every_masked_digest(self, monkeypatch):
+        """The case the sweep-only guard could not see."""
+        cached = self._shas()
+        monkeypatch.setattr(digest_engine.data_push, "read_article_digests",
+                            lambda iso2, as_of: {
+                                f"https://e.test/{n}": {"content_sha256": sha,
+                                                        "digest": {"what": "x"}}
+                                for n, sha in zip((1, 2), cached)})
+        monkeypatch.setattr(gz, "MASK_MAP_VERSION", "g99")
+        missing = digest_engine.digest_coverage(
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True)
+        assert len(missing) == 2, "a gazetteer bump must miss every masked digest"
+        assert set(missing).isdisjoint(cached)
+
+    def test_an_unreadable_cache_counts_as_no_coverage(self, monkeypatch):
+        """Fails in the direction that refuses to spend, not the one that does."""
+        def boom(iso2, as_of):
+            raise RuntimeError("db down")
+
+        monkeypatch.setattr(digest_engine.data_push, "read_article_digests", boom)
+        assert len(digest_engine.digest_coverage(
+            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True)) == 2
+
+    def test_the_rebuild_asks_before_it_spends(self):
+        """The seam: the guard has to be the coverage call, not a version compare."""
+        import inspect
+
+        from backend.util import rebuild_snapshot
+
+        source = inspect.getsource(rebuild_snapshot.main)
+        assert "digest_coverage" in source
+        assert "sweep_version !=" not in source, \
+            "the sweep compare was the proxy this replaced"
 
 
 # ---------------------------------------------------------------------------

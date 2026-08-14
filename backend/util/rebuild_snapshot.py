@@ -60,11 +60,16 @@ def stored_manifest(iso2: str, as_of: datetime.date) -> dict:
     return (row or [None])[0] or {}
 
 
-def rebuild(iso2: str, as_of: datetime.date) -> dict:
-    """Re-assemble the snapshot on the same code path, without scoring it."""
-    items = snapshot_select.select(iso2, as_of)
-    for i, it in enumerate(items, start=1):
-        it["id"] = f"a{i}"
+def rebuild(iso2: str, as_of: datetime.date, items: list = None) -> dict:
+    """Re-assemble the snapshot on the same code path, without scoring it.
+
+    ``items`` lets the caller hand in the selection it already checked for cache
+    coverage, so the row that was proved free is the row that gets rebuilt.
+    """
+    if items is None:
+        items = snapshot_select.select(iso2, as_of)
+        for i, it in enumerate(items, start=1):
+            it["id"] = f"a{i}"
     scored = rewrite.mask_items(items, iso2)
     # Cache-served, so this costs nothing and is the point: a digest that had to
     # be regenerated would prove the cache broken rather than the row rebuilt.
@@ -127,23 +132,38 @@ def main() -> None:
         print(f"no stored manifest for {iso2} {as_of}")
         return
 
-    # Refuse before spending, rather than reporting a mismatch after. The sweep
-    # version is a prefix inside every masked digest's cache key, so a row
-    # written under a different one has no reachable digests at all: the rebuild
-    # would call the model for all twenty articles, produce prose the stored row
-    # never contained, and report a drift it had just created. Costing money to
-    # manufacture a failure is worse than declining to check.
-    stored_sweep = (old.get("masking") or {}).get("sweep_version")
-    if stored_sweep and stored_sweep != rewrite.SWEEP_VERSION:
-        print(f"\n{iso2} {as_of} was written under sweep {stored_sweep}; this "
-              f"tree is {rewrite.SWEEP_VERSION}. Every masked digest is keyed on "
-              f"that version, so nothing of this row is in the cache and a "
-              f"rebuild would re-digest it at full price to compare it against "
-              f"prose it never had. Not reproducible across a masking change, by "
-              f"construction — rebuild a row written by the current tree.")
+    # Refuse before spending, rather than reporting a mismatch after. A row whose
+    # digests are not in the cache would be re-digested at full price, producing
+    # prose the stored row never contained and reporting a drift the rebuild had
+    # just created. Costing money to manufacture a failure is worse than
+    # declining to check.
+    #
+    # Asked of the cache rather than inferred from a version stamp. The masked
+    # cache key is `masked:{mask_map_version}:{sweep_version}`, and this guard
+    # used to compare the sweep alone: a gazetteer bump invalidated every digest
+    # while the check reported clean, and a row with no sweep recorded passed
+    # unconditionally. Coverage cannot drift from the key because it is the key.
+    items = snapshot_select.select(iso2, as_of)
+    for i, it in enumerate(items, start=1):
+        it["id"] = f"a{i}"
+    missing = digest_engine.digest_coverage(
+        rewrite.mask_items(items, iso2), iso2=iso2, as_of=as_of,
+        masked=True, content_cache=store)
+    if missing:
+        stored = old.get("masking") or {}
+        print(f"\n{iso2} {as_of}: {len(missing)} of {len(items)} digests are not "
+              f"in the cache, so a rebuild would call the model {len(missing)} "
+              f"time(s) and compare the row against prose it never had.")
+        print(f"  stored mask map {stored.get('mask_map_version') or '(none)'} / "
+              f"sweep {stored.get('sweep_version') or '(none)'}")
+        print(f"  this tree       {gazetteer.MASK_MAP_VERSION} / "
+              f"{rewrite.SWEEP_VERSION}")
+        print("  Masked digests are keyed on both, so a row written under either "
+              "an older\n  gazetteer or an unrecorded sweep is not reproducible "
+              "here by construction.\n  Rebuild a row written by the current tree.")
         return
 
-    new = rebuild(iso2, as_of)
+    new = rebuild(iso2, as_of, items=items)
 
     print(f"\n=== rebuild {iso2} {as_of} ===")
     old_articles = {a.get("id"): a for a in old.get("articles") or []}

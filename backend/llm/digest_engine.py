@@ -142,6 +142,60 @@ def _content_sha(text: str, masked: bool) -> str:
     return hashlib.sha256((prefix + text).encode("utf-8")).hexdigest()
 
 
+def digest_coverage(
+    items: List[Dict],
+    *,
+    iso2: str,
+    as_of: datetime.date,
+    masked: bool = False,
+    content_cache: Optional["ContentCache"] = None,
+) -> List[str]:
+    """The content hashes ``digest_articles`` would have to generate. Free.
+
+    Both caches are consulted in the same order and by the same keys the real
+    call uses, and nothing is written. An empty list means digesting these items
+    costs nothing; anything else is the number of model calls it would buy.
+
+    This exists because "will this be free" was being answered by a proxy.
+    ``rebuild_snapshot`` compared the stored ``sweep_version`` against this
+    tree's and proceeded when they matched — but the cache key is
+    ``masked:{mask_map_version}:{sweep_version}``, so a gazetteer bump alone
+    invalidates every masked digest while the sweep check reports clean. The row
+    that surfaced it was stamped ``g3`` against a ``g5`` tree with no sweep
+    recorded at all, so the guard passed it and a "free" rebuild would have
+    bought twenty digests. Asking the cache is the only answer that cannot drift
+    from the key.
+    """
+    per_snapshot: Dict[str, Dict] = {}
+    try:
+        per_snapshot = data_push.read_article_digests(iso2, as_of)
+    except Exception as exc:  # noqa: BLE001 - an unreadable cache is a full miss
+        logger.warning("[%s] digest cache read failed (%s); assuming no coverage",
+                       iso2, exc)
+
+    missing: List[str] = []
+    for item in items:
+        sha = _content_sha(article_input_text(item), masked)
+        url = news_core.dedupe_key(item)
+        hit = per_snapshot.get(url) if url else None
+        if hit and hit.get("content_sha256") == sha and isinstance(hit.get("digest"), dict):
+            continue
+        missing.append(sha)
+
+    if missing and content_cache is not None:
+        mode = "masked" if masked else "named"
+        try:
+            hits = content_cache.read_digest_cache(
+                sorted(set(missing)), ai_client.DIGEST_MODEL_NAME, mode)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("[%s] content digest cache read failed (%s); "
+                           "assuming no coverage", iso2, exc)
+            hits = {}
+        missing = [sha for sha in missing if sha not in hits]
+
+    return missing
+
+
 def digest_articles(
     items: List[Dict],
     *,
