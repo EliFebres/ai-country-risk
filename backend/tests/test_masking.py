@@ -366,6 +366,29 @@ class TestComparingTwoMaskingBehaviours:
     def test_both_sides_empty_is_not_a_crash(self):
         assert probe.compare([], []) == []
 
+    def test_the_probe_caches_the_bodies_it_rewrites(self):
+        """Otherwise the baseline moves on its own and the diff means nothing.
+
+        The rewrite is a model call. Uncached, it writes different prose every
+        run, so the probe reads a different bundle every run — and the report
+        attributes the difference to masking, because masking is the only thing
+        it knows how to talk about. Measured before the cache went in: US
+        2020-11-07 gave `US @ 0.90` and then `ZZ @ 0.00` an hour later, same
+        code, same anchor, same cached digests. TR 2021-03-27 did the same.
+
+        With the cache the bundle hashes identically across runs, and re-probing
+        costs one call instead of four.
+
+        Asserted on the source because the alternative needs a database and two
+        live model calls to prove a keyword argument is present.
+        """
+        import inspect
+
+        from backend.scripts import probe_bundles
+
+        source = inspect.getsource(probe_bundles.probe_one)
+        assert "_rewrite_fulltext(scored, fulltext_ids, iso2, cache=store)" in source
+
     def test_the_printer_survives_a_one_sided_row(self):
         """`compare` was always right about this; its only reader was not.
 

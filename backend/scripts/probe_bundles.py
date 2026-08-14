@@ -185,6 +185,18 @@ def probe_one(iso2: str, as_of: datetime.date, api_key: str) -> dict:
     gazetteer cannot see him — it masks countries, and a person is not one. Skip
     the rewrite and the probe measures a bundle strictly more identifiable than
     the one that gets sent, which reads as a masking failure and is not.
+
+    It has to be *cached*, too, and that is the second half of the same lesson.
+    The rewrite is a model call, so an uncached one writes different prose every
+    time — and the probe then reads a different bundle on every run. Measured:
+    US 2020-11-07 came back `US @ 0.90` and `ZZ @ 0.00` on two runs an hour
+    apart, same code, same anchor, same cached digests; so did TR 2021-03-27.
+    Both look exactly like a masking regression and neither is one.
+
+    A baseline that moves when nothing moved is not a baseline, and the diff
+    against it cannot mean anything. `score_one` has passed this cache since
+    `de2fc7d` and `rebuild_snapshot` since it was written; the probe, which is
+    the one harness whose entire output is a comparison, did not.
     """
     items = snapshot_select.select(iso2, as_of)
     if not items:
@@ -197,7 +209,7 @@ def probe_one(iso2: str, as_of: datetime.date, api_key: str) -> dict:
         scored, country_display="a country", iso2=iso2, as_of=as_of,
         masked=True, content_cache=store)
     fulltext_ids = digest_engine.select_fulltext_ids(scored)
-    pipeline._rewrite_fulltext(scored, fulltext_ids, iso2)
+    pipeline._rewrite_fulltext(scored, fulltext_ids, iso2, cache=store)
     degraded = [it.get("id") for it in scored if not isinstance(it.get("digest"), dict)]
 
     guess = probe.probe(rewrite.mask_items(scored, iso2), api_key,
