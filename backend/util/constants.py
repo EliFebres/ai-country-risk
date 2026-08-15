@@ -633,9 +633,10 @@ COUNTRY_ROSTER: list[dict] = [
     # --- Outside both indices (1) ------------------------------------------
     # Russia was removed from MSCI EM in March 2022 and is currently
     # unclassified. Kept for its weight in energy/commodity markets and its
-    # volume of risk-relevant news. The sanctions gate in
-    # ai/legal_restrictions.yaml forces its score to 1.0 — that is intended,
-    # and is the honest answer for a US investor who cannot legally hold it.
+    # volume of risk-relevant news. `util/legal_restrictions.yaml` marks it
+    # non-investable, which renders a RESTRICTED badge and leaves the score
+    # alone — the observe-only rewrite turned that gate into a badge, so the
+    # number stays the model's own and the legal fact sits beside it.
     {"name": "Russia",                "iso2": "RU", "iso3": "RUS", "tier": "Special", "lat": 64.7, "lng": 97.7},
 ]
 
