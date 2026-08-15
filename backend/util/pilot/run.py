@@ -425,6 +425,11 @@ def main() -> None:
 
     p = sub.add_parser("pilot-report")
     p.add_argument("--country", action="append", dest="roster")
+    p.add_argument("--export", action="store_true",
+                   help="also write GATE2_BASELINE.json/.md to the repo root, so "
+                        "the next run is a regression check rather than an opinion")
+    p.add_argument("--note", default="",
+                   help="what this capture was for, for the top of the markdown")
 
     args = parser.parse_args()
 
@@ -457,6 +462,9 @@ def main() -> None:
         return
     elif args.command == "pilot-report":
         reports.render(args.roster)
+        if args.export:
+            written = reports.export(PROJECT_ROOT, args.roster, note=args.note)
+            print(f"\nbaseline written:\n  {written['json']}\n  {written['markdown']}")
         return
     elif args.command == "monthly":
         rows = monthly.backfill(roster=args.roster, since=args.since)

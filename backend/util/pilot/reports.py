@@ -39,8 +39,12 @@ Everything is read from `history_run_ledger` and `risk_snapshot`. Nothing here
 scores, fetches or writes.
 """
 
+import contextlib
 import datetime
+import io
+import json
 import logging
+import pathlib
 import statistics
 from typing import Any, Dict, List, Optional
 
@@ -280,6 +284,69 @@ def spend() -> Dict[str, Any]:
     }
 
 
+def harvest_pacing() -> Dict[str, Any]:
+    """How long the corpus took to collect, per source and country.
+
+    Derived from `run_ledger` rather than from a stopwatch nobody kept: the
+    harvesters run windows strictly in sequence and stamp ``completed_at`` on
+    each, so the gap between consecutive checkpoints *is* that window's
+    duration. The first window of a run has no predecessor and is dropped —
+    which loses one window per source and costs a percent or two, against
+    adding a timing column to a table for a number the table already implies.
+
+    This exists because the 48-country backfill has to be estimated from
+    somewhere, and the only honest place is a harvest that actually ran. Five
+    countries spanning the US (an order of magnitude more coverage than the
+    rest) to PT (thin) is a real sample; a guess is not.
+    """
+    with data_push._transaction() as cur:
+        cur.execute("""
+            SELECT variant AS source, country_iso2, as_of, status, completed_at,
+                   (detail ->> 'items_written')::int AS items
+              FROM run_ledger
+             WHERE job_type = 'harvest'
+             ORDER BY completed_at
+        """)
+        rows = [dict(zip([d[0] for d in cur.description], r)) for r in cur.fetchall()]
+    return _pace(rows)
+
+
+def _pace(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """The arithmetic of :func:`harvest_pacing`, over checkpoint rows in
+    completion order. Split out so the deltas are testable without a database."""
+    per: Dict[tuple, Dict[str, Any]] = {}
+    for previous, row in zip(rows, rows[1:]):
+        key = (row["source"], row["country_iso2"])
+        bucket = per.setdefault(key, {"windows": 0, "seconds": 0.0, "items": 0,
+                                      "failed": 0})
+        bucket["windows"] += 1
+        bucket["seconds"] += (row["completed_at"] - previous["completed_at"]).total_seconds()
+        bucket["items"] += row["items"] or 0
+        bucket["failed"] += int(row["status"] != "done")
+
+    out = {f"{source} {iso2}": {
+               **bucket,
+               "minutes": round(bucket["seconds"] / 60, 1),
+               "seconds_per_window": (round(bucket["seconds"] / bucket["windows"], 1)
+                                      if bucket["windows"] else None),
+           }
+           for (source, iso2), bucket in sorted(per.items())}
+    total_seconds = sum(b["seconds"] for b in per.values())
+    countries = {iso2 for _, iso2 in per}
+    return {
+        "per_source_country": out,
+        "total_minutes": round(total_seconds / 60, 1),
+        "countries_measured": len(countries),
+        # The number the full backfill decision needs. Linear in countries is
+        # the right first approximation for Guardian and Wayback, which are
+        # per-country; it is wrong for NYT, whose archive call returns the whole
+        # world at once, so that source is reported and not scaled.
+        "hours_for_48_countries_linear": (
+            round(total_seconds / 3600 * (48 / len(countries)), 1)
+            if countries else None),
+    }
+
+
 def structural_candidates(roster: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     """Where identity was carrying a fact the payload still does not state.
 
@@ -476,8 +543,108 @@ def render(roster: Optional[List[str]] = None) -> None:
               f"({_fmt(row['degraded_share'])}), "
               f"{row.get('truncated', 0):>4} truncated-retry")
 
+    print("\n=== 8. harvest pacing: what the corpus cost in time ===")
+    print("  (the input to the 48-country backfill decision. NYT is not scaled —")
+    print("   one archive call returns the whole world, so it does not grow with")
+    print("   the roster the way Guardian and Wayback do.)")
+    pacing = harvest_pacing()
+    if not pacing["per_source_country"]:
+        print("  Nothing harvested yet.")
+    for key, row in pacing["per_source_country"].items():
+        failed = f"  {row['failed']} failed" if row["failed"] else ""
+        print(f"  {key:<14} {row['windows']:>4} window(s)  {row['minutes']:>7.1f} min  "
+              f"{row['items']:>7} article(s)  "
+              f"{_fmt(row['seconds_per_window']):>8}s/window{failed}")
+    if pacing["countries_measured"]:
+        print(f"  total {pacing['total_minutes']:.1f} min over "
+              f"{pacing['countries_measured']} country/ies "
+              f"— ~{pacing['hours_for_48_countries_linear']}h for 48, scaled linearly")
+
 
 def _fmt(value: Optional[float]) -> str:
     """A number, or an em dash. Never 0.0 for absent — an unmeasured pair and a
     perfectly agreeing one must not print the same."""
     return "—" if value is None else f"{value:.3f}"
+
+
+# --- the exported baseline --------------------------------------------------
+# A gate is only a gate if the next run can be compared against it. The first
+# gate-2 pass produced its numbers, they were read once, and the artifact was
+# never committed — so when the schema rebuild raised "did anything change?",
+# the answer had to come from prose in a task brief. The measurement had been
+# made and thrown away, which is the same failure as the probe whose result
+# survived only in a commit message.
+#
+# JSON because a diff has to read it, markdown because a person does.
+
+def summary(roster: Optional[List[str]] = None) -> Dict[str, Any]:
+    """Every meter in one dict, stamped with the versions that produced it.
+
+    The stamp is the load-bearing part. Two divergence numbers are not
+    comparable unless they were measured under the same masking, prompt and
+    payload versions, and a baseline that does not say which it used is a
+    number without units.
+    """
+    from backend.util.pilot import score  # local: `run` imports both, order-free
+
+    roster = roster or list(config.PILOT_ROSTER)
+    return {
+        "captured_under": score.versions(),
+        "roster": roster,
+        "cutoff_date": config.CUTOFF_DATE,
+        "divergence": divergence(roster),
+        "identifiability": identifiability(roster),
+        "evidence_texture": evidence_texture(roster),
+        "spend": spend(),
+        "structural_candidates": structural_candidates(roster),
+        "lint": lint_findings(roster),
+        "stage1_degradation": stage1_degradation(roster),
+        "harvest_pacing": harvest_pacing(),
+    }
+
+
+def export(directory: pathlib.Path, roster: Optional[List[str]] = None,
+           note: str = "") -> Dict[str, pathlib.Path]:
+    """Write the summary as ``GATE2_BASELINE.json`` and ``.md``.
+
+    The markdown embeds `render`'s own output verbatim rather than
+    reformatting the same numbers a second way. Two renderers over one dataset
+    is two things to keep in agreement, and the one that drifts is always the
+    one nobody runs.
+
+    Args:
+        directory: where to write. The repo root, beside DEFERRED.md.
+        note: free text for the top of the markdown — what this capture was for.
+
+    Returns:
+        ``{"json": path, "markdown": path}``.
+    """
+    data = summary(roster)
+    directory = pathlib.Path(directory)
+
+    json_path = directory / "GATE2_BASELINE.json"
+    json_path.write_text(json.dumps(data, indent=2, default=str, sort_keys=True),
+                         encoding="utf-8")
+
+    printed = io.StringIO()
+    with contextlib.redirect_stdout(printed):
+        render(roster)
+
+    versions = "\n".join(f"| `{field}` | `{value}` |"
+                         for field, value in sorted(data["captured_under"].items()))
+    md_path = directory / "GATE2_BASELINE.md"
+    md_path.write_text(
+        f"# Gate-2 baseline\n\n"
+        f"{note.strip() + chr(10) + chr(10) if note.strip() else ''}"
+        f"What the pilot measured on the anchors gate 2 scores, kept so the next "
+        f"run is a regression check rather than a fresh opinion. Regenerate with "
+        f"`python -m backend.util.pilot.run pilot-report --export`; the machine-"
+        f"readable copy is `GATE2_BASELINE.json` beside this file.\n\n"
+        f"## Captured under\n\n"
+        f"A divergence measured under different masking is a different number. "
+        f"Compare against this baseline only when these match — and when they do "
+        f"not, that is the finding.\n\n"
+        f"| version | value |\n|---|---|\n{versions}\n\n"
+        f"## The meters\n\n```\n{printed.getvalue().strip()}\n```\n",
+        encoding="utf-8")
+    return {"json": json_path, "markdown": md_path}

@@ -359,6 +359,59 @@ class TestDivergenceIsSigned:
         assert top["divergence"] == 0.15 and top["signed_divergence"] == -0.15
 
 
+class TestHarvestPacing:
+    """The 48-country backfill has to be estimated from a harvest that actually
+    ran, and the only clock kept was `completed_at` on each checkpoint. Windows
+    run strictly in sequence, so the gap between consecutive stamps is that
+    window's duration."""
+
+    @staticmethod
+    def _row(source, iso2, minute, items=10, status="done"):
+        return {"source": source, "country_iso2": iso2, "status": status,
+                "items": items,
+                "completed_at": (datetime.datetime(2026, 8, 15)
+                                 + datetime.timedelta(minutes=minute))}
+
+    def test_the_gap_between_stamps_is_the_window(self):
+        got = reports._pace([self._row("guardian", "US", 0),
+                             self._row("guardian", "US", 4),
+                             self._row("guardian", "US", 10)])
+        # Two measured windows of 4 and 6 minutes; the first has no predecessor.
+        assert got["per_source_country"]["guardian US"]["windows"] == 2
+        assert got["per_source_country"]["guardian US"]["minutes"] == 10.0
+
+    def test_the_first_window_of_all_is_dropped_not_counted_as_zero(self):
+        """A zero-duration window would drag the mean down and make the
+        extrapolation optimistic — in the direction that costs someone a day."""
+        got = reports._pace([self._row("guardian", "US", 0),
+                             self._row("guardian", "US", 6)])
+        assert got["per_source_country"]["guardian US"]["seconds_per_window"] == 360.0
+
+    def test_sources_and_countries_do_not_blend(self):
+        got = reports._pace([self._row("guardian", "US", 0),
+                             self._row("guardian", "TR", 2),
+                             self._row("nyt", "TR", 3)])
+        assert set(got["per_source_country"]) == {"guardian TR", "nyt TR"}
+
+    def test_the_48_country_scale_is_linear_in_countries_measured(self):
+        got = reports._pace([self._row("guardian", "US", 0),
+                             self._row("guardian", "US", 60),
+                             self._row("guardian", "TR", 120)])
+        # Two hours over two countries -> 48 hours for forty-eight.
+        assert got["countries_measured"] == 2
+        assert got["hours_for_48_countries_linear"] == 48.0
+
+    def test_nothing_harvested_does_not_divide_by_zero(self):
+        got = reports._pace([])
+        assert got["per_source_country"] == {}
+        assert got["hours_for_48_countries_linear"] is None
+
+    def test_a_failed_window_is_counted_and_flagged(self):
+        got = reports._pace([self._row("guardian", "US", 0),
+                             self._row("guardian", "US", 3, status="failed")])
+        assert got["per_source_country"]["guardian US"]["failed"] == 1
+
+
 class TestLintFindingsAreReadBackNotJustWritten:
     """The half of observe-only that was missing.
 
