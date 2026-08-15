@@ -3,10 +3,20 @@
 Five meters, and the ordering is not arbitrary — each one is needed to read the
 one before it.
 
-1. **Divergence.** |masked - named| on the dates both arms scored, split either
+1. **Divergence.** masked − named on the dates both arms scored, split either
    side of the model's knowledge cutoff. This is the headline: what identity was
    worth. It is also the one most easily misread, which is why it is decomposed
    against the third arm rather than reported alone.
+
+   **Signed**, with the magnitude beside it. This was |masked − named|, and an
+   absolute value answers "how far apart" while throwing away "which way" — and
+   which way is the finding. Masking scoring a country *riskier* than its name
+   does means the name was carrying reassurance; scoring it *safer* means the
+   name was carrying alarm. Those are opposite defects with opposite fixes, and
+   under an absolute value they print as the same number. Worse, a country whose
+   weeks split evenly in both directions averages to near zero and reads as
+   "masking is clean" when it is nothing of the kind — which is exactly what a
+   mean of absolute values was protecting against, so both are reported.
 
 2. **Identifiability.** What the probe guessed. The US is expected near the
    ceiling — a decade of coverage volume gives it away whatever the gazetteer
@@ -73,11 +83,17 @@ def divergence(roster: Optional[List[str]] = None) -> Dict[str, Any]:
     simply remember a week is not being tested on the same thing as one that
     cannot.
 
-    The decomposition is the point. |masked - named| alone cannot distinguish
+    The decomposition is the point. masked − named alone cannot distinguish
     "the structural facts recovered what the name carried" from "the name never
     carried anything" — both look like a small number. The no-structural arm
     separates them: if withholding the block widens the gap, the block was
     doing work.
+
+    Every gap is reported twice: signed, so the direction of the failure is
+    legible, and absolute, so weeks that diverge in opposite directions cannot
+    cancel each other into a clean-looking zero. ``structural_recovery`` reads
+    the absolute pair, because "did the block narrow the gap" is a question
+    about size and a signed subtraction would answer a different one.
     """
     roster = roster or list(config.PILOT_ROSTER)
     cutoff = datetime.date.fromisoformat(config.CUTOFF_DATE)
@@ -87,27 +103,43 @@ def divergence(roster: Optional[List[str]] = None) -> Dict[str, Any]:
 
     per: Dict[str, Any] = {}
     for iso2 in roster:
-        paired = [(day, abs(masked[(iso2, day)] - value))
+        # Signed, masked minus named: positive means masking scored the country
+        # riskier than its name did, so the name was carrying reassurance.
+        paired = [(day, masked[(iso2, day)] - value)
                   for (c, day), value in named.items()
                   if c == iso2 and (iso2, day) in masked]
         # The same dates again without the structural block, so the two gaps are
         # measured on identical weeks rather than on two different samples.
-        paired_bare = [(day, abs(bare[(iso2, day)] - value))
+        paired_bare = [(day, bare[(iso2, day)] - value)
                        for (c, day), value in named.items()
                        if c == iso2 and (iso2, day) in bare]
 
+        pre = [d for day, d in paired if day < cutoff]
+        post = [d for day, d in paired if day >= cutoff]
         per[iso2] = {
             "n": len(paired),
-            "pre_cutoff": _mean([d for day, d in paired if day < cutoff]),
-            "post_cutoff": _mean([d for day, d in paired if day >= cutoff]),
+            "pre_cutoff": _mean(pre),
+            "post_cutoff": _mean(post),
             "overall": _mean([d for _, d in paired]),
             "without_structural": _mean([d for _, d in paired_bare]),
             "n_without_structural": len(paired_bare),
+            # The magnitudes, so a country whose weeks diverge in both
+            # directions cannot average itself into a clean-looking zero.
+            "abs_pre_cutoff": _mean([abs(d) for d in pre]),
+            "abs_post_cutoff": _mean([abs(d) for d in post]),
+            "abs_overall": _mean([abs(d) for _, d in paired]),
+            "abs_without_structural": _mean([abs(d) for _, d in paired_bare]),
         }
         # Positive means the block narrowed the gap: withholding it diverged
         # more. Negative would mean the block is actively misleading the model,
         # which would be worth knowing immediately.
-        overall, bare_gap = per[iso2]["overall"], per[iso2]["without_structural"]
+        #
+        # Read off the magnitudes, not the signed means. "Did the block narrow
+        # the gap" is a question about size, and subtracting two signed means
+        # answers a different question — one where a bare arm that diverged
+        # hard in the other direction would score as a large recovery.
+        overall = per[iso2]["abs_overall"]
+        bare_gap = per[iso2]["abs_without_structural"]
         per[iso2]["structural_recovery"] = (
             round(bare_gap - overall, 4) if overall is not None and bare_gap is not None
             else None)
@@ -263,16 +295,22 @@ def structural_candidates(roster: Optional[List[str]] = None) -> List[Dict[str, 
     """
     ranked = []
     for iso2, row in divergence(roster).items():
-        if row["overall"] is None or not row["n"]:
+        # Ranked on the magnitude: a payload is incomplete by the same amount
+        # whether the missing fact made the country look better or worse. The
+        # signed mean rides along because the *direction* is what names the
+        # missing field — reassurance the block does not state, or alarm it
+        # does not state — and that is the next piece of work.
+        if row["abs_overall"] is None or not row["n"]:
             continue
         recovery = row["structural_recovery"]
         ranked.append({
             "country": iso2,
-            "divergence": row["overall"],
+            "divergence": row["abs_overall"],
+            "signed_divergence": row["overall"],
             # What the block did NOT buy back. When the no-structural arm has
             # not run, this is the whole divergence — unattributed rather than
             # attributed to the block's absence.
-            "unexplained": round(row["overall"] - (recovery or 0.0), 4),
+            "unexplained": round(row["abs_overall"] - (recovery or 0.0), 4),
             "structural_recovery": recovery,
             "n": row["n"],
             "measured_against_the_third_arm": bool(row["n_without_structural"]),
@@ -346,15 +384,21 @@ def render(roster: Optional[List[str]] = None) -> None:
     """Print all seven meters. The pilot's deliverable."""
     roster = roster or list(config.PILOT_ROSTER)
 
-    print("\n=== 1. divergence: |masked - named| on paired dates ===")
-    print("  (higher = identity was worth more. `recovery` = how much of the gap")
-    print("   the structural block closed, from the no-structural arm.)")
+    print("\n=== 1. divergence: masked - named on paired dates ===")
+    print("  (signed, then |.|. Positive = masking scored it riskier than its name")
+    print("   did, so the name was carrying reassurance; negative, alarm. `recovery`")
+    print("   = how much of the gap the structural block closed, off the magnitudes,")
+    print("   from the no-structural arm.)")
     print(f"  {'':<4} {'n':>4} {'pre':>8} {'post':>8} {'overall':>8} "
-          f"{'no-struct':>10} {'recovery':>9}")
+          f"{'|pre|':>8} {'|post|':>8} {'|overall|':>9} "
+          f"{'no-struct':>10} {'|no-str|':>9} {'recovery':>9}")
     for iso2, row in sorted(divergence(roster).items()):
         print(f"  {iso2:<4} {row['n']:>4} {_fmt(row['pre_cutoff']):>8} "
               f"{_fmt(row['post_cutoff']):>8} {_fmt(row['overall']):>8} "
+              f"{_fmt(row['abs_pre_cutoff']):>8} {_fmt(row['abs_post_cutoff']):>8} "
+              f"{_fmt(row['abs_overall']):>9} "
               f"{_fmt(row['without_structural']):>10} "
+              f"{_fmt(row['abs_without_structural']):>9} "
               f"{_fmt(row['structural_recovery']):>9}")
 
     print("\n=== 2. identifiability: can the cheap model name the country? ===")
@@ -405,7 +449,8 @@ def render(roster: Optional[List[str]] = None) -> None:
         flag = "" if row["measured_against_the_third_arm"] else "  (unattributed: "\
                                                                 "no no-structural arm)"
         print(f"  {rank}. {row['country']}  unexplained={_fmt(row['unexplained'])}  "
-              f"of divergence={_fmt(row['divergence'])}  n={row['n']}{flag}")
+              f"of |divergence|={_fmt(row['divergence'])}  "
+              f"signed={_fmt(row['signed_divergence'])}  n={row['n']}{flag}")
 
     print("\n=== 6. lint: contradictions the run wrote down ===")
     print("  (advisory — nothing here moved a score. One country on one rule is a")

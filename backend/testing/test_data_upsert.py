@@ -308,6 +308,57 @@ class TestEvidenceTexture:
         assert reports.evidence_texture(["PT"]) == {}
 
 
+class TestDivergenceIsSigned:
+    """|masked - named| answered "how far apart" and threw away "which way",
+    which is the finding: masking scoring a country riskier than its name did
+    means the name carried reassurance, safer means it carried alarm. Opposite
+    defects, opposite fixes, one number."""
+
+    @staticmethod
+    def _arms(monkeypatch, masked, named, bare=None):
+        """Three arms over the same dates, as the readers hand them over."""
+        monkeypatch.setattr(reports, "_masked_scores", lambda roster: masked)
+        monkeypatch.setattr(
+            reports, "_arm_scores",
+            lambda mode: named if mode == "named" else (bare or {}))
+
+    def test_the_sign_survives(self, monkeypatch):
+        day = datetime.date(2019, 6, 3)
+        self._arms(monkeypatch, {("PT", day): 0.40}, {("PT", day): 0.55})
+        row = reports.divergence(["PT"])["PT"]
+        assert row["overall"] == -0.15, "masked scored it safer; the sign says so"
+        assert row["abs_overall"] == 0.15
+
+    def test_opposite_weeks_cannot_cancel_into_a_clean_zero(self, monkeypatch):
+        """The reason both are reported. A country diverging hard in both
+        directions has a signed mean near zero, and reading that alone as
+        "masking is clean" is the failure an absolute mean was guarding."""
+        a, b = datetime.date(2019, 6, 3), datetime.date(2019, 6, 10)
+        self._arms(monkeypatch,
+                   {("PT", a): 0.60, ("PT", b): 0.20},
+                   {("PT", a): 0.40, ("PT", b): 0.40})
+        row = reports.divergence(["PT"])["PT"]
+        assert row["overall"] == 0.0 and row["abs_overall"] == 0.2
+
+    def test_structural_recovery_reads_the_magnitudes(self, monkeypatch):
+        """Off the signed means, a bare arm diverging the other way would score
+        as a large recovery — the block would look like it was working hardest
+        exactly where it had stopped working."""
+        day = datetime.date(2019, 6, 3)
+        self._arms(monkeypatch, {("PT", day): 0.45}, {("PT", day): 0.50},
+                   bare={("PT", day): 0.70})
+        row = reports.divergence(["PT"])["PT"]
+        assert row["overall"] == -0.05 and row["without_structural"] == 0.2
+        # 0.20 - 0.05 on the magnitudes. Signed it would have been 0.25.
+        assert row["structural_recovery"] == 0.15
+
+    def test_the_ranking_carries_both(self, monkeypatch):
+        day = datetime.date(2019, 6, 3)
+        self._arms(monkeypatch, {("PT", day): 0.40}, {("PT", day): 0.55})
+        top = reports.structural_candidates(["PT"])[0]
+        assert top["divergence"] == 0.15 and top["signed_divergence"] == -0.15
+
+
 class TestLintFindingsAreReadBackNotJustWritten:
     """The half of observe-only that was missing.
 
