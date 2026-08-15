@@ -32,7 +32,8 @@ import pytest
 from backend.llm import digest_engine, payload
 from backend.news_fetching import snapshot_select as sel
 from backend.llm import usage
-from backend.util import config, score
+from backend.util.pilot import score
+from backend.util import config
 from backend.data_upsert import schema, store
 from backend.data_fetching.vintage import lags, restamp
 from backend.llm import gazetteer as gz, rewrite
@@ -886,7 +887,7 @@ class TestARebuildKnowsWhetherItIsFree:
         """The seam: the guard has to be the coverage call, not a version compare."""
         import inspect
 
-        from backend.util import rebuild_snapshot
+        from backend.util.tools import rebuild_snapshot
 
         source = inspect.getsource(rebuild_snapshot.main)
         assert "digest_coverage" in source
@@ -907,7 +908,7 @@ class TestTheRebuildScriptReadsTheSamePayloadTheScorerWrote:
     def test_it_builds_the_panel_payload(self):
         import inspect
 
-        from backend.util import rebuild_snapshot
+        from backend.util.tools import rebuild_snapshot
 
         source = inspect.getsource(rebuild_snapshot.rebuild)
         assert "prepare_llm_payload_pretty" in source

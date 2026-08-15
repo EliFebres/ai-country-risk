@@ -18,7 +18,7 @@ scorer weighted most heavily. This script had to skip them entirely.
 Now a full-text mismatch means a cache miss, which is a real finding: that row
 cannot be rebuilt. Rows written before the cache existed will always report it.
 
-    python -m backend.util.rebuild_snapshot PT 2019-06-03
+    python -m backend.util.tools.rebuild_snapshot PT 2019-06-03
 """
 
 import argparse

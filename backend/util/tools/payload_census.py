@@ -14,7 +14,7 @@ Read the STORE column first. An indicator with rows in `indicator_series` and
 nothing in the payload is a wiring bug of the kind this script exists to find.
 An indicator absent from both is just a series nobody collects for this country.
 
-    python -m backend.util.payload_census [ISO2] [YYYY-MM-DD]
+    python -m backend.util.tools.payload_census [ISO2] [YYYY-MM-DD]
 """
 import argparse
 import collections

@@ -266,7 +266,7 @@ def main() -> None:
               "media path now 403s. Download from\n"
               "  https://www.imf.org/en/Publications/SPROLLS/world-economic-outlook-databases\n"
               f"in a browser and save each as YYYY-MM.xls in {args.dir}")
-    print("\nThen: python -m backend.util.run weo")
+    print("\nThen: python backend/main.py backfill weo")
 
 
 if __name__ == "__main__":

@@ -18,8 +18,8 @@ change gets compared against.
 
 Spend is metered from the API's own usage fields, never estimated.
 
-    python -m backend.util.probe_bundles --recorded
-    python -m backend.util.probe_bundles --fresh --per-country 4
+    python -m backend.util.tools.probe_bundles --recorded
+    python -m backend.util.tools.probe_bundles --fresh --per-country 4
 """
 
 import argparse
@@ -166,7 +166,7 @@ def fresh_bundles(per_country: int) -> list:
 
 def snapshot_select_anchors() -> list:
     """Every pilot anchor, quarterly-thinned so the scan is not a decade of reads."""
-    from backend.util import score
+    from backend.util.pilot import score
     every = score.anchors(datetime.date.fromisoformat(config.PILOT_START),
                           datetime.date.today())
     return [a for a in every if a.day <= 7 and a.month % 3 == 1]

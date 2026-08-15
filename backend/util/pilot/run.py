@@ -13,18 +13,18 @@ its own scoring path, the series would be measuring the backfill.
 Every command that spends money prints its projection and waits for a yes.
 
 Usage:
-    python -m backend.util.run guardian     # step 2
-    python -m backend.util.run gdelt        # step 3 (dormant, needs --anyway)
-    python -m backend.util.run wayback      # step 4 (asks before spending)
-    python -m backend.util.run nyt          # step 5
-    python -m backend.util.run weo          # step 7 (per-edition macro)
-    python -m backend.util.run monthly      # step 7 (IMF monthly, back-dated)
-    python -m backend.util.run restamp      # step 7 (re-date stored rows)
-    python -m backend.util.run report       # counts, evenness, recovery curve
+    python -m backend.util.pilot.run guardian     # step 2
+    python -m backend.util.pilot.run gdelt        # step 3 (dormant, needs --anyway)
+    python -m backend.util.pilot.run wayback      # step 4 (asks before spending)
+    python -m backend.util.pilot.run nyt          # step 5
+    python -m backend.util.pilot.run weo          # step 7 (per-edition macro)
+    python -m backend.util.pilot.run monthly      # step 7 (IMF monthly, back-dated)
+    python -m backend.util.pilot.run restamp      # step 7 (re-date stored rows)
+    python -m backend.util.pilot.run report       # counts, evenness, recovery curve
 
-    python -m backend.util.run score ...    # step 9/10 (asks before spending)
-    python -m backend.util.run diagnostic   # step 10 (the named arms)
-    python -m backend.util.run pilot-report # step 10/11 (the five meters)
+    python -m backend.util.pilot.run score ...    # step 9/10 (asks before spending)
+    python -m backend.util.pilot.run diagnostic   # step 10 (the named arms)
+    python -m backend.util.pilot.run pilot-report # step 10/11 (the five meters)
 """
 
 import argparse
@@ -46,7 +46,8 @@ load_dotenv()
 from backend.data_upsert import data_push  # noqa: E402
 from backend.data_upsert import store  # noqa: E402
 from backend.news_fetching import wayback  # noqa: E402
-from backend.util import config, reports, score  # noqa: E402
+from backend.util.pilot import reports, score  # noqa: E402
+from backend.util import config  # noqa: E402
 from backend.news_fetching.adapters import gdelt, guardian, nyt  # noqa: E402
 from backend.data_fetching.vintage import lags, monthly, restamp, weo  # noqa: E402
 
@@ -203,7 +204,7 @@ def _restamp(args) -> None:
         return
     if result["backup"]:
         print(f"\nbacked up to {result['backup']}")
-        print(f"revert with: python -m backend.util.run restamp "
+        print(f"revert with: python -m backend.util.pilot.run restamp "
               f"--revert {result['backup']}")
     print(f"\nLags: {lags.SCHEME}. WEO editions keep their own dates.")
 
