@@ -6,8 +6,9 @@ found to be irreproducible" — had never been tested against a stored row.
 
 Everything is re-derived from caches, so a rebuild costs nothing and makes no
 model call: the article set and its order come from `snapshot_select` over the
-same window, the digests from `history_digest_cache`, the rewritten full texts
-from `history_rewrite_cache`, and `macro_vintages` is a pure function of `as_of`.
+same window, the digests and the rewritten full texts from `llm_artifact`
+(`kind` digest / rewrite, content-addressed), and `macro_vintages` is a pure
+function of `as_of`.
 
 The rewrite cache is what makes this a real check. Before it existed the two or
 three articles in `fulltext_ids` had their bodies replaced by a model call whose
@@ -77,7 +78,7 @@ def rebuild(iso2: str, as_of: datetime.date, items: list = None) -> dict:
         scored, country_display=langchain_llm.MASKED_COUNTRY_LABEL, iso2=iso2,
         as_of=as_of, masked=True, content_cache=store)
     fulltext_ids = digest_engine.select_fulltext_ids(scored)
-    # Cache-served, like the digests. Before `history_rewrite_cache` existed this
+    # Cache-served, like the digests. Before the rewrite cache existed this
     # step had to be skipped entirely — the rewrite is a model call whose output
     # was kept nowhere, so re-running it wrote a different sentence and there was
     # nothing to compare against. Now it is a lookup, and a *miss* here is the
@@ -220,8 +221,8 @@ def main() -> None:
     elif drifted_full:
         print("\n  VERDICT: not reproducible — the rewritten bodies for "
               f"{drifted_full} full-text article(s) are missing from "
-              "`history_rewrite_cache`. Rows written before that cache existed "
-              "will always report this; rows written after it should not.")
+              "`llm_artifact` (kind='rewrite'). Rows written before that cache "
+              "existed will always report this; rows written after it should not.")
     else:
         print("\n  VERDICT: byte-for-byte.")
 

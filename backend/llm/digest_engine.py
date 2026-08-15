@@ -8,9 +8,11 @@ strict-JSON factual digest plus a 0-100 ``stage1_severity``. The scorer then
 reasons over *every* digest and reads only the few highest-severity articles
 in full.
 
-Digests are cached in Postgres (``article_digest``) keyed by
+Digests are cached in Postgres (``llm_artifact``, ``kind='digest'``) keyed by
 ``(country_iso2, as_of, url)`` with a sha256 of the digested text, so a
-same-day re-run with unchanged articles makes ~zero stage-1 calls.
+same-day re-run with unchanged articles makes ~zero stage-1 calls. The pilot
+passes a content-addressed cache instead, which is what lets four overlapping
+weekly snapshots share one digest of the same article.
 
 This module boundary IS the swappable interface: pointing stage 1 at a local
 model later means editing this module only. Failures never propagate — an
@@ -207,7 +209,7 @@ def digest_articles(
 ) -> List[Dict]:
     """Digest every article's full text with the cheap stage-1 model.
 
-    Checks the ``article_digest`` cache first (same url, same content hash →
+    Checks the ``llm_artifact`` digest cache first (same url, same content hash →
     no API call), digests the misses concurrently, annotates each item in
     place with ``digest`` (dict or None) and ``stage1_severity`` (float or
     None), and persists the new digests back to the cache.
