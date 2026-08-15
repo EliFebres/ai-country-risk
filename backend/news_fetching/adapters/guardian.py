@@ -47,6 +47,41 @@ _ENDPOINT = "https://content.guardianapis.com/search"
 # a harvest that plans against a stale constant plans wrong.
 _QUOTA_HEADER = "X-RateLimit-Remaining-Day"
 _LIMIT_HEADER = "X-RateLimit-Limit-Day"
+_RESET_HEADER = "Retry-After"
+
+# The last allowance the API reported, so the driver can plan against what the
+# service says rather than against what this file remembers.
+#
+# The whole reason it is read: `config.GUARDIAN_PAGE_SIZE` was chosen on the
+# written claim of "about 1,200 calls for a full pilot harvest, against a
+# 5,000/day budget". The budget is 500. Nobody had checked, the harvest planned
+# against the remembered number, and the wall arrived as a surprise an hour in.
+# Same failure as a version constant somebody forgets to bump — the fix is the
+# same, derive it.
+#
+# Note the two numbers do not agree even now. The 2026-08-15 US harvest
+# completed 1,461 page-calls before `Remaining-Day` reached zero, against an
+# advertised `Limit-Day` of 500. Whatever the reason — pages not all billed,
+# retries not counted, a tier the header misdescribes — `Remaining-Day` is the
+# value that actually hits zero and stops the harvest, so it is what the pacing
+# reads. `observed_calls` records the disagreement rather than smoothing it,
+# because a limit that lies by 3x is exactly the kind of thing that quietly
+# misinforms the next estimate.
+_QUOTA: Dict[str, Optional[int]] = {
+    "limit": None, "remaining": None, "reset_seconds": None, "observed_calls": 0}
+
+
+def quota() -> Dict[str, Optional[int]]:
+    """What the API last said about the daily allowance.
+
+    ``limit`` falls back to :data:`config.GUARDIAN_DAILY_CALL_BUDGET` before the
+    first response has answered — a stated assumption to plan with, not a
+    measurement, and the only place the constant is used.
+    """
+    return {**_QUOTA,
+            "limit": _QUOTA["limit"] if _QUOTA["limit"] is not None
+            else config.GUARDIAN_DAILY_CALL_BUDGET,
+            "limit_is_measured": _QUOTA["limit"] is not None}
 
 
 class QuotaExhausted(RuntimeError):
@@ -188,6 +223,13 @@ def _page(query: str, start: datetime.date, end: datetime.date, page: int) -> Di
     })
     limit = _int_or_none(resp.headers.get(_LIMIT_HEADER))
     remaining = _int_or_none(resp.headers.get(_QUOTA_HEADER))
+    _QUOTA.update(
+        limit=limit if limit is not None else _QUOTA["limit"],
+        remaining=remaining if remaining is not None else _QUOTA["remaining"],
+        reset_seconds=_int_or_none(resp.headers.get(_RESET_HEADER))
+        or _QUOTA["reset_seconds"],
+        observed_calls=(_QUOTA["observed_calls"] or 0) + 1,
+    )
     if remaining is not None and remaining <= 0:
         raise QuotaExhausted(f"daily Guardian call budget spent (limit {limit})", limit)
     if resp.status_code == 429:
@@ -312,26 +354,48 @@ def harvest(roster: Optional[List[str]] = None,
     todo = [(iso2, w) for iso2 in roster for w in windows
             if w[0] not in store.completed_windows(SOURCE_SYSTEM, iso2)]
     estimate = len(todo) * len(core.THEME_QUERIES)
+    budget = quota()
     logger.info("[guardian] %d country-years x %d themes = ~%d calls before any "
-                "subdivision (%d country-years already done)",
+                "subdivision (%d country-years already done). Daily budget %s "
+                "(%s) — subdivision multiplied this by ~30x on the US, so read "
+                "the floor as a floor.",
                 len(todo), len(core.THEME_QUERIES), estimate,
-                len(roster) * len(windows) - len(todo))
+                len(roster) * len(windows) - len(todo),
+                budget["limit"],
+                "reported by the API" if budget["limit_is_measured"]
+                else "assumed; no response read yet")
 
     calls = [0]
     written = 0
+    # Per country-year, so the driver can say what a *country* costs rather than
+    # what the run averaged over one loud country and four quiet ones. The US
+    # runs about ten times the rest, and an average across them describes
+    # nobody.
+    cost: List[int] = []
     for done, (iso2, (window_start, window_end)) in enumerate(todo):
         name = config.country_name(iso2)
+        started, before = time.monotonic(), calls[0]
         try:
             n = harvest_window(iso2, name, window_start, window_end, calls)
         except QuotaExhausted as exc:
             left = len(todo) - done
-            per_day = exc.daily_limit or calls[0] or 1
+            # Priced off what this run measured, falling back to the theme count
+            # only when nothing has completed yet. `len(THEME_QUERIES)` is the
+            # no-subdivision floor — six calls a country-year — and the US
+            # actually cost 183. Reporting the floor as the estimate is how a
+            # three-day harvest gets announced as one more day.
+            per_year = round(sum(cost) / len(cost)) if cost else len(core.THEME_QUERIES)
+            per_day = exc.daily_limit or _QUOTA["observed_calls"] or calls[0] or 1
             logger.warning(
-                "[guardian] %s; stopping cleanly after %d calls. %d of %d "
-                "country-years left, ~%d calls — roughly %d more day(s). "
-                "Re-run to resume where this stopped.",
-                exc, calls[0], left, len(todo), left * len(core.THEME_QUERIES),
-                -(-left * len(core.THEME_QUERIES) // per_day))
+                "[guardian] %s; stopping cleanly after %d calls (%d billed by the "
+                "API). %d of %d country-years left at ~%d calls each = ~%d calls "
+                "— roughly %d more day(s) at %d/day. Resets in %s. Re-run to "
+                "resume where this stopped.",
+                exc, calls[0], _QUOTA["observed_calls"] or 0, left, len(todo),
+                per_year, left * per_year,
+                -(-left * per_year // per_day), per_day,
+                f"{(_QUOTA['reset_seconds'] or 0) / 3600:.1f}h"
+                if _QUOTA["reset_seconds"] else "an unreported time")
             return written
         except Exception:  # noqa: BLE001
             # Checkpointed as failed rather than left unwritten, so the next run
@@ -341,13 +405,21 @@ def harvest(roster: Optional[List[str]] = None,
             logger.exception("[guardian] %s %s failed; continuing",
                              iso2, window_start.year)
             store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
-                                   status="failed", note="request error")
+                                   status="failed", note="request error",
+                                   seconds=time.monotonic() - started,
+                                   calls=calls[0] - before)
             continue
+        spent = calls[0] - before
+        cost.append(spent)
         store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
-                               items_written=n)
+                               items_written=n, seconds=time.monotonic() - started,
+                               calls=spent)
         written += n
-        logger.info("[guardian] %s %s: %d rows (%d calls so far)",
-                    iso2, window_start.year, n, calls[0])
+        logger.info("[guardian] %s %s: %d rows in %d calls (%d total, %s left today)",
+                    iso2, window_start.year, n, spent, calls[0],
+                    _QUOTA["remaining"] if _QUOTA["remaining"] is not None else "?")
 
-    logger.info("[guardian] done: %d rows in %d calls", written, calls[0])
+    logger.info("[guardian] done: %d rows in %d calls, ~%d per country-year",
+                written, calls[0],
+                round(sum(cost) / len(cost)) if cost else 0)
     return written

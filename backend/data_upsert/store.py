@@ -317,8 +317,25 @@ def write_checkpoint(
     status: str = "done",
     items_written: int = 0,
     note: str = "",
+    seconds: Optional[float] = None,
+    calls: Optional[int] = None,
 ) -> None:
-    """Stamp one (source, country, window) as finished. Idempotent."""
+    """Stamp one (source, country, window) as finished. Idempotent.
+
+    Args:
+        seconds: how long the window took, measured by the harvester.
+        calls: upstream requests it cost.
+
+    Both are recorded rather than inferred. They were briefly derived from the
+    gap between consecutive ``completed_at`` stamps, which is exact only while
+    windows run strictly in sequence in one uninterrupted process — and the
+    Guardian harvest is neither: it stops on a daily quota and resumes eight
+    hours later, so the first window of day two would have read as an
+    eight-hour window. A second source running alongside breaks it the same
+    way. The harvester holds a clock already; asking it costs nothing and is
+    right under interruption, which is the normal case here rather than the
+    exception.
+    """
     with _transaction() as cur:
         cur.execute(
             """
@@ -333,7 +350,10 @@ def write_checkpoint(
             (country_iso2, window_start, source_system, status,
              data_push._json_or_none({"window_end": window_end.isoformat(),
                                       "items_written": items_written,
-                                      "note": note})),
+                                      "note": note,
+                                      "seconds": (round(seconds, 1)
+                                                  if seconds is not None else None),
+                                      "calls": calls})),
         )
 
 

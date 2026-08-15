@@ -46,7 +46,7 @@ import json
 import logging
 import pathlib
 import statistics
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from backend.data_upsert import data_push
 from backend.data_upsert import store
@@ -284,25 +284,41 @@ def spend() -> Dict[str, Any]:
     }
 
 
+# Sources whose cost does not grow with the roster. The NYT archive endpoint
+# returns a whole month of the whole paper in one call and every country is
+# filtered out of that same response, so five countries and forty-eight cost
+# the same 121 calls. Scaling it would invent work that will never happen.
+_ROSTER_WIDE_SOURCES: Tuple[str, ...] = ("nyt",)
+
+
 def harvest_pacing() -> Dict[str, Any]:
     """How long the corpus took to collect, per source and country.
 
-    Derived from `run_ledger` rather than from a stopwatch nobody kept: the
-    harvesters run windows strictly in sequence and stamp ``completed_at`` on
-    each, so the gap between consecutive checkpoints *is* that window's
-    duration. The first window of a run has no predecessor and is dropped —
-    which loses one window per source and costs a percent or two, against
-    adding a timing column to a table for a number the table already implies.
+    Read from what each harvester measured and stamped on its own checkpoint.
+    It was briefly inferred from the gap between consecutive ``completed_at``
+    stamps, which is exact only while windows run strictly in sequence in one
+    uninterrupted process — and the Guardian harvest is neither: it stops on a
+    daily quota and resumes eight hours later, so day two's first window would
+    have read as an eight-hour window.
 
     This exists because the 48-country backfill has to be estimated from
     somewhere, and the only honest place is a harvest that actually ran. Five
     countries spanning the US (an order of magnitude more coverage than the
-    rest) to PT (thin) is a real sample; a guess is not.
+    rest) to PT (thin) is a real sample; a guess is not. Calls are reported
+    beside the seconds because the Guardian harvest is quota-bound rather than
+    time-bound — the wall arrives at a call count, and hours are what that
+    count converts into after the waiting.
     """
     with data_push._transaction() as cur:
         cur.execute("""
-            SELECT variant AS source, country_iso2, as_of, status, completed_at,
-                   (detail ->> 'items_written')::int AS items
+            SELECT variant AS source, country_iso2, as_of, status,
+                   (detail ->> 'items_written')::int  AS items,
+                   (detail ->> 'seconds')::float8     AS seconds,
+                   -- float, not int: one NYT archive call serves the whole
+                   -- roster and is charged as a fraction to each country it
+                   -- covered, so the roster's shares sum back to the one
+                   -- request the archive actually saw.
+                   (detail ->> 'calls')::float8       AS calls
               FROM run_ledger
              WHERE job_type = 'harvest'
              ORDER BY completed_at
@@ -312,38 +328,68 @@ def harvest_pacing() -> Dict[str, Any]:
 
 
 def _pace(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """The arithmetic of :func:`harvest_pacing`, over checkpoint rows in
-    completion order. Split out so the deltas are testable without a database."""
+    """The arithmetic of :func:`harvest_pacing`, over checkpoint rows. Split out
+    so it is testable without a database."""
     per: Dict[tuple, Dict[str, Any]] = {}
-    for previous, row in zip(rows, rows[1:]):
+    for row in rows:
         key = (row["source"], row["country_iso2"])
         bucket = per.setdefault(key, {"windows": 0, "seconds": 0.0, "items": 0,
-                                      "failed": 0})
+                                      "calls": 0, "failed": 0, "untimed": 0})
         bucket["windows"] += 1
-        bucket["seconds"] += (row["completed_at"] - previous["completed_at"]).total_seconds()
+        # A window whose harvester did not stamp a duration counts toward the
+        # corpus and not toward the pacing, and says so. Treating it as zero
+        # seconds would make the extrapolation optimistic, which is the
+        # direction that costs somebody a day.
+        if row.get("seconds") is None:
+            bucket["untimed"] += 1
+        else:
+            bucket["seconds"] += row["seconds"]
         bucket["items"] += row["items"] or 0
+        bucket["calls"] += row.get("calls") or 0
         bucket["failed"] += int(row["status"] != "done")
 
-    out = {f"{source} {iso2}": {
-               **bucket,
-               "minutes": round(bucket["seconds"] / 60, 1),
-               "seconds_per_window": (round(bucket["seconds"] / bucket["windows"], 1)
-                                      if bucket["windows"] else None),
-           }
-           for (source, iso2), bucket in sorted(per.items())}
+    out = {}
+    for (source, iso2), bucket in sorted(per.items()):
+        timed = bucket["windows"] - bucket["untimed"]
+        out[f"{source} {iso2}"] = {
+            **bucket,
+            # Rounded on the way out: NYT charges a fifth of a call to each of
+            # five countries, and binary floating point renders that as
+            # 1.5999999999999999 in a report somebody is meant to read.
+            "calls": round(bucket["calls"], 2),
+            "seconds": round(bucket["seconds"], 1),
+            "minutes": round(bucket["seconds"] / 60, 1),
+            "seconds_per_window": (round(bucket["seconds"] / timed, 1)
+                                   if timed else None),
+            "calls_per_window": (round(bucket["calls"] / bucket["windows"], 2)
+                                 if bucket["calls"] else None),
+        }
     total_seconds = sum(b["seconds"] for b in per.values())
-    countries = {iso2 for _, iso2 in per}
+    # The full-backfill number, and both halves of it are easy to get wrong.
+    #
+    # Only the per-country sources are scaled: a NYT archive call returns the
+    # whole paper for every country at once, so its cost is flat in the roster
+    # and multiplying it by 48/5 would invent hours of work that never happen.
+    #
+    # And the divisor counts the countries measured *by those sources*, not
+    # every country appearing anywhere in the table. Guardian had harvested one
+    # country when NYT had harvested five; dividing Guardian's hour by five and
+    # multiplying by 48 priced a 48-country Guardian harvest at ten hours when
+    # the same arithmetic on its own sample says forty-eight.
+    scaled = sum(b["seconds"] for (source, _), b in per.items()
+                 if source not in _ROSTER_WIDE_SOURCES)
+    flat = total_seconds - scaled
+    scaled_countries = {iso2 for source, iso2 in per
+                        if source not in _ROSTER_WIDE_SOURCES}
     return {
         "per_source_country": out,
         "total_minutes": round(total_seconds / 60, 1),
-        "countries_measured": len(countries),
-        # The number the full backfill decision needs. Linear in countries is
-        # the right first approximation for Guardian and Wayback, which are
-        # per-country; it is wrong for NYT, whose archive call returns the whole
-        # world at once, so that source is reported and not scaled.
+        "countries_measured": len({iso2 for _, iso2 in per}),
+        "countries_scaled": len(scaled_countries),
+        "roster_wide_minutes": round(flat / 60, 1),
         "hours_for_48_countries_linear": (
-            round(total_seconds / 3600 * (48 / len(countries)), 1)
-            if countries else None),
+            round((scaled * (48 / len(scaled_countries)) + flat) / 3600, 1)
+            if scaled_countries else None),
     }
 
 
@@ -551,14 +597,18 @@ def render(roster: Optional[List[str]] = None) -> None:
     if not pacing["per_source_country"]:
         print("  Nothing harvested yet.")
     for key, row in pacing["per_source_country"].items():
-        failed = f"  {row['failed']} failed" if row["failed"] else ""
+        notes = "".join([f"  {row['failed']} failed" if row["failed"] else "",
+                         f"  {row['untimed']} untimed" if row["untimed"] else ""])
         print(f"  {key:<14} {row['windows']:>4} window(s)  {row['minutes']:>7.1f} min  "
-              f"{row['items']:>7} article(s)  "
-              f"{_fmt(row['seconds_per_window']):>8}s/window{failed}")
+              f"{row['items']:>7} article(s)  {row['calls']:>7.1f} call(s)  "
+              f"{_fmt(row['calls_per_window']):>8}/window{notes}")
     if pacing["countries_measured"]:
-        print(f"  total {pacing['total_minutes']:.1f} min over "
-              f"{pacing['countries_measured']} country/ies "
-              f"— ~{pacing['hours_for_48_countries_linear']}h for 48, scaled linearly")
+        print(f"  total {pacing['total_minutes']:.1f} min; "
+              f"{pacing['roster_wide_minutes']:.1f} of it roster-wide (flat in the "
+              f"roster size)")
+        print(f"  ~{pacing['hours_for_48_countries_linear']}h for 48 countries, "
+              f"scaling the per-country sources off "
+              f"{pacing['countries_scaled']} measured country/ies")
 
 
 def _fmt(value: Optional[float]) -> str:

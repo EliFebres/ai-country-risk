@@ -278,17 +278,27 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
     written = failed = 0
     for year, month, first, last, wanted in todo:
         time.sleep(config.NYT_REQUEST_INTERVAL_SECONDS)
+        started = time.monotonic()
         try:
             counts = harvest_month(year, month, wanted)
         except Exception:  # noqa: BLE001
             logger.exception("[nyt] %04d-%02d failed; continuing", year, month)
             for iso2 in wanted:
                 store.write_checkpoint(SOURCE_SYSTEM, iso2, first, last,
-                                       status="failed", note="request error")
+                                       status="failed", note="request error",
+                                       seconds=time.monotonic() - started, calls=1)
             failed += 1
             continue
+        # One call serves the whole roster, so the month's cost is charged once
+        # and split across the countries it covered — otherwise a five-country
+        # run would report five times the requests the archive actually saw,
+        # and the 48-country projection would scale a number that does not
+        # grow with the roster at all.
+        elapsed = time.monotonic() - started
         for iso2, n in counts.items():
-            store.write_checkpoint(SOURCE_SYSTEM, iso2, first, last, items_written=n)
+            store.write_checkpoint(SOURCE_SYSTEM, iso2, first, last, items_written=n,
+                                   seconds=elapsed / len(counts),
+                                   calls=1 / len(counts))
             written += n
         logger.info("[nyt] %04d-%02d: %s", year, month,
                     ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))

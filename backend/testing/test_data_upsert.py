@@ -361,45 +361,78 @@ class TestDivergenceIsSigned:
 
 class TestHarvestPacing:
     """The 48-country backfill has to be estimated from a harvest that actually
-    ran, and the only clock kept was `completed_at` on each checkpoint. Windows
-    run strictly in sequence, so the gap between consecutive stamps is that
-    window's duration."""
+    ran. Each harvester stamps its own measured duration and call count, because
+    the Guardian harvest stops on a daily quota and resumes eight hours later —
+    inferring a window's length from the gap between `completed_at` stamps would
+    read that overnight wait as an eight-hour window."""
 
     @staticmethod
-    def _row(source, iso2, minute, items=10, status="done"):
+    def _row(source, iso2, seconds, items=10, calls=6, status="done"):
         return {"source": source, "country_iso2": iso2, "status": status,
-                "items": items,
-                "completed_at": (datetime.datetime(2026, 8, 15)
-                                 + datetime.timedelta(minutes=minute))}
+                "items": items, "seconds": seconds, "calls": calls}
 
-    def test_the_gap_between_stamps_is_the_window(self):
-        got = reports._pace([self._row("guardian", "US", 0),
-                             self._row("guardian", "US", 4),
-                             self._row("guardian", "US", 10)])
-        # Two measured windows of 4 and 6 minutes; the first has no predecessor.
-        assert got["per_source_country"]["guardian US"]["windows"] == 2
-        assert got["per_source_country"]["guardian US"]["minutes"] == 10.0
+    def test_the_measured_seconds_are_what_is_summed(self):
+        got = reports._pace([self._row("guardian", "US", 240),
+                             self._row("guardian", "US", 360)])["per_source_country"]
+        assert got["guardian US"]["windows"] == 2
+        assert got["guardian US"]["minutes"] == 10.0
+        assert got["guardian US"]["seconds_per_window"] == 300.0
 
-    def test_the_first_window_of_all_is_dropped_not_counted_as_zero(self):
-        """A zero-duration window would drag the mean down and make the
-        extrapolation optimistic — in the direction that costs someone a day."""
-        got = reports._pace([self._row("guardian", "US", 0),
-                             self._row("guardian", "US", 6)])
-        assert got["per_source_country"]["guardian US"]["seconds_per_window"] == 360.0
+    def test_an_overnight_quota_wait_is_not_a_window(self):
+        """The failure the measured stamp exists to prevent: two four-minute
+        windows either side of an eight-hour reset are eight minutes of work,
+        not eight hours."""
+        got = reports._pace([self._row("guardian", "US", 240),
+                             self._row("guardian", "US", 240)])["per_source_country"]
+        assert got["guardian US"]["minutes"] == 8.0
+
+    def test_an_untimed_window_counts_for_the_corpus_and_not_the_clock(self):
+        """Rows written before the harvesters kept a clock. Counting them as
+        zero seconds would make the extrapolation optimistic, which is the
+        direction that costs somebody a day."""
+        got = reports._pace([self._row("guardian", "US", 300),
+                             self._row("guardian", "US", None)])["per_source_country"]
+        assert got["guardian US"]["windows"] == 2 and got["guardian US"]["untimed"] == 1
+        assert got["guardian US"]["seconds_per_window"] == 300.0
 
     def test_sources_and_countries_do_not_blend(self):
-        got = reports._pace([self._row("guardian", "US", 0),
-                             self._row("guardian", "TR", 2),
-                             self._row("nyt", "TR", 3)])
-        assert set(got["per_source_country"]) == {"guardian TR", "nyt TR"}
+        got = reports._pace([self._row("guardian", "US", 60),
+                             self._row("guardian", "TR", 60),
+                             self._row("nyt", "TR", 60)])
+        assert set(got["per_source_country"]) == {"guardian US", "guardian TR",
+                                                  "nyt TR"}
+
+    def test_a_shared_call_sums_back_to_one_across_the_roster(self):
+        """One NYT archive call serves every country in the roster. Charged
+        whole to each, a five-country run would report five times the requests
+        the archive actually saw."""
+        rows = [self._row("nyt", iso2, 12, calls=1 / 4) for iso2 in "AB"]
+        got = reports._pace(rows)["per_source_country"]
+        assert sum(row["calls"] for row in got.values()) == 0.5
 
     def test_the_48_country_scale_is_linear_in_countries_measured(self):
-        got = reports._pace([self._row("guardian", "US", 0),
-                             self._row("guardian", "US", 60),
-                             self._row("guardian", "TR", 120)])
-        # Two hours over two countries -> 48 hours for forty-eight.
+        got = reports._pace([self._row("guardian", "US", 3600),
+                             self._row("guardian", "TR", 3600)])
         assert got["countries_measured"] == 2
         assert got["hours_for_48_countries_linear"] == 48.0
+
+    def test_a_roster_wide_source_is_added_flat_never_scaled(self):
+        """One NYT call serves every country, so its cost does not grow with
+        the roster. Scaled, it would invent hours of work that never happen."""
+        got = reports._pace([self._row("guardian", "US", 3600),
+                             self._row("nyt", "US", 1800)])
+        # 1h of Guardian x48, plus the half hour of NYT once.
+        assert got["hours_for_48_countries_linear"] == 48.5
+        assert got["roster_wide_minutes"] == 30.0
+
+    def test_the_divisor_counts_only_the_countries_the_scaled_sources_saw(self):
+        """Guardian had one country when NYT had five. Dividing Guardian's hour
+        by five priced a 48-country Guardian harvest at a fifth of the truth."""
+        rows = [self._row("guardian", "US", 3600)]
+        rows += [self._row("nyt", iso2, 60) for iso2 in ("US", "TR", "PT", "KR")]
+        got = reports._pace(rows)
+        assert got["countries_measured"] == 4 and got["countries_scaled"] == 1
+        assert got["hours_for_48_countries_linear"] == 48.1
 
     def test_nothing_harvested_does_not_divide_by_zero(self):
         got = reports._pace([])
@@ -407,8 +440,7 @@ class TestHarvestPacing:
         assert got["hours_for_48_countries_linear"] is None
 
     def test_a_failed_window_is_counted_and_flagged(self):
-        got = reports._pace([self._row("guardian", "US", 0),
-                             self._row("guardian", "US", 3, status="failed")])
+        got = reports._pace([self._row("guardian", "US", 30, status="failed")])
         assert got["per_source_country"]["guardian US"]["failed"] == 1
 
 

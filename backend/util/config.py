@@ -53,6 +53,8 @@ PILOT_START: str = "2016-08-03"
 # the adapter still has a floor to harvest from if the ngrams route replaces it.
 GDELT_START: str = "2017-01-01"
 
+# **A self-imposed guard, not an external limit** — enforced against metered
+# spend, so it cannot be wrong the way a remembered vendor quota can.
 # Hard ceiling on the step-4 leakage scan. The scan is the one OpenAI-billable
 # thing in the whole harvest phase; past this the run aborts rather than
 # quietly spending more.
@@ -60,11 +62,19 @@ LEAKAGE_SCAN_BUDGET_USD: float = 3.0
 
 
 # --- Harvest pacing ---------------------------------------------------------
+# Every number below is labelled **measured** or **asserted**. A limit nobody
+# checked cost an hour and a wrong plan on 2026-08-15: `GUARDIAN_PAGE_SIZE`'s
+# comment claimed a 5,000/day budget, the real figure is 500, and the harvest
+# planned against the remembered number until the wall arrived. Where the
+# service reports its own limit, read it and treat the constant as a fallback;
+# where it does not, say so, so nobody mistakes an assumption for a fact.
+
+# **Asserted, and deliberately so.** Not a vendor limit — a self-imposed floor.
 # Guardian, GDELT and the Wayback Machine are all free services being asked for
 # thousands of requests. One per second, always, with a real backoff on 429.
 REQUEST_INTERVAL_SECONDS: float = 1.0
 
-# Guardian page size. Their documented maximum is 200 and that was the setting,
+# **Measured.** Their documented maximum is 200 and that was the setting,
 # because it is the dominant lever on the free tier's daily call budget.
 #
 # 200 is not reliable. On 2026-08-03 one window — KR 2020, the friction query —
@@ -72,20 +82,46 @@ REQUEST_INTERVAL_SECONDS: float = 1.0
 # results came back fine at `page-size=100&page=3` and at `page-size=50&page=5`.
 # A specific (query, size, page) triple failing deterministically is a server
 # bug, not a rate limit, and 100 halves the exposure at a cost of roughly twice
-# the calls — about 1,200 for a full pilot harvest, against a 5,000/day budget.
+# the calls.
+#
+# The old version of this comment finished "— about 1,200 for a full pilot
+# harvest, against a 5,000/day budget". Both halves were wrong and neither had
+# been checked. The 2026-08-15 harvest spent 1,461 calls on **one** country's
+# first eight years, and the advertised daily budget is 500 (see
+# `GUARDIAN_DAILY_CALL_BUDGET`). The trade this constant makes is still the
+# right one; the arithmetic that justified it was fiction.
 #
 # ponytail: blunt instrument. If a 503 ever recurs at 100, the real fix is to
 # retry the failing page at half the size rather than to keep halving this.
 GUARDIAN_PAGE_SIZE: int = 100
 
-# A window needing more than this many pages is split — year into quarters,
-# quarter into months — for that country/theme only. Expected to fire on the US.
-# Subdivision costs calls; not subdividing costs a window that pages forever.
+# **Asserted — a fallback only.** `adapters.guardian` reads the real allowance
+# from `X-RateLimit-Limit-Day` / `-Remaining-Day` on every response and paces
+# off that; this is what it plans with before the first call has answered, and
+# on a response that carries no headers.
+#
+# 500 is what the API advertised on 2026-08-15. The observed throughput that
+# day was 1,461 page-calls before `Remaining-Day` reached zero, so the
+# advertised number and the enforced one disagree by about 3x. `Remaining-Day`
+# is the value that actually hits zero, so that is what the harvester obeys —
+# and `guardian.quota()` reports both, because a limit that lies by 3x is
+# exactly what quietly misinforms the next estimate.
+GUARDIAN_DAILY_CALL_BUDGET: int = 500
+
+# **A choice, not a limit.** A window needing more than this many pages is split
+# — year into quarters, quarter into months — for that country/theme only.
+# Expected to fire on the US, and on 2026-08-15 it fired on every US year:
+# subdivision is why one country cost 183 calls a year against the six-call
+# no-subdivision floor. A month-wide window that still overflows is truncated
+# with a warning, which happened 3 times across US 2016-2023.
 GUARDIAN_SUBDIVIDE_ABOVE_PAGES: int = 5
 
-# Records per GDELT DOC-API call. Its own documented maximum.
+# **Asserted** — GDELT's own documented maximum, on a dormant source.
 GDELT_MAX_RECORDS: int = 250
 
+# **Measured, and known false as documented** — the model every other constant
+# here should be read against.
+#
 # GDELT's own stated limit, quoted verbatim from the body it returns with a 429:
 # "Please limit requests to one every 5 seconds".
 #
@@ -97,13 +133,28 @@ GDELT_MAX_RECORDS: int = 250
 # enforce.
 GDELT_REQUEST_INTERVAL_SECONDS: float = 5.0
 
-# The NYT developer tier allows five requests a minute. Twelve seconds apart is
-# that limit exactly, and the archive endpoint needs only ~120 calls for ten
-# years — one per month, covering the whole world — so there is nothing to gain
-# by crowding it.
+# **Asserted, and unverifiable from the wire.** The claim is that the NYT
+# developer tier allows five requests a minute and that twelve seconds apart is
+# that limit exactly. Nobody has confirmed it, and on 2026-08-15 a probe of the
+# archive endpoint found the response carries **no rate-limit headers at all**
+# — no `X-RateLimit-*`, no `Retry-After`, nothing to derive from. So unlike the
+# Guardian budget beside it, this one cannot be read from the service; it can
+# only be asserted or discovered by being refused.
+#
+# What is known: a 121-month harvest at 12s completed without a single 429, so
+# 12s is *safe*. That is a lower bound on politeness, not a measurement of the
+# limit, and the two must not be confused — the true ceiling could be 5s or 60s
+# and this harvest would look identical.
+#
+# The cost of being wrong is small in the direction that matters: the archive
+# endpoint needs only ~121 calls for ten years — one per month, covering the
+# whole world, so it does not grow with the roster — which is 24 minutes at this
+# spacing. There is nothing to gain by crowding it, which is why it stays
+# conservative rather than being tuned against a number nobody can see.
 NYT_REQUEST_INTERVAL_SECONDS: float = 12.0
 
-# Most relevant articles kept per country per month from the NYT archive.
+# **Measured.** Most relevant articles kept per country per month from the NYT
+# archive.
 #
 # The archive returns the whole paper, and the whole paper is mostly about the
 # United States: in a measured month (2018-08) the roster matched 1,824 articles
@@ -117,6 +168,9 @@ NYT_REQUEST_INTERVAL_SECONDS: float = 12.0
 # nobody reports reads afterwards as "we harvested everything".
 NYT_MAX_PER_COUNTRY_MONTH: int = 150
 
+# **Asserted.** A judgement about archive quality, not a rate limit; the
+# Wayback Machine publishes no quota, and `wayback.py` paces at one request a
+# second with 429 backoff rather than against a number.
 # How far past publication a Wayback capture may sit and still be treated as a
 # capture "of" the article. Beyond six months the page has usually been
 # re-templated, and later edits start showing up as if they were original.
