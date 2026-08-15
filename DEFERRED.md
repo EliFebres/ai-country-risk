@@ -34,14 +34,45 @@ query.
 Worth deciding later whether an API belongs between them. Explicitly out of
 scope for this refactor.
 
-## 3. `live_tv_channel`
+## 3. `live_tv_channel` — resolved: it never existed
 
-Queried at `frontend/app/lib/risk-server.ts:426`. No DDL anywhere in the repo,
-no backend writer, absent from both READMEs' schema sections. It fails closed —
-`catch → []`, falling back to `terminal-seed.ts` — which is why nobody noticed.
+Queried at `frontend/app/lib/risk-server.ts:426`. Confirmed against the live
+database before it was dropped: **the table was never created**, in a schema
+that had been running for months. `fetchChannels` catches and returns `[]`, so
+the pane has always silently fallen back to `terminal-seed.ts`.
 
-Decide whether it is a real table that needs provisioning and a writer, or dead
-weight to drop from the frontend.
+Nothing to migrate. Either create the table and write to it, or delete the
+query and the fallback dance with it.
+
+## 3a. Thirteen registry indicators have no reachable source
+
+The bootstrap builds 25 of 38 registry codes. The other 13 are all
+curated-source — nobody has produced the values, and `curated.csv` is committed
+with a header and **zero data rows**:
+
+```
+GOV.DEBT.DOMESTIC.SHARE   National debt agencies / IMF Article IV
+GOV.DEBT.FX.SHARE         National debt agencies / IMF Article IV
+INFORMAL.PCT.GDP          IMF WP/18/17 informal economy
+NIIP.GDP                  IMF Balance of Payments / IIP
+OBS.SCORE                 IBP Open Budget Survey
+OECD.PISA.MEAN            OECD PISA
+OECD.TAX.WEDGE            OECD Taxing Wages
+RESERVES.USD              IMF IRFCL (manual)
+RSF.PRESS.SCORE           RSF World Press Freedom Index
+STAT.TAX.TOP.RATE         OECD Corporate Tax Statistics
+UN.EGDI                   UN EGDI
+UNWPP.DPND.OL.PROJ        UN WPP medium variant
+WUI.INDEX                 World Uncertainty Index
+```
+
+Nothing was lost in the rebuild — the old database had no rows for these
+either, for the same reason. But the brief's "my research ships with the repo"
+is not yet true for these thirteen: the research does not exist. Each is either
+a manual entry into `curated.csv` or a fetcher nobody has written.
+
+`payload_census` is the tool that shows this per country; the friction ledgers
+score on the 25 that do arrive.
 
 ## 4. WEO vintage dataflows may retire `weo_vintages/` entirely
 
