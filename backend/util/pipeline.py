@@ -452,7 +452,6 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     evidence = llm_payload.build_evidence_payload(
         iso2,
         as_of=as_of,
-        panel=_safe(lambda: llm_payload.query_macro_panel(iso2), iso2, "panel"),
         series=_safe(lambda: data_push.read_indicator_series(iso2), iso2, "series") or {},
         fx_regimes=constants.FX_REGIMES,
         elections=constants.ELECTIONS,
