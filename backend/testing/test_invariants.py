@@ -391,6 +391,25 @@ class TestSurvivesTheVintageBound:
         kept = payload._resolve(observations, as_of=datetime.date(2019, 6, 1))
         assert [o.period for o in kept] == ["2017", "2018"]
 
+    def test_the_panel_backfill_asks_about_its_own_codes(self):
+        """A step that runs, logs OK and does no work is this project's
+        signature defect, and the bootstrap reproduced it exactly.
+
+        The World Bank backfill skips a country that already has annual rows.
+        The WEO editions write 160k annual rows before it runs, so asking "any
+        annual row at all" reported all 48 countries as done and the panel step
+        finished in 13 seconds having fetched nothing. The question has to name
+        the codes the panel itself owns.
+        """
+        import inspect
+
+        from backend.data_fetching import country_data_fetch
+
+        source = inspect.getsource(country_data_fetch.backfill_missing_panels)
+        assert "panel_codes" in source
+        assert "has_annual_series(iso2, panel_codes)" in source, \
+            "the incremental check must be scoped to the panel's own codes"
+
     def test_the_current_years_annual_is_not_stamped_in_the_future(self):
         """A year-end stamp on the current year claims a publication date months
         from now, which reads as negative staleness in the live payload and is

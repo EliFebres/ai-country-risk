@@ -143,12 +143,18 @@ def backfill_missing_panels(force: bool = False) -> None:
     roster = constants.COUNTRY_ROSTER
     iso3_by_iso2 = constants.ISO3_BY_ISO2
 
+    # The panel's own codes, not "any annual row". The WEO editions write 160k
+    # annual rows before this step runs, so an unfiltered check reports every
+    # country as already done and this fetches nothing at all.
+    panel_codes = [code for code, spec in constants.INDICATOR_REGISTRY.items()
+                   if spec.get("panel_col")]
+
     missing = []
     for country in roster:
         iso2 = str(country["iso2"]).strip()
         if not iso2:
             continue
-        if force or not data_push.has_annual_series(iso2):
+        if force or not data_push.has_annual_series(iso2, panel_codes):
             missing.append(iso2)
 
     if not missing:

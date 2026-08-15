@@ -621,20 +621,31 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
         )
 
 
-def has_annual_series(country_iso2: str) -> bool:
-    """Whether this country has any annual macro rows yet.
+def has_annual_series(country_iso2: str,
+                      codes: Optional[List[str]] = None) -> bool:
+    """Whether this country already has annual rows for these indicator codes.
 
     What makes the World Bank backfill incremental. Was
     ``has_country_partition``, which asked the filesystem whether a Parquet
     directory held a file; the same question, asked of the store that now holds
     the answer.
+
+    ``codes`` is not optional in spirit. Asking "any annual row at all" is the
+    wrong question now that several sources write annual rows: the WEO editions
+    land 160k of them before the World Bank fetch runs, so an unfiltered check
+    reports every country as done and the panel step completes in seconds
+    having written nothing. A producer that runs, logs OK and does no work is
+    the exact failure this project keeps finding.
     """
+    sql = ["SELECT EXISTS (SELECT 1 FROM indicator_series",
+           "WHERE country_iso2 = %s AND freq = 'A'"]
+    params: List[Any] = [country_iso2]
+    if codes:
+        sql.append("AND indicator_code = ANY(%s)")
+        params.append(list(codes))
+    sql.append(")")
     with _transaction() as cur:
-        cur.execute(
-            "SELECT EXISTS (SELECT 1 FROM indicator_series "
-            " WHERE country_iso2 = %s AND freq = 'A')",
-            (country_iso2,),
-        )
+        cur.execute(" ".join(sql), tuple(params))
         return bool(cur.fetchone()[0])
 
 
