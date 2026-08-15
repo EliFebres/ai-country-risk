@@ -406,9 +406,25 @@ class TestSurvivesTheVintageBound:
         from backend.data_fetching import country_data_fetch
 
         source = inspect.getsource(country_data_fetch.backfill_missing_panels)
-        assert "panel_codes" in source
-        assert "has_annual_series(iso2, panel_codes)" in source, \
-            "the incremental check must be scoped to the panel's own codes"
+        assert "source=PANEL_SOURCE" in source, (
+            "the incremental check must be scoped by source. Scoping it by "
+            "indicator code is not enough — CPI.YOY is both a panel column and "
+            "a WEO subject, so a code filter answers the same way and skips "
+            "every country all over again.")
+
+    def test_the_panel_stamps_its_own_source(self):
+        """A World Bank annual attributed to the IMF is wrong on the row, and it
+        is also the only thing separating it from the WEO edition that shares
+        its indicator code."""
+        import pandas as pd
+
+        from backend.data_fetching import country_data_fetch
+
+        panel = pd.DataFrame({"INFLATION": [1.0]}, index=[2019])
+        row, = country_data_fetch.panel_rows(panel, "PT")
+        assert row["indicator_code"] == "CPI.YOY"
+        assert row["source"] == country_data_fetch.PANEL_SOURCE
+        assert "IMF" not in row["source"]
 
     def test_the_current_years_annual_is_not_stamped_in_the_future(self):
         """A year-end stamp on the current year claims a publication date months

@@ -622,7 +622,8 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
 
 
 def has_annual_series(country_iso2: str,
-                      codes: Optional[List[str]] = None) -> bool:
+                      codes: Optional[List[str]] = None,
+                      *, source: Optional[str] = None) -> bool:
     """Whether this country already has annual rows for these indicator codes.
 
     What makes the World Bank backfill incremental. Was
@@ -630,12 +631,16 @@ def has_annual_series(country_iso2: str,
     directory held a file; the same question, asked of the store that now holds
     the answer.
 
-    ``codes`` is not optional in spirit. Asking "any annual row at all" is the
-    wrong question now that several sources write annual rows: the WEO editions
-    land 160k of them before the World Bank fetch runs, so an unfiltered check
-    reports every country as done and the panel step completes in seconds
-    having written nothing. A producer that runs, logs OK and does no work is
-    the exact failure this project keeps finding.
+    Filter by something. "Any annual row at all" is the wrong question now that
+    several sources write them: the WEO editions land 160k before the World
+    Bank fetch runs, so an unfiltered check reports every country as done and
+    the panel step completes in seconds having written nothing. A producer that
+    runs, logs OK and does no work is the exact failure this project keeps
+    finding.
+
+    ``codes`` is not enough on its own either — CPI.YOY is both a panel column
+    and a WEO subject, so a code filter answers the same way for the same
+    reason. ``source`` is what actually separates them.
     """
     sql = ["SELECT EXISTS (SELECT 1 FROM indicator_series",
            "WHERE country_iso2 = %s AND freq = 'A'"]
@@ -643,6 +648,9 @@ def has_annual_series(country_iso2: str,
     if codes:
         sql.append("AND indicator_code = ANY(%s)")
         params.append(list(codes))
+    if source:
+        sql.append("AND source = %s")
+        params.append(source)
     sql.append(")")
     with _transaction() as cur:
         cur.execute(" ".join(sql), tuple(params))

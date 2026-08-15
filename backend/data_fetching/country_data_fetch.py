@@ -28,6 +28,12 @@ import backend.data_fetching.political_corruption_fetch as political_corruption_
 
 logger = logging.getLogger(__name__)
 
+# What the panel's own rows are stamped with. The same string the Parquet
+# reader used to attach on the way out, so a value's provenance reads the same
+# as it always did — and the one thing that tells a World Bank annual apart
+# from the WEO edition that shares its indicator code.
+PANEL_SOURCE = "World Bank panel"
+
 
 def merge_extra_indicators(
     panel: pd.DataFrame,
@@ -111,8 +117,16 @@ def panel_rows(panel: pd.DataFrame, iso2: str) -> list:
                 "period": str(year),
                 "value": value,
                 "as_of": min(datetime.date(year, 12, 31), today),
-                "source": str(constants.INDICATOR_REGISTRY[code].get("source")
-                              or "World Bank"),
+                # Its own source string, not the registry's. Two reasons, and
+                # the second is load-bearing. The registry names the source a
+                # code *usually* comes from — CPI.YOY says "IMF CPI" — but this
+                # value came from the World Bank panel, and attributing it to
+                # the IMF is simply wrong on the row. And it is the only way to
+                # ask "does this country have its panel yet": CPI.YOY is also a
+                # WEO subject, so the code alone cannot distinguish 35,929 WEO
+                # rows from a World Bank annual, and a check by code reports
+                # every country as backfilled before the fetch has ever run.
+                "source": PANEL_SOURCE,
                 "vintage_scheme": "as-published-latest",
             })
     return rows
@@ -143,18 +157,17 @@ def backfill_missing_panels(force: bool = False) -> None:
     roster = constants.COUNTRY_ROSTER
     iso3_by_iso2 = constants.ISO3_BY_ISO2
 
-    # The panel's own codes, not "any annual row". The WEO editions write 160k
-    # annual rows before this step runs, so an unfiltered check reports every
-    # country as already done and this fetches nothing at all.
-    panel_codes = [code for code, spec in constants.INDICATOR_REGISTRY.items()
-                   if spec.get("panel_col")]
-
+    # By source, not by code. The WEO editions write 160k annual rows before
+    # this step runs and CPI.YOY is both a WEO subject and a panel column, so
+    # any check by code reports every country as already backfilled and this
+    # fetches nothing at all — twice, in two different ways, before the source
+    # turned out to be the only honest signal.
     missing = []
     for country in roster:
         iso2 = str(country["iso2"]).strip()
         if not iso2:
             continue
-        if force or not data_push.has_annual_series(iso2, panel_codes):
+        if force or not data_push.has_annual_series(iso2, source=PANEL_SOURCE):
             missing.append(iso2)
 
     if not missing:
