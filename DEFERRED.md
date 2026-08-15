@@ -74,6 +74,31 @@ a manual entry into `curated.csv` or a fetcher nobody has written.
 `payload_census` is the tool that shows this per country; the friction ledgers
 score on the 25 that do arrive.
 
+## 3b. The WEO fetch recovers 13 of 19 editions — measured, not assumed
+
+The clone-and-run acceptance test, run for real: the 19 `.xls` editions were
+renamed aside and `fetch_editions` was run against an empty directory.
+
+**Recovered (13):** 2016-04 → 2019-10 complete, plus 2020-04, 2021-04, 2021-10,
+2022-04, 2023-04. All thirteen **byte-identical** to the originals, verified by
+SHA-256 — the live IMF path and the Wayback fallback return the published
+bytes, not a re-render.
+
+**Not recovered (6):** 2020-10, 2022-10, 2023-10, 2024-04, 2024-10, 2025-04.
+
+The gaps are *scattered*, which is worse than a clean cut-off would be. The
+vintage rule picks the newest edition not after the anchor, so a missing
+2023-10 means every anchor from October 2023 to April 2024 reads April-2023
+macro instead. Honest — the stamps say so — but staler than intended, and the
+staleness is invisible unless somebody diffs the edition list.
+
+A fresh clone therefore gets a WEO archive with holes. The six were restored
+here from the local copies; a clone has no such copies.
+
+Worth knowing before relying on the acceptance test: it passes for the schema,
+the roster, the World Bank panels, the BIS and IMF series and the curated
+files. It is partial for WEO.
+
 ## 4. WEO vintage dataflows may retire `weo_vintages/` entirely
 
 The two unreachable editions are `IMF.RES:WEO_2025_OCT_VINTAGE(1.0.0)` and
