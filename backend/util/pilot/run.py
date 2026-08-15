@@ -209,6 +209,31 @@ def _restamp(args) -> None:
     print(f"\nLags: {lags.SCHEME}. WEO editions keep their own dates.")
 
 
+def _frozen(args) -> bool:
+    """Check the version freeze, before anything asks anyone for money.
+
+    ``score.run`` checks it too and that is the load-bearing one — every caller
+    routes through it, including a notebook that never sees this file. This is
+    only about the order the operator experiences: being asked to approve a
+    spend and *then* being refused is the wrong way round.
+    """
+    try:
+        state = score.freeze(override=args.override_version_drift)
+    except score.VersionDrift as exc:
+        print(f"\nRefusing to resume.\n\n  {exc}")
+        return False
+    sha = (state["versions"].get("git_sha") or "")[:8]
+    if state["first"]:
+        print(f"\nversion set pinned for this pilot at {sha or 'an unknown commit'}")
+    elif state["moved"]:
+        print(f"\nre-pinned across a version move by --override-version-drift: "
+              f"{', '.join(state['moved'])}")
+    elif state["sha_moved"]:
+        print(f"\nnote: the tree moved to {sha} since this pilot started; every "
+              f"frozen version held, so the series is still one series.")
+    return True
+
+
 def _confirm_spend(label: str, n_snapshots: int, args) -> bool:
     """Print the projection and the observed per-unit cost, then ask.
 
@@ -266,6 +291,8 @@ def _confirm_spend(label: str, n_snapshots: int, args) -> bool:
 
 def _score(args) -> None:
     """Score a range of anchors in one mode, after showing what it costs."""
+    if not _frozen(args):
+        return
     roster = args.roster or list(config.PILOT_ROSTER)
     start = (datetime.date.fromisoformat(args.since) if args.since
              else datetime.date.fromisoformat(config.PILOT_START))
@@ -282,7 +309,8 @@ def _score(args) -> None:
         print("Not scoring.")
         return
 
-    totals = score.run(roster=roster, start=start, end=end, mode=args.mode)
+    totals = score.run(roster=roster, start=start, end=end, mode=args.mode,
+                       override_version_drift=args.override_version_drift)
     print(f"\nscored {totals['scored']}, skipped {totals['skipped']}, "
           f"failed {totals['failed']}, spent ${totals['spend_usd']:.2f}")
     print(f"cumulative: ${store.total_spend_usd():.2f} of ${config.PILOT_BUDGET_USD:.2f}")
@@ -290,6 +318,8 @@ def _score(args) -> None:
 
 def _diagnostic(args) -> None:
     """Score the named and no-structural arms on dates chosen from the series."""
+    if not _frozen(args):
+        return
     roster = args.roster or list(config.PILOT_ROSTER)
     # Bounded to the range the masked arm actually scored. Unbounded is right for
     # the pilot and wrong for a one-year dry run: one leftover snapshot from
@@ -316,7 +346,8 @@ def _diagnostic(args) -> None:
         return
 
     for mode in modes:
-        totals = score.run(roster=roster, mode=mode, dates=plan)
+        totals = score.run(roster=roster, mode=mode, dates=plan,
+                           override_version_drift=args.override_version_drift)
         print(f"\n{mode}: scored {totals['scored']}, skipped {totals['skipped']}, "
               f"failed {totals['failed']}, spent ${totals['spend_usd']:.2f}")
     print(f"\ncumulative: ${store.total_spend_usd():.2f} of ${config.PILOT_BUDGET_USD:.2f}")
@@ -324,6 +355,14 @@ def _diagnostic(args) -> None:
 
 def main() -> None:
     """Dispatch one harvest command."""
+    # Resolve the commit once for the whole process. `provenance` reads this
+    # variable and documents that it never shells out — correctly, it is a pure
+    # module — but nothing ever set it, so every manifest ever written records a
+    # null `git_sha`. Exporting it here fixes that for every writer at once.
+    sha = score.git_sha()
+    if sha:
+        os.environ.setdefault("GIT_SHA", sha)
+
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
@@ -367,6 +406,9 @@ def main() -> None:
     p.add_argument("--mode", default="masked", choices=config.SCORING_MODES)
     p.add_argument("--approved", action="store_true",
                    help="consent to the projected spend up front")
+    p.add_argument("--override-version-drift", action="store_true",
+                   help="score on despite a moved masking/prompt/payload "
+                        "version, re-pinning the set and recording the move")
 
     p = sub.add_parser("diagnostic")
     p.add_argument("--country", action="append", dest="roster")
@@ -376,6 +418,8 @@ def main() -> None:
                    choices=config.DIAGNOSTIC_MODES,
                    help="repeatable; defaults to both diagnostic arms")
     p.add_argument("--approved", action="store_true")
+    p.add_argument("--override-version-drift", action="store_true",
+                   help="score on despite a moved masking/prompt/payload version")
 
     sub.add_parser("report")
 

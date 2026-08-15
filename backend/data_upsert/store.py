@@ -420,6 +420,41 @@ def completed_runs(mode: str, country_iso2: Optional[str] = None) -> set:
         return {row[0] for row in cur.fetchall()}
 
 
+def read_frozen_versions() -> Optional[Dict[str, str]]:
+    """The version set pinned at pilot start, or None before the first run.
+
+    One sentinel row — ``job_type = 'pilot-freeze'`` with the empty country,
+    epoch anchor and empty variant `run_ledger` already uses for work that has
+    no country and no date. The ledger is the right home for it because it is
+    the same thing the ledger already holds for spend: state that must survive
+    a restart, since a governor held in memory is no governor at all.
+    """
+    with _transaction() as cur:
+        cur.execute("SELECT detail FROM run_ledger WHERE job_type = 'pilot-freeze'")
+        row = cur.fetchone()
+    return ((row or [None])[0] or {}).get("versions") or None
+
+
+def write_frozen_versions(versions: Dict[str, str]) -> None:
+    """Pin ``versions`` as the set this pilot is running under. Idempotent.
+
+    Overwrites, because the only two callers are the first start (nothing to
+    overwrite) and an acknowledged drift override (where recording the new set
+    is the point — an override that left the old row would refuse again on the
+    next resume and teach the operator to pass the flag by reflex).
+    """
+    with _transaction() as cur:
+        cur.execute(
+            """
+            INSERT INTO run_ledger (job_type, status, detail)
+            VALUES ('pilot-freeze', 'complete', %s)
+            ON CONFLICT (job_type, country_iso2, as_of, variant)
+            DO UPDATE SET detail = EXCLUDED.detail, completed_at = now()
+            """,
+            (data_push._json_or_none({"versions": versions}),),
+        )
+
+
 def total_spend_usd() -> float:
     """Every dollar the pilot has metered so far, across runs and processes.
 

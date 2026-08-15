@@ -24,12 +24,22 @@ from backend.util import constants
 # the most redundant of the five against it. Cutting the least differentiated
 # country is the right thing to lose when the projection needs to lose one.
 #
-# **Its harvest stays.** 14,576 articles, their digests and their checkpoints
-# remain in the store, because harvesting is the part that costs somebody else's
-# rate limit and scoring is the part that costs money. Adding BR back later is
-# `--country BR` and about $26 of pure scoring with no re-crawl. Nothing about
-# this cut touches the substrate, and no code path treats a country that is in
-# `historical_article` but not in this list as an error — it is simply not in
+# **Its harvest stays** — which stopped being true, and is true again. This
+# paragraph used to say 14,576 articles remained in the store and that re-adding
+# BR was `--country BR` and about $26 of pure scoring with no re-crawl. The
+# schema rebuild deleted the whole `article` table, BR's rows with it, so for the
+# length of that gap the number was wrong in the expensive direction: the $26
+# had a ten-year re-crawl hidden underneath it.
+#
+# BR is therefore harvested again alongside the four, and the corpus exists only
+# because of that sweep. The ~$26 is the scoring cost **given a harvested
+# corpus** — it was never the whole cost of adding a country, only the cheap half
+# that survives when the substrate does. What makes the split real is that
+# harvesting spends somebody else's rate limit and scoring spends money, so the
+# two are worth keeping separable.
+#
+# BR stays off this list: it is harvested, not scored. No code path treats a
+# country present in `article` but absent here as an error — it is simply not in
 # the default run.
 PILOT_ROSTER: list[str] = ["US", "TR", "PT", "KR"]
 

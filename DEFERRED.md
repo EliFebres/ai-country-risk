@@ -24,6 +24,27 @@ migration is the wrong place to add a new write path, and `source_system`
 already distinguishes google-news / guardian / gdelt / nyt whenever it is
 turned on. Roughly 50-100 rows per country per week.
 
+## 1a. The rebuild took the article corpus with it — resolved by re-harvesting
+
+Worth writing down because a number derived from the old corpus outlived it.
+
+The schema rebuild dropped `article` along with everything else, so the harvest
+went to zero for every country — not only for the roster. `util/config.py` still
+asserted that BR's 14,576 articles "remain in the store" and that re-adding
+Brazil was "about $26 of pure scoring with no re-crawl". That $26 was correct
+arithmetic over a corpus that no longer existed, and it had a ten-year re-crawl
+hidden underneath it.
+
+Resolved rather than deferred: BR was re-harvested alongside US/TR/PT/KR in the
+step-1 sweep, harvest-only — it stays off `PILOT_ROSTER`, out of the gate-2
+repeat and out of the gate-3 projection. The comment now says ~$26 is the
+scoring cost *given a harvested corpus*, and that the corpus exists because of
+that sweep.
+
+The general lesson, which is not resolved: a cost estimate that depends on
+stored data should say which data, because the data can be deleted by work that
+has no idea the estimate exists.
+
 ## 2. An API layer between the two halves
 
 A backend refactor breaks five frontend routes only because the frontend

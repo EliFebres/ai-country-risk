@@ -507,7 +507,21 @@ class TestNoRosterTermSurvivesForAnyCountry:
 # ---------------------------------------------------------------------------
 
 @pytest.fixture
-def ledger(monkeypatch):
+def frozen(monkeypatch):
+    """An in-memory stand-in for the `pilot-freeze` row of `run_ledger`.
+
+    Returned as a one-element list so a test can seed it (a pilot already
+    running) or read back what `freeze` pinned.
+    """
+    cell: list = [None]
+    monkeypatch.setattr(score.store, "read_frozen_versions", lambda: cell[0])
+    monkeypatch.setattr(score.store, "write_frozen_versions",
+                        lambda versions: cell.__setitem__(0, dict(versions)))
+    return cell
+
+
+@pytest.fixture
+def ledger(monkeypatch, frozen):
     """An in-memory stand-in for the snapshot rows of `run_ledger`."""
     rows = []
     monkeypatch.setattr(score.store, "write_run",
@@ -562,6 +576,70 @@ class TestTheDiagnosticArmsStayOutOfTheSeries:
 
     def test_every_diagnostic_mode_is_a_known_mode(self):
         assert set(config.DIAGNOSTIC_MODES) < set(config.SCORING_MODES)
+
+
+# ---------------------------------------------------------------------------
+# The version freeze — a resume across a masking change is two series
+# ---------------------------------------------------------------------------
+
+class TestTheVersionFreeze:
+    """Scoring a decade takes days and many restarts. If masking, the prompt or
+    the evidence contract moves between two of them, the rows on either side are
+    not the same measurement — and nothing about the result looks wrong. The
+    manifests carried the versions all along; what was missing was a reader."""
+
+    def test_the_first_run_pins_the_set(self, frozen):
+        state = score.freeze()
+        assert state["first"] and not state["moved"]
+        assert frozen[0]["MASK_MAP_VERSION"] == gz.MASK_MAP_VERSION
+
+    def test_an_unmoved_set_resumes(self, frozen):
+        score.freeze()
+        state = score.freeze()
+        assert not state["first"] and not state["moved"]
+
+    def test_a_moved_version_refuses_the_resume(self, frozen, monkeypatch):
+        score.freeze()
+        monkeypatch.setattr(gz, "MASK_MAP_VERSION", "g99")
+        with pytest.raises(score.VersionDrift, match="MASK_MAP_VERSION"):
+            score.freeze()
+
+    def test_the_override_proceeds_and_re_pins(self, frozen, monkeypatch):
+        score.freeze()
+        monkeypatch.setattr(gz, "MASK_MAP_VERSION", "g99")
+        state = score.freeze(override=True)
+        assert state["moved"]["MASK_MAP_VERSION"] == ("g5", "g99")
+        # Re-pinned, or the next resume refuses again for a move already
+        # acknowledged — which teaches the operator to pass the flag by reflex,
+        # and a guard that is always overridden guards nothing.
+        assert frozen[0]["MASK_MAP_VERSION"] == "g99"
+        assert not score.freeze()["moved"]
+
+    def test_it_refuses_before_a_single_snapshot_is_scored(
+            self, ledger, scored, frozen, monkeypatch):
+        """Before anything is spent, and before any row joins the series."""
+        score.freeze()
+        monkeypatch.setattr(gz, "MASK_MAP_VERSION", "g99")
+        with pytest.raises(score.VersionDrift):
+            score.run(roster=["PT"], start=MONDAY, end=MONDAY, mode="masked")
+        assert not scored and not ledger
+
+    @pytest.mark.parametrize("field", score.FROZEN_FIELDS)
+    def test_every_frozen_field_is_actually_populated(self, field):
+        """A field that is always None compares equal to itself forever and
+        silently drops out of the guard."""
+        assert score.versions()[field]
+
+    def test_the_git_sha_is_recorded_and_not_compared(self, frozen):
+        """A deliberate narrowing of "refuses if any moved". The pilot is
+        committed to while it runs, so a docs commit would refuse every resume
+        and the override would be passed daily — which is how a guard stops
+        being one. The six versions only move when the instrument does."""
+        assert "git_sha" in score.versions()
+        assert "git_sha" not in score.FROZEN_FIELDS
+        moved = score.drift({**score.versions(), "git_sha": "0" * 40},
+                            score.versions())
+        assert moved == {}
 
 
 # ---------------------------------------------------------------------------

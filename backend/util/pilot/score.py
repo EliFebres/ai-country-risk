@@ -29,18 +29,139 @@ costs that week.
 
 import datetime
 import logging
+import os
+import pathlib
 import random
-from typing import Any, Dict, List, Optional
+import subprocess
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 
 from backend.util import pipeline
 from backend.data_upsert import store
 from backend.news_fetching import snapshot_select
-from backend.llm import usage
-from backend.util import config
+from backend.llm import constants as llm_constants
+from backend.llm import gazetteer, rewrite, usage
+from backend.util import config, provenance
 
 logger = logging.getLogger(__name__)
+
+
+# --- the version freeze -----------------------------------------------------
+# A ten-year series assembled across a masking change is two series wearing one
+# name, and the damage is invisible: every row still scores, every row still
+# carries its own manifest, and only somebody diffing manifests across the join
+# would ever notice. The manifests were already being written — what was missing
+# was anything that *reads* them, which is the same failure as the WEO loader
+# writing rows nothing consumed and the probe whose result survived only in a
+# commit message. A stamp nobody checks is a comment.
+
+# The six versions that decide what the model sees or how an answer is cached.
+# `git_sha` is recorded beside them and deliberately not one of them — see
+# `drift`.
+FROZEN_FIELDS: Tuple[str, ...] = (
+    "SWEEP_VERSION", "REWRITE_VERSION", "GAZETTEER_VERSION",
+    "MASK_MAP_VERSION", "PROMPT_VERSION", "PAYLOAD_VERSION",
+)
+
+
+class VersionDrift(RuntimeError):
+    """A frozen version moved. Resuming would blend two instruments."""
+
+
+def git_sha() -> Optional[str]:
+    """The commit this run is on: ``GIT_SHA`` if set, else ask git.
+
+    ``provenance`` reads the environment variable and documents that it never
+    shells out, because it is a pure module and a manifest must be rebuildable
+    without a working tree. Nothing ever *set* the variable, so every manifest
+    written so far records ``None`` — the stamp existed and was always empty.
+    Resolving it here and exporting it from `run.main` fixes that for every
+    manifest at once without costing `provenance` its purity.
+    """
+    if os.environ.get("GIT_SHA"):
+        return os.environ["GIT_SHA"]
+    try:
+        return subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=pathlib.Path(__file__).resolve().parents[3],
+            capture_output=True, text=True, timeout=10, check=True,
+        ).stdout.strip() or None
+    except (OSError, subprocess.SubprocessError):
+        return None
+
+
+def versions() -> Dict[str, str]:
+    """What this process would score under, read from where each version lives."""
+    return {
+        "SWEEP_VERSION": rewrite.SWEEP_VERSION,
+        "REWRITE_VERSION": rewrite.REWRITE_VERSION,
+        "GAZETTEER_VERSION": gazetteer.GAZETTEER_VERSION,
+        "MASK_MAP_VERSION": gazetteer.MASK_MAP_VERSION,
+        "PROMPT_VERSION": llm_constants.PROMPT_VERSION,
+        "PAYLOAD_VERSION": provenance.PAYLOAD_VERSION,
+        "git_sha": git_sha() or "",
+    }
+
+
+def drift(frozen: Dict[str, str], current: Dict[str, str]) -> Dict[str, tuple]:
+    """Which frozen fields moved, as ``{field: (frozen, current)}``. Pure.
+
+    ``git_sha`` is recorded and never compared, and that is a deliberate
+    narrowing of "refuses to resume if any moved". The pilot runs for days and
+    is committed to while it runs — a docs commit would refuse the resume, the
+    override flag would be passed on every restart within a day, and a guard
+    that is always overridden catches nothing. The six versions only move when
+    masking, the prompt or the evidence contract move, which is exactly the
+    change that must not happen mid-series. The SHA is reported instead, so a
+    resume across a code change is visible without being blocked.
+    """
+    return {field: (frozen.get(field), current.get(field))
+            for field in FROZEN_FIELDS
+            if frozen.get(field) != current.get(field)}
+
+
+def freeze(override: bool = False) -> Dict[str, Any]:
+    """Pin the version set on the first run; guard every resume after it.
+
+    Args:
+        override: proceed across a drift, recording the new set as the frozen
+            one so the drift is written down rather than merely tolerated.
+
+    Returns:
+        ``{versions, first, moved, sha_moved}``.
+
+    Raises:
+        VersionDrift: a frozen field moved and ``override`` is False.
+    """
+    current = versions()
+    frozen = store.read_frozen_versions()
+    if not frozen:
+        store.write_frozen_versions(current)
+        logger.info("[freeze] pinned %s at %s", FROZEN_FIELDS, current.get("git_sha"))
+        return {"versions": current, "first": True, "moved": {}, "sha_moved": False}
+
+    moved = drift(frozen, current)
+    sha_moved = bool(frozen.get("git_sha")) and frozen["git_sha"] != current["git_sha"]
+    if sha_moved:
+        logger.warning("[freeze] git sha moved %s -> %s; versions held, continuing",
+                       (frozen.get("git_sha") or "")[:8], (current["git_sha"] or "")[:8])
+    if not moved:
+        return {"versions": current, "first": False, "moved": {},
+                "sha_moved": sha_moved}
+
+    detail = "; ".join(f"{f}: {was!r} -> {now!r}" for f, (was, now) in moved.items())
+    if not override:
+        raise VersionDrift(
+            f"{len(moved)} frozen version(s) moved since this pilot started — "
+            f"{detail}. Rows scored before and after are not the same "
+            f"measurement. Re-run with --override-version-drift to continue "
+            f"deliberately, which re-pins the set and records the move."
+        )
+    logger.warning("[freeze] proceeding across drift by override — %s", detail)
+    store.write_frozen_versions(current)
+    return {"versions": current, "first": False, "moved": moved,
+            "sha_moved": sha_moved}
 
 
 def anchors(start: datetime.date, end: datetime.date) -> List[datetime.date]:
@@ -145,7 +266,8 @@ def run(roster: Optional[List[str]] = None,
         start: Optional[datetime.date] = None,
         end: Optional[datetime.date] = None,
         mode: str = "masked",
-        dates: Optional[Dict[str, List[datetime.date]]] = None) -> Dict[str, Any]:
+        dates: Optional[Dict[str, List[datetime.date]]] = None,
+        override_version_drift: bool = False) -> Dict[str, Any]:
     """Score a roster across a date range, resumably and inside the budget.
 
     Args:
@@ -155,12 +277,20 @@ def run(roster: Optional[List[str]] = None,
         dates: explicit per-country anchors, overriding ``start``/``end``. This
             is how the diagnostic arms run — they score a chosen dozen dates
             rather than a range.
+        override_version_drift: continue across a moved version, deliberately.
 
     Returns:
         ``{scored, skipped, failed, spend_usd}``.
+
+    Raises:
+        ValueError: on an unknown mode.
+        VersionDrift: a frozen version moved. Before anything is scored and
+            before anything is spent, because the whole point is to not add
+            rows to a series that has already stopped being one series.
     """
     if mode not in config.SCORING_MODES:
         raise ValueError(f"mode must be one of {config.SCORING_MODES}, got {mode!r}")
+    freeze(override=override_version_drift)
 
     roster = roster or list(config.PILOT_ROSTER)
     start = start or datetime.date.fromisoformat(config.PILOT_START)
