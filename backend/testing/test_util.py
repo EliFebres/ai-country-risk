@@ -15,6 +15,8 @@ No network, no database, no clock: every store is passed in.
 """
 
 import datetime as _dt
+import json
+import os
 import inspect
 import math
 from datetime import date, datetime, timedelta, timezone
@@ -25,6 +27,7 @@ from backend.main import _every, _weekly
 from backend.llm import payload as dr
 from backend.util import market_hours
 from backend.util import lint, metrics
+from backend.util.tools import bakeoff
 
 AS_OF = _dt.date(2026, 7, 27)
 
@@ -560,3 +563,254 @@ class TestTheScheduler:
         now = utc(2026, 7, 28)
         assert _every(30)(now - timedelta(days=29, hours=23), now) is False
         assert _every(30)(now - timedelta(days=30), now) is True
+
+
+def bakeoff_rows(scores, *, flags=None, lint_rules=None, start="2019-01-07"):
+    """Candidate-file rows over consecutive Mondays, one score each.
+
+    The ledger scores track the composite so a test about `score` does not have
+    to restate four more numbers; tests that care about the ledgers set them.
+    """
+    first = date.fromisoformat(start)
+    rows = []
+    for i, value in enumerate(scores):
+        rows.append({
+            "as_of": (first + timedelta(weeks=i)).isoformat(),
+            "status": "complete",
+            "llm_score": value,
+            "score_3m": value,
+            "ledger_scores": {"friction": value, "order_uncertainty": value,
+                              "information_capacity": value, "edge_vitality": value},
+            "condition_flags": dict(flags or {}),
+            "lint": [{"rule": r} for r in (lint_rules or [])],
+        })
+    return rows
+
+
+class TestRankCorrelationIsTheMeter:
+    """A constant offset is survivable; a reordering is not.
+
+    The whole bake-off turns on telling those apart, and a mean shift cannot:
+    a candidate that adds 0.1 to every week and one that shuffles the year
+    both report "different from the baseline" under a difference of means. So
+    the two cases are asserted against each other rather than in isolation.
+    """
+
+    def test_a_constant_offset_keeps_perfect_rank_and_shows_a_level_shift(self):
+        base = bakeoff_rows([0.10, 0.25, 0.40, 0.55, 0.70])
+        offset = bakeoff_rows([0.20, 0.35, 0.50, 0.65, 0.80])
+        left = bakeoff._series(base, "llm_score")
+        right = bakeoff._series(offset, "llm_score")
+
+        assert bakeoff.rank_correlation(left, right)["spearman"] == 1.0
+        assert bakeoff.rank_correlation(left, right)["kendall"] == 1.0
+        moved = bakeoff.shift(left, right)
+        assert moved["signed_mean"] == pytest.approx(0.10)
+        assert moved["abs_mean"] == pytest.approx(0.10)
+
+    def test_a_reversed_series_reorders_completely(self):
+        base = bakeoff_rows([0.10, 0.25, 0.40, 0.55, 0.70])
+        reversed_ = bakeoff_rows([0.70, 0.55, 0.40, 0.25, 0.10])
+        got = bakeoff.rank_correlation(bakeoff._series(base, "llm_score"),
+                                       bakeoff._series(reversed_, "llm_score"))
+        assert got["spearman"] == -1.0
+        assert got["kendall"] == -1.0
+        # And the level says nothing: the mean is identical either way, which is
+        # exactly why rank correlation is read first.
+        moved = bakeoff.shift(bakeoff._series(base, "llm_score"),
+                              bakeoff._series(reversed_, "llm_score"))
+        assert moved["signed_mean"] == pytest.approx(0.0)
+        assert moved["abs_mean"] > 0.2
+
+    def test_opposite_weeks_cannot_average_into_a_clean_zero(self):
+        """`reports.divergence` makes the same argument in the same words."""
+        base = bakeoff_rows([0.40, 0.40, 0.40, 0.40])
+        mixed = bakeoff_rows([0.60, 0.20, 0.60, 0.20])
+        moved = bakeoff.shift(bakeoff._series(base, "llm_score"),
+                              bakeoff._series(mixed, "llm_score"))
+        assert moved["signed_mean"] == pytest.approx(0.0)
+        assert moved["abs_mean"] == pytest.approx(0.20)
+        assert moved["max_abs"] == pytest.approx(0.20)
+
+    def test_an_unmeasurable_correlation_is_none_and_never_nan(self):
+        """pandas returns NaN for a constant series, and NaN formats as a number."""
+        flat = bakeoff_rows([0.4, 0.4, 0.4, 0.4])
+        varied = bakeoff_rows([0.1, 0.2, 0.3, 0.4])
+        got = bakeoff.rank_correlation(bakeoff._series(flat, "llm_score"),
+                                       bakeoff._series(varied, "llm_score"))
+        assert got["spearman"] is None and got["kendall"] is None
+        assert got["n"] == 4
+
+        two = bakeoff.rank_correlation({"a": 0.1, "b": 0.2}, {"a": 0.3, "b": 0.4})
+        assert two["spearman"] is None
+        assert two["n"] == 2
+
+    def test_an_anchor_only_one_side_scored_is_dropped_from_the_pair(self):
+        left = {"a": 0.1, "b": 0.2, "c": None, "d": 0.4}
+        right = {"a": 0.2, "b": 0.3, "c": 0.5, "e": 0.9}
+        assert bakeoff.rank_correlation(left, right)["n"] == 2
+        assert bakeoff.shift(left, right)["n"] == 2
+
+    def test_kendall_is_tie_corrected(self):
+        """tau-b, not tau-a: the ledgers are integers on a 0-100 grid.
+
+        Under tau-a a tie counts against the numerator's denominator and two
+        series that agree perfectly report a ceiling below 1.0 — which would
+        read as disagreement on exactly the metric with the coarsest scale.
+        """
+        # C=5, D=0, one tie on the left: 5 / sqrt(6*5).
+        assert bakeoff._kendall_tau_b([1, 2, 2, 3], [1, 2, 3, 4]) == \
+            pytest.approx(5 / (30 ** 0.5))
+        assert bakeoff._kendall_tau_b([1, 2, 3], [1, 2, 3]) == pytest.approx(1.0)
+        assert bakeoff._kendall_tau_b([1, 2, 3], [3, 2, 1]) == pytest.approx(-1.0)
+        # Tied on both sides everywhere: nothing to correlate, and None says so.
+        assert bakeoff._kendall_tau_b([1, 1, 1], [2, 2, 2]) is None
+
+class TestTheBandsAreThePromptsOwn:
+    """Calibration is judged on the bands the model was told about."""
+
+    @pytest.mark.parametrize("score, expected", [
+        (0.00, "Low"), (0.12, "Low"), (0.199, "Low"),
+        (0.20, "Low-Moderate"), (0.399, "Low-Moderate"),
+        (0.40, "Moderate"), (0.58, "Moderate"), (0.749, "Moderate"),
+        (0.75, "High"), (0.899, "High"),
+        (0.90, "Extreme"), (1.00, "Extreme"),
+    ])
+    def test_the_boundaries_are_lower_inclusive(self, score, expected):
+        assert bakeoff.band(score) == expected
+
+    def test_an_unscored_anchor_has_no_band(self):
+        assert bakeoff.band(None) is None
+
+    def test_the_matrix_keeps_its_shape_when_a_band_is_empty(self):
+        """A 5x5 that silently becomes 3x3 is a different plot every run."""
+        base = bakeoff_rows([0.10, 0.30, 0.50])
+        same = bakeoff_rows([0.10, 0.30, 0.50])
+        matrix = bakeoff.band_matrix(bakeoff._series(base, "llm_score"),
+                                     bakeoff._series(same, "llm_score"))
+        labels = [b[0] for b in bakeoff.BANDS]
+        assert list(matrix) == labels
+        assert all(list(row) == labels for row in matrix.values())
+        assert matrix["Low"]["Low"] == 1
+        assert matrix["Moderate"]["Moderate"] == 1
+        assert matrix["Extreme"]["Extreme"] == 0
+
+    def test_an_offset_lands_off_the_diagonal_in_one_direction(self):
+        base = bakeoff_rows([0.10, 0.15, 0.18])
+        hotter = bakeoff_rows([0.25, 0.30, 0.35])
+        matrix = bakeoff.band_matrix(bakeoff._series(base, "llm_score"),
+                                     bakeoff._series(hotter, "llm_score"))
+        assert matrix["Low"]["Low-Moderate"] == 3
+        assert matrix["Low"]["Low"] == 0
+
+
+class TestTheObservationOnlyFlags:
+    """Per flag, because the flags are not equivalent.
+
+    `war_on_territory` is false on every PT week in 2019 and agreeing about it
+    is nearly free; `sovereign_stress` is the one a model reading the prompt as
+    instructions would start moving. A single mean hides which happened.
+    """
+
+    def test_agreement_is_reported_per_flag(self):
+        base = {"d1": {"war_on_territory": False, "sovereign_stress": False},
+                "d2": {"war_on_territory": False, "sovereign_stress": False}}
+        cand = {"d1": {"war_on_territory": False, "sovereign_stress": True},
+                "d2": {"war_on_territory": False, "sovereign_stress": False}}
+        got = bakeoff.flag_agreement(base, cand)
+        assert got["war_on_territory"]["agreement"] == 1.0
+        assert got["sovereign_stress"]["agreement"] == 0.5
+
+    def test_a_flag_neither_side_reported_is_none_not_perfect(self):
+        got = bakeoff.flag_agreement({"d1": {}}, {"d1": {}})
+        assert got["emergency_rule"] == {"n": 0, "agreement": None}
+
+
+class TestTheCostSummary:
+    """A provider that reports no cache detail must not read as a 0% hit rate."""
+
+    def test_an_unreported_cache_share_is_none(self):
+        rows = [{"as_of": "2019-01-07", "status": "complete", "spend_usd": 0.01,
+                 "input_tokens": 1000, "output_tokens": 100, "cached_tokens": None,
+                 "utc_hour": 12}]
+        assert bakeoff.cost_summary(rows)["cache_share"] is None
+
+    def test_a_measured_cache_share_is_a_fraction_of_input(self):
+        rows = [{"as_of": "2019-01-07", "status": "complete", "spend_usd": 0.01,
+                 "input_tokens": 1000, "output_tokens": 100, "cached_tokens": 800,
+                 "utc_hour": 12}]
+        assert bakeoff.cost_summary(rows)["cache_share"] == 0.8
+
+    def test_empty_and_failed_anchors_do_not_dilute_the_per_snapshot_cost(self):
+        rows = [{"as_of": "2019-01-07", "status": "complete", "spend_usd": 0.02,
+                 "input_tokens": 100, "output_tokens": 10, "cached_tokens": 0,
+                 "utc_hour": 12},
+                {"as_of": "2019-01-14", "status": "empty", "llm_score": None},
+                {"as_of": "2019-01-21", "status": "failed", "spend_usd": 0.0}]
+        got = bakeoff.cost_summary(rows)
+        assert got["snapshots"] == 1
+        assert got["per_snapshot_usd"] == pytest.approx(0.02)
+
+    def test_a_projection_says_nothing_when_nothing_was_measured(self):
+        assert bakeoff.projection(None) == {"pilot_usd": None, "backfill_usd": None}
+        assert bakeoff.projection(0.01)["pilot_usd"] == pytest.approx(20.92)
+
+
+class TestTheComparisonNamesWhatItCouldNotMatch:
+    """"Not measured" and "no change" are different answers, per `probe.compare`."""
+
+    def test_anchors_on_only_one_side_are_listed_rather_than_dropped(self):
+        base = bakeoff_rows([0.1, 0.2, 0.3])
+        short = bakeoff_rows([0.1, 0.2])
+        got = bakeoff.compare_one(base, short)
+        assert got["n_baseline"] == 3 and got["n_candidate"] == 2
+        assert got["only_baseline"] == ["2019-01-21"]
+        assert got["only_candidate"] == []
+        assert got["metrics"]["llm_score"]["n"] == 2
+
+    def test_every_metric_is_reported_including_the_counter_intuitive_ledgers(self):
+        got = bakeoff.compare_one(bakeoff_rows([0.1, 0.2, 0.3]),
+                                  bakeoff_rows([0.1, 0.2, 0.3]))
+        assert set(got["metrics"]) == set(bakeoff.METRICS)
+        assert "information_capacity" in got["metrics"]
+        assert "edge_vitality" in got["metrics"]
+
+    def test_a_rule_firing_on_one_side_only_is_visible(self):
+        base = bakeoff_rows([0.1, 0.2], lint_rules=["war_flag_without_score_floor"])
+        cand = bakeoff_rows([0.1, 0.2])
+        got = bakeoff.compare_one(base, cand)
+        assert got["lint"]["war_flag_without_score_floor"] == {"baseline": 2,
+                                                              "candidate": 0}
+
+
+class TestTheEnvironmentIsRestored:
+    """A sweep must not let the second candidate inherit the first's endpoint."""
+
+    def test_a_candidates_endpoint_is_set_and_then_put_back(self, monkeypatch):
+        monkeypatch.setenv("MINIMAX_API_KEY", "mm-key")
+        monkeypatch.delenv("SCORING_MODEL", raising=False)
+        monkeypatch.setenv("SCORING_BASE_URL", "https://pre-existing.example/v1")
+
+        with bakeoff.candidate_env("minimax-m3") as env:
+            assert env["SCORING_MODEL"] == "MiniMax-M3"
+            assert os.environ["SCORING_API_KEY"] == "mm-key"
+            assert os.environ["SCORING_BASE_URL"] == "https://api.minimax.io/v1"
+
+        assert "SCORING_MODEL" not in os.environ
+        assert "SCORING_API_KEY" not in os.environ
+        assert os.environ["SCORING_BASE_URL"] == "https://pre-existing.example/v1"
+
+    def test_a_missing_vendor_key_raises_before_anything_is_set(self, monkeypatch):
+        monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+        monkeypatch.delenv("SCORING_MODEL", raising=False)
+        with pytest.raises(bakeoff.MissingKey, match="DEEPSEEK_API_KEY"):
+            with bakeoff.candidate_env("deepseek-v4-pro"):
+                pass
+        assert "SCORING_MODEL" not in os.environ
+
+    def test_the_deepseek_candidates_pin_thinking_off(self):
+        """Reasoning tokens bill as output; an unpinned run prices a fiction."""
+        for name in ("deepseek-v4-pro", "deepseek-v4-flash"):
+            spec = bakeoff.CANDIDATES[name]
+            body = next(v for k, v in spec["env"].items() if k.endswith("_EXTRA_BODY"))
+            assert json.loads(body) == {"thinking": {"type": "disabled"}}
