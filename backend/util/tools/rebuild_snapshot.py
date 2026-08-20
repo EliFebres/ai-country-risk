@@ -109,7 +109,7 @@ def rebuild(iso2: str, as_of: datetime.date, items: list = None) -> dict:
     return provenance.build_input_manifest(
         items=scored, prompt_entries=langchain_llm.prompt_entries(scored),
         fulltext_ids=fulltext_ids, payload=panel,
-        model_id=ai_client.MODEL_NAME, prompt_version=None, policy_version=None,
+        model_id=ai_client.scoring_model(), prompt_version=None, policy_version=None,
         seed=ai_client.SEED,
         masking={"scoring_mode": "masked",
                  "mask_map_version": gazetteer.MASK_MAP_VERSION,

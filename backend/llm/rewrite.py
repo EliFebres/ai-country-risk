@@ -189,12 +189,28 @@ it a headline.
 # is what actually satisfies the invariant: a row records the full masking
 # behaviour that produced it, while each cache invalidates on exactly the change
 # that affects it and no other.
+#
+# **The model is in the hash**, and was not until now. Both prompts hashed their
+# own text and schema and nothing else, so the key recorded which *instructions*
+# produced a row and never which *model* obeyed them. Point the stage-1 builder
+# somewhere else and every previously rewritten body comes back as a hit,
+# produced by the old model, with the manifest reporting the same
+# `rewrite_version` either way — two masking behaviours under one label, which is
+# the exact defect the paragraphs above were written about. It survived only
+# because the model had never moved, and the bake-off is what would move it.
+#
+# `DIGEST_MODEL_NAME` rather than `client.digest_model()`: these two passes are
+# pinned to the constant on purpose (see `client.build_digest_chat`), so hashing
+# the constant is hashing what they will actually use, and it keeps the version a
+# module constant rather than something that can change under a running process.
 SWEEP_VERSION = hashlib.sha256(
-    (_DIGEST_SWEEP_PROMPT + "\x00".join(_DIGEST_SWEEP_FIELDS)).encode("utf-8")
+    (_DIGEST_SWEEP_PROMPT + "\x00".join(_DIGEST_SWEEP_FIELDS)
+     + "\x00" + ai_client.DIGEST_MODEL_NAME).encode("utf-8")
 ).hexdigest()[:8]
 
 REWRITE_VERSION = hashlib.sha256(
-    (_REWRITE_PROMPT + json.dumps(_REWRITE_SCHEMA, sort_keys=True)).encode("utf-8")
+    (_REWRITE_PROMPT + json.dumps(_REWRITE_SCHEMA, sort_keys=True)
+     + "\x00" + ai_client.DIGEST_MODEL_NAME).encode("utf-8")
 ).hexdigest()[:8]
 
 

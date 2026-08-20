@@ -234,7 +234,7 @@ def _failure_result() -> Dict[str, object]:
         "applied_rules": [],
         "legal_gate": None,
         "non_investable": False,
-        "model_id": ai_client.MODEL_NAME,
+        "model_id": ai_client.scoring_model(),
         "prompt_version": ai_constants.PROMPT_VERSION,
         "policy_version": policy.POLICY_VERSION,
     }
@@ -437,7 +437,7 @@ def country_llm_score(
         "applied_rules": investability.applied_rules,
         "legal_gate": investability.legal_gate,
         "non_investable": investability.non_investable,
-        "model_id": ai_client.MODEL_NAME,
+        "model_id": ai_client.scoring_model(),
         "prompt_version": ai_constants.PROMPT_VERSION,
         "policy_version": policy.POLICY_VERSION,
     }

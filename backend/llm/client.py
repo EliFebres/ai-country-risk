@@ -4,9 +4,18 @@ Single source for the model name and the deterministic-scoring settings
 (temperature 0, fixed seed, no client-side retries — the callers degrade
 gracefully on failure instead of retrying). Before this module existed the
 model name lived in three call sites and one of them silently disagreed.
+
+Two models, and each is reachable at a different endpoint, because a bake-off
+needs a candidate scorer and the incumbent stage-1 model alive in one process.
+The environment is consulted per endpoint and every variable falls back to the
+literal beside it, so an unset environment is byte-identical to the behaviour
+before any of this existed. That is the property the daily run is owed: nobody
+running `main.py` should be able to tell that a comparison harness exists.
 """
 
-from typing import Any, Optional
+import json
+import os
+from typing import Any, Dict, Optional
 
 from langchain_openai import ChatOpenAI
 
@@ -25,15 +34,87 @@ DIGEST_MODEL_NAME = "gpt-4o-mini-2024-07-18"
 SEED = 42
 
 
+def scoring_model() -> str:
+    """The scoring model actually in force, environment override included.
+
+    Read rather than imported by anything that stamps a version, so a manifest
+    and a freeze record what the call used and not what the file says.
+    """
+    return os.getenv("SCORING_MODEL") or MODEL_NAME
+
+
+def digest_model() -> str:
+    """The *article digest* model in force, environment override included.
+
+    Deliberately narrower than it sounds. Four other callers build a stage-1
+    client — the body rewrite, the digest sweep, the identifiability probe and
+    the Wayback leakage scan — and every one of them is part of the masking
+    instrument rather than of the digest. They stay on :data:`DIGEST_MODEL_NAME`
+    whatever the environment says, so measuring a cheaper digest model cannot
+    silently move the thing masking is judged on.
+    """
+    return os.getenv("DIGEST_MODEL") or DIGEST_MODEL_NAME
+
+
+def _chat(model: str, api_key: str, *, prefix: str,
+          max_tokens: Optional[int] = None) -> ChatOpenAI:
+    """One ChatOpenAI, built the deterministic way, at ``prefix``'s endpoint.
+
+    Args:
+        prefix: which environment quad to consult — ``SCORING`` or ``DIGEST``.
+            ``{prefix}_MODEL``, ``_BASE_URL``, ``_API_KEY`` and ``_EXTRA_BODY``
+            all fall back to the OpenAI defaults, so an unset environment
+            reaches OpenAI with the key the caller passed, exactly as before.
+
+    ``_EXTRA_BODY`` is a JSON object of provider-specific request fields, and it
+    lives in the environment rather than in a parameter because the call sites
+    that would have to thread it — ``country_llm_score``, ``digest_articles`` —
+    have no business knowing which vendor they are talking to. Its one use so
+    far is DeepSeek's ``{"thinking": {"type": "disabled"}}``, where reasoning
+    tokens bill as output: a pin that silently failed to apply would not error,
+    it would just quietly cost several times the quoted price and report the
+    wrong per-snapshot number. So malformed JSON raises here rather than being
+    dropped.
+
+    Raises:
+        ValueError: ``{prefix}_EXTRA_BODY`` is set and is not a JSON object.
+    """
+    kwargs: Dict[str, Any] = {
+        "model": model,
+        "temperature": 0.0,
+        "max_retries": 0,
+        "api_key": os.getenv(prefix + "_API_KEY") or api_key,
+        "seed": SEED,
+    }
+    base_url = os.getenv(prefix + "_BASE_URL")
+    if base_url:
+        kwargs["base_url"] = base_url
+    if max_tokens is not None:
+        kwargs["max_tokens"] = max_tokens
+    extra_body = _extra_body(prefix)
+    if extra_body:
+        kwargs["extra_body"] = extra_body
+    return ChatOpenAI(**kwargs)
+
+
+def _extra_body(prefix: str) -> Optional[Dict[str, Any]]:
+    """``{prefix}_EXTRA_BODY`` parsed, or None. Raises rather than ignoring."""
+    raw = os.getenv(prefix + "_EXTRA_BODY")
+    if not raw:
+        return None
+    try:
+        parsed = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"{prefix}_EXTRA_BODY is not valid JSON: {exc}") from exc
+    if not isinstance(parsed, dict):
+        raise ValueError(f"{prefix}_EXTRA_BODY must be a JSON object, "
+                         f"got {type(parsed).__name__}")
+    return parsed
+
+
 def build_chat(api_key: str) -> ChatOpenAI:
     """A ChatOpenAI configured for deterministic, non-retrying scoring calls."""
-    return ChatOpenAI(
-        model=MODEL_NAME,
-        temperature=0.0,
-        max_retries=0,
-        api_key=api_key,
-        seed=SEED,
-    )
+    return _chat(scoring_model(), api_key, prefix="SCORING")
 
 
 # What a digest can legitimately need. The schema is five short strings and a
@@ -68,15 +149,28 @@ _REWRITE_MAX_TOKENS_CEILING = 8192
 
 def build_digest_chat(api_key: str,
                       max_tokens: int = _DIGEST_MAX_TOKENS) -> ChatOpenAI:
-    """A ChatOpenAI for deterministic, non-retrying stage-1 calls."""
-    return ChatOpenAI(
-        model=DIGEST_MODEL_NAME,
-        temperature=0.0,
-        max_retries=0,
-        api_key=api_key,
-        seed=SEED,
-        max_tokens=max_tokens,
-    )
+    """A ChatOpenAI for the stage-1 calls that are part of *masking*.
+
+    Pinned to :data:`DIGEST_MODEL_NAME` and to OpenAI, with no environment
+    override, because the rewrite, the sweep, the probe and the leakage scan
+    are the instrument the masking claim rests on. Moving them is a change to
+    what the pilot is measuring, not a change to what it costs.
+    """
+    return ChatOpenAI(model=DIGEST_MODEL_NAME, temperature=0.0, max_retries=0,
+                      api_key=api_key, seed=SEED, max_tokens=max_tokens)
+
+
+def build_stage1_chat(api_key: str,
+                      max_tokens: int = _DIGEST_MAX_TOKENS) -> ChatOpenAI:
+    """A ChatOpenAI for the article digest, which a bake-off may point elsewhere.
+
+    The one stage-1 caller that follows ``DIGEST_MODEL`` / ``DIGEST_BASE_URL`` /
+    ``DIGEST_API_KEY``. Separate from :func:`build_digest_chat` by name rather
+    than by a flag, so a future caller has to decide which of the two it is
+    instead of inheriting an override it never asked for.
+    """
+    return _chat(digest_model(), api_key, prefix="DIGEST",
+                 max_tokens=max_tokens)
 
 
 def rewrite_max_tokens(text: str) -> int:

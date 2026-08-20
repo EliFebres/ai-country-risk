@@ -190,7 +190,7 @@ def digest_coverage(
     mode = "masked" if masked else "named"
     try:
         hits = content_cache.read_digest_cache(
-            sorted(set(missing)), ai_client.DIGEST_MODEL_NAME, mode)
+            sorted(set(missing)), ai_client.digest_model(), mode)
     except Exception as exc:  # noqa: BLE001 - an unreadable cache is a full miss
         logger.warning("[%s] digest cache read failed (%s); assuming no coverage",
                        iso2, exc)
@@ -281,7 +281,7 @@ def digest_articles(
     if content_cache is not None:
         try:
             hits = content_cache.read_digest_cache(
-                sorted(set(shas)), ai_client.DIGEST_MODEL_NAME, mode)
+                sorted(set(shas)), ai_client.digest_model(), mode)
         except Exception as exc:  # noqa: BLE001 - an unreadable cache is a miss
             logger.warning("[%s] digest cache read failed (%s); digesting everything",
                            iso2, exc)
@@ -313,7 +313,7 @@ def digest_articles(
                     mask_rule=ai_constants.DIGEST_MASK_RULE if masked else "")
                 for i in pending_idx
             ]
-            structured_llm = ai_client.build_digest_chat(api_key).with_structured_output(
+            structured_llm = ai_client.build_stage1_chat(api_key).with_structured_output(
                 schema=ai_constants.DIGEST_SCHEMA, strict=True
             )
             def _batch(prompt_list):
@@ -407,7 +407,7 @@ def digest_articles(
             if new_rows and content_cache is not None:
                 try:
                     content_cache.write_digest_cache(
-                        new_rows, ai_client.DIGEST_MODEL_NAME, mode)
+                        new_rows, ai_client.digest_model(), mode)
                 except Exception as exc:  # noqa: BLE001 - a cache write is not the work
                     logger.warning("[%s] digest cache write failed: %s", iso2, exc)
 

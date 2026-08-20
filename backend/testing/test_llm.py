@@ -16,6 +16,7 @@ and which came from a rule, and by then there is a year of history built on it.
 No network: every chat object is injected.
 """
 
+import importlib
 import inspect
 import json
 import pathlib
@@ -32,6 +33,7 @@ from backend.llm import langchain_llm as llm
 from backend.util import policy
 from backend.data_fetching import curated_loader
 from backend.util import config
+from backend.llm import client as ai_client
 from backend.llm import gazetteer, probe, rewrite
 
 AS_OF = date(2024, 5, 6)
@@ -1141,3 +1143,128 @@ class TestTheControlArm:
                    {"country_iso2": "PT",
                     "guess": {"country": "PT", "insufficient_information": False}}]
         assert probe.distribution(results)["insufficient_information"] == 1
+
+
+class TestTheInstrumentIsConfigurableAndVersioned:
+    """The scorer can be pointed elsewhere, and nothing can do it quietly.
+
+    Two properties, and the second is the one that matters. Pointing the client
+    at another vendor is a two-line change anybody could have made by editing a
+    constant; what did not exist was anything that *noticed*. The model was
+    absent from `FROZEN_FIELDS`, absent from both cache keys, and stamped into
+    every manifest from the literal rather than from the call — so a swapped
+    scorer resumed over the old rows, read the old rewrites, and signed them
+    with the old name.
+
+    The unset-environment case is asserted first and hardest, because the daily
+    run is owed byte-identical behaviour: nobody running `main.py` should be
+    able to tell that a comparison harness exists.
+    """
+
+    def test_unset_environment_is_todays_configuration(self, monkeypatch):
+        for name in ("SCORING_MODEL", "SCORING_BASE_URL", "SCORING_API_KEY",
+                     "SCORING_EXTRA_BODY", "DIGEST_MODEL", "DIGEST_BASE_URL",
+                     "DIGEST_API_KEY", "DIGEST_EXTRA_BODY"):
+            monkeypatch.delenv(name, raising=False)
+
+        scoring = ai_client.build_chat("a-key")
+        assert scoring.model_name == ai_client.MODEL_NAME
+        assert scoring.temperature == 0.0
+        assert scoring.max_retries == 0
+        assert scoring.seed == ai_client.SEED
+        assert scoring.openai_api_base is None
+
+        for build in (ai_client.build_digest_chat, ai_client.build_stage1_chat):
+            stage1 = build("a-key")
+            assert stage1.model_name == ai_client.DIGEST_MODEL_NAME
+            assert stage1.openai_api_base is None
+            assert stage1.seed == ai_client.SEED
+
+    def test_the_scoring_endpoint_follows_its_own_environment(self, monkeypatch):
+        monkeypatch.setenv("SCORING_MODEL", "some-candidate")
+        monkeypatch.setenv("SCORING_BASE_URL", "https://elsewhere.example/v1")
+        monkeypatch.setenv("SCORING_API_KEY", "candidate-key")
+        chat = ai_client.build_chat("openai-key")
+        assert chat.model_name == "some-candidate"
+        assert str(chat.openai_api_base) == "https://elsewhere.example/v1"
+        assert ai_client.scoring_model() == "some-candidate"
+
+    def test_a_digest_override_cannot_move_the_masking_instrument(self, monkeypatch):
+        """The whole reason `build_digest_chat` and `build_stage1_chat` are two.
+
+        One builder served the article digest *and* the body rewrite, the digest
+        sweep, the identifiability probe and the leakage scan. Measuring a
+        cheaper digest model through that builder would have swapped the four
+        masking passes as a side effect — and masking is the claim the pilot
+        rests on, not a line item.
+        """
+        monkeypatch.setenv("DIGEST_MODEL", "some-cheap-digest")
+        monkeypatch.setenv("DIGEST_BASE_URL", "https://elsewhere.example/v1")
+        monkeypatch.setenv("DIGEST_API_KEY", "candidate-key")
+
+        assert ai_client.build_stage1_chat("openai-key").model_name == "some-cheap-digest"
+        masking = ai_client.build_digest_chat("openai-key")
+        assert masking.model_name == ai_client.DIGEST_MODEL_NAME
+        assert masking.openai_api_base is None
+
+    def test_a_malformed_extra_body_raises_rather_than_being_dropped(self, monkeypatch):
+        """A thinking pin that silently fails costs money and misreports it.
+
+        DeepSeek bills reasoning tokens as output. A dropped
+        `{"thinking": {"type": "disabled"}}` does not error — it just returns a
+        correct answer at several times the quoted price, and the bake-off
+        reports that price as the candidate's.
+        """
+        monkeypatch.setenv("SCORING_EXTRA_BODY", "{not json")
+        with pytest.raises(ValueError, match="not valid JSON"):
+            ai_client.build_chat("a-key")
+
+        monkeypatch.setenv("SCORING_EXTRA_BODY", '["a", "list"]')
+        with pytest.raises(ValueError, match="must be a JSON object"):
+            ai_client.build_chat("a-key")
+
+    def test_extra_body_reaches_the_client(self, monkeypatch):
+        monkeypatch.setenv("SCORING_EXTRA_BODY", '{"thinking": {"type": "disabled"}}')
+        chat = ai_client.build_chat("a-key")
+        assert chat.extra_body == {"thinking": {"type": "disabled"}}
+
+    def test_both_masking_cache_versions_move_with_the_model(self, monkeypatch):
+        """The cache key said which instructions produced a row, never which model.
+
+        Both versions hashed their own prompt and schema and stopped there, so a
+        stage-1 model swap served every previously rewritten body back as a hit,
+        produced by the old model, with the manifest reporting the same
+        `rewrite_version` either way. Two masking behaviours under one label —
+        the exact defect the comment above those constants was written about,
+        surviving only because the model had never moved.
+        """
+        before = (rewrite.SWEEP_VERSION, rewrite.REWRITE_VERSION)
+        monkeypatch.setattr(ai_client, "DIGEST_MODEL_NAME", "a-different-model")
+        try:
+            reloaded = importlib.reload(rewrite)
+            assert reloaded.SWEEP_VERSION != before[0]
+            assert reloaded.REWRITE_VERSION != before[1]
+        finally:
+            monkeypatch.undo()
+            importlib.reload(rewrite)
+        assert (rewrite.SWEEP_VERSION, rewrite.REWRITE_VERSION) == before
+
+    def test_the_freeze_carries_the_model_and_the_seed(self, monkeypatch):
+        """`FROZEN_FIELDS` versioned the evidence and never the instrument."""
+        from backend.util.pilot import score as pilot_score
+
+        assert {"SCORING_MODEL", "DIGEST_MODEL", "SEED"} <= set(pilot_score.FROZEN_FIELDS)
+
+        monkeypatch.setenv("SCORING_MODEL", "some-candidate")
+        current = pilot_score.versions()
+        assert current["SCORING_MODEL"] == "some-candidate"
+        assert current["SEED"] == str(ai_client.SEED)
+
+        frozen = dict(current, SCORING_MODEL=ai_client.MODEL_NAME)
+        moved = pilot_score.drift(frozen, current)
+        assert moved == {"SCORING_MODEL": (ai_client.MODEL_NAME, "some-candidate")}
+
+    def test_the_manifest_stamps_the_model_that_answered(self, monkeypatch):
+        """Not the one the file names. `_failure_result` had the same bug."""
+        monkeypatch.setenv("SCORING_MODEL", "some-candidate")
+        assert llm._failure_result()["model_id"] == "some-candidate"

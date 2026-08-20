@@ -41,6 +41,7 @@ from backend.util import pipeline
 from backend.data_upsert import store
 from backend.news_fetching import snapshot_select
 from backend.llm import constants as llm_constants
+from backend.llm import client as ai_client
 from backend.llm import gazetteer, rewrite, usage
 from backend.util import config, provenance
 
@@ -56,12 +57,27 @@ logger = logging.getLogger(__name__)
 # writing rows nothing consumed and the probe whose result survived only in a
 # commit message. A stamp nobody checks is a comment.
 
-# The six versions that decide what the model sees or how an answer is cached.
-# `git_sha` is recorded beside them and deliberately not one of them — see
-# `drift`.
+# The versions that decide what the model sees, how an answer is cached, or who
+# answers. `git_sha` is recorded beside them and deliberately not one of them —
+# see `drift`.
+#
+# The last three were missing, and their absence was the largest hole in this
+# guard. Everything above them versions the *evidence*; nothing versioned the
+# *instrument*. `MODEL_NAME` was a module literal, so swapping the scorer
+# mid-pilot resumed over the old rows without a warning — the one change this
+# module exists to refuse, walking straight through it. `provenance` already
+# stamped `model_id` and `seed` on every row, so the drift was discoverable
+# afterwards by anyone who thought to diff manifests, and blocked by nothing.
+# That is the same shape as the probe result that survived only in a commit
+# message: measured, written down, and never read.
+#
+# `SEED` rides with them because it is part of the same claim. A run at a
+# different seed is not comparable with a stored one and says so in
+# `client.SEED`'s own comment; it simply had nowhere to be checked.
 FROZEN_FIELDS: Tuple[str, ...] = (
     "SWEEP_VERSION", "REWRITE_VERSION", "GAZETTEER_VERSION",
     "MASK_MAP_VERSION", "PROMPT_VERSION", "PAYLOAD_VERSION",
+    "SCORING_MODEL", "DIGEST_MODEL", "SEED",
 )
 
 
@@ -100,6 +116,12 @@ def versions() -> Dict[str, str]:
         "MASK_MAP_VERSION": gazetteer.MASK_MAP_VERSION,
         "PROMPT_VERSION": llm_constants.PROMPT_VERSION,
         "PAYLOAD_VERSION": provenance.PAYLOAD_VERSION,
+        # The effective ids, not the literals: an environment override is
+        # exactly the case this has to catch, and reading the constant would
+        # report the model the file names rather than the one that answered.
+        "SCORING_MODEL": ai_client.scoring_model(),
+        "DIGEST_MODEL": ai_client.digest_model(),
+        "SEED": str(ai_client.SEED),
         "git_sha": git_sha() or "",
     }
 
@@ -111,10 +133,10 @@ def drift(frozen: Dict[str, str], current: Dict[str, str]) -> Dict[str, tuple]:
     narrowing of "refuses to resume if any moved". The pilot runs for days and
     is committed to while it runs — a docs commit would refuse the resume, the
     override flag would be passed on every restart within a day, and a guard
-    that is always overridden catches nothing. The six versions only move when
-    masking, the prompt or the evidence contract move, which is exactly the
-    change that must not happen mid-series. The SHA is reported instead, so a
-    resume across a code change is visible without being blocked.
+    that is always overridden catches nothing. The frozen fields only move when
+    masking, the prompt, the evidence contract or the model move, which is
+    exactly the change that must not happen mid-series. The SHA is reported
+    instead, so a resume across a code change is visible without being blocked.
     """
     return {field: (frozen.get(field), current.get(field))
             for field in FROZEN_FIELDS
