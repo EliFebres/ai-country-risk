@@ -512,6 +512,109 @@ one a backfill will get.**
 
 ---
 
+## Finding: the cheapest model was the worst one, and a cost table would have hidden it
+
+`gpt-4.1-nano` costs **$0.0017 a snapshot against the incumbent's $0.0430** — one
+thirtieth. On a procurement slide it is the obvious answer, and it would take the
+48-country backfill from $1,079 to $35.
+
+It is the worst candidate in the set on every axis that matters.
+
+| | `gpt-4.1-nano` | reference |
+|---|---|---|
+| composite ρ | **0.240** | — |
+| `friction` ρ | **−0.228** *(ordered backwards)* | — |
+| `information_capacity` ρ | 0.121 | — |
+| `sovereign_stress` agreement | **0.462** | — |
+| worst same-input spread | **20 pt** | 0 pt |
+| band migration | 21 of 52 anchors moved to High, 3 to Extreme | — |
+
+Two of those deserve reading twice. **`friction` at −0.228 is not weak agreement,
+it is inverted** — the weeks it calls most frictional are, mildly, the ones the
+incumbent calls least. And **`sovereign_stress` agreement of 0.462 is worse than a
+coin flip** on a flag that is false on nearly every US 2019 week; a model that
+guessed "false" every time would have scored near 1.0.
+
+**How it would have been adopted.** Three of the four things that condemn it are
+invisible to the process that would normally pick a model:
+
+- **Price says buy it.** It is cheapest by 30×, and cost is the number that gets
+  into a decision document.
+- **The schema gate passes.** It holds `RISK_SCHEMA_V3` under strict structured
+  output, 10/10. A gate-based shortlist keeps it.
+- **A single-anchor noise measurement understates it 4×.** Measured on the
+  baseline payload alone it spreads 5 points, which looks tolerable and ranked it
+  second-best. Only the calm anchor — where it returned 30, 35, 38, 38, 40, 30,
+  **50**, 40, 30, 40 while `gpt-4o` returned 12 ten times out of ten — shows the
+  20-point swing.
+
+Only the rank correlation against a reference catches it, and that is the
+measurement nobody runs because it requires already having scored the window
+twice.
+
+**The transferable lesson:** a cheap model that passes your schema gate has
+demonstrated that it can *fill in your fields*. It has demonstrated nothing about
+whether it agrees with you. Those are different questions, and the cheap one is
+the one everybody measures.
+
+---
+
+## Finding: four of six meters printed `n=0` and the report looked healthy
+
+The first full comparison ran, rendered, and was read — with **four of its six
+rank-correlation meters blank**.
+
+`capture_baseline` reads `risk_snapshot.ledger_scores` and copies the column
+straight onto the row. That column is a JSONB holding *two* things:
+
+```json
+{"ledger_scores": {"friction": 0.38, ...}, "subscore_evidence": {...}}
+```
+
+while the candidate arm returns the four scores flat, off `llm_output`. So the
+baseline's ledgers sat one level too deep, every lookup found nothing, and
+`_paired` — correctly, by its own contract — dropped the `None` rather than
+raising.
+
+The output was this:
+
+```
+metric                    n  spearman   kendall    signed   |shift|   max|d|
+llm_score                52     0.377     0.297    -0.008     0.089    0.250
+score_3m                 52     0.433     0.358    -0.025     0.093    0.260
+friction                  0         —         —         —         —        —
+order_uncertainty         0         —         —         —         —        —
+information_capacity      0         —         —         —         —        —
+edge_vitality             0         —         —         —         —        —
+```
+
+**Nothing in that is an error.** `n=0` with an em dash is exactly what this
+codebase renders for "not measured", deliberately, so that an unmeasured pair and
+a perfectly agreeing one never look the same. The composite and `score_3m`
+populated correctly, so the table read as a working report with four metrics
+nobody had got round to filling in yet.
+
+It was caught only because the four ledgers had been asked for explicitly and
+their absence was noticed — not by any check.
+
+**Why it is worth a section.** This is the same failure the project has already
+found six times, in a seventh place: *a stamp that records what somebody wrote
+down rather than what actually happened.* The rendering convention that makes
+missing data honest also makes missing data quiet. An em dash tells you a number
+is absent; it cannot tell you the number was absent because of a bug.
+
+Two things follow, and the second is the general one:
+
+- The fix unwraps with `.get("ledger_scores", ledgers)` rather than a bare index,
+  so a future flat column does not start returning empty instead — and a test now
+  asserts `n` is not zero when both sides carry ledgers, which is the regression
+  itself rather than a proxy for it.
+- **A report that degrades gracefully needs something that does not.** Where
+  "absent" is a legitimate rendering, absence stops being a signal, and the check
+  has to live somewhere the renderer cannot swallow it.
+
+---
+
 ## Recommendation
 
 Two questions, deliberately separated. Conflating them is how a forced migration
