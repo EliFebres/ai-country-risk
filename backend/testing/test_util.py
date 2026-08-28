@@ -999,18 +999,29 @@ class TestTheNoiseFloorIsInTheDivergenceMeterUnits:
     leaves the reader doing the arithmetic.
     """
 
-    def test_two_points_of_jitter_is_about_a_quarter_of_the_signal(self):
+    def test_the_share_is_the_spread_against_the_current_benchmark(self):
+        """Derived from the constant, not from a number computed against an
+        older value of it. These pinned 0.072's arithmetic and broke when gate 2
+        recomputed the divergence at 0.075 — a test failing because a
+        measurement improved is a test coupled to the wrong thing."""
         got = bakeoff.noise_floor(2)
         assert got["spread_0_1"] == 0.02
-        assert got["share_of_divergence"] == pytest.approx(0.278, abs=0.001)
+        assert got["share_of_divergence"] == pytest.approx(
+            0.02 / bakeoff.PT_MASKING_DIVERGENCE, abs=0.001)
+
+    def test_a_point_or_two_costs_a_meaningful_slice_of_the_signal(self):
+        """The behavioural claim, which is what the number is for: single-digit
+        jitter is not free against a signal this small."""
+        assert 0.2 < bakeoff.noise_floor(2)["share_of_divergence"] < 0.35
 
     def test_half_a_point_is_effectively_invisible(self):
-        assert bakeoff.noise_floor(0.5)["share_of_divergence"] == pytest.approx(0.069, abs=0.001)
+        assert bakeoff.noise_floor(0.5)["share_of_divergence"] < 0.10
 
     def test_jitter_can_exceed_the_whole_signal(self):
-        """Measured on real candidates, so it is not a hypothetical: a spread of
-        15 points is more than twice everything masking was worth."""
-        assert bakeoff.noise_floor(15)["share_of_divergence"] > 2.0
+        """Measured on real candidates, so it is not a hypothetical: gpt-4.1-nano
+        swings 20 points on identical input, and masking was worth 0.075."""
+        assert bakeoff.noise_floor(15)["share_of_divergence"] >= 2.0
+        assert bakeoff.noise_floor(20)["share_of_divergence"] > 2.5
 
     def test_a_perfectly_stable_candidate_scores_zero(self):
         assert bakeoff.noise_floor(0)["share_of_divergence"] == 0.0

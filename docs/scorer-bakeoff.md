@@ -689,6 +689,136 @@ more than one window before adopting anything.
 
 ---
 
+## Determinacy: models agree where the evidence decides, and scatter where it does not
+
+The thesis this project's measurements keep arriving at, stated as a thesis:
+
+> **Models agree when the evidence is determinate and scatter when it is not —
+> and the disagreement is measured against a signal that does not grow to meet
+> it.**
+
+Four independent lines of evidence, none of which was collected to test it.
+
+### 1. Between-model disagreement halves on a determinate window
+
+The same five candidates against the same reference, changing only the window:
+
+| | US 2019 | TR 2018 |
+|---|---|---|
+| `gpt-4.1` ρ vs reference | 0.377 | **0.708** |
+| disagreement sd (gpt-4.1) | 0.108 | **0.046** |
+| ÷ that window's own signal | **1.71×** | **0.83×** |
+| all candidates ÷ signal | 1.28–2.08× | 0.96–1.15× |
+
+**The signal did not grow — TR's is smaller** (sd 0.055 against 0.063, median
+weekly move 0.020 against 0.050). The *disagreement* shrank, by more than half.
+TR 2018 is a legible crisis: a currency down a third, an emergency-rule
+transition, a policy-rate response. Five models of very different sizes converge
+on it. US 2019 is an ordinary year for a stable country, where the correct score
+for a given week is genuinely underdetermined, and there they scatter by more
+than the entire variation the series reports.
+
+This also corrects the tempting reading of the volatility test: TR was chosen as
+the *volatile* window and is not more volatile week-to-week. The prediction was
+right about the outcome and wrong about the mechanism.
+
+### 2. The instrument has about nine levels, whatever you point it at
+
+Measured on three countries, three periods, 157 anchors, one model, one prompt:
+
+| window | anchors | distinct composite values | sd |
+|---|---|---|---|
+| US 2019 | 52 | **9** | 0.063 |
+| TR 2018 | 53 | **9** | 0.055 |
+| PT 2019 | 52 | **9** | 0.078 |
+
+Nine, three times. That is not a fact about any country — it is the resolution of
+the instrument. A weekly series reported to two decimals is being produced by
+something with roughly nine usable levels.
+
+### 3. The coarseness is not an aggregation artifact
+
+If the composite were flat because averaging washed out finer components, the
+ledgers underneath would be finer. They are **coarser**:
+
+| window | composite | friction | order_unc | info_cap | edge_vit |
+|---|---|---|---|---|---|
+| US 2019 | 9 | 5 | 9 | 4 | **3** |
+| TR 2018 | 9 | 5 | 5 | 7 | **3** |
+
+`edge_vitality` resolves a year into **three values**. The composite is finer than
+any of its parts only because combining coarse components manufactures values
+none of them holds. There is no finer signal surviving underneath to recover.
+
+### 4. An explicit instruction holds where evidence is determinate and fails where it is not
+
+This is the clearest mechanism in the document, and the most direct.
+
+The prompt says: *"All scores are INTEGERS 0-100. Use precise values (37, 62, 81)
+— **never round to multiples of 5**."* Under a uniform distribution over integers,
+20% would land on one anyway. Measured, `gpt-4o` on that prompt:
+
+| window | round-number share | what the window is |
+|---|---|---|
+| TR 2018 | **18.9%** | crisis — determinate |
+| US 2019 | **69.2%** | ordinary year |
+| PT 2019 | **84.6%** | quiet country — most ambiguous |
+
+**Monotone in determinacy, and it is the same model reading the same instruction
+every time.** At 18.9% it obeys — within a point of chance. At 84.6% the
+instruction is simply not operating. Nothing about the prompt changed between
+those rows; only how much the evidence decided.
+
+That is what "scatter where the evidence is indeterminate" looks like from
+inside: not noise around a correct answer, but a retreat to round numbers, and on
+US 2019 specifically to **0.50 — the midpoint of the scale — on a third of all
+anchors.** Faced with a week it cannot resolve, the model answers "the middle".
+
+Notably it is *not* the prompt's bands doing this: band midpoints attract **0.0%**
+of anchors on every model and every window, and the five calibration anchors take
+15–35%, about what proximity alone yields.
+
+### What was tried, and did not work
+
+**More evidence is not the lever.** `p3-context` added four quarters of masked
+history to attack exactly this, and made it worse — US 2019 went from 9 distinct
+values to 7 and from 69% round to 75%, with not one of 52 anchors changing band.
+See `docs/payload-ab.md`. The model was handed the history in the form it asked
+for and became *less* discriminating.
+
+So the remaining suspect is the prompt, which forbids rounding and is disobeyed
+three times in four, and which never asks the model to separate two weeks inside
+one band. That test is filed, and deliberately not run, as `docs/deferred.md` §12.
+
+### What this costs the ratings
+
+**It does not touch the procurement conclusions.** Determinism, cost, the
+`gpt-4.1` migration price and the payload decision were none of them measured
+through ρ.
+
+**It bounds what the weekly series can claim, and the bound has an awkward
+shape.** The series is most reproducible exactly where it is least informative — a
+crisis any observer would call a crisis — and least reproducible on quiet weeks
+for stable countries, which is where a risk rating would earn its keep. A
+week-to-week movement reported for a quiet country-year is substantially
+instrument rather than signal.
+
+Three consequences, all validation work rather than scorer decisions:
+
+1. **Report an uncertainty band, not a point estimate**, at least for
+   low-volatility country-years. The band is measurable: it is the disagreement
+   sd, ~0.10 on an ordinary year — wider than most of the movement being reported.
+2. **Treat the 0.072 masking divergence with matching caution.** It was measured
+   on PT, the quietest country in the roster and the one that rounds on 84.6% of
+   anchors, and it is *smaller* than between-model disagreement on such a window.
+   That does not make it wrong; it means it needs a second scorer to be
+   distinguished from instrument noise.
+3. **Stop reporting the four ledgers at the composite's confidence.**
+   `edge_vitality` has three levels and is negative or near-zero against every
+   candidate on both windows.
+
+---
+
 ## Finding: the cheapest model was the worst one, and a cost table would have hidden it
 
 `gpt-4.1-nano` costs **$0.0017 a snapshot against the incumbent's $0.0430** — one

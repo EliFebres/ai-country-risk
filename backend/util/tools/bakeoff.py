@@ -188,12 +188,18 @@ BANDS: Tuple[Tuple[str, float], ...] = (
 # gate's pass/fail: the gate answers whether a candidate is exactly reproducible,
 # and this answers whether its irreproducibility is large enough to matter.
 #
-# Sourced from a prior measurement rather than computed here, and deliberately
-# not hidden behind a function that would imply otherwise: this repo cannot
-# currently reproduce it, because the `named` and `masked_nostructural` arms have
-# never been run and `snapshot_diagnostic` is empty. Recompute and move this the
-# first time a real divergence lands.
-PT_MASKING_DIVERGENCE = 0.072
+# Measured in this repo on 2026-08-28, when gate 2 ran PT 2019's `named` and
+# `masked_nostructural` arms: 0.075 absolute over 6 diagnostic dates, against the
+# 0.072 carried from a prior measurement that could not be reproduced here. The
+# two land within three thousandths of each other, which is the best evidence the
+# remembered figure was sound. Read `GATE2_BASELINE.json` for the current value
+# rather than trusting this constant indefinitely.
+#
+# n=6. It is a small sample and the caveat travels with it: PT is the quietest
+# country in the roster, rounds to a multiple of 5 on 84.6% of its anchors, and
+# between-model disagreement on a window that ambiguous runs near 0.10 — larger
+# than the divergence itself. Distinguishing the two needs a second scorer.
+PT_MASKING_DIVERGENCE = 0.075
 
 
 def noise_floor(score_spread_points: Optional[float]) -> Dict[str, Optional[float]]:
