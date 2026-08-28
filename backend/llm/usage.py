@@ -60,6 +60,19 @@ logger = logging.getLogger(__name__)
 PRICES_USD_PER_1M: Dict[str, tuple] = {
     "gpt-4o-2024-08-06": (2.50, 1.25, 10.00),
     "gpt-4o-mini-2024-07-18": (0.15, 0.075, 0.60),
+    # Round-3 candidates, all OpenAI, all serving strict `json_schema`. Verified
+    # against the vendor's own pricing page rather than remembered; the dated ids
+    # are what the API echoes back in `model_name`, and the bare aliases are here
+    # because a caller may set either.
+    "gpt-4.1-2025-04-14": (2.00, 0.50, 8.00),
+    "gpt-4.1": (2.00, 0.50, 8.00),
+    "gpt-4.1-mini-2025-04-14": (0.40, 0.10, 1.60),
+    "gpt-4.1-mini": (0.40, 0.10, 1.60),
+    "gpt-4.1-nano-2025-04-14": (0.10, 0.025, 0.40),
+    "gpt-4.1-nano": (0.10, 0.025, 0.40),
+    "gpt-5.4-mini-2026-03-17": (0.75, 0.075, 4.50),
+    "gpt-5.4-mini": (0.75, 0.075, 4.50),
+    "gpt-5.6-luna": (0.20, 0.02, 1.20),
     # Bake-off candidates. DeepSeek is at its **peak** rate deliberately: it
     # bills 01:00-04:00 and 06:00-10:00 UTC at double, a long run can straddle
     # the boundary, and a governor quoting the cheap half of a run it has not
@@ -72,6 +85,24 @@ PRICES_USD_PER_1M: Dict[str, tuple] = {
     "MiniMax-M3": (0.30, 0.06, 1.20),
     "openai/gpt-oss-120b": (0.15, 0.075, 0.60),
 }
+
+# The Batch API's multiplier on every rate above. Reported beside the standard
+# figure rather than instead of it: the 48-country backfill is a queued job and
+# is where this actually pays off, while the daily run is not and cannot use it.
+BATCH_RATE_MULTIPLIER = 0.5
+
+# Regional-processing (data-residency) endpoints cost 10% more, for models
+# released on or after 2026-03-05. Of the candidates that is `gpt-5.4-mini`
+# (2026-03-17) and `gpt-5.6-luna`; `gpt-4o` and the whole 4.1 family predate it.
+#
+# Not applied to any figure this module returns, because the pilot calls the
+# standard endpoint and is not charged it. It is here so that a later decision to
+# require data residency — which round 2 raised for MiniMax and which would apply
+# to any vendor — reprices the two newest candidates rather than being remembered
+# as free.
+REGIONAL_PROCESSING_UPLIFT = 0.10
+REGIONAL_UPLIFT_APPLIES_FROM = "2026-03-05"
+
 
 # When DeepSeek bills at half. UTC hours 01,02,03 and 06,07,08,09 are peak; the
 # other seventeen are off-peak. Stated as the peak set because that is the one

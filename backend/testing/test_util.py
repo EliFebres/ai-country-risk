@@ -788,41 +788,71 @@ class TestTheEnvironmentIsRestored:
     """A sweep must not let the second candidate inherit the first's endpoint."""
 
     def test_a_candidates_endpoint_is_set_and_then_put_back(self, monkeypatch):
-        monkeypatch.setenv("MINIMAX_API_KEY", "mm-key")
         monkeypatch.delenv("SCORING_MODEL", raising=False)
+        # A leftover from an earlier candidate. It must be cleared for the block
+        # and restored after: the whole failure mode is one model's payload being
+        # scored at another model's endpoint and filed under the wrong name.
         monkeypatch.setenv("SCORING_BASE_URL", "https://pre-existing.example/v1")
 
-        with bakeoff.candidate_env("minimax-m3") as env:
-            assert env["SCORING_MODEL"] == "MiniMax-M3"
-            assert os.environ["SCORING_API_KEY"] == "mm-key"
-            assert os.environ["SCORING_BASE_URL"] == "https://api.minimax.io/v1"
+        with bakeoff.candidate_env("gpt-4.1-mini") as env:
+            assert env["SCORING_MODEL"] == "gpt-4.1-mini-2025-04-14"
+            assert os.environ["SCORING_MODEL"] == "gpt-4.1-mini-2025-04-14"
+            assert "SCORING_BASE_URL" not in os.environ
 
         assert "SCORING_MODEL" not in os.environ
-        assert "SCORING_API_KEY" not in os.environ
         assert os.environ["SCORING_BASE_URL"] == "https://pre-existing.example/v1"
 
+    def test_the_incumbent_sets_no_endpoint_at_all(self):
+        """gpt-4o is the reference; it must run on exactly the daily run's config."""
+        with bakeoff.candidate_env("gpt-4o") as env:
+            assert env == {}
+            for key in ("SCORING_MODEL", "SCORING_BASE_URL", "SCORING_EXTRA_BODY"):
+                assert key not in os.environ
+
     def test_a_missing_vendor_key_raises_before_anything_is_set(self, monkeypatch):
-        monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+        """Tested through a synthetic candidate rather than a real one.
+
+        Every current candidate is an OpenAI model and needs no `key_target`, so
+        nothing in `CANDIDATES` exercises this path today — and the path is what
+        stops a sweep spending on candidate two after candidate one's key turned
+        out to be absent. Round 2 had three candidates that needed it and round 4
+        may again.
+        """
+        monkeypatch.setitem(bakeoff.CANDIDATES, "synthetic", {
+            "arm": "scoring", "env": {"SCORING_MODEL": "m"},
+            "key_env": "NO_SUCH_VENDOR_KEY", "key_target": "SCORING_API_KEY"})
+        monkeypatch.delenv("NO_SUCH_VENDOR_KEY", raising=False)
         monkeypatch.delenv("SCORING_MODEL", raising=False)
-        with pytest.raises(bakeoff.MissingKey, match="DEEPSEEK_API_KEY"):
-            with bakeoff.candidate_env("deepseek-v4-pro"):
+
+        with pytest.raises(bakeoff.MissingKey, match="NO_SUCH_VENDOR_KEY"):
+            with bakeoff.candidate_env("synthetic"):
                 pass
         assert "SCORING_MODEL" not in os.environ
 
-    def test_every_thinking_candidate_pins_thinking_off(self):
+    def test_every_reasoning_candidate_pins_the_effort_to_the_floor(self):
         """Reasoning tokens bill as output; an unpinned run prices a fiction.
 
-        MiniMax is on this list because it was missed. It is a thinking model by
-        default exactly like the DeepSeek pair — measured at 15 of 17 output
-        tokens spent on `<think>` for a one-word answer — and it returns the
-        reasoning *in message content*, so an unpinned run pollutes the payload
-        as well as the bill. It was smoked once without the pin before anyone
-        noticed, which is what a per-vendor list rather than a rule costs.
+        Measured, not assumed: unpinned, `gpt-5.6-luna` returned 1,834 output
+        tokens of which 1,400 were reasoning, against 283 pinned — so leaving it
+        on prices the model at roughly 1.7x a snapshot. `gpt-5.4-mini` was
+        measured already defaulting to zero reasoning and is pinned anyway,
+        because a default is not a guarantee and a vendor-side change would move
+        cost and determinism at once, silently.
+
+        This is the same trap MiniMax's thinking mode set in round 2, which is
+        why it is a rule about a family rather than a note about one model.
         """
-        for name in ("deepseek-v4-pro", "deepseek-v4-flash", "minimax-m3"):
+        for name in ("gpt-5.6-luna", "gpt-5.4-mini"):
             spec = bakeoff.CANDIDATES[name]
             body = next(v for k, v in spec["env"].items() if k.endswith("_EXTRA_BODY"))
-            assert json.loads(body) == {"thinking": {"type": "disabled"}}, name
+            assert json.loads(body) == {"reasoning_effort": "none"}, name
+
+    def test_no_candidate_carries_an_unpinned_reasoning_model(self):
+        """The 5.x and o-series families reason by default; 4.x do not."""
+        for name, spec in bakeoff.CANDIDATES.items():
+            model = spec["env"].get("SCORING_MODEL", "")
+            if model.startswith(("gpt-5", "o1", "o3", "o4")):
+                assert any(k.endswith("_EXTRA_BODY") for k in spec["env"]), name
 
 
 class TestEveryCandidateIsAScorer:

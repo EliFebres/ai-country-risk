@@ -164,56 +164,65 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
         "env": {},
         "key_env": "OPENAI_API_KEY",
     },
-    "minimax-m3": {
+    "gpt-4.1-nano": {
         "arm": "scoring",
-        "note": "primary candidate, <=512K tier; thinking pinned off",
-        # M3 is a thinking model by default and bills reasoning as output, the
-        # same trap DeepSeek sets — and it was measured here before the pin
-        # existed. On a one-word question it emitted 17 output tokens of which
-        # 15 were `<think>`, and the reasoning arrives *in message content*, so
-        # it pollutes the payload as well as the bill. `reasoning_effort: none`
-        # works identically; this shape is used because DeepSeek already needs
-        # it and one shape is one thing to remember.
-        "env": {"SCORING_MODEL": "MiniMax-M3",
-                "SCORING_BASE_URL": "https://api.minimax.io/v1",
-                "SCORING_EXTRA_BODY": '{"thinking": {"type": "disabled"}}'},
-        "key_env": "MINIMAX_API_KEY",
-        "key_target": "SCORING_API_KEY",
+        "note": "cheapest candidate, ~1/20th the incumbent",
+        "env": {"SCORING_MODEL": "gpt-4.1-nano-2025-04-14"},
+        "key_env": "OPENAI_API_KEY",
     },
-    "deepseek-v4-pro": {
+    "gpt-5.6-luna": {
         "arm": "scoring",
-        "note": "alternative; thinking pinned off, reasoning tokens bill as output",
-        "env": {"SCORING_MODEL": "deepseek-v4-pro",
-                "SCORING_BASE_URL": "https://api.deepseek.com/v1",
-                "SCORING_EXTRA_BODY": '{"thinking": {"type": "disabled"}}'},
-        "key_env": "DEEPSEEK_API_KEY",
-        "key_target": "SCORING_API_KEY",
+        # Reasoning pinned to the floor, and this one earns the pin: unpinned it
+        # returned 1,834 output tokens of which 1,400 were reasoning, against 283
+        # pinned. Reasoning bills as output, so leaving it on prices the model
+        # at roughly 1.7x and would very likely cost determinism as well — the
+        # same trap MiniMax's thinking mode set in round 2.
+        "env": {"SCORING_MODEL": "gpt-5.6-luna",
+                "SCORING_EXTRA_BODY": '{"reasoning_effort": "none"}'},
+        "key_env": "OPENAI_API_KEY",
     },
-    "deepseek-v4-flash": {
+    "gpt-4.1-mini": {
         "arm": "scoring",
-        "note": "cheapest DeepSeek tier as a scorer; thinking pinned off",
-        "env": {"SCORING_MODEL": "deepseek-v4-flash",
-                "SCORING_BASE_URL": "https://api.deepseek.com/v1",
-                "SCORING_EXTRA_BODY": '{"thinking": {"type": "disabled"}}'},
-        "key_env": "DEEPSEEK_API_KEY",
-        "key_target": "SCORING_API_KEY",
+        "note": "beats every third-party candidate on price with strict schema intact",
+        "env": {"SCORING_MODEL": "gpt-4.1-mini-2025-04-14"},
+        "key_env": "OPENAI_API_KEY",
+    },
+    "gpt-5.4-mini": {
+        "arm": "scoring",
+        # Measured as already defaulting to no reasoning, unlike Luna. Pinned
+        # anyway: a default is not a guarantee, and an unpinned reasoning model
+        # that starts reasoning after a vendor-side change would move the cost
+        # and the determinism at once, silently.
+        "env": {"SCORING_MODEL": "gpt-5.4-mini-2026-03-17",
+                "SCORING_EXTRA_BODY": '{"reasoning_effort": "none"}'},
+        "key_env": "OPENAI_API_KEY",
+    },
+    "gpt-4.1": {
+        "arm": "scoring",
+        "note": "the conservative upgrade; same family as the incumbent",
+        "env": {"SCORING_MODEL": "gpt-4.1-2025-04-14"},
+        "key_env": "OPENAI_API_KEY",
     },
 }
 
-# Every candidate above is a *scoring* candidate, and there is no digest arm.
+# Every candidate is an OpenAI model, and that is the round-2 result rather than
+# a preference. MiniMax and both DeepSeek tiers were measured and are gone:
 #
-# Stage 1 is about a tenth of the spend, but the digest is the evidence for
-# seventeen of the twenty articles in a snapshot — poor risk for the reward. And
-# a digest candidate cannot be read on the same axis as a scoring one: the digest
-# cache is keyed on the digest model, so moving it means the candidate reads
-# different evidence, and rank correlation stops isolating the scorer. Holding
-# digests on `gpt-4o-mini` is what makes the meter mean anything.
+#   * DeepSeek serves no strict `json_schema` on either `/v1` or `/beta`. Under
+#     `json_object` it returned valid output 10/10 — genuinely as good as strict
+#     on the validity axis — but scored 8 distinct payloads in 10 repeats of one
+#     input, spread 7 on `score_12m`.
+#   * MiniMax needs `anyOf` instead of `type: [T, "null"]`, and the variant is not
+#     the same instrument: on gpt-4o it moved the score and *destroyed*
+#     determinism (9 samples: 52x7, 50x2, against 50x9 under the production
+#     schema). Under `json_object` it failed to return JSON at all 40% of the
+#     time.
 #
-# `gpt-oss-120b` (Groq) was defined here and never run; removed rather than left
-# sitting, because an unrun candidate in a config file is one that gets run by
-# accident later and reported as though it belonged on this axis. If a scoring
-# candidate wins, its own cheap tier is the natural digest candidate — one vendor
-# rather than two for a tenth of the spend.
+# `gpt-4.1-mini` costs $0.0069 a snapshot against DeepSeek V4 Pro's $0.0104 at
+# its *off-peak* half-rate, with strict schema and no time-of-day scheduling. The
+# third-party candidates are beaten on both axes at once, so they are not left
+# here to be run by accident. Their prices stay in `usage.PRICES_USD_PER_1M`,
+# which is a price table rather than a run list.
 
 
 class MissingKey(RuntimeError):
