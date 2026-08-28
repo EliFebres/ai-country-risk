@@ -88,10 +88,14 @@ CREATE TABLE IF NOT EXISTS article (
 LLM_ARTIFACT = """
 CREATE TABLE IF NOT EXISTS llm_artifact (
     content_sha256  TEXT NOT NULL,
-    -- digest | rewrite. One table because both answer the same question:
-    -- "what did the model produce for this exact text, under these versions".
-    kind            TEXT NOT NULL CHECK (kind IN ('digest', 'rewrite')),
-    -- the digest model, or the rewrite prompt version
+    -- digest | rewrite | context. One table because all three answer the same
+    -- question: "what did the model produce for this exact text, under these
+    -- versions". `context` is the trailing quarterly paragraph, whose
+    -- `content_sha256` hashes the quarter's selected article set rather than one
+    -- article's body — so a re-harvest invalidates it instead of serving a
+    -- paragraph written before the evidence arrived.
+    kind            TEXT NOT NULL CHECK (kind IN ('digest', 'rewrite', 'context')),
+    -- the digest model, the rewrite prompt version, or the context version
     version         TEXT NOT NULL,
     -- masked | named. Has to be in the key: the same text digested under the
     -- two regimes gives two different answers, and serving a named digest to a
@@ -346,6 +350,34 @@ INDEXES: Tuple[str, ...] = (
 )
 
 
+# --- Migrations -------------------------------------------------------------
+#
+# The first one. `create_all` is CREATE TABLE IF NOT EXISTS, which builds a
+# correct database from nothing and cannot change one that already exists — so a
+# widened CHECK reaches a fresh clone and silently misses every deployed
+# database, which then rejects the new rows.
+#
+# So `create_all` now does double duty: schema creation *and* forward migration.
+# That is a real change to what the function means, and it is stated here rather
+# than left to be discovered.
+#
+# Each entry must be idempotent and safe to run against a database that has
+# never seen it and against one that already has it. Written as DROP IF EXISTS
+# followed by ADD rather than a conditional, because the drop is a no-op on a
+# fresh database and the pair is one statement's worth of thinking either way.
+#
+# Deliberately a tuple of SQL and not a versioned-migration framework: there is
+# one of these. `docs/deferred.md` records that a real mechanism is owed once
+# there are two or three and there is a pattern to generalise.
+MIGRATIONS: Tuple[str, ...] = (
+    # 2026-08-28 — `kind='context'` for the trailing quarterly paragraph.
+    # Loosens the constraint by exactly one member; junk kinds still raise.
+    "ALTER TABLE llm_artifact DROP CONSTRAINT IF EXISTS llm_artifact_kind_check",
+    "ALTER TABLE llm_artifact ADD CONSTRAINT llm_artifact_kind_check "
+    "  CHECK (kind IN ('digest', 'rewrite', 'context'))",
+)
+
+
 def table_names() -> List[str]:
     """The ten, in creation order."""
     return [name for name, _ in TABLES]
@@ -361,6 +393,10 @@ def create_all(cur) -> List[str]:
         if not existed:
             created.append(name)
     for statement in INDEXES:
+        cur.execute(statement)
+    # After the tables exist, and after the indexes, because a migration may
+    # depend on either. See MIGRATIONS' header for why these live here at all.
+    for statement in MIGRATIONS:
         cur.execute(statement)
     return created
 

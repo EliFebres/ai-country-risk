@@ -19,6 +19,7 @@ import json
 import os
 from datetime import date
 
+import psycopg2
 import pytest
 
 from backend.util import provenance
@@ -683,3 +684,60 @@ class TestBodyStatusTransitions:
             body_status="pending")])
         db.mark_body(URL, body=None, body_status="failed")
         assert db.read_pending() == []
+
+
+@needs_db
+class TestTheFirstMigration:
+    """`create_all` now creates *and* migrates. That is worth a test, not a hope.
+
+    `CREATE TABLE IF NOT EXISTS` builds a correct database from nothing and
+    cannot change one that already exists, so a widened CHECK reaches a fresh
+    clone and silently misses every deployed database — which then rejects the
+    new rows while the schema file says they are fine.
+    """
+
+    KIND_CHECK = """
+        SELECT pg_get_constraintdef(con.oid) FROM pg_constraint con
+          JOIN pg_class rel ON rel.oid = con.conrelid
+         WHERE rel.relname = 'llm_artifact'
+           AND con.conname = 'llm_artifact_kind_check'
+    """
+
+    def _constraint(self, cur):
+        cur.execute(self.KIND_CHECK)
+        row = cur.fetchone()
+        return row[0] if row else None
+
+    def test_a_database_on_the_old_constraint_is_migrated_and_stays_put(self, db):
+        """The three states that must agree: pre-migration, migrated, re-run."""
+        with store._transaction() as cur:
+            # Put the database back on the old two-value constraint, which is
+            # what a deployment that predates this migration actually has.
+            cur.execute("ALTER TABLE llm_artifact DROP CONSTRAINT "
+                        "IF EXISTS llm_artifact_kind_check")
+            cur.execute("ALTER TABLE llm_artifact ADD CONSTRAINT "
+                        "llm_artifact_kind_check CHECK (kind IN ('digest', 'rewrite'))")
+            before = self._constraint(cur)
+            assert "context" not in before
+
+            schema.create_all(cur)
+            once = self._constraint(cur)
+            schema.create_all(cur)
+            twice = self._constraint(cur)
+
+        assert "context" in once
+        assert once == twice, "create_all is not idempotent across the migration"
+
+    def test_the_guard_was_loosened_by_exactly_one_member(self, db):
+        """A migration that drops the guard instead of widening it passes every
+        test about the new value and none about the old job."""
+        with store._transaction() as cur:
+            schema.create_all(cur)
+        with store._transaction() as cur:
+            cur.execute("INSERT INTO llm_artifact (content_sha256, kind, version, "
+                        "mode, payload) VALUES ('k', 'context', 'v', 'masked', '{}')")
+        with pytest.raises(psycopg2.errors.CheckViolation):
+            with store._transaction() as cur:
+                cur.execute("INSERT INTO llm_artifact (content_sha256, kind, "
+                            "version, mode, payload) "
+                            "VALUES ('k2', 'junk', 'v', 'masked', '{}')")
