@@ -9,9 +9,19 @@ happens to touch code — it is an **instrument change**, and the only honest wa
 to make one is to re-run a fixed set of anchors through both and look at what
 moved. Price is read last, and only by candidates that got that far.
 
-**The finding, in one line:** of every model tested, only the incumbent
-reproduces its own scored output — and **strict grammar enforcement turns out to
-be necessary but not sufficient to explain why.**
+**Answer: stay on `gpt-4o`.** Nothing is switched.
+
+**Two findings, and the second is the one that decides it.**
+
+1. Of every model tested, **only the incumbent reproduces its own scored output**
+   at `temperature=0`, `seed=42` — and strict grammar enforcement turns out to be
+   necessary but not sufficient to explain why.
+2. Every candidate **ranks the weeks differently** — Spearman ρ from 0.100 to
+   0.377 against the reference — and that disagreement is *not* explained by
+   their jitter. Noise can be averaged down. A different opinion cannot.
+
+The second matters more because it survives every fix for the first. A cheaper
+model here does not buy the same series for less; it buys a different series.
 
 ---
 
@@ -398,36 +408,201 @@ reach it.
 
 ---
 
-## Reading a rank correlation against the noise floor
+## Round 3 — the rank correlations
 
-A candidate that returns a different score for the *same* input is arguing with
-itself, and no correlation measured across 52 *different* anchors can be read
-below that level. So each candidate's spread is reported in the divergence
-meter's own units rather than in model points.
+The reference: **`gpt-4o`, US 2019, 52 weekly anchors**, scored through the
+production path at a cost of $2.09. Series range 0.420–0.700, sd 0.063, median
+week-over-week move 0.050. All five candidates scored against it on identical
+evidence — same digests, same masked payloads, scorer as the only variable.
 
-The benchmark is **PT's masking divergence, 0.072** on the stored 0-1 scale —
-what a country's identity was worth to the scorer, and the only substantive
-signal this project has put a number on. Models answer on 0-100 and the store
-keeps 0-1, so a spread of N points is N/100 against 0.072.
+### Spearman ρ against the reference
 
-| same-input spread | on the stored scale | share of the masking signal |
-|---|---|---|
-| 0.5 pt | 0.005 | **7%** — invisible |
-| 2 pt | 0.02 | **28%** — a quarter of the signal spent on nothing |
-| 5 pt | 0.05 | **69%** |
-| 12 pt | 0.12 | **167%** — exceeds the whole signal |
-| 15 pt | 0.15 | **208%** |
+| model | composite | score_3m | friction | order_unc. | info_cap. | edge_vit. | $/snapshot |
+|---|---|---|---|---|---|---|---|
+| **gpt-4.1** | **0.377** | 0.433 | 0.383 | **0.571** | 0.521 | **−0.100** | $0.0298 |
+| gpt-5.6-luna | 0.337 | 0.409 | 0.291 | 0.221 | 0.551 | — *(n=12)* | $0.0034 |
+| gpt-4.1-mini | 0.300 | 0.303 | −0.120 | 0.492 | 0.316 | 0.278 | $0.0059 |
+| gpt-4.1-nano | 0.240 | 0.286 | −0.228 | 0.296 | 0.121 | 0.069 | $0.0014 |
+| gpt-5.4-mini | 0.100 | 0.142 | 0.165 | 0.405 | 0.189 | 0.251 | $0.0125 |
 
-This, not the determinism gate's pass/fail, is what decides *reproducible within
-tolerance*. The gate answers whether a candidate is exactly reproducible; this
-answers whether its irreproducibility is large enough to matter. A candidate
-whose noise floor exceeds 100% cannot be used to measure masking at all — the
-finding would be smaller than the instrument's own wobble.
+**Every one of these is low.** The best candidate agrees with the incumbent on
+week ordering about as well as ρ = 0.38 describes — which is to say, it does not.
+Two candidates have *negative* correlation on `friction`, and the best candidate
+has negative correlation on `edge_vitality`: they order those weeks backwards.
 
-`bakeoff compare` prints this line directly beneath each candidate's rank
-correlations, so the two are read in one register.
+### It is not jitter — this is the important part
 
-The benchmark is carried as `bakeoff.PT_MASKING_DIVERGENCE`, sourced from a prior
-measurement and **not currently reproducible in this repo**: the `named` and
-`masked_nostructural` arms have never been run and `snapshot_diagnostic` is
-empty. It should be recomputed and moved the first time a real divergence lands.
+The obvious defence of a low ρ is that the candidate's own noise floor caps it.
+That defence does not survive the arithmetic.
+
+If a candidate returns `truth + noise`, its correlation against the reference is
+attenuated by roughly `1 / sqrt(1 + σ²noise / σ²signal)`. With the series sd at
+6.31 points, and σ_noise estimated from each candidate's measured worst-case
+spread over ten repeats:
+
+| model | worst spread | σ_noise | **ρ ceiling from noise alone** | ρ observed | unexplained gap |
+|---|---|---|---|---|---|
+| gpt-4.1 | 1 pt | 0.32 | **0.999** | 0.377 | **0.62** |
+| gpt-5.4-mini | 7 pt | 2.27 | 0.941 | 0.100 | **0.84** |
+| gpt-4.1-mini | 8 pt | 2.60 | 0.925 | 0.300 | **0.62** |
+| gpt-5.6-luna | 11 pt | 3.57 | 0.870 | 0.337 | **0.53** |
+| gpt-4.1-nano | 20 pt | 6.50 | 0.697 | 0.240 | **0.46** |
+
+Every ceiling sits far above every observed value. Even `gpt-4.1-nano`, the
+noisiest model tested, could reach ρ ≈ 0.70 if it agreed with the incumbent about
+which weeks were risky. It reaches 0.24.
+
+**So the disagreement is judgement, not noise.** These models are not failing to
+reproduce `gpt-4o`'s ranking because they are unsteady; they are steadily ranking
+the weeks differently. That is a stronger finding than "they are noisy", and it
+is the one that decides the question — noise can be averaged down, and a
+different opinion cannot.
+
+`gpt-4.1` is the clearest case. Its noise floor is negligible (ρ ceiling 0.999),
+so essentially none of its 0.62 shortfall is attributable to jitter.
+
+### And it is not a level offset either
+
+A constant offset would be survivable — move the prompt's calibration anchors and
+the whole series shifts with them. `gpt-4.1`'s **signed** mean shift is **−0.008**
+and its **absolute** mean shift is **0.089**. Those two numbers together are the
+finding: it is not scoring uniformly higher or lower, it is scoring *individual
+weeks* differently in both directions, cancelling to near zero on average.
+
+Band migration says the same thing. All 52 reference anchors sit in **Moderate**,
+so the matrix degenerates to one row — the reference never leaves the band. Of
+those 52, `gpt-4.1` moves 6 to Low-Moderate and 3 to High; `gpt-4.1-nano` moves 21
+to High and 3 to Extreme. The diagonal is not an offset to recalibrate. It is
+scatter.
+
+**There is nothing here to recalibrate away.** A migration to `gpt-4.1` is not a
+level shift plus a constant; it is a different set of opinions about which weeks
+in 2019 were risky.
+
+### Observation-only flags
+
+`gpt-4.1` agrees with the incumbent on `war_on_territory` (1.000) and
+`sovereign_stress` (1.000), and slips on `internal_conflict_level` (0.942) and
+`emergency_rule` (0.962). `gpt-4.1-nano` is the outlier and the warning:
+`sovereign_stress` agreement **0.462**, worse than a coin flip on a flag that is
+false on nearly every US 2019 week. `internal_conflict_level` 0.615.
+
+Lint fired on neither side for any candidate.
+
+### Cost, for completeness — and it is last for a reason
+
+Scorer-only, 52 anchors, standard rates. Batch halves each; digests are extra and
+shared.
+
+| model | $/snapshot | 2,092-snapshot pilot | 25,104-snapshot backfill |
+|---|---|---|---|
+| gpt-4o *(reference)* | $0.0430 | $89.94 | $1,079 |
+| gpt-4.1 | $0.0298 | $62.27 | $747 |
+| gpt-5.4-mini | $0.0125 | $26.07 | $313 |
+| gpt-4.1-mini | $0.0059 | $12.43 | $149 |
+| gpt-5.6-luna | $0.0034 | $7.14 | $86 |
+| gpt-4.1-nano | $0.0014 | $2.93 | $35 |
+
+Realised cache share was **4%** on the candidates and **0%** on `gpt-4.1`, far
+below the 91–99% seen in the repeat tests. That is expected and worth stating:
+the repeat tests sent one identical prompt over and over, which is the best case
+for a prefix cache; a real run sends 52 different payloads, and only the constant
+prompt prefix is reusable. **The cache-hit share measured on repeats is not the
+one a backfill will get.**
+
+---
+
+## Recommendation
+
+Two questions, deliberately separated. Conflating them is how a forced migration
+gets made in a hurry on the day the deprecation notice arrives.
+
+### 1. Is a cheaper model worth it? — No.
+
+**Stay on `gpt-4o-2024-08-06`.** Nothing is switched.
+
+Not on price, and not on determinism alone. On **agreement**: the cheapest four
+candidates rank the 2019 weeks differently from the incumbent — ρ between 0.100
+and 0.337 on the composite, with negative correlation on `friction` for two of
+them — and that disagreement is **not** explained by their jitter (see the ρ
+ceilings above). A cheaper model here does not buy the same series for less; it
+buys a different series.
+
+The specific traps, each worth carrying forward:
+
+- **`gpt-4.1-nano`** looks like the obvious win at 1/30th the cost and is the
+  worst outcome in the set: ρ = 0.240, `friction` **−0.228**, `sovereign_stress`
+  agreement **0.462**, and a 20-point swing on identical input on the calm anchor
+  where `gpt-4o` answers 12 ten times out of ten. It would have been adopted on a
+  single-anchor noise measurement and a cost table.
+- **`gpt-5.4-mini`** costs 9× `gpt-4.1-nano` and correlates *worse* (ρ = 0.100).
+  Price is not a proxy for agreement in either direction.
+- **`gpt-5.6-luna`** returned `edge_vitality` on only 12 of 52 anchors — the
+  ledger is mostly absent rather than wrong, which no cost table would show.
+
+### 2. When do we migrate off `gpt-4o`? — Not yet, and now we know the price.
+
+This is the question that matters more, because it is not optional. `gpt-4o` is a
+2024 model, this series is meant to run for years, and it will be deprecated on
+someone else's schedule. `gpt-4.1` is OpenAI's stated successor — 20% cheaper at
+$2/$8, better instruction-following, 1M context — so measuring it now is not
+chasing a saving. It is pricing a move that gets forced on us.
+
+**The measured price of that migration:**
+
+| | |
+|---|---|
+| Repeat-stability | **±1 point**, flat across Low, Moderate and Extreme — 20% of a typical week's move, 14% of the masking signal. **Good enough.** |
+| Level offset | **−0.008 signed.** Essentially none. |
+| Week ordering | **ρ = 0.377, τ = 0.297** on the composite. `edge_vitality` **−0.100**. |
+| Per-week disagreement | **0.089 absolute** mean shift against a 0.050 median weekly move |
+| Cost | $0.0298/snapshot, 31% below the incumbent |
+
+**It is not a recalibrate-and-go migration.** That was the outcome worth hoping
+for and the numbers do not support it. A constant level offset would be
+survivable — move the prompt's calibration anchors and the whole series shifts
+with them. What `gpt-4.1` actually does is score individual weeks differently in
+both directions, cancelling to −0.008 on average while moving each week by 0.089.
+There is no constant to remove. Recalibration cannot fix a reordering, and this
+is a reordering.
+
+So the honest statement of the migration cost is: **switching to `gpt-4.1`
+requires re-scoring the history, not adjusting it.** At $0.0298/snapshot a full
+25,104-snapshot re-score is ~$747 — affordable, and now a known number rather
+than a discovery made under deprecation pressure. What it costs in *time* is the
+harvest and the digests, which are already stored.
+
+**Recording ±1 now, with three anchors behind it, is worth more than the 20%.**
+When the deprecation notice arrives the decision is already made and measured:
+`gpt-4.1` is stable enough to be an instrument, it is not a drop-in continuation
+of the existing series, and the migration is a re-score with a price attached.
+
+### What protects the series either way
+
+`gpt-4o`'s determinism is very likely a property of **how it is served**, not of
+anything in this repository — the same model lost it when only its schema grammar
+was weakened, and five models with identical grammar do not have it. We do not
+control that, cannot inspect it, and get no notification when it changes.
+
+`score.FROZEN_FIELDS` pins `SCORING_MODEL` and so catches *us* changing the
+scorer. It cannot see the scorer changing behind a stable id. **That is the gap
+the determinism canary in `docs/deferred.md` §10 closes**, and it is worth
+building before the pilot rather than after: one stored payload, re-scored a
+handful of times on a schedule, asserting the scored fields still match and
+failing loudly when they do not.
+
+Without it, the reproducibility claim can quietly stop being true — under the
+incumbent *or* under `gpt-4.1` — while every version stamp still agrees, because
+every version stamp is about us.
+
+### What would change this recommendation
+
+- A candidate clearing **ρ ≥ 0.9** on the composite with a level-only offset. None
+  came close; the best was 0.377.
+- The reference re-measured on a **body-rich, more volatile country-year**. US
+  2019 is a low-variance window — all 52 anchors sit in one band — and a series
+  that never leaves Moderate is a hard place to demonstrate agreement on
+  ordering. This is the most likely way the numbers understate the candidates,
+  and it is cheap to test.
+- Evidence that `gpt-4o`'s determinism has moved, which flips the migration from
+  elective to urgent and makes §10 the thing that told us.
