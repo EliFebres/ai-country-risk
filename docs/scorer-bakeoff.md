@@ -512,6 +512,60 @@ one a backfill will get.**
 
 ---
 
+## Is ρ ≈ 0.3 a fact about the candidates, or about the test window?
+
+The round-3 correlations have **two readings, and the US window cannot separate
+them.** This matters far more than the procurement decision that produced it, so
+it gets tested rather than asserted.
+
+**Reading A — the candidates disagree.** Cheaper models genuinely rank the weeks
+differently from the incumbent, and a cheaper scorer buys a different series.
+
+**Reading B — the window had no ordering to reproduce.** All 52 US-2019 anchors
+sit in the **Moderate** band; the series runs 0.420–0.700 with a standard
+deviation of 0.063 and a median week-to-week move of 0.050. When the true spread
+between weeks is that narrow, most pairwise comparisons are decided by whatever
+noise remains, and **Spearman ρ is depressed by construction** — not because the
+models disagree about risk, but because there is barely an ordering to agree
+about. A near-flat series is close to the worst case for rank correlation.
+
+If B is right, ρ ≈ 0.3 says little about the candidates and something
+uncomfortable about the ratings: that on an ordinary year for a stable country,
+the week-to-week ordering the series reports may be largely unreproducible even
+by a competent model. That is a validation finding, not a procurement one, and it
+would belong in the pilot's methodology rather than here.
+
+### The test
+
+Re-run the **identical candidate set, prompt, digests and harness** on a
+deliberately volatile country-year, changing only the window.
+
+**Turkey 2018** — the lira crisis: a currency losing roughly a third of its value
+inside a year, an emergency-rule transition, and a policy-rate response, so the
+weeks genuinely differ. The corpus was harvested for this comparison and is
+comparable in kind to US 2019 rather than thinner: **1,941 articles in the window,
+1,494 of them with recovered bodies**, median **125 per 30-day anchor** against
+US 2019's 20-article selection pool, and no empty anchors.
+
+Holding evidence *type* constant was deliberate. Before the Guardian harvest, TR
+2018 held 447 articles and **none with bodies**, so running it then would have
+moved two variables at once — volatility *and* whether `rewrite_body` ever
+fires — and left the result as ambiguous as the thing it was meant to settle.
+
+**What each outcome means:**
+
+| if TR 2018 gives… | then |
+|---|---|
+| ρ **rises sharply** (say ≥ 0.7) | Reading B. The flat window explained it. The candidates track the incumbent when there is something to track, and round 3's numbers are a floor produced by the test window, not a property of the models. The procurement conclusion survives on determinism and cost; the disagreement claim does not. |
+| ρ **stays near 0.3** | Reading A, and worse than a procurement finding. Two competent models under one prompt on identical evidence do not reproduce each other's week ordering even when the weeks genuinely differ — which bounds what the weekly series can claim, and belongs in the validation work. |
+| ρ rises **modestly** (0.4–0.6) | Both, partially. The flat window depressed the figure and real disagreement remains. The honest statement is a range, and the validation question stays open. |
+
+Reference and candidates are scored exactly as in round 3 — `upsert=False` for
+candidates, digests held on `gpt-4o-mini`, scorer the only variable — and filed
+under `bakeoff/TR-2018/` so neither comparison overwrites the other.
+
+---
+
 ## Finding: the cheapest model was the worst one, and a cost table would have hidden it
 
 `gpt-4.1-nano` costs **$0.0017 a snapshot against the incumbent's $0.0430** — one
