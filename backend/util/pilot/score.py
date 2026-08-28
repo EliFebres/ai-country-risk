@@ -115,7 +115,11 @@ def versions() -> Dict[str, str]:
         "GAZETTEER_VERSION": gazetteer.GAZETTEER_VERSION,
         "MASK_MAP_VERSION": gazetteer.MASK_MAP_VERSION,
         "PROMPT_VERSION": llm_constants.PROMPT_VERSION,
-        "PAYLOAD_VERSION": provenance.PAYLOAD_VERSION,
+        # The accessor, not the constant, for the same reason SCORING_MODEL uses
+        # one: an environment override is exactly the case a freeze has to catch,
+        # and reading the literal would report the contract the file names rather
+        # than the one the run built.
+        "PAYLOAD_VERSION": provenance.payload_version(),
         # The effective ids, not the literals: an environment override is
         # exactly the case this has to catch, and reading the constant would
         # report the model the file names rather than the one that answered.

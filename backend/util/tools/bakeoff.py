@@ -1040,6 +1040,11 @@ def score_anchors(name: str, budget_usd: float = BAKEOFF_BUDGET_USD,
                 "condition_flags": out.get("condition_flags") or {},
                 "lint": manifest.get("lint") or [],
                 "model_id": model_id,
+                # Which prompt actually rendered. Under p3 this moves to
+                # v4.1-trailing-context because the rule is appended only when
+                # the payload carries the block — so the row records whether the
+                # model was told how to read it, not merely that it was sent.
+                "prompt_version": out.get("prompt_version"),
                 "spend_usd": round(meter.spend_usd, 6),
                 "offpeak_usd": usage.offpeak_price(
                     model_id, meter.input_tokens, meter.output_tokens,

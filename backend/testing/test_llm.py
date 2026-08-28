@@ -1482,3 +1482,17 @@ class TestContextIsMaskedBeforeItIsCached:
         assert seen["version"].startswith(llm_context.CONTEXT_VERSION + ":")
         assert gazetteer.MASK_MAP_VERSION in seen["version"]
         assert rewrite.SWEEP_VERSION in seen["version"]
+
+    def test_the_freeze_reads_the_effective_payload_contract(self, monkeypatch):
+        """`versions()` must report what the run built, not what the file names.
+
+        The same defect the SCORING_MODEL accessor fixed: a freeze that reads a
+        module constant cannot see an environment override, which is the one
+        case it exists to catch. Caught here because an A/B result file stamped
+        itself p2 while running p3.
+        """
+        from backend.util.pilot import score as pilot_score
+        monkeypatch.setenv("PAYLOAD_VARIANT", "p3-context")
+        assert pilot_score.versions()["PAYLOAD_VERSION"] == "p3-context"
+        monkeypatch.delenv("PAYLOAD_VARIANT")
+        assert pilot_score.versions()["PAYLOAD_VERSION"] == "p2"
