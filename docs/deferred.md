@@ -234,3 +234,52 @@ ledger-only by construction.
 than the country, the same line the schema draws for `snapshot_diagnostic` — but
 six folder files plus one invariants file is the agreed shape, so it stays whole
 for now.
+
+## 10. A determinism canary, because the freeze cannot see behind a model id
+
+`score.FROZEN_FIELDS` pins `SCORING_MODEL` and refuses to resume when it moves.
+That catches *us* changing the scorer. It cannot catch the scorer changing
+underneath a stable id.
+
+**Why it matters.** The bake-off established that `gpt-4o` is the only tested
+model that reproduces its own scored output at `temperature=0`, `seed=42`, and
+that this is very likely a property of **how it is served** rather than of
+anything in this repository — the same model went non-deterministic when only its
+schema grammar was weakened, and five other OpenAI models with the identical
+grammar vary anyway. See `docs/scorer-bakeoff.md`.
+
+So the reproducibility claim this project rests on depends on a property of a
+remote system that we do not control, cannot inspect, and have no notification
+for. If OpenAI re-tunes, re-quantises, reroutes or rebatches `gpt-4o` behind the
+id `gpt-4o-2024-08-06`, three things silently stop being true — the byte-for-byte
+rebuild check, a gate-2 repeat that measures an effect rather than noise, and a
+resumed pilot whose second half matches its first — and **nothing in the codebase
+notices**. Every version stamp still agrees, because every version stamp is about
+us.
+
+That is the same shape as the six defects already found here: a stamp that
+records what somebody wrote down rather than what actually happened.
+
+**What it would be.** One stored payload, re-scored a handful of times on a
+schedule, asserting the scored fields still match a committed expectation and
+failing loudly when they do not.
+
+- One canned payload, committed — `bakeoff._SMOKE_EVIDENCE` already is one, and
+  the three-anchor noise-floor set gives calm/moderate/stressed coverage across
+  three bands for a few cents.
+- Five repeats, `temperature=0`, `seed=42`, through the production wrapper.
+- Compare on **scored fields only** — `bullet_summary` and `subscore_evidence`
+  are not deterministic even on `gpt-4o` and would make the canary cry wolf on
+  its first run. `bakeoff._scored_only` already draws exactly this line.
+- Fail loudly, and record *what* moved. "The scorer changed" is a different
+  finding from "the scorer drifted by one point on one ledger".
+
+**Why not yet.** It is cheap but it is not free, and it wants a schedule rather
+than a test run — `pytest` must stay network-free, which is enforced and worth
+more than this. The natural home is a `util/tools/` command run on a cron beside
+whatever else gets scheduled, not a sixth file in `testing/`.
+
+**The honest caveat.** A canary that fires tells you the instrument moved; it
+does not tell you the stored series was wrong, and it cannot repair anything
+already written. Its value is that the next claim made about reproducibility is
+made knowingly. That is worth having and it is not worth over-building.

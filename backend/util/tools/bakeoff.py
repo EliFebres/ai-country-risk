@@ -31,13 +31,20 @@ risky, and no amount of recalibration fixes disagreement about the ordering. So
 Spearman and Kendall are reported first and the mean shift second, which is the
 opposite of the order anybody asks the question in.
 
-Nothing here writes `risk_snapshot`, `run_ledger` or `risk_lint`. The scoring arm
-calls the live path with `upsert=False`, which is the same switch the two
-diagnostic arms already use, so a candidate cannot overwrite the reference it is
-being compared against. Lint was the exception until it was fixed: findings are
-keyed `(country, as_of, rule)` with no mode in the key, so every candidate run
-used to overwrite the reference's lint rows, and invisibly — this file reads lint
-back out of the in-memory manifest while `reports` reads the table. It now follows
+Nothing here writes `risk_snapshot` or `run_ledger`. The scoring arm calls the
+live path with `upsert=False`, which is the same switch the two diagnostic arms
+already use, so a candidate cannot overwrite the reference it is being compared
+against.
+
+Lint was the exception until it was fixed, and it was worse than it looked.
+`data_push.upsert_lint_findings` does not write a side table — it does
+`INSERT INTO risk_snapshot (country_iso2, as_of, lint) ... ON CONFLICT
+(country_iso2, as_of) DO UPDATE`, deliberately, so that lint (phase 5) and the
+snapshot (phase 7) can be written in either order. It sets no `scoring_mode`, so
+the schema's CHECK cannot stop it. That meant a candidate run overwrote the
+reference row's `lint`, and on any anchor with no row yet **created a stub
+production row with a NULL score**. Invisibly, too: this file reads lint back out
+of the in-memory manifest while `reports` reads the table. It now follows
 `upsert` like everything else.
 
 The one write that remains is the shared digest cache, and it is the point: it is

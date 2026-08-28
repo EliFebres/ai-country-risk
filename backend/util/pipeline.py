@@ -488,15 +488,22 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     #     scored. Advisory and non-blocking — nothing here changes a score, and a
     #     lint failure must not cost the country its snapshot.
     #
-    #     The *write* follows `upsert` for the same reason the snapshot does.
-    #     Findings are keyed `(country, as_of, rule)` with no scoring_mode in the
-    #     key, so every non-production arm that shares `(country, as_of)` with the
-    #     masked twin — the two diagnostic modes, and the bake-off's candidates —
-    #     was overwriting production's lint rows on its own primary key. Silently:
-    #     the bake-off reads lint back out of the in-memory manifest, and
-    #     `reports.lint_findings` reads the table, so the two disagree with nothing
-    #     to say so. The logging is unconditional because a finding is worth seeing
-    #     whoever produced it; only the row is production's.
+    #     The *write* follows `upsert` for the same reason the snapshot does, and
+    #     it matters more than it looks. `upsert_lint_findings` writes no side
+    #     table: it INSERTs into `risk_snapshot` itself, keyed `(country, as_of)`
+    #     with ON CONFLICT DO UPDATE, so that lint here in phase 3a and the
+    #     snapshot in phase 7 can land in either order. It sets no `scoring_mode`,
+    #     so the schema's CHECK cannot catch it either.
+    #
+    #     So every non-production arm sharing `(country, as_of)` with the masked
+    #     twin — the two diagnostic modes, and the bake-off's candidates — was
+    #     overwriting production's `lint`, and on an anchor with no row yet was
+    #     *creating a stub production row with a NULL score*. Silently: the
+    #     bake-off reads lint back from the in-memory manifest while `reports`
+    #     reads the table, so the two disagree with nothing to say so.
+    #
+    #     The logging stays unconditional, because a finding is worth seeing
+    #     whoever produced it. Only the row is production's.
     try:
         findings = lint.check(
             country_iso2=iso2,

@@ -146,40 +146,255 @@ byte-identical across repeats.
 
 ---
 
-## What we cannot explain
+## Determinism is a property of the serving layer, not the model
 
-It would be tidy to say determinism comes from strict grammar enforcement. The
-evidence does not support it, and the tempting version of this finding is wrong.
+The substantive result of all three rounds, and the one that decides the
+recommendation.
 
-**Necessary.** Weakening the grammar breaks determinism on a model that
-otherwise has it. Rewriting four union types as `anyOf` — mechanically
-equivalent JSON Schema — took gpt-4o from 50 ×9 to 52 ×7 / 50 ×2. Dropping to
-`json_object` broke it on every third-party candidate.
+### What was measured
 
-**Not sufficient.** `gpt-4.1` holds the *identical* `RISK_SCHEMA_V3`, under the
-*identical* `.with_structured_output(strict=True)` wrapper, at the same
-`temperature=0, seed=42` — and still varies its scored fields. So does
-`gpt-4.1-mini`, `gpt-4.1-nano`, `gpt-5.4-mini` and `gpt-5.6-luna`. Same grammar,
-same constraint, same request shape; different behaviour. Grammar cannot be the
-explanation for something models with the same grammar do not share.
+**Identical input, `temperature=0`, `seed=42`, ten repeats.** The same payload
+sent ten times, and the answers compared against each other.
 
-So **something further about how `gpt-4o` specifically is served also matters,
-and we have not identified it.** Candidates worth ruling out, none of them
-tested here: how each model honours `seed` (many endpoints accept it and ignore
-it); batching, routing or fleet heterogeneity behind the endpoint; whether the
-constrained-decoding implementation differs by model generation; or simple
-numerical non-associativity that a lower-entropy model happens to survive.
+This is **repeat-stability on one payload — not variation across different
+weeks.** The distinction is what makes the numbers mean anything. A scorer is
+*supposed* to return different numbers for different weeks; that is the signal.
+Returning different numbers for the *same* week is the instrument moving under
+the measurement, and there is no reading of it that is useful.
 
-Two consequences worth stating plainly:
+Compared on **scored fields** — every field except `bullet_summary` and
+`subscore_evidence`, for the reasons in *The gate that failed the reference*.
 
-- **Do not generalise this to "newer models are less deterministic."** It is one
-  prompt on one anchor's evidence. It is a strong, repeated observation about
-  these models on this workload, not a law.
-- **Do not assume `gpt-4o`'s determinism is permanent.** If it is a property of
-  how the model is served rather than of the schema we control, it can change
-  under us without any change on our side — which is an argument for the freeze
-  in `score.FROZEN_FIELDS` catching model moves, not an argument for trusting the
-  current one forever.
+### The results, across both rounds
+
+| model | route | valid | distinct scored payloads | `score_12m` seen |
+|---|---|---|---|---|
+| **gpt-4o** | strict | 10/10 | **1 — exact, 9/9 and 10/10** | 50 |
+| deepseek-v4-pro | `json_object` | 10/10 | 8 of 10 | 48–55 |
+| deepseek-v4-flash | `json_object` | 10/10 | 4 of 10 | 55 ×10 (composite stable) |
+| minimax-m3 | `json_object` | **6/10** | 6 of 6 | 37–47 |
+| gpt-4.1 | strict | 10/10 | 3–5 | 43–45 |
+| gpt-4.1-nano | strict | 10/10 | 6 | 55–60 |
+| gpt-4.1-mini | strict | 10/10 | 6–8 | 55–70 |
+| gpt-5.4-mini | strict | 10/10 | 10 | 35–47 |
+| gpt-5.6-luna | strict | 10/10 | 9 | 38–53 |
+
+**Only `gpt-4o` reproduces its own scored output.** Every other model tested
+varies — including every OpenAI candidate, on the identical schema through the
+identical wrapper.
+
+### The control that identifies the mechanism
+
+The obvious reading of round 2 — *the other vendors are sloppy* — is wrong, and
+one control rules it out.
+
+`gpt-4o` was made non-deterministic on demand. Rewriting the four union types in
+`RISK_SCHEMA_V3` as `anyOf` — mechanically equivalent JSON Schema, same meaning —
+produced this:
+
+| configuration | `score_12m` over 9 samples |
+|---|---|
+| `v3` + system *(production)* | **50 ×9** |
+| `anyOf` variant + system | **52 ×7, 50 ×2** |
+
+Same model, same provider, same temperature, same seed, same prompt. **Only the
+grammar changed.** So the variation is not a property of who serves the model.
+
+### Why constrained decoding does this
+
+At each step the model produces a probability distribution over next tokens. At
+`temperature=0` it takes the highest-probability one — the argmax. That sounds
+exactly reproducible and is not: GPU floating-point arithmetic is not
+associative, so the order in which values are summed depends on batch size and
+kernel scheduling, which depend on what else is running on the machine. Two runs
+can compute very slightly different probabilities for the same token.
+
+Almost always that is irrelevant. It matters when two tokens are near-tied: a
+difference in the twelfth decimal place flips which one wins, and because each
+token conditions everything after it, one flipped token diverges the whole rest
+of the answer. A single near-tie early on is enough to change a score.
+
+Strict schema enforcement compiles the schema into a grammar and **masks every
+token that would make the output invalid**. After `"score_12m":` only digits are
+legal; the prose tokens that would otherwise be near-tied are removed from
+contention entirely. Often exactly one token is legal, and then there is nothing
+to flip. The grammar does not make the arithmetic deterministic — it removes the
+opportunities for non-determinism to express itself.
+
+### The honest limit
+
+**Grammar is necessary but not sufficient, and this is where the tidy story
+breaks.**
+
+`gpt-4.1` holds the *identical* `RISK_SCHEMA_V3`, through the *identical*
+`.with_structured_output(strict=True)` wrapper, at the same `temperature=0`,
+`seed=42` — and varies anyway. So do `gpt-4.1-mini`, `gpt-4.1-nano`,
+`gpt-5.4-mini` and `gpt-5.6-luna`. Grammar cannot explain something that models
+sharing that grammar do not share.
+
+**So something further about how `gpt-4o` specifically is served also matters,
+and we have not identified it.** What would need ruling out, none of it tested
+here:
+
+- how each model honours `seed` — many endpoints accept it and ignore it;
+- batching, routing or fleet heterogeneity behind a single endpoint;
+- whether the constrained-decoding implementation differs by model generation;
+- whether a lower-entropy model simply survives the same numerical noise that a
+  flatter one does not.
+
+Two things follow that cut against the convenient reading. **Do not generalise
+to "newer models are less deterministic"** — this is one prompt on one anchor's
+evidence, a strong repeated observation about these models on this workload, not
+a law. And **do not assume `gpt-4o`'s determinism is permanent**: if it is a
+property of how the model is served rather than of anything we control, it can
+change with no change on our side. See the determinism canary in
+`docs/deferred.md`.
+
+### What follows for this project
+
+**Determinism cannot be shopped for.** It is not a feature with a price, and no
+amount of paying more buys it — `gpt-4.1` costs twenty times `gpt-4.1-nano` and
+is also non-deterministic. There is one model in the tested set that has it.
+
+Three places it is load-bearing:
+
+1. **The byte-for-byte rebuild check.** `rebuild_snapshot` re-derives a stored
+   row from its manifest and compares. Against a non-deterministic scorer the
+   check cannot distinguish "the evidence changed" from "the model wobbled", and
+   it stops being a check.
+2. **A gate-2 repeat.** The baseline exists so the next run is a regression test
+   rather than a fresh opinion. If the scorer varies by more than the effect
+   being measured, the repeat measures noise.
+3. **Resuming an aborted pilot.** A multi-day run that stops and resumes must not
+   have the resumed portion drift against the part already stored, or the series
+   is two instruments wearing one name.
+
+Worth being precise about what is *not* on that list: **the pilot itself does not
+need determinism directly.** All 2,092 snapshots are novel inputs scored exactly
+once, so repeat-stability never arises during the run. It is the verification
+around the pilot that needs it.
+
+### Two adjacent findings
+
+**Message role is part of the instrument.** The same prompt as a `SystemMessage`
+and as a `HumanMessage` gives stably different answers — 50 ×9 against 52 ×9.
+Both deterministic, and not the same instrument. Whatever else moves, that must
+not.
+
+**Nullability is load-bearing, not decorative.** The reference genuinely returns
+`edge_vitality: null`, so a "portable" schema that forces an integer is not a
+reformatting of the constraint — it changes what the model is allowed to say.
+
+### The caveat that keeps the claim honest
+
+**Prose is not deterministic even under strict schema.** Over repeats of one
+prompt, `bullet_summary` was reworded on every single run, and
+`subscore_evidence` cited a different item on 2 of 6 — while every scored field
+stayed byte-identical.
+
+So the claim is precisely: **scores and flags reproduce; narration does not.**
+Anywhere the methodology is written up, that is the sentence, not "gpt-4o is
+deterministic."
+
+---
+
+## Price buys speed, not agreement
+
+The noise floor orders **almost perfectly inverse to price**. The cheaper the
+model, the more it disagrees with itself on identical input.
+
+### Measured on three anchors, not one
+
+The first pass used a single canned payload, and it was wrong in both
+directions — it understated `gpt-4.1-nano` by 4× and overstated `gpt-4.1-mini` by
+nearly 2×. Repeat-stability depends on where on the scale the answer lands: a
+payload whose score sits near a band edge amplifies jitter, and one anchor cannot
+show that. So each candidate was measured on three, spanning three bands, ten
+repeats each.
+
+| model | $/snapshot | calm (Low) | baseline (Moderate) | stressed (Extreme) | **worst** |
+|---|---|---|---|---|---|
+| **gpt-4o** | $0.0430 | **0** | **0** | **0** | **0 pt** |
+| **gpt-4.1** | $0.0344 | 1 | 1 | 1 | **1 pt** |
+| gpt-5.4-mini | $0.0150 | 7 | 6 | 6 | 7 pt |
+| gpt-4.1-mini | $0.0069 | 8 | 7 | 2 | 8 pt |
+| gpt-5.6-luna | $0.0040 | 11 | 9 | 3 | 11 pt |
+| gpt-4.1-nano | $0.0017 | **20** | 5 | 5 | **20 pt** |
+
+`gpt-4.1-nano` is the clearest case for measuring more than one anchor. On the
+calm payload it returned 30, 35, 38, 38, 40, 30, 50, 40, 30, 40 — a 20-point
+swing on identical input, where `gpt-4o` answered 12 ten times out of ten. One
+anchor would have reported it at 5 points and ranked it second-best.
+
+Only `gpt-4o` and `gpt-4.1` are flat across the range. Every other candidate's
+jitter varies by anchor, which means its noise floor is not one number and the
+worst case is the one that matters.
+
+### Two yardsticks
+
+| yardstick | value | what it is |
+|---|---|---|
+| week-over-week move | **0.050** (5 pt) | median \|Δ\| between consecutive anchors, over the 52 US-2019 reference snapshots |
+| PT masking divergence | **0.072** (7.2 pt) | masked − named, the effect masking exists to measure |
+
+They agree to within a couple of points, from independent sources, which is
+reassuring. The week-over-week figure is the one to prefer: it is **reproducible
+from data in this repository**, recomputable whenever the reference moves, while
+0.072 is carried from a prior measurement this repo cannot currently regenerate.
+
+| model | worst spread | vs 5-pt weekly move | vs 7.2-pt masking signal |
+|---|---|---|---|
+| gpt-4o | 0 pt | **0%** | **0%** |
+| gpt-4.1 | 1 pt | **20%** | **14%** |
+| gpt-5.4-mini | 7 pt | 140% | 97% |
+| gpt-4.1-mini | 8 pt | 160% | 111% |
+| gpt-5.6-luna | 11 pt | 220% | 153% |
+| gpt-4.1-nano | 20 pt | 400% | 278% |
+
+Four of the five candidates have a noise floor **at or above the entire signal**.
+A model that disagrees with itself by more than a typical week's movement cannot
+be used to detect a typical week's movement: the finding would be smaller than
+the instrument's own wobble, and a week-to-week change it reported could not be
+distinguished from it answering twice.
+
+### The general lesson
+
+**The advertised saving is not the real saving.** A model that costs a twentieth
+as much per call but wobbles by more than the effect you are measuring has not
+made your series cheaper — it has made it noisier, and you pay the difference
+back in repeats, in wider error bars, or in a finding you cannot defend.
+
+Price per token is a procurement number. Price per *unit of usable signal* is the
+real one, and it is only knowable after measuring a model against itself on
+identical input — on more than one input, across the range of answers you expect.
+
+That measurement is cheap and almost nobody does it. Thirty repeats per model
+cost well under a dollar here and reordered the entire shortlist twice.
+
+### A hypothesis, offered as a hypothesis
+
+This is **not established**. It reconciles this section with the determinism
+section above, and it predicts both, which is the most that can be said for it.
+
+*Determinism needs the top token to be decisively ahead at every step.* Two
+things widen that gap. **Grammar enforcement** deletes competitors from the
+candidate set — after `"score_12m":` the prose tokens are simply gone. **Model
+confidence** puts more probability mass on the leader, so the margin to second
+place exceeds the floating-point noise.
+
+That predicts both results. Weakening `gpt-4o`'s grammar broke its determinism by
+letting competitors back into contention. Cheaper, smaller models wobble because
+flatter output distributions make near-ties common, so the same numerical noise
+flips more of them — and it predicts the anchor-dependence too, since a payload
+whose evidence genuinely sits between two bands is one where the model is least
+confident.
+
+**What it does not establish.** No logits were inspected — this is inference from
+behaviour. Three payloads were tested, all canned. And it does not explain the
+thing that most needs explaining: why `gpt-4.1` varies where `gpt-4o` does not,
+given identical grammar and a plausibly similar confidence profile. Something
+about the serving path remains unaccounted for, and this hypothesis does not
+reach it.
 
 ---
 
