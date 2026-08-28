@@ -663,7 +663,7 @@ def export(directory: pathlib.Path, roster: Optional[List[str]] = None,
     one nobody runs.
 
     Args:
-        directory: where to write. The repo root, beside DEFERRED.md.
+        directory: where to write. The repo root.
         note: free text for the top of the markdown — what this capture was for.
 
     Returns:

@@ -59,10 +59,10 @@ All routes run on the Node.js runtime, respond to `GET`, and are wrapped by `jso
 | `/api/indicators` | Latest year/value for the target indicators per country | (individual topic) |
 | `/api/articles` | Top-3 articles per country's latest snapshot | (individual topic) |
 | `/api/risk-summary` | Latest AI bullet summary per country | (individual topic) |
-| `/api/prices` | Live market prices (stocks / bonds / crypto / commodities) from the prices daemon | Prices pane (polls ~5 min) |
+| `/api/prices` | Live market prices (stocks / bonds / crypto / commodities) from the prices daemon | Prices pane (polls every 30 min) |
 | `/api/econ-calendar` | Upcoming economic-calendar events | (individual topic) |
 
-On the client, `RISK_CACHE` (`app/lib/risk-client.ts`) and `DASHBOARD_CACHE` (`app/lib/dashboard-client.ts`) dedupe their fetches across components for the session. The Prices pane instead polls through `app/lib/prices-client.ts` on a ~5-minute cadence (no session memo — the server-side `unstable_cache` TTL protects Neon), so it keeps ticking with fresh data.
+On the client, `RISK_CACHE` (`app/lib/risk-client.ts`) and `DASHBOARD_CACHE` (`app/lib/dashboard-client.ts`) dedupe their fetches across components for the session. The Prices pane instead polls through `app/lib/prices-client.ts` on a 30-minute cadence (no session memo — the server-side `unstable_cache` TTL protects Neon), so it keeps ticking with fresh data.
 
 ## Caching
 
@@ -74,24 +74,29 @@ Each topic is a single `unstable_cache` instance shared by every route that need
 - **Articles** — 6h
 - **Econ calendar** — 6h
 - **AI alerts** — 12h
-- **Prices** — 5 min (matches the prices daemon's write cadence)
+- **Prices** — 30 min (matches the scheduler tick that writes them)
 
 This is an in-memory/CDN cache — nothing is written to the filesystem.
 
 ## Database
 
-Queries live in `app/lib/risk-server.ts` (`server-only`), which uses a process-wide pooled `pg` connection created from `DATABASE_URL`. The schema is expected to provide these tables:
+Queries live in `app/lib/risk-server.ts` (`server-only`), which uses a process-wide pooled `pg` connection created from `DATABASE_URL`. The backend defines ten tables in `backend/data_upsert/schema.py`; the ones this app reads are:
 
-- `country` — ISO2 code + name
-- `risk_snapshot` — per-country risk scores over time (and `bullet_summary`)
-- `risk_snapshot_article` — news articles tied to a snapshot
-- `indicator` / `yearly_value` — World Bank indicator definitions and annual values
-- `recent_indicator` — freshest sub-annual (IMF) values, preferred over the annual `yearly_value` when present
+- `country` — ISO2 code, name, and map coordinates
+- `risk_snapshot` — per-country scores over time, plus `bullet_summary`, `non_investable`, and the `top_articles` JSONB array the News section renders
+- `indicator_series` — every macro observation at any frequency, from every source, resolved freshest-period-wins
 - `news_alert` — globally AI-ranked alerts feeding the AI Alerts pane
 - `economic_calendar_event` — upcoming events (with AI importance) feeding the Econ Calendar pane
-- `market_price` / `price_reference` — live prices + 1Q/YTD reference closes feeding the Prices pane
+- `market_price` — live prices plus the 1Q/YTD reference closes feeding the Prices pane
 
-Map positions come from the database (`country.lat` / `country.lng`), seeded from the backend roster in `backend/utils/constants.py`. The frontend holds no country list of its own — adding a country to that roster makes it appear here with no frontend change. A country whose row has no coordinates is skipped on the map.
+> **Three of these queries are broken.** They still read tables the backend's
+> twenty-to-ten table rebuild dissolved: `/api/indicators` and `/api/articles`
+> return 500, and `fetchIndicatorAverageTrends` and `fetchChannels` fail quietly
+> and return empty. Nothing under `frontend/` was updated, on purpose — the
+> replacement SQL for each is written out in
+> [`../docs/deferred.md`](../docs/deferred.md).
+
+Map positions come from the database (`country.lat` / `country.lng`), seeded from the backend roster in `backend/util/constants.py`. The frontend holds no country list of its own — adding a country to that roster makes it appear here with no frontend change. A country whose row has no coordinates is skipped on the map.
 
 ## Placeholder / Seed Features
 

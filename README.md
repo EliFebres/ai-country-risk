@@ -10,8 +10,8 @@ The **AI Country Risk Dashboard** is an open‑source web application that quan
 
 ### Features
 
-* **Data ingestion** – Downloads and formats World‑Bank macro‑economic indicators such as inflation, unemployment, political stability and other factors and stores them in per‑country panel datasets. The coverage universe is the MSCI Developed and Emerging Markets indices plus Russia — 48 countries, listed in `backend/util/constants.py` (`COUNTRY_ROSTER`), which is the single source of truth. Sub‑annual prints (e.g. monthly/quarterly inflation) are refreshed from the **IMF** (SDMX 2.1) so fast‑moving economies aren't stuck on a year‑old annual figure, and the V‑Dem political‑corruption index is pulled from **Our World in Data (OWID)**.
-* **Risk scoring** – Uses a large‑language model (OpenAI `gpt-4o-2024-08-06` via LangChain) to combine macro data and recent headlines into a single 0–1 risk score and a bullet‑point explanation. The AI prompt enforces hard rules around war, political stability and macro floors to ensure consistent scoring, and a YAML‑driven **sanctions / investability gate** pins un‑investable jurisdictions (e.g. Russia, Iran, North Korea, Cuba, occupied Ukrainian oblasts) to maximum risk.
+* **Data ingestion** – Downloads World‑Bank macro‑economic indicators such as inflation, unemployment and political stability, alongside IMF, BIS and per‑edition IMF WEO series, and stores every observation at every frequency in one table (`indicator_series`) under one freshest‑wins rule. The coverage universe is the MSCI Developed and Emerging Markets indices plus Russia — 48 countries, listed in `backend/util/constants.py` (`COUNTRY_ROSTER`), which is the single source of truth. Sub‑annual prints (e.g. monthly/quarterly inflation) are refreshed from the **IMF** (SDMX 2.1) so fast‑moving economies aren't stuck on a year‑old annual figure, and the V‑Dem political‑corruption index is pulled from **Our World in Data (OWID)**.
+* **Risk scoring** – Two model calls per country. A cheap model digests every fetched article into strict JSON; a frontier model (OpenAI `gpt-4o-2024-08-06` via LangChain) reads every digest plus the three highest‑severity bodies in full, and returns four ledger scores, two horizon scores and a bullet summary. It scores with the country's identity **masked** — names, cities, people, parties, currencies and institutions replaced by the roles they play, every number left exactly as written. Nothing downstream edits the number it returns: a YAML‑driven sanctions lookup adds a `RESTRICTED` **badge** beside the score rather than forcing it, and contradictions are recorded as advisory lint rather than corrected.
 * **Live market & event feeds** – A standalone prices daemon polls **Financial Modeling Prep (FMP)** for live equity, bond‑yield, crypto and commodity quotes, a global **AI Alerts** feed re‑ranks every country's top headlines by importance to the world economy, and an AI‑ranked **economic calendar** surfaces the next ~14 days of major releases.
 * **Persistence** – Persists macro series, risk snapshots, alerts, calendar events and live prices into a Neon‑hosted PostgreSQL database using a transactional upsert strategy.
 * **Interactive frontend** – A Next.js (App Router) dashboard renders an interactive world map with clickable risk markers, a slide‑in country sidebar, a global "World Risk Index" rail, and a bottom ticker bar (Prices, World Markets, AI Alerts, Econ Calendar and DB‑backed Live TV streams). It also ships a hands‑off **"World Tour" idle auto‑tour** that cycles through countries after inactivity and a fullscreen‑map toggle. All data is served live from Postgres through cached API routes — there is no static JSON file and no weekly refresh job.
@@ -26,61 +26,37 @@ The **AI Country Risk Dashboard** is an open‑source web application that quan
 | **Database** | Neon‑hosted PostgreSQL (schema created idempotently from the ETL) |
 | **Data sources** | World Bank, IMF (SDMX 2.1), Our World in Data (V‑Dem), Financial Modeling Prep (FMP), Google News RSS, optional Crawlbase |
 
-## My Ai Prompt
-```bash
-You are a senior geopolitical risk analyst. Rate investor risk for {country} over the next 12 months using ONLY the evidence provided.
+## How the score is made
 
-EVIDENCE_JSON
-{evidence_json}
+A single structured-output call per country, under a versioned prompt
+(`backend/llm/constants.py`, currently `v4.0-masked-production`). There is no
+trained model and no weighted formula — the deterministic arithmetic in the
+pipeline is *input* to the model's judgement, never applied on top of it.
 
-ARTICLES_JSON
-# exactly these items only
-# [{{"id":"a1","source":"...","published_at":"YYYY-MM-DD","title":"...","summary":"..."}}]
-{articles_json}
+The prompt asks for four ledger scores rather than a list of risk factors:
 
-Scoring bands (guidance; use full 0-1 range):
-  • 0.05-0.20 = Low   • 0.20-0.40 = Low-Moderate   • 0.40-0.70 = Moderate
-  • 0.70-0.90 = High  • 0.90-0.98 = Extreme (active war / nationwide shutdowns)
+| Ledger | The question it asks | A high number means |
+|---|---|---|
+| **Friction** | what the state extracts, times how much of it fails to convert into capability | a worse wedge |
+| **Order-uncertainty** | are the load-bearing rules — contracts, currency, statistics, succession — legible? | less underwritable |
+| **Information capacity** | can the country's own instruments be trusted to measure it? | **weaker** instruments |
+| **Edge vitality** | is the system still learning — firms forming, failing, inventing? | more vitality, and this one may never *raise* a risk score |
 
-Sub-factors to score (diagnostic only):
-  conflict_war, political_stability, governance_corruption, macroeconomic_volatility, regulatory_uncertainty.
+Two rules run through the whole thing:
 
-# --- Localization & Materiality ---
-Do NOT raise risk due to indirect foreign tensions or rhetoric. Elevate risk ONLY for {country} when evidence shows kinetic activity on its territory, imminent hostilities, or economically binding policy affecting {country}. Indirect disputes, UN votes, or rhetoric without domestic transmission = low impact.
+* **Nothing downstream edits the model's score.** There were floors, a cap and a
+  sanctions gate that forced a 1.0. All of it is deleted. A sanctioned country
+  keeps the score its evidence earned and gains a `RESTRICTED` badge beside it;
+  contradictions between the model's flags and its numbers are recorded by
+  `util/lint.py` and corrected by nobody.
+* **The country is not named.** Scoring runs with the identity masked — names,
+  cities, people, parties, currencies and institutions replaced by the roles they
+  play, every number left exactly as written. That is what makes a 2016 backfill
+  and tomorrow's live run the same instrument.
 
-# --- Hard Rules the model must apply (no post-processing will alter your score) ---
-• War Reality: If a sustained interstate war or regular long-range strikes hit {country}'s cities/critical infrastructure → set conflict_war ≥ 0.90 AND overall score ≥ 0.90.
-• Internal Conflict:
-   - Level A (Severe): recurring mass-casualty attacks (≥20 killed) or mass kidnappings in the last 90 days across ≥3 regions → conflict_war ≥ 0.80 AND overall score ≥ 0.70.
-   - Level B (Very severe): Level A + repeated attacks on critical infrastructure (pipelines/power grid) or major-city attacks → conflict_war ≥ 0.88 AND overall score ≥ 0.80.
-   - Level C (Extreme): Level B + nationwide emergency effects (large displacement, prolonged curfews, export shut-ins) → overall score ≥ 0.90.
-• Parliamentary Guardrail: Cabinet resignations, caretaker phases, coalition talks, or scheduled/snap elections remain **moderate** unless there is unconstitutional dissolution, emergency/martial law, week-long widespread violent unrest disrupting essential services, bank runs, capital controls, or sovereign default. Otherwise **political_stability should not exceed 0.45**.
-• Macro floors (numeric): If CPI inflation ≥ 25% → macroeconomic_volatility ≥ 0.70 AND overall score ≥ 0.55. If ≥ 40% → ≥ 0.80 AND overall ≥ 0.65. If ≥ 80% → overall ≥ 0.80.
-
-# --- Per-article impact labels (for diagnostics; caller won't re-score) ---
-Impact ∈ [0,1]:
-  • 0.85-1.00 Severe - kinetic activity in/against {country}, mass kidnappings, binding economic measures, or major infrastructure sabotage.
-  • 0.60-0.75 Moderate - credible mobilization/preparations, high-probability sanctions.
-  • 0.40-0.55 Mixed/unclear - indirect third-country events with uncertain transmission.
-  • 0.05-0.25 Low/benign - rhetoric/symbolic acts.
-
-Return ONLY valid JSON (no prose) exactly:
-
-{{
-  "subscores": {{
-    "conflict_war": <float 0..1 or null>,
-    "political_stability": <float 0..1 or null>,
-    "governance_corruption": <float 0..1 or null>,
-    "macroeconomic_volatility": <float 0..1 or null>,
-    "regulatory_uncertainty": <float 0..1 or null>
-  }},
-  "news_article_scores": [
-    {{"id": "<id from ARTICLES_JSON>", "impact": <float 0..1>}}
-  ],
-  "score": <float 0..1>,  # your single calibrated investor-risk score AFTER applying the hard rules above
-  "bullet_summary": "<<=120 words explaining primary drivers and meaningful mitigants>"
-}}
-```
+The full walkthrough is in [`docs/pipeline.md`](docs/pipeline.md); the masking
+layers, the exclusions and the measurement are in
+[`docs/historical-ratings.md`](docs/historical-ratings.md).
 
 ## Getting Started
 
@@ -180,27 +156,33 @@ AI-Country-Risk-Dashboard/
 │   │   ├── components/         # Map, sidebar, rail, bottom‑bar panes, charts
 │   │   └── lib/                # Server queries, cached fetchers, client caches
 │   └── README.md               # Detailed frontend instructions
+├── docs/                       # How the pipeline works, end to end
+│   ├── pipeline.md             # Country data -> risk score
+│   ├── historical-ratings.md   # The History Machine: masking, exclusions, meters
+│   └── deferred.md             # Deliberate non-actions, with the reasoning
 ├── assets/                     # Screenshots / demo media
 ├── LICENSE                     # MIT license
 └── README.md                   # (You are here)
 ```
 
 ### Database Schema
-The schema is created idempotently by the ETL — there is no separate migration tool. See `backend/README.md` for the full DDL.
+Ten tables, defined in one place — `backend/data_upsert/schema.py` — and created
+idempotently. There is no separate migration tool. What each holds, and what
+absorbed what in the twenty-to-ten rebuild, is in
+[`docs/pipeline.md`](docs/pipeline.md).
 
 | Table | Description |
 |-------|-------------|
-| `country` | Country ISO‑2 code and canonical name |
-| `indicator` | Indicator definitions and units |
-| `yearly_value` | Annual World Bank macro values per country |
-| `recent_indicator` | Freshest sub‑annual (IMF) values, preferred over the annual ones |
-| `risk_snapshot` | 0–1 risk score and LLM bullet summary for a given date |
-| `risk_snapshot_article` | Top‑3 news articles tied to a snapshot |
-| `news_alert` | Globally AI‑ranked alerts feed |
-| `economic_calendar_event` | Upcoming economic events with AI importance |
-| `market_price` | Live prices (stocks/bonds/crypto/commodities) |
-| `price_reference` | Quarter‑/year‑start closes for the 1Q/YTD calc |
-| `live_tv_channel` | DB‑backed Live TV channel list (seed fallback if empty) |
+| `country` | ISO-2 code, name, map coordinates, and the structural facts masking cannot replace |
+| `article` | Every article from every source, live and historical |
+| `llm_artifact` | Content-addressed model output — digests and mask rewrites |
+| `indicator_series` | Every macro observation at any frequency, from every source |
+| `risk_snapshot` | The product: 0–1 score, bullet summary, ledgers, flags, Top-3, provenance |
+| `snapshot_diagnostic` | Everything measuring the instrument rather than the country |
+| `run_ledger` | One row per unit of work — scheduler jobs, harvest windows, scored anchors |
+| `market_price` | Live prices plus their quarter/year-start reference closes |
+| `news_alert` | The globally AI-ranked alerts feed |
+| `economic_calendar_event` | Upcoming economic events with an AI importance score |
 
 ### Contributing
 Contributions, bug reports and feature requests are welcome! Please open an issue or submit a pull request on GitHub. When adding new data sources or indicators, update the `constants.py` mappings and ensure your changes are reflected in both the backend and the frontend.

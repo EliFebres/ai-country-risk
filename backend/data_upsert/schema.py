@@ -7,7 +7,7 @@ five were "operator-provisioned", which meant a fresh clone could not build
 itself and nobody found out until they tried.
 
 Ten tables, down from twenty. What merged, and the one merge that was declined,
-is in `SCHEMA_MIGRATION.md`.
+is in `docs/pipeline.md`.
 
 **Assumptions this module makes explicit rather than inheriting.**
 
@@ -282,7 +282,7 @@ CREATE TABLE IF NOT EXISTS news_alert (
 # (alerts are deleted and rewritten whole each run, calendar rows are pruned by
 # date), and half the columns of each would be null in the other. Merging them
 # under a `kind` column would also make the alerts query silently return
-# calendar events, which is worse than an error. See SCHEMA_MIGRATION.md.
+# calendar events, which is worse than an error. See `docs/deferred.md`.
 ECONOMIC_CALENDAR_EVENT = """
 CREATE TABLE IF NOT EXISTS economic_calendar_event (
     id            BIGSERIAL PRIMARY KEY,

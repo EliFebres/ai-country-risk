@@ -64,15 +64,15 @@ loader tries both, so no conversion is needed.
 ## What gets loaded
 
 Only a handful of series — the ones where the *revision* is the story rather
-than the level. See `SUBJECTS` in `backend/utils/history/vintage/weo.py`.
+than the level. See `SUBJECTS` in `backend/data_fetching/vintage/weo.py`.
 
-A subject only reaches a score if it maps onto a key of
-`constants.INDICATOR_REGISTRY`. Today that is **inflation alone**; real GDP
-growth, gross debt, net lending and the current account are loaded for their
-vintages but have no registry entry to be read through, and `UNMAPPED_SUBJECTS`
-records why. Giving them one would put new evidence in front of the model on
-every country, live included, so it is a deliberate decision rather than a
-loader change.
+All five now map onto a key of `constants.INDICATOR_REGISTRY` and therefore
+reach a score: inflation on `CPI.YOY`, and real GDP growth, gross government
+debt, general government net lending and the current account on their own
+`WEO.`-prefixed codes. The prefix is deliberate — these are edition-vintaged and
+the World Bank's versions of nearly the same series are not, so quietly merging
+the two would throw away the revision history that is the whole reason for
+loading editions at all.
 
 ### Known per-edition quirks
 
@@ -92,7 +92,7 @@ evidence payload as if it were an observation.
 
 ## Running it
 
-    python -m backend.utils.history.run weo
+    python -m backend.util.pilot.run weo
 
 Idempotent — `indicator_series` is keyed on
 `(country_iso2, indicator_code, freq, period, as_of)`, so every edition's copy of
