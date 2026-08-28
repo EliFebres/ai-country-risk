@@ -971,3 +971,41 @@ class TestDeterminismGatesScoresNotProse:
     def test_only_prose_and_citations_are_ungated(self):
         """Anything added to this set stops being checked, so it is pinned."""
         assert bakeoff._UNGATED_FIELDS == ("bullet_summary", "subscore_evidence")
+
+
+class TestTheNoiseFloorIsInTheDivergenceMeterUnits:
+    """A determinism pass/fail does not say whether the failure matters.
+
+    The candidate's own jitter is only meaningful against the signal it would be
+    spent on, and the only substantive one measured is PT's masking divergence
+    of 0.072 on the stored 0-1 scale. Reporting the two in different registers
+    leaves the reader doing the arithmetic.
+    """
+
+    def test_two_points_of_jitter_is_about_a_quarter_of_the_signal(self):
+        got = bakeoff.noise_floor(2)
+        assert got["spread_0_1"] == 0.02
+        assert got["share_of_divergence"] == pytest.approx(0.278, abs=0.001)
+
+    def test_half_a_point_is_effectively_invisible(self):
+        assert bakeoff.noise_floor(0.5)["share_of_divergence"] == pytest.approx(0.069, abs=0.001)
+
+    def test_jitter_can_exceed_the_whole_signal(self):
+        """Measured on real candidates, so it is not a hypothetical: a spread of
+        15 points is more than twice everything masking was worth."""
+        assert bakeoff.noise_floor(15)["share_of_divergence"] > 2.0
+
+    def test_a_perfectly_stable_candidate_scores_zero(self):
+        assert bakeoff.noise_floor(0)["share_of_divergence"] == 0.0
+
+    def test_unmeasured_is_none_and_never_zero(self):
+        """"Not measured" and "perfectly stable" are opposite facts and must not
+        render the same, per the em-dash rule the reports already follow."""
+        got = bakeoff.noise_floor(None)
+        assert got["share_of_divergence"] is None
+        assert got["spread_0_1"] is None
+
+    def test_the_benchmark_is_the_stored_scale_not_the_model_scale(self):
+        """0.072 is masked-minus-named out of `risk_snapshot.score`, which is
+        0-1. Reading it as 0-100 would understate every candidate 100-fold."""
+        assert 0 < bakeoff.PT_MASKING_DIVERGENCE < 1

@@ -144,6 +144,46 @@ BANDS: Tuple[Tuple[str, float], ...] = (
     ("High", 75.0), ("Extreme", 90.0),
 )
 
+# What a candidate's own jitter is worth, measured against the only substantive
+# signal this project has put a number on.
+#
+# `reports.divergence` reports masked-minus-named on the stored 0-1 scale, and
+# PT's came out at **0.072**. That is the whole finding masking exists to
+# produce: what a country's identity was worth to the scorer.
+#
+# A candidate that returns a different score for the *same* input is spending
+# some of that budget on nothing. The models answer on 0-100 and the store keeps
+# 0-1, so a spread of N points is N/100 against 0.072 — which makes +/-2 points
+# a quarter of the signal, and +/-0.5 points about seven percent of it. That is
+# the number that decides "reproducible within tolerance", not the determinism
+# gate's pass/fail: the gate answers whether a candidate is exactly reproducible,
+# and this answers whether its irreproducibility is large enough to matter.
+#
+# Sourced from a prior measurement rather than computed here, and deliberately
+# not hidden behind a function that would imply otherwise: this repo cannot
+# currently reproduce it, because the `named` and `masked_nostructural` arms have
+# never been run and `snapshot_diagnostic` is empty. Recompute and move this the
+# first time a real divergence lands.
+PT_MASKING_DIVERGENCE = 0.072
+
+
+def noise_floor(score_spread_points: Optional[float]) -> Dict[str, Optional[float]]:
+    """One candidate's same-input spread, in the divergence meter's units.
+
+    Args:
+        score_spread_points: `gates.determinism.score_spread`, on the model's
+            0-100 scale. None when determinism was never measured — which stays
+            None rather than becoming 0.0, because "not measured" and "perfectly
+            stable" are opposite facts.
+    """
+    if score_spread_points is None:
+        return {"spread_points": None, "spread_0_1": None, "share_of_divergence": None}
+    spread = score_spread_points / 100.0
+    return {"spread_points": score_spread_points,
+            "spread_0_1": round(spread, 4),
+            "share_of_divergence": round(spread / PT_MASKING_DIVERGENCE, 3)}
+
+
 # The observation-only flags. Agreement on these is the sharpest test of whether
 # prompt v4 survived the switch: they are explicitly recorded beside the score
 # and never applied to it, so a model that quietly self-adjusts to them has
@@ -994,6 +1034,17 @@ def render(result: Optional[Dict[str, Any]] = None) -> None:
             print(f"     {metric:<22} {row['n']:>4} {fmt(row['spearman']):>9} "
                   f"{fmt(row['kendall']):>9} {fmt(row['signed_mean']):>9} "
                   f"{fmt(row['abs_mean']):>9} {fmt(row['max_abs']):>8}")
+
+        floor = noise_floor(determinism.get("score_spread"))
+        if floor["share_of_divergence"] is not None:
+            print(f"     noise floor: same input varies {floor['spread_points']:g} pt "
+                  f"= {floor['spread_0_1']} on the stored scale = "
+                  f"{floor['share_of_divergence']:.0%} of PT's {PT_MASKING_DIVERGENCE} "
+                  f"masking divergence")
+            print("       (a correlation cannot be read as disagreement below this; "
+                  "it is the candidate arguing with itself)")
+        else:
+            print("     noise floor: not measured")
 
         print("  3. band migration  (rows = baseline, columns = candidate; "
               "diagonal is offset, scatter is disagreement)")
