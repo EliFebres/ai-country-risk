@@ -1,0 +1,1628 @@
+{
+  "arm": "scoring",
+  "candidate": "gpt-4.1-nano",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.0-masked-production",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4.1-nano-2025-04-14",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "30e07ef90801536a3659c5c99226f773354f1db0"
+  },
+  "cost": {
+    "cache_share": 0.043,
+    "input_tokens_per_snapshot": 11993.2,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 351.3,
+    "per_snapshot_usd": 0.001331,
+    "snapshots": 53,
+    "spend_usd": 0.0706,
+    "utc_hours": [
+      4
+    ]
+  },
+  "country": "TR",
+  "endpoint": {
+    "SCORING_MODEL": "gpt-4.1-nano-2025-04-14"
+  },
+  "gates": {},
+  "note": "cheapest candidate, ~1/20th the incumbent",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2018-01-01",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10346,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 251,
+      "score_3m": 0.7,
+      "seconds": 4.53,
+      "spend_usd": 0.001135,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-08",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 8991,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.45,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 283,
+      "score_3m": 0.55,
+      "seconds": 4.6,
+      "spend_usd": 0.001012,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-15",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10858,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 301,
+      "score_3m": 0.7,
+      "seconds": 4.18,
+      "spend_usd": 0.001206,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-22",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 10801,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 202,
+      "score_3m": 0.85,
+      "seconds": 3.95,
+      "spend_usd": 0.001161,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-29",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12081,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.78,
+        "information_capacity": 0.88,
+        "order_uncertainty": 0.82
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 309,
+      "score_3m": 0.75,
+      "seconds": 3.99,
+      "spend_usd": 0.001332,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-05",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "C",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11904,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 392,
+      "score_3m": 0.75,
+      "seconds": 5.07,
+      "spend_usd": 0.001347,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-12",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 11908,
+      "ledger_scores": {
+        "edge_vitality": 0.1,
+        "friction": 0.78,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 515,
+      "score_3m": 0.75,
+      "seconds": 5.39,
+      "spend_usd": 0.001397,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-19",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "C",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12041,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 313,
+      "score_3m": 0.8,
+      "seconds": 4.47,
+      "spend_usd": 0.001329,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-26",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11114,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 260,
+      "score_3m": 0.75,
+      "seconds": 4.41,
+      "spend_usd": 0.001215,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-03-05",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 9653,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 293,
+      "score_3m": 0.8,
+      "seconds": 3.82,
+      "spend_usd": 0.001082,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-03-12",
+      "cached_tokens": 3328,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 13276,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 349,
+      "score_3m": 0.8,
+      "seconds": 5.65,
+      "spend_usd": 0.001407,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-19",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 10599,
+      "ledger_scores": {
+        "edge_vitality": 0.5,
+        "friction": 0.8,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 322,
+      "score_3m": 0.85,
+      "seconds": 4.92,
+      "spend_usd": 0.001189,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-26",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 10597,
+      "ledger_scores": {
+        "edge_vitality": 0.45,
+        "friction": 0.78,
+        "information_capacity": 0.88,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 339,
+      "score_3m": 0.85,
+      "seconds": 3.99,
+      "spend_usd": 0.001195,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-04-02",
+      "cached_tokens": 3456,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 13889,
+      "ledger_scores": {
+        "edge_vitality": 0.5,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 421,
+      "score_3m": 0.85,
+      "seconds": 6.33,
+      "spend_usd": 0.00149,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-09",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11544,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 330,
+      "score_3m": 0.7,
+      "seconds": 4.79,
+      "spend_usd": 0.001286,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-16",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 11084,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 292,
+      "score_3m": 0.85,
+      "seconds": 4.2,
+      "spend_usd": 0.001225,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-23",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11082,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 366,
+      "score_3m": 0.78,
+      "seconds": 5.16,
+      "spend_usd": 0.001255,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-30",
+      "cached_tokens": 2176,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 15130,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 442,
+      "score_3m": 0.75,
+      "seconds": 6.19,
+      "spend_usd": 0.001732,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-07",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11446,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.82,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 305,
+      "score_3m": 0.78,
+      "seconds": 4.02,
+      "spend_usd": 0.001267,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-14",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 15275,
+      "ledger_scores": {
+        "edge_vitality": 0.5,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 330,
+      "score_3m": 0.8,
+      "seconds": 5.65,
+      "spend_usd": 0.001591,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-21",
+      "cached_tokens": 3712,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 16785,
+      "ledger_scores": {
+        "edge_vitality": 0.45,
+        "friction": 0.58,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 681,
+      "score_3m": 0.7,
+      "seconds": 7.96,
+      "spend_usd": 0.001876,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-05-28",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13386,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 280,
+      "score_3m": 0.78,
+      "seconds": 4.57,
+      "spend_usd": 0.001451,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-04",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12825,
+      "ledger_scores": {
+        "edge_vitality": 0.4,
+        "friction": 0.58,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 322,
+      "score_3m": 0.7,
+      "seconds": 4.96,
+      "spend_usd": 0.001411,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-06-11",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13045,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.58,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 260,
+      "score_3m": 0.7,
+      "seconds": 3.82,
+      "spend_usd": 0.001409,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-18",
+      "cached_tokens": 3840,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 15828,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.55,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 673,
+      "score_3m": 0.55,
+      "seconds": 10.87,
+      "spend_usd": 0.001774,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-25",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11183,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.9
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 326,
+      "score_3m": 0.8,
+      "seconds": 3.73,
+      "spend_usd": 0.001249,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-02",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10772,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 317,
+      "score_3m": 0.8,
+      "seconds": 4.16,
+      "spend_usd": 0.001204,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-09",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10805,
+      "ledger_scores": {
+        "edge_vitality": 0.5,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 266,
+      "score_3m": 0.8,
+      "seconds": 3.92,
+      "spend_usd": 0.001187,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-16",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10841,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 586,
+      "score_3m": 0.7,
+      "seconds": 5.39,
+      "spend_usd": 0.001319,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-23",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 9795,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 255,
+      "score_3m": 0.8,
+      "seconds": 4.82,
+      "spend_usd": 0.001081,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-30",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11828,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 417,
+      "score_3m": 0.75,
+      "seconds": 5.8,
+      "spend_usd": 0.00135,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-08-06",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10609,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.78,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 462,
+      "score_3m": 0.78,
+      "seconds": 4.32,
+      "spend_usd": 0.001246,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-13",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10856,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.78,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 328,
+      "score_3m": 0.8,
+      "seconds": 4.44,
+      "spend_usd": 0.001217,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-20",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 14679,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.8,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 509,
+      "score_3m": 0.8,
+      "seconds": 6.99,
+      "spend_usd": 0.001601,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-27",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11010,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.78,
+        "information_capacity": 0.88,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 430,
+      "score_3m": 0.8,
+      "seconds": 4.33,
+      "spend_usd": 0.001273,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-03",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11001,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.78,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 318,
+      "score_3m": 0.8,
+      "seconds": 3.56,
+      "spend_usd": 0.001227,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-10",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12242,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.8,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 350,
+      "score_3m": 0.8,
+      "seconds": 4.75,
+      "spend_usd": 0.001364,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-17",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": true
+      },
+      "error": null,
+      "input_tokens": 11695,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.8,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.9,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 247,
+      "score_3m": 0.85,
+      "seconds": 3.51,
+      "spend_usd": 0.001268,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-24",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11705,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.9,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 284,
+      "score_3m": 0.85,
+      "seconds": 4.03,
+      "spend_usd": 0.001284,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-01",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11844,
+      "ledger_scores": {
+        "edge_vitality": 0.8,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 299,
+      "score_3m": 0.78,
+      "seconds": 3.68,
+      "spend_usd": 0.001304,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-08",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11695,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 259,
+      "score_3m": 0.8,
+      "seconds": 3.67,
+      "spend_usd": 0.001273,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-15",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12091,
+      "ledger_scores": {
+        "edge_vitality": 0.85,
+        "friction": 0.75,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 513,
+      "score_3m": 0.7,
+      "seconds": 5.38,
+      "spend_usd": 0.001414,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-22",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12226,
+      "ledger_scores": {
+        "edge_vitality": 0.2,
+        "friction": 0.78,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 378,
+      "score_3m": 0.78,
+      "seconds": 4.77,
+      "spend_usd": 0.001374,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-29",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12983,
+      "ledger_scores": {
+        "edge_vitality": 0.2,
+        "friction": 0.78,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 313,
+      "score_3m": 0.78,
+      "seconds": 3.95,
+      "spend_usd": 0.001424,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-05",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12942,
+      "ledger_scores": {
+        "edge_vitality": 0.2,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.9
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 489,
+      "score_3m": 0.8,
+      "seconds": 5.13,
+      "spend_usd": 0.00149,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-12",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 16548,
+      "ledger_scores": {
+        "edge_vitality": 0.2,
+        "friction": 0.8,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 485,
+      "score_3m": 0.8,
+      "seconds": 5.83,
+      "spend_usd": 0.001779,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-19",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11423,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.85
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 323,
+      "score_3m": 0.75,
+      "seconds": 4.46,
+      "spend_usd": 0.001272,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-26",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11515,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 260,
+      "score_3m": 0.75,
+      "seconds": 3.89,
+      "spend_usd": 0.001256,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-03",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11305,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.82,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 292,
+      "score_3m": 0.78,
+      "seconds": 3.56,
+      "spend_usd": 0.001247,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-10",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10630,
+      "ledger_scores": {
+        "edge_vitality": 0.5,
+        "friction": 0.75,
+        "information_capacity": 0.9,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 277,
+      "score_3m": 0.7,
+      "seconds": 4.41,
+      "spend_usd": 0.001174,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-17",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11836,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.9,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 234,
+      "score_3m": 0.85,
+      "seconds": 3.7,
+      "spend_usd": 0.001277,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-24",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11890,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.8,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 312,
+      "score_3m": 0.75,
+      "seconds": 4.95,
+      "spend_usd": 0.001314,
+      "status": "complete",
+      "utc_hour": 4
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-31",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12202,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.75,
+        "information_capacity": 0.85,
+        "order_uncertainty": 0.8
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-nano-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 260,
+      "score_3m": 0.8,
+      "seconds": 4.52,
+      "spend_usd": 0.001324,
+      "status": "complete",
+      "utc_hour": 4
+    }
+  ],
+  "since": "2018-01-01",
+  "until": "2018-12-31"
+}

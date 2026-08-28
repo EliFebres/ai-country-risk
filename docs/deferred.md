@@ -319,10 +319,14 @@ Two consequences for whoever picks this up:
   wearing one name. `score.FROZEN_FIELDS` refuses that resume, which is correct
   and will look like an obstacle on the day. It is not; it is the guard working.
 
-**Caveat on the ρ figure.** US 2019 never leaves the Moderate band, and rank
-correlation on a flat series is depressed by construction. See the volatile-window
-comparison in `docs/scorer-bakeoff.md` before treating 0.377 as the final number
-— it is a floor, not a verdict.
+**The ρ figure is window-dependent — use 0.708, not 0.377.** US 2019 is an
+ordinary year for a stable country, where models scatter because the right answer
+is underdetermined; the same comparison on TR 2018 gives **ρ = 0.708, τ-b 0.602,
+`score_3m` 0.865**, with per-week disagreement of 0.046 sd against 0.108. So
+`gpt-4.1` largely tracks the incumbent where the evidence is determinate. The
+migration is still a re-score rather than a recalibration — there is no constant
+offset to remove on either window — but the series it produces is recognisably
+the same series. See `docs/scorer-bakeoff.md`.
 
 **Related:** item 10, the determinism canary. `gpt-4o`'s determinism appears to
 be a property of how it is served, so it can move without notice — which would

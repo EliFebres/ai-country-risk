@@ -16,12 +16,18 @@ moved. Price is read last, and only by candidates that got that far.
 1. Of every model tested, **only the incumbent reproduces its own scored output**
    at `temperature=0`, `seed=42` — and strict grammar enforcement turns out to be
    necessary but not sufficient to explain why.
-2. Every candidate **ranks the weeks differently** — Spearman ρ from 0.100 to
-   0.377 against the reference — and that disagreement is *not* explained by
-   their jitter. Noise can be averaged down. A different opinion cannot.
+2. **Models agree when the evidence is determinate and scatter when it is not.**
+   On an ordinary year for a stable country the candidates disagree with the
+   incumbent by **1.3–2.1× the series' own variation**; on a crisis year that
+   falls below 1.0 and the best candidate reaches ρ = 0.708. Tested on two
+   windows, because one window could not tell the two apart.
 
-The second matters more because it survives every fix for the first. A cheaper
-model here does not buy the same series for less; it buys a different series.
+The second is the more important finding and it is **not** a fact about cheap
+models. It bounds what the weekly series can claim: it is most reproducible where
+it is least informative, and least reproducible on the quiet weeks where a risk
+rating would earn its keep. That belongs in the pilot's validation work, and it is
+why the procurement question and the instrument question are answered separately
+below.
 
 ---
 
@@ -542,7 +548,9 @@ deliberately volatile country-year, changing only the window.
 
 **Turkey 2018** — the lira crisis: a currency losing roughly a third of its value
 inside a year, an emergency-rule transition, and a policy-rate response, so the
-weeks genuinely differ. The corpus was harvested for this comparison and is
+weeks genuinely differ. *(Chosen as the volatile window. It turned out not to be
+more volatile week-to-week than US 2019 — see the correction below. The test
+worked anyway, by a different mechanism.)* The corpus was harvested for this comparison and is
 comparable in kind to US 2019 rather than thinner: **1,941 articles in the window,
 1,494 of them with recovered bodies**, median **125 per 30-day anchor** against
 US 2019's 20-article selection pool, and no empty anchors.
@@ -563,6 +571,121 @@ fires — and left the result as ambiguous as the thing it was meant to settle.
 Reference and candidates are scored exactly as in round 3 — `upsert=False` for
 candidates, digests held on `gpt-4o-mini`, scorer the only variable — and filed
 under `bakeoff/TR-2018/` so neither comparison overwrites the other.
+
+---
+
+### The answer: mostly Reading B, by a mechanism neither reading named
+
+**Turkey 2018, identical candidate set, prompt, digests and harness. Only the
+window changed.** Reference: `gpt-4o`, 53 anchors, $2.02.
+
+| candidate | ρ on US 2019 | ρ on TR 2018 | change |
+|---|---|---|---|
+| **gpt-4.1** | 0.377 | **0.708** | **+0.331** |
+| gpt-5.4-mini | 0.100 | 0.422 | +0.322 |
+| gpt-4.1-nano | 0.240 | 0.418 | +0.178 |
+| gpt-4.1-mini | 0.300 | 0.384 | +0.084 |
+| gpt-5.6-luna | 0.337 | **0.084** | **−0.253** |
+
+`gpt-4.1` clears the pre-registered ≥ 0.7 threshold — ρ **0.708**, τ-b 0.602, and
+`score_3m` at **0.865**. **So ρ ≈ 0.3 was substantially an artifact of the test
+window, and the unqualified claim "the models disagree" does not survive.**
+
+### First, a correction to the test's own premise
+
+TR 2018 was chosen as the *volatile* window and it is **not** more volatile than
+US 2019 on the obvious measure. It is less:
+
+| | US 2019 | TR 2018 |
+|---|---|---|
+| series sd | 0.0631 | **0.0551** |
+| median week-over-week move | 0.0500 | **0.0200** |
+| bands spanned | 1 (all Moderate) | 2 (39 Moderate, 14 High) |
+| distinct values in 52–53 anchors | 9 | 9 |
+
+So the prediction "a wide-range window will raise ρ" was right about the outcome
+and wrong about the reason. Week-to-week movement did not increase. Something
+else did.
+
+### What actually moved: disagreement, not signal
+
+Expressing each candidate's deviation from the reference as a standard deviation,
+in the same units as the series, and dividing by the series' own spread:
+
+| candidate | US 2019 disagreement sd | ÷ signal | TR 2018 disagreement sd | ÷ signal |
+|---|---|---|---|---|
+| **gpt-4.1** | 0.1081 | **1.71×** | **0.0456** | **0.83×** |
+| gpt-4.1-nano | 0.1290 | 2.04× | 0.0581 | 1.05× |
+| gpt-4.1-mini | 0.0852 | 1.35× | 0.0600 | 1.09× |
+| gpt-5.4-mini | 0.1312 | 2.08× | 0.0530 | 0.96× |
+| gpt-5.6-luna | 0.0806 | 1.28× | 0.0632 | 1.15× |
+
+The signal did not grow — TR's is *smaller*. **The disagreement shrank**, by more
+than half for `gpt-4.1` (0.108 → 0.046). On US 2019 every candidate disagreed with
+the incumbent by more than the entire variation the series reports; on TR 2018
+none does by much, and the best is comfortably below it.
+
+That ratio, not ρ, is the mechanism. Rank correlation is what you observe when
+disagreement exceeds signal; the ratio is why.
+
+### The reading the evidence actually supports
+
+Neither "the candidates disagree" nor "the window was flat" is quite right. What
+the two windows show is:
+
+> **Models agree when the evidence is determinate, and disagree when it is not —
+> and the disagreement is measured against a signal that does not grow to meet
+> it.**
+
+TR 2018 is the lira crisis: a currency down roughly a third, an emergency-rule
+transition, a policy-rate response. The right answer is *legible*, and five models
+of very different sizes converge on it — TR's scores sit high and tight (0.600 to
+0.820, 40% of anchors on one value). US 2019 is an ordinary year for a stable
+country: no crisis, everything Moderate, and the correct score for any given week
+is genuinely underdetermined. There the models scatter by 1.3–2.1× the signal.
+
+`gpt-4o`'s own behaviour fits this. It emits **9 distinct values across 52 weeks**,
+with 0.50 alone on a third of them, while `gpt-4.1` emits 18 — the incumbent
+resolves ambiguity by snapping to round anchors, which is stable and is not the
+same as being right.
+
+### What this costs the ratings, and what it does not
+
+**It does not undermine the procurement conclusion.** Determinism, cost and the
+`gpt-4.1` migration price are unaffected; those were never measured through ρ.
+
+**It does bound what the weekly series can claim, and the bound has an awkward
+shape.** The series is most reproducible exactly where it is least informative — a
+crisis any observer would call a crisis — and least reproducible on ordinary
+weeks for stable countries, which is where a risk rating would earn its keep.
+A week-to-week movement reported for a quiet country-year is, on this evidence,
+substantially instrument rather than signal.
+
+**This belongs in the pilot's validation work, not here.** Three things follow,
+and none is a scorer decision:
+
+1. **Report the series with an uncertainty band, not as a point estimate**, at
+   least for low-volatility country-years. The band is measurable: it is the
+   disagreement sd, ~0.10 on an ordinary year.
+2. **Treat the masking divergence of 0.072 with corresponding caution.** It was
+   measured on PT — a quiet country — and it is smaller than the between-model
+   disagreement observed on a quiet country. That does not make it wrong, but it
+   means it needs a second scorer to be confidently distinguished from instrument
+   noise.
+3. **The four ledgers are weaker than the composite.** `edge_vitality` is negative
+   or near-zero for every candidate on both windows, and `information_capacity`
+   flips sign between windows for `gpt-4.1-nano`. The prompt already warns these
+   two run counter-intuitively; the data says they do not survive a change of
+   scorer, and they should not be reported at the same confidence as the
+   composite.
+
+### One candidate got worse
+
+`gpt-5.6-luna` fell from ρ 0.337 to **0.084** — the only candidate to move
+backwards, and it also returned `edge_vitality` on just 9 of 53 anchors. A model
+whose agreement is not merely low but *unstable across windows* cannot be
+characterised by one number at all, which is a further argument for measuring on
+more than one window before adopting anything.
 
 ---
 
@@ -678,12 +801,18 @@ gets made in a hurry on the day the deprecation notice arrives.
 
 **Stay on `gpt-4o-2024-08-06`.** Nothing is switched.
 
-Not on price, and not on determinism alone. On **agreement**: the cheapest four
-candidates rank the 2019 weeks differently from the incumbent — ρ between 0.100
-and 0.337 on the composite, with negative correlation on `friction` for two of
-them — and that disagreement is **not** explained by their jitter (see the ρ
-ceilings above). A cheaper model here does not buy the same series for less; it
-buys a different series.
+Not on price, and — after the two-window test — not primarily on ordering either.
+On **determinism and reliability**.
+
+The ordering evidence has to be stated carefully, because it changed when the
+window did. On US 2019 the cheap candidates ranked between ρ 0.100 and 0.337; on
+TR 2018 the same models ranked 0.084 to 0.422. No candidate but `gpt-4.1` reaches
+0.5 on either window, none is stable *across* windows — `gpt-5.6-luna` moves from
+0.337 to 0.084 — and `edge_vitality` is negative or near-zero for all of them on
+both. So the case against the cheap models is not "they disagree on one window",
+which would not have survived the second; it is that **their agreement cannot be
+characterised by a single number at all**, on top of a noise floor of 7–20 points
+where the incumbent's is 0.
 
 The specific traps, each worth carrying forward:
 
@@ -711,17 +840,23 @@ chasing a saving. It is pricing a move that gets forced on us.
 |---|---|
 | Repeat-stability | **±1 point**, flat across Low, Moderate and Extreme — 20% of a typical week's move, 14% of the masking signal. **Good enough.** |
 | Level offset | **−0.008 signed.** Essentially none. |
-| Week ordering | **ρ = 0.377, τ = 0.297** on the composite. `edge_vitality` **−0.100**. |
-| Per-week disagreement | **0.089 absolute** mean shift against a 0.050 median weekly move |
+| Week ordering | **ρ = 0.708 (TR 2018), 0.377 (US 2019)**; `score_3m` 0.865 on TR. `edge_vitality` negative on both. |
+| Per-week disagreement | **0.046 sd on TR, 0.108 on US** — 0.83× and 1.71× the series' own variation |
 | Cost | $0.0298/snapshot, 31% below the incumbent |
 
-**It is not a recalibrate-and-go migration.** That was the outcome worth hoping
-for and the numbers do not support it. A constant level offset would be
-survivable — move the prompt's calibration anchors and the whole series shifts
-with them. What `gpt-4.1` actually does is score individual weeks differently in
-both directions, cancelling to −0.008 on average while moving each week by 0.089.
-There is no constant to remove. Recalibration cannot fix a reordering, and this
-is a reordering.
+**It is still not a recalibrate-and-go migration, but it is closer than US 2019
+suggested.** A constant level offset would be survivable — move the prompt's
+calibration anchors and the series shifts with them. `gpt-4.1` has no such
+constant on either window: signed −0.008 against absolute 0.089 on US, signed
++0.058 against absolute 0.058 on TR. It moves individual weeks rather than the
+level.
+
+What the second window changes is the *size* of that movement. At ρ = 0.708 with
+τ-b 0.602 and `score_3m` at 0.865, `gpt-4.1` largely tracks the incumbent where
+the evidence is determinate, and diverges where it is not — which is the same
+place the incumbent's own reproducibility is weakest. So the migration is a
+re-score, but the series it produces is recognisably the same series, not a
+different opinion.
 
 So the honest statement of the migration cost is: **switching to `gpt-4.1`
 requires re-scoring the history, not adjusting it.** At $0.0298/snapshot a full
@@ -754,12 +889,11 @@ every version stamp is about us.
 
 ### What would change this recommendation
 
-- A candidate clearing **ρ ≥ 0.9** on the composite with a level-only offset. None
-  came close; the best was 0.377.
-- The reference re-measured on a **body-rich, more volatile country-year**. US
-  2019 is a low-variance window — all 52 anchors sit in one band — and a series
-  that never leaves Moderate is a hard place to demonstrate agreement on
-  ordering. This is the most likely way the numbers understate the candidates,
-  and it is cheap to test.
+- A candidate clearing **ρ ≥ 0.9** on the composite with a level-only offset. The
+  best observed is `gpt-4.1` at 0.708 on TR 2018, and `score_3m` at 0.865 shows
+  the 3-month horizon is closer than the 12-month one.
+- **A third window.** Two are enough to show the figure is window-dependent and
+  not enough to characterise it. `gpt-5.6-luna` moving 0.337 → 0.084 is the
+  warning: a single window can flatter or damn a candidate.
 - Evidence that `gpt-4o`'s determinism has moved, which flips the migration from
   elective to urgent and makes §10 the thing that told us.
