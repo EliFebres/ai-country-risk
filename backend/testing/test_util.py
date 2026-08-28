@@ -894,3 +894,42 @@ class TestTheCostSummaryCarriesTheBillingWindow:
                  "offpeak_usd": None, "input_tokens": 1000, "output_tokens": 100,
                  "cached_tokens": 0, "utc_hour": 13}]
         assert bakeoff.cost_summary(rows)["offpeak_per_snapshot_usd"] is None
+
+
+class TestDeterminismGatesScoresNotProse:
+    """A gate the incumbent cannot pass disqualifies everyone for its own defect.
+
+    Measured over six repeats of one prompt at temperature 0 and seed 42, gpt-4o
+    returns identical scores, ledgers, flags and coverage, and varies its
+    `bullet_summary` every time plus which item `subscore_evidence` cites. Gating
+    on the whole payload therefore fails the reference, and a bake-off whose
+    reference fails its own gate ends with no candidates and no finding.
+    """
+
+    def test_reworded_prose_alone_is_not_a_determinism_failure(self):
+        a = {"score_12m": 50, "ledger_scores": {"friction": 40},
+             "bullet_summary": "One phrasing."}
+        b = {**a, "bullet_summary": "A different phrasing entirely."}
+        assert bakeoff._scored_only(a) == bakeoff._scored_only(b)
+
+    def test_a_different_citation_for_the_same_score_is_not_either(self):
+        a = {"score_12m": 50, "subscore_evidence": {"information_capacity": ["a1"]}}
+        b = {"score_12m": 50, "subscore_evidence": {"information_capacity": ["structural"]}}
+        assert bakeoff._scored_only(a) == bakeoff._scored_only(b)
+
+    def test_a_moved_score_is_still_a_failure(self):
+        a = {"score_12m": 50, "bullet_summary": "same"}
+        b = {"score_12m": 51, "bullet_summary": "same"}
+        assert bakeoff._scored_only(a) != bakeoff._scored_only(b)
+
+    def test_a_moved_ledger_or_flag_is_still_a_failure(self):
+        base = {"score_12m": 50, "ledger_scores": {"friction": 40},
+                "condition_flags": {"sovereign_stress": False}}
+        moved_ledger = {**base, "ledger_scores": {"friction": 41}}
+        moved_flag = {**base, "condition_flags": {"sovereign_stress": True}}
+        assert bakeoff._scored_only(base) != bakeoff._scored_only(moved_ledger)
+        assert bakeoff._scored_only(base) != bakeoff._scored_only(moved_flag)
+
+    def test_only_prose_and_citations_are_ungated(self):
+        """Anything added to this set stops being checked, so it is pinned."""
+        assert bakeoff._UNGATED_FIELDS == ("bullet_summary", "subscore_evidence")

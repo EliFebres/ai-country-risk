@@ -73,6 +73,15 @@ for _stream in (sys.stdout, sys.stderr):
     except (AttributeError, OSError):
         pass
 
+from dotenv import load_dotenv  # noqa: E402
+
+# Every other entry point does this and this one did not, so the documented
+# `python -m backend.util.tools.bakeoff smoke ...` died on MissingKey before it
+# read a single vendor key. `PROJECT_ROOT` is `backend/` here — the shared
+# convention across `util/tools/` — so the env file sits directly under it.
+load_dotenv(PROJECT_ROOT / ".env")
+load_dotenv()
+
 import pandas as pd  # noqa: E402
 
 from backend.llm import client as ai_client  # noqa: E402
@@ -593,6 +602,40 @@ def smoke_prompt() -> str:
     )
 
 
+# Reported but not gated. Everything outside this set — every score, every
+# ledger, every flag, `evidence_coverage` and `news_article_scores` — must match
+# byte-for-byte across repeats or the candidate fails.
+#
+# The split exists because the incumbent forced it. Measured over six repeats of
+# one prompt at temperature 0 and seed 42, gpt-4o returns *identical* values for
+# `score_12m`, `score_3m`, `ledger_scores`, `condition_flags`, `evidence_coverage`
+# and `news_article_scores` — and varies these two. Gating on the whole payload
+# therefore fails **gpt-4o itself**, and a gate the reference cannot pass
+# disqualifies every candidate for a defect the reference shares. That is how a
+# bake-off ends with no candidates and no finding.
+#
+#   `bullet_summary`     — free prose, reworded on essentially every repeat
+#                          (6 distinct of 6). Displayed, never scored: nothing
+#                          ranks on it, no ledger derives from it, `compare` never
+#                          reads it.
+#   `subscore_evidence`  — *which* evidence item is cited for a ledger, not what
+#                          the ledger scored. Observed alternating between `a1`
+#                          and `structural` for `information_capacity` while the
+#                          ledger's own value never moved (2 distinct of 6).
+#
+# So the reproducibility claim is intact where it is actually made — the stored
+# row and the manifest hashing what the model read. Prose and citation drift are
+# still reported, as `exact_match_rate`, because a candidate that churns them far
+# harder than the incumbent is worth seeing even though it is not disqualifying.
+_UNGATED_FIELDS: Tuple[str, ...] = ("bullet_summary", "subscore_evidence")
+
+
+def _scored_only(payload: Dict[str, Any]) -> str:
+    """The answer minus what is reported-but-not-gated, canonicalised."""
+    return json.dumps({k: v for k, v in payload.items() if k not in _UNGATED_FIELDS},
+                      sort_keys=True, default=str)
+
+
 def smoke(name: str, repeats: int = 3) -> Dict[str, Any]:
     """Strict schema, then determinism. Four calls, cents, no database.
 
@@ -636,16 +679,21 @@ def smoke(name: str, repeats: int = 3) -> Dict[str, Any]:
 
     if len(answers) < 2:
         out["determinism"] = {"repeats": len(answers), "exact_match_rate": None,
-                              "score_spread": None,
+                              "scored_match_rate": None, "score_spread": None,
                               "note": "not measured: the schema gate failed first"}
         return out
 
+    parsed = [json.loads(a) for a in answers]
     identical = sum(1 for a in answers[1:] if a == answers[0])
-    scores = [json.loads(a).get("score_12m") for a in answers]
+    scored = [_scored_only(p) for p in parsed]
+    scored_identical = sum(1 for s in scored[1:] if s == scored[0])
+    scores = [p.get("score_12m") for p in parsed]
     numeric = [s for s in scores if isinstance(s, (int, float))]
     out["determinism"] = {
         "repeats": len(answers),
         "exact_match_rate": round(identical / (len(answers) - 1), 3),
+        # The rate that decides it. See `_PROSE_FIELDS`.
+        "scored_match_rate": round(scored_identical / (len(answers) - 1), 3),
         "scores": scores,
         # The number that survives a model reformatting its prose. Two runs can
         # differ in `bullet_summary` and agree perfectly on every score, which is
@@ -915,9 +963,10 @@ def render(result: Optional[Dict[str, Any]] = None) -> None:
         determinism = (gates.get("determinism") or {})
         print(f"     strict schema  {_verdict(schema.get('passed'))}"
               f"{'  ' + str(schema.get('error'))[:70] if schema.get('error') else ''}")
-        rate = determinism.get("exact_match_rate")
+        rate = determinism.get("scored_match_rate")
         print(f"     determinism    {_verdict(rate == 1.0 if rate is not None else None)}"
-              f"  exact-match={fmt(rate)}  score spread="
+              f"  scored-match={fmt(rate)}  whole-payload="
+              f"{fmt(determinism.get('exact_match_rate'))}  score spread="
               f"{fmt(determinism.get('score_spread'))}")
 
         print("  2. rank correlation  (the meter: reordering cannot be recalibrated)")
