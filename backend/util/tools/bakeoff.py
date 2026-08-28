@@ -272,6 +272,16 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
         "env": {"SCORING_MODEL": "gpt-4.1-2025-04-14"},
         "key_env": "OPENAI_API_KEY",
     },
+    # The payload arm. The scorer is deliberately left unset so `candidate_env`
+    # clears SCORING_MODEL and the incumbent applies: this varies the *evidence*
+    # and holds the instrument fixed, which is the mirror image of every entry
+    # above it. Arm A is the existing p2 rows, read free by `capture-baseline`.
+    "p3-context": {
+        "arm": "payload",
+        "note": "trailing context: four quarters of masked history, scorer held at gpt-4o",
+        "env": {"PAYLOAD_VARIANT": "p3-context"},
+        "key_env": "OPENAI_API_KEY",
+    },
 }
 
 # Every candidate is an OpenAI model, and that is the round-2 result rather than
@@ -323,7 +333,11 @@ def candidate_env(name: str) -> Iterator[Dict[str, str]]:
     # previous candidate's leftovers are exactly the contamination to prevent.
     managed = ["SCORING_MODEL", "SCORING_BASE_URL", "SCORING_API_KEY",
                "SCORING_EXTRA_BODY", "DIGEST_MODEL", "DIGEST_BASE_URL",
-               "DIGEST_API_KEY", "DIGEST_EXTRA_BODY"]
+               "DIGEST_API_KEY", "DIGEST_EXTRA_BODY",
+               # The payload axis. Missing from this list, a p3 arm would leak
+               # into every arm scored after it in the same process and the
+               # contamination would look like a finding.
+               "PAYLOAD_VARIANT"]
     before = {k: os.environ.get(k) for k in managed}
     try:
         for k in managed:
@@ -504,6 +518,56 @@ def _series(rows: List[Dict[str, Any]], metric: str) -> Dict[str, Optional[float
     return {r["as_of"]: (r.get("ledger_scores") or {}).get(metric) for r in rows}
 
 
+# The prompt bans them: "Use precise values (37, 62, 81) — never round to
+# multiples of 5." Under a uniform distribution over integers a fifth of answers
+# would land on one anyway, so 20% is the floor rather than zero. gpt-4o sits at
+# 69% on US 2019 and 19% on TR 2018 — the same model, the same prompt, obeying
+# the instruction where the evidence is determinate and abandoning it where it
+# is not. That makes this a measure of snapping, not of taste.
+_ROUND_NUMBER_STEP = 5
+
+
+def series_shape(values: List[Optional[float]]) -> Dict[str, Any]:
+    """How degenerate one arm's series is, on its own terms.
+
+    Every other meter here is paired — it asks how two arms differ. These four
+    ask whether a single series says anything at all, which is the question a
+    flat window raises and rank correlation cannot answer: `rank_correlation`
+    returns None below two distinct values, and a series with nine of them
+    across fifty-two weeks is barely above that.
+
+    Returns:
+        ``distinct`` values, ``lag1_autocorr``, ``longest_run`` of identical
+        consecutive scores, and ``round_share`` on the model's 0-100 scale.
+        Autocorrelation is None below three points or on a constant series,
+        rather than 0.0 — "not measurable" and "uncorrelated" are different
+        facts, the same rule the reports follow with an em dash.
+    """
+    vals = [v for v in values if v is not None]
+    n = len(vals)
+    if not n:
+        return {"n": 0, "distinct": 0, "lag1_autocorr": None,
+                "longest_run": None, "round_share": None}
+
+    mean = sum(vals) / n
+    denom = sum((v - mean) ** 2 for v in vals)
+    autocorr = None
+    if n >= 3 and denom:
+        autocorr = round(sum((vals[i] - mean) * (vals[i - 1] - mean)
+                             for i in range(1, n)) / denom, 3)
+
+    longest = run = 1
+    for i in range(1, n):
+        run = run + 1 if vals[i] == vals[i - 1] else 1
+        longest = max(longest, run)
+
+    rounded = sum(1 for v in vals
+                  if abs(round(v * 100) - v * 100) < 1e-6
+                  and round(v * 100) % _ROUND_NUMBER_STEP == 0)
+    return {"n": n, "distinct": len(set(vals)), "lag1_autocorr": autocorr,
+            "longest_run": longest, "round_share": round(rounded / n, 3)}
+
+
 def compare_one(baseline_rows: List[Dict[str, Any]],
                 candidate_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Every meter, one candidate against the baseline. Pure.
@@ -523,6 +587,12 @@ def compare_one(baseline_rows: List[Dict[str, Any]],
         left = _series(baseline_rows, metric)
         right = _series(candidate_rows, metric)
         metrics[metric] = {**rank_correlation(left, right), **shift(left, right)}
+    # Per arm, not per pair. A payload change is meant to move these; a scorer
+    # change is meant not to.
+    shape = {
+        "baseline": series_shape(list(_series(baseline_rows, "llm_score").values())),
+        "candidate": series_shape(list(_series(candidate_rows, "llm_score").values())),
+    }
 
     return {
         "n_baseline": len(baseline_rows),
@@ -530,6 +600,7 @@ def compare_one(baseline_rows: List[Dict[str, Any]],
         "only_baseline": only_baseline,
         "only_candidate": only_candidate,
         "metrics": metrics,
+        "shape": shape,
         "band_matrix": band_matrix(_series(baseline_rows, "llm_score"),
                                    _series(candidate_rows, "llm_score")),
         "flags": flag_agreement(
@@ -1046,7 +1117,8 @@ def render(result: Optional[Dict[str, Any]] = None) -> None:
     print(f"  {baseline['candidate']} on {baseline['country']} "
           f"{baseline['since']}..{baseline['until']}, "
           f"{len(baseline['rows'])} anchor(s)")
-    for field in ("SCORING_MODEL", "DIGEST_MODEL", "SEED", "PROMPT_VERSION"):
+    for field in ("SCORING_MODEL", "DIGEST_MODEL", "SEED", "PROMPT_VERSION",
+                  "PAYLOAD_VERSION"):
         print(f"    {field:<16} {baseline['captured_under'].get(field)}")
     if result["missing"]:
         print(f"  not run: {', '.join(result['missing'])}")
@@ -1086,6 +1158,19 @@ def render(result: Optional[Dict[str, Any]] = None) -> None:
                   "it is the candidate arguing with itself)")
         else:
             print("     noise floor: not measured")
+
+        sh = cmp.get("shape") or {}
+        if sh:
+            print("  2b. series shape  (per arm; a payload change should move "
+                  "these, a scorer change should not)")
+            print(f"     {'arm':<10} {'distinct':>9} {'lag1 ac':>9} "
+                  f"{'longest run':>12} {'round share':>12}")
+            for arm in ("baseline", "candidate"):
+                row = sh.get(arm) or {}
+                print(f"     {arm:<10} {row.get('distinct', '—'):>9} "
+                      f"{fmt(row.get('lag1_autocorr')):>9} "
+                      f"{row.get('longest_run') or '—':>12} "
+                      f"{fmt(row.get('round_share')):>12}")
 
         print("  3. band migration  (rows = baseline, columns = candidate; "
               "diagonal is offset, scatter is disagreement)")

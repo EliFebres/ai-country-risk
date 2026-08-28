@@ -864,12 +864,29 @@ class TestEveryCandidateIsAScorer:
     is what makes the number mean what the write-up says it means.
     """
 
-    def test_no_candidate_moves_the_digest_endpoint(self):
+    def test_every_candidate_varies_exactly_one_axis(self):
+        """Two axes now — the scorer and the payload — and no candidate may
+        straddle them. A scoring arm that also moved the payload, or a payload
+        arm that also moved the model, would produce a number with two causes
+        and no way to separate them."""
         for name, spec in bakeoff.CANDIDATES.items():
-            assert spec["arm"] == "scoring", f"{name} is not on the scoring axis"
+            assert spec["arm"] in ("scoring", "payload"), name
             assert not [k for k in spec["env"] if k.startswith("DIGEST_")], (
                 f"{name} moves stage 1; it cannot be compared on this meter")
             assert spec.get("key_target", "SCORING_API_KEY") == "SCORING_API_KEY"
+            moves_model = any(k.startswith("SCORING_") for k in spec["env"])
+            moves_payload = "PAYLOAD_VARIANT" in spec["env"]
+            assert not (moves_model and moves_payload), (
+                f"{name} varies both the scorer and the payload")
+            if spec["arm"] == "payload":
+                assert moves_payload and not moves_model, name
+
+    def test_the_payload_axis_is_scrubbed_between_arms(self):
+        """Missing from `managed`, a p3 arm leaks into every arm scored after it
+        in the same process, and the contamination looks like a finding."""
+        import inspect
+        src = inspect.getsource(bakeoff.candidate_env)
+        assert "PAYLOAD_VARIANT" in src
 
     def test_the_unrun_groq_candidate_is_gone(self):
         """An unrun candidate in a config file is one that gets run by accident."""
@@ -1046,3 +1063,44 @@ class TestTheBaselineUnwrapsTheStoredLedgerColumn:
         does not silently start returning nothing."""
         flat = {"friction": 0.38}
         assert (flat or {}).get("ledger_scores", flat) == flat
+
+
+class TestTheSeriesShapeMeters:
+    """Four single-series meters, because every other one here is paired.
+
+    Rank correlation cannot answer "does this series say anything at all" — it
+    returns None below two distinct values, and a series with nine across
+    fifty-two weeks is barely above that. These are what a payload change is
+    supposed to move and a scorer change is not.
+    """
+
+    def test_a_constant_series_is_not_reported_as_uncorrelated(self):
+        """"Not measurable" and "uncorrelated" are different facts — the em-dash
+        rule the reports already follow."""
+        got = bakeoff.series_shape([0.5] * 6)
+        assert got["lag1_autocorr"] is None
+        assert got["distinct"] == 1 and got["longest_run"] == 6
+
+    def test_an_empty_series_reports_nothing_rather_than_zero(self):
+        got = bakeoff.series_shape([])
+        assert got == {"n": 0, "distinct": 0, "lag1_autocorr": None,
+                       "longest_run": None, "round_share": None}
+
+    def test_nones_are_dropped_not_counted(self):
+        assert bakeoff.series_shape([0.5, None, 0.6])["n"] == 2
+
+    def test_the_longest_run_counts_consecutive_identical_scores(self):
+        assert bakeoff.series_shape([0.1, 0.2, 0.2, 0.2, 0.3])["longest_run"] == 3
+
+    def test_round_share_is_on_the_models_own_scale(self):
+        """The prompt bans multiples of 5 on the 0-100 grid; the store keeps
+        0-1, so the check has to convert or it measures nothing."""
+        assert bakeoff.series_shape([0.50, 0.55, 0.60])["round_share"] == 1.0
+        assert bakeoff.series_shape([0.52, 0.37, 0.68])["round_share"] == 0.0
+
+    def test_it_reproduces_the_measured_incumbent(self):
+        """Pinned to what gpt-4o actually produced, so a change to the meter
+        cannot quietly restate the finding it was built to test."""
+        us = bakeoff.series_shape([0.45, 0.55, 0.52, 0.70, 0.62, 0.50, 0.52, 0.42])
+        assert us["distinct"] == 7
+        assert us["round_share"] == pytest.approx(0.5)
