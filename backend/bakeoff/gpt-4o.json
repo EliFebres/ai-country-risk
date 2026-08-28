@@ -1,0 +1,90 @@
+{
+  "arm": "scoring",
+  "candidate": "gpt-4o",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.0-masked-production",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "2dd658d93c6659d5f2247226cf2f4bdac45abae9"
+  },
+  "cost": {
+    "snapshots": 0
+  },
+  "country": "US",
+  "endpoint": {},
+  "gates": {
+    "cost": {
+      "cached_tokens": 9600,
+      "calls": 3,
+      "input_tokens": 10023,
+      "output_tokens": 726,
+      "spend_usd": 0.020317
+    },
+    "determinism": {
+      "exact_match_rate": 0.0,
+      "repeats": 3,
+      "score_spread": 0,
+      "scored_match_rate": 1.0,
+      "scores": [
+        50,
+        50,
+        50
+      ]
+    },
+    "schema": {
+      "error": null,
+      "passed": true,
+      "sample": {
+        "bullet_summary": "The country's investor risk is moderate, with a government debt at 117.2% of GDP and a stable central bank policy rate. Order uncertainty is heightened by recent regional election results, affecting policy continuity. Information capacity is moderate, with reliable central bank actions but limited data on other institutions. Economic growth is modest at 2.1%, with low inflation at 0.9%. No immediate internal or external conflicts are present, and there is no evidence of sovereign stress.",
+        "condition_flags": {
+          "emergency_rule": false,
+          "internal_conflict_level": "none",
+          "sovereign_stress": false,
+          "war_on_territory": false
+        },
+        "evidence_coverage": 60,
+        "ledger_scores": {
+          "edge_vitality": null,
+          "friction": 45,
+          "information_capacity": 30,
+          "order_uncertainty": 50
+        },
+        "news_article_scores": [
+          {
+            "id": "a1",
+            "impact": 25,
+            "topic_group": "central_bank_policy_rate"
+          },
+          {
+            "id": "a2",
+            "impact": 45,
+            "topic_group": "regional_election_results"
+          }
+        ],
+        "score_12m": 50,
+        "score_3m": 48,
+        "subscore_evidence": {
+          "friction": [
+            "structural"
+          ],
+          "information_capacity": [
+            "a1"
+          ],
+          "order_uncertainty": [
+            "a2"
+          ]
+        }
+      }
+    }
+  },
+  "note": "the incumbent; captured from risk_snapshot, not re-scored",
+  "rows": [],
+  "since": "2019-01-01",
+  "until": "2019-12-31"
+}

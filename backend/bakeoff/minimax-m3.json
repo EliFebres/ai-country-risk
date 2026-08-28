@@ -1,0 +1,48 @@
+{
+  "arm": "scoring",
+  "candidate": "minimax-m3",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.0-masked-production",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "2dd658d93c6659d5f2247226cf2f4bdac45abae9"
+  },
+  "cost": {
+    "snapshots": 0
+  },
+  "country": "US",
+  "endpoint": {
+    "SCORING_BASE_URL": "https://api.minimax.io/v1",
+    "SCORING_MODEL": "MiniMax-M3"
+  },
+  "gates": {
+    "cost": {
+      "cached_tokens": 0,
+      "calls": 0,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "spend_usd": 0.0
+    },
+    "determinism": {
+      "exact_match_rate": null,
+      "note": "not measured: the schema gate failed first",
+      "repeats": 0,
+      "score_spread": null
+    },
+    "schema": {
+      "error": "BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'bad_request_error', 'message': 'invalid params, Mismatch type string with value array \"at index 15073: mismatched type with value\\\\n\\\\n\\\\ttality\\\\\":{\\\\\"type\\\\\":[\\\\\"integer\\\\\",\\\\\"null\\\\n\\\\t................^...............\\\\n\" (2013)', 'http_code': '400'}, 'request_id': '06e00f7c2f6b6b8a56d51bf06c774ef6'}",
+      "passed": false,
+      "sample": null
+    }
+  },
+  "note": "primary candidate, <=512K tier",
+  "rows": [],
+  "since": "2019-01-01",
+  "until": "2019-12-31"
+}
