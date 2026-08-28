@@ -6,9 +6,23 @@ changing the scorer is not a procurement decision that happens to touch the
 code — it is an instrument change, and the only honest way to make one is to
 re-run a fixed set of anchors through both and look at what moved.
 
-The fixed set is gate 2: PT, 2019, weekly Mondays, 52 anchors. Small enough to
-cost a few dollars, long enough that a rank correlation means something, and
-already the dry run this repo has been pointing at.
+The fixed set is US, 2019, weekly Mondays, 52 anchors. Small enough to cost a few
+dollars, long enough that a rank correlation means something.
+
+**This is not gate 2, and the two must not be conflated.** Gate 2 is PT/2019 and
+is the *pilot's* regression reference, so it has to be taken on the corpus the
+pilot will actually run against. This is a *bake-off* reference, and it needs
+evidence two scorers can disagree about: PT 2019 holds 57 articles, all NYT and
+all `degraded-title-only`, because the Guardian harvest hit its daily quota on
+2026-08-15 having never covered PT past 2016. Five headlines a week measures the
+selector rather than the scorer, and never exercises `rewrite_body` at all. US
+2019 holds 3,344 Guardian articles with bodies.
+
+Consequently the reference rows this compares against are US masked rows, and
+they are legitimate pilot rows only for as long as the pilot stays on `gpt-4o`.
+Adopt a candidate and they have to be deleted before the pilot runs, or the
+series carries 52 anchors from a different instrument — which `score.FROZEN_FIELDS`
+would catch, but as a mid-run refusal rather than a decision taken up front.
 
 **Rank correlation is the meter.** A constant level offset is survivable — the
 calibration anchors in the prompt can be moved and the whole series shifts with
@@ -17,10 +31,19 @@ risky, and no amount of recalibration fixes disagreement about the ordering. So
 Spearman and Kendall are reported first and the mean shift second, which is the
 opposite of the order anybody asks the question in.
 
-Nothing here writes `risk_snapshot` and nothing writes a `run_ledger` row. The
-scoring arm calls the live path with `upsert=False`, which is the same switch
-the two diagnostic arms already use, so a candidate cannot overwrite the
-baseline it is being compared against.
+Nothing here writes `risk_snapshot`, `run_ledger` or `risk_lint`. The scoring arm
+calls the live path with `upsert=False`, which is the same switch the two
+diagnostic arms already use, so a candidate cannot overwrite the reference it is
+being compared against. Lint was the exception until it was fixed: findings are
+keyed `(country, as_of, rule)` with no mode in the key, so every candidate run
+used to overwrite the reference's lint rows, and invisibly — this file reads lint
+back out of the in-memory manifest while `reports` reads the table. It now follows
+`upsert` like everything else.
+
+The one write that remains is the shared digest cache, and it is the point: it is
+keyed on the digest model, which no scoring candidate moves, so every candidate
+reads the identical digests the incumbent read. That is what isolates the scorer
+as the only variable.
 
     python -m backend.util.tools.bakeoff smoke minimax-m3
     python -m backend.util.tools.bakeoff capture-baseline
@@ -74,7 +97,20 @@ BAKEOFF_BUDGET_USD = 25.0
 # One country, one year. `pd.date_range` over `config.CADENCE` gives 52 Mondays,
 # 2019-01-07 to 2019-12-30 — the anchors `score.projection` names when it refuses
 # to guess.
-COUNTRY = "PT"
+#
+# US, not PT, and deliberately *not* the same window as gate 2. Gate 2 is the
+# pilot's regression reference and must be taken on the corpus the pilot runs
+# against; this is a bake-off reference and needs evidence the scorers can
+# actually disagree about. PT 2019 has 57 articles, all of them NYT and all of
+# them `degraded-title-only`, because the Guardian harvest hit its daily quota on
+# 2026-08-15 and never covered PT past 2016. Comparing two scorers on ~5 headlines
+# a week measures the selector, not the scorer, and never exercises `rewrite_body`
+# at all. US 2019 has 3,344 Guardian articles with bodies.
+#
+# US is the identifiability *ceiling* country, which does not matter here: the
+# bake-off compares scorers against each other on identical evidence, not masking
+# efficacy. It would matter for gate 2, which is why gate 2 stays on PT.
+COUNTRY = "US"
 SINCE = datetime.date(2019, 1, 1)
 UNTIL = datetime.date(2019, 12, 31)
 
@@ -137,23 +173,30 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
         "key_target": "SCORING_API_KEY",
     },
     "deepseek-v4-flash": {
-        "arm": "digest",
-        "note": "stage-1 candidate; thinking pinned off",
-        "env": {"DIGEST_MODEL": "deepseek-v4-flash",
-                "DIGEST_BASE_URL": "https://api.deepseek.com/v1",
-                "DIGEST_EXTRA_BODY": '{"thinking": {"type": "disabled"}}'},
+        "arm": "scoring",
+        "note": "cheapest DeepSeek tier as a scorer; thinking pinned off",
+        "env": {"SCORING_MODEL": "deepseek-v4-flash",
+                "SCORING_BASE_URL": "https://api.deepseek.com/v1",
+                "SCORING_EXTRA_BODY": '{"thinking": {"type": "disabled"}}'},
         "key_env": "DEEPSEEK_API_KEY",
-        "key_target": "DIGEST_API_KEY",
-    },
-    "gpt-oss-120b": {
-        "arm": "digest",
-        "note": "stage-1 candidate, US-hosted, no residency question",
-        "env": {"DIGEST_MODEL": "openai/gpt-oss-120b",
-                "DIGEST_BASE_URL": "https://api.groq.com/openai/v1"},
-        "key_env": "GROQ_API_KEY",
-        "key_target": "DIGEST_API_KEY",
+        "key_target": "SCORING_API_KEY",
     },
 }
+
+# Every candidate above is a *scoring* candidate, and there is no digest arm.
+#
+# Stage 1 is about a tenth of the spend, but the digest is the evidence for
+# seventeen of the twenty articles in a snapshot — poor risk for the reward. And
+# a digest candidate cannot be read on the same axis as a scoring one: the digest
+# cache is keyed on the digest model, so moving it means the candidate reads
+# different evidence, and rank correlation stops isolating the scorer. Holding
+# digests on `gpt-4o-mini` is what makes the meter mean anything.
+#
+# `gpt-oss-120b` (Groq) was defined here and never run; removed rather than left
+# sitting, because an unrun candidate in a config file is one that gets run by
+# accident later and reported as though it belonged on this axis. If a scoring
+# candidate wins, its own cheap tier is the natural digest candidate — one vendor
+# rather than two for a tenth of the spend.
 
 
 class MissingKey(RuntimeError):
@@ -656,8 +699,18 @@ def capture_baseline() -> Dict[str, Any]:
             "spend_usd": None,
             "articles": len((manifest or {}).get("articles") or []),
         })
+    # Stamped from the rows themselves, not from `MODEL_NAME`. The literal would
+    # say `gpt-4o-2024-08-06` no matter what actually wrote those rows — including
+    # when `SCORING_MODEL` is set in the reader's environment, which is exactly the
+    # case a bake-off creates. The rows know who scored them; ask them.
+    #
+    # More than one distinct id is not an error to smooth over. A reference
+    # assembled from two scorers is not a reference, and recording the list is how
+    # that becomes visible instead of being averaged into a plausible single name.
+    scored_by = sorted({r["model_id"] for r in rows if r["model_id"]})
     return _wrap("gpt-4o", "scoring", rows,
-                 endpoint={"SCORING_MODEL": ai_client.MODEL_NAME})
+                 endpoint={"SCORING_MODEL": scored_by[0] if len(scored_by) == 1
+                           else (scored_by or ai_client.scoring_model())})
 
 
 def _wrap(name: str, arm: str, rows: List[Dict[str, Any]],

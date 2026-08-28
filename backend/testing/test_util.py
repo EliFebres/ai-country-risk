@@ -27,6 +27,7 @@ from backend.main import _every, _weekly
 from backend.llm import payload as dr
 from backend.util import market_hours
 from backend.util import lint, metrics
+from backend.llm import usage
 from backend.util.tools import bakeoff
 
 AS_OF = _dt.date(2026, 7, 27)
@@ -814,3 +815,82 @@ class TestTheEnvironmentIsRestored:
             spec = bakeoff.CANDIDATES[name]
             body = next(v for k, v in spec["env"].items() if k.endswith("_EXTRA_BODY"))
             assert json.loads(body) == {"thinking": {"type": "disabled"}}
+
+
+class TestEveryCandidateIsAScorer:
+    """One variable, one axis. A digest candidate cannot share this meter.
+
+    The digest cache is keyed on the digest model, so a candidate that moves
+    stage 1 reads *different evidence* — and rank correlation stops isolating the
+    scorer, which is the only thing it is for. Holding digests on `gpt-4o-mini`
+    is what makes the number mean what the write-up says it means.
+    """
+
+    def test_no_candidate_moves_the_digest_endpoint(self):
+        for name, spec in bakeoff.CANDIDATES.items():
+            assert spec["arm"] == "scoring", f"{name} is not on the scoring axis"
+            assert not [k for k in spec["env"] if k.startswith("DIGEST_")], (
+                f"{name} moves stage 1; it cannot be compared on this meter")
+            assert spec.get("key_target", "SCORING_API_KEY") == "SCORING_API_KEY"
+
+    def test_the_unrun_groq_candidate_is_gone(self):
+        """An unrun candidate in a config file is one that gets run by accident."""
+        assert "gpt-oss-120b" not in bakeoff.CANDIDATES
+
+
+class TestDeepSeekIsPricedAtItsPeak:
+    """A governor quoting the cheap half of a run it has not finished is the
+    failure this pricing table exists to prevent."""
+
+    def test_the_offpeak_figure_is_exactly_half_and_reporting_only(self):
+        peak = usage.price("deepseek-v4-pro", 10_000, 1_000)
+        assert usage.offpeak_price("deepseek-v4-pro", 10_000, 1_000) == peak / 2.0
+
+    def test_a_non_deepseek_model_has_no_offpeak_half(self):
+        # None, not the same number: "this vendor does not do time-of-day" and
+        # "we measured no discount" are different facts.
+        assert usage.offpeak_price("MiniMax-M3", 10_000, 1_000) is None
+        assert usage.offpeak_price("gpt-4o-2024-08-06", 10_000, 1_000) is None
+
+    def test_the_peak_hours_are_the_two_windows_deepseek_bills_double(self):
+        assert usage.DEEPSEEK_PEAK_HOURS_UTC == frozenset({1, 2, 3, 6, 7, 8, 9})
+
+    def test_cached_input_is_billed_at_the_cache_rate_not_the_miss_rate(self):
+        """Prompt v4 is a long constant prefix; pricing it all at the miss rate
+        overstates each vendor by a different amount and so ranks them wrongly."""
+        rate_in, rate_cached, _ = usage.PRICES_USD_PER_1M["MiniMax-M3"]
+        assert rate_cached < rate_in
+        all_missed = usage.price("MiniMax-M3", 10_000, 0, cached_tokens=0)
+        all_cached = usage.price("MiniMax-M3", 10_000, 0, cached_tokens=10_000)
+        assert all_cached == pytest.approx(all_missed * rate_cached / rate_in)
+
+    def test_more_cached_than_input_cannot_price_below_the_honest_floor(self):
+        """A provider reporting nonsense must not be read the cheap way."""
+        clamped = usage.price("MiniMax-M3", 1_000, 0, cached_tokens=99_999)
+        assert clamped == usage.price("MiniMax-M3", 1_000, 0, cached_tokens=1_000)
+
+
+class TestTheCostSummaryCarriesTheBillingWindow:
+    """DeepSeek's price depends on the hour, so the hour is part of the result."""
+
+    @staticmethod
+    def _rows(hours, model="deepseek-v4-pro"):
+        return [{"as_of": f"2019-01-{7 + i:02d}", "status": "complete",
+                 "spend_usd": 0.02, "offpeak_usd": 0.01, "input_tokens": 1000,
+                 "output_tokens": 100, "cached_tokens": 0, "utc_hour": h}
+                for i, h in enumerate(hours)]
+
+    def test_the_hours_a_run_occupied_are_recorded_not_just_printed(self):
+        got = bakeoff.cost_summary(self._rows([13, 14, 13]))
+        assert got["utc_hours"] == [13, 14]
+
+    def test_the_offpeak_figure_rides_alongside_rather_than_replacing(self):
+        got = bakeoff.cost_summary(self._rows([13, 14]))
+        assert got["per_snapshot_usd"] == pytest.approx(0.02)
+        assert got["offpeak_per_snapshot_usd"] == pytest.approx(0.01)
+
+    def test_a_vendor_without_a_billing_window_reports_no_offpeak_figure(self):
+        rows = [{"as_of": "2019-01-07", "status": "complete", "spend_usd": 0.01,
+                 "offpeak_usd": None, "input_tokens": 1000, "output_tokens": 100,
+                 "cached_tokens": 0, "utc_hour": 13}]
+        assert bakeoff.cost_summary(rows)["offpeak_per_snapshot_usd"] is None

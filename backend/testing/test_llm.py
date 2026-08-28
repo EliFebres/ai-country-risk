@@ -34,7 +34,7 @@ from backend.util import policy
 from backend.data_fetching import curated_loader
 from backend.util import config
 from backend.llm import client as ai_client
-from backend.llm import gazetteer, probe, rewrite
+from backend.llm import digest_engine, gazetteer, probe, rewrite
 
 AS_OF = date(2024, 5, 6)
 SANCTIONED_DAY = date(2023, 1, 1)   # after Russia's effective_from (2022-06-06)
@@ -1268,3 +1268,97 @@ class TestTheInstrumentIsConfigurableAndVersioned:
         """Not the one the file names. `_failure_result` had the same bug."""
         monkeypatch.setenv("SCORING_MODEL", "some-candidate")
         assert llm._failure_result()["model_id"] == "some-candidate"
+
+
+class TestOnlyProductionWritesLint:
+    """Lint findings are keyed `(country, as_of, rule)` — no scoring mode.
+
+    So every arm that shares `(country, as_of)` with the masked twin writes over
+    production's rows on its own primary key: the two diagnostic modes, and every
+    bake-off candidate. Invisibly, too — the bake-off reads lint back out of the
+    in-memory manifest while `reports.lint_findings` reads the table, so the two
+    disagree with nothing to say so. The write follows `upsert` for exactly the
+    reason the snapshot does.
+    """
+
+    ITEMS = [{"title": "Portugal cuts rates", "text": "Lisbon acted.",
+              "link": "https://example.com/a", "published": "2024-05-01"}]
+
+    @staticmethod
+    def _wire(monkeypatch, written):
+        monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids", lambda _i: [])
+        monkeypatch.setattr(pipeline.digest_engine, "digest_articles",
+                            lambda items, **_k: items)
+        monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
+                            lambda **_k: {"_meta": {"country": "PT",
+                                                    "generated_at": AS_OF.isoformat()}})
+        monkeypatch.setattr(pipeline.llm_payload, "build_evidence_payload",
+                            lambda *_a, **_k: {"_meta": {"country": "PT"}})
+        # A war flag beside a low score: a finding that genuinely fires, so an
+        # empty `written` means the write was skipped and not that lint was quiet.
+        monkeypatch.setattr(pipeline.langchain_llm, "country_llm_score",
+                            lambda **_k: {"score": 0.05,
+                                          "condition_flags": {"war_on_territory": True}})
+        monkeypatch.setattr(pipeline.data_push, "upsert_snapshot", lambda *_a, **_k: None)
+        monkeypatch.setattr(pipeline.data_push, "upsert_lint_findings",
+                            lambda findings: written.extend(findings))
+
+    def test_the_production_arm_still_records_its_findings(self, monkeypatch):
+        written = []
+        self._wire(monkeypatch, written)
+        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF,
+                                  items=self.ITEMS, upsert=True)
+        assert written, "the masked production arm must still write lint"
+
+    def test_a_non_production_arm_records_none(self, monkeypatch):
+        written = []
+        self._wire(monkeypatch, written)
+        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF,
+                                  items=self.ITEMS, upsert=False)
+        assert written == []
+
+
+class TestTheDigestCacheKeyFollowsTheDigestModel:
+    """The key and the chat must resolve through the same accessor.
+
+    If the cache keys on the pinned constant while `build_stage1_chat` honours
+    `DIGEST_MODEL`, a bake-off serves the incumbent's digests back to a candidate
+    under the candidate's name — the two disagree and nothing says so. That is the
+    same defect as a version constant nobody bumps, and it is the one thing the
+    scoping in `client.py` cannot catch on its own.
+    """
+
+    def test_the_cache_reads_and_writes_under_the_effective_model(self, monkeypatch):
+        monkeypatch.setenv("DIGEST_MODEL", "some-candidate")
+        seen = {"read": [], "write": []}
+
+        class Cache:
+            def read_digest_cache(self, hashes, digest_model, mode):
+                seen["read"].append(digest_model)
+                return {}
+
+            def write_digest_cache(self, rows, digest_model, mode):
+                seen["write"].append(digest_model)
+
+        class Structured:
+            def batch(self, prompts, **_k):
+                return [{"what_happened": "a thing", "actors": "someone",
+                         "numbers": "1", "stage1_severity": 10}
+                        for _ in prompts]
+
+        class Chat:
+            def with_structured_output(self, **_k):
+                return Structured()
+
+        monkeypatch.setattr(digest_engine.ai_client, "build_stage1_chat",
+                            lambda *_a, **_k: Chat())
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        digest_engine.digest_articles(
+            [{"id": "a1", "title": "T", "text": "body text here"}],
+            country_display="Country A", iso2="PT", as_of=AS_OF,
+            content_cache=Cache())
+
+        assert seen["read"] == ["some-candidate"], seen
+        assert seen["write"] == ["some-candidate"], seen
+        # And the same accessor the chat was built from, so they cannot drift.
+        assert ai_client.digest_model() == "some-candidate"

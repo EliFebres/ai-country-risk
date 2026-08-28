@@ -487,6 +487,16 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     # 3a) Lint: record contradictions between what the model flagged and what it
     #     scored. Advisory and non-blocking — nothing here changes a score, and a
     #     lint failure must not cost the country its snapshot.
+    #
+    #     The *write* follows `upsert` for the same reason the snapshot does.
+    #     Findings are keyed `(country, as_of, rule)` with no scoring_mode in the
+    #     key, so every non-production arm that shares `(country, as_of)` with the
+    #     masked twin — the two diagnostic modes, and the bake-off's candidates —
+    #     was overwriting production's lint rows on its own primary key. Silently:
+    #     the bake-off reads lint back out of the in-memory manifest, and
+    #     `reports.lint_findings` reads the table, so the two disagree with nothing
+    #     to say so. The logging is unconditional because a finding is worth seeing
+    #     whoever produced it; only the row is production's.
     try:
         findings = lint.check(
             country_iso2=iso2,
@@ -505,7 +515,8 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             non_investable=bool(llm_output.get("non_investable")),
         )
         lint.log_findings(findings)
-        data_push.upsert_lint_findings(findings)
+        if upsert:
+            data_push.upsert_lint_findings(findings)
     except Exception:
         logger.exception("[%s] lint pass failed; the snapshot still writes", iso2)
 
