@@ -207,7 +207,8 @@ def ration_abstracts(items: List[Dict[str, Any]],
 
 
 def select(iso2: str, as_of: datetime.date,
-           max_articles: int = 20) -> List[Dict[str, Any]]:
+           max_articles: int = 20, *,
+           bounds: Optional[tuple] = None) -> List[Dict[str, Any]]:
     """The articles a snapshot for this country on this date is scored on.
 
     The historical counterpart of ``article_enrichment.fetch_relevant_news``,
@@ -217,6 +218,13 @@ def select(iso2: str, as_of: datetime.date,
         iso2: pilot country.
         as_of: the snapshot anchor. Nothing published on or after it is read.
         max_articles: the same budget the live run spends.
+        bounds: an explicit ``[start, end)`` to read instead of the 30-day
+            window. The trailing-context block passes one calendar quarter.
+            ``as_of`` still governs what is *knowable* — `to_item` refuses a
+            body captured on or after it — so a quarter is summarised with the
+            quarter's own end as its anchor and the no-future rule is unchanged
+            rather than special-cased. Keyword-only, so no existing caller can
+            pass it by accident.
 
     Returns:
         Up to ``max_articles`` canonical items, most relevant first. Empty is a
@@ -224,7 +232,7 @@ def select(iso2: str, as_of: datetime.date,
         articles to fill a quota is the failure this whole machine exists to
         avoid.
     """
-    start, end = window(as_of)
+    start, end = bounds or window(as_of)
     rows = store.read_window(iso2, start, end)
     if not rows:
         logger.info("[%s %s] no articles in window", iso2, as_of)

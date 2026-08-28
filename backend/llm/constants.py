@@ -68,6 +68,30 @@ from typing import Dict
 # with the name taken out.
 PROMPT_VERSION = "v4.0-masked-production"
 
+# The prompt as it stands when the payload carries a trailing-context block.
+# Appended rather than interpolated, so a payload without the block renders the
+# template byte-for-byte as it always has and needs no version of its own.
+PROMPT_VERSION_CONTEXT = "v4.1-trailing-context"
+
+# One instruction, and it is deliberately one. The block's whole risk is that a
+# model reads last quarter's summary as this week's answer — anchoring on the
+# older, longer, more confident-sounding text and arriving late to a turn. So
+# the instruction says what the block is *for* (direction) and states the
+# precedence explicitly, rather than describing the data, which the JSON already
+# labels.
+TRAILING_CONTEXT_RULE = """
+
+--- TRAILING CONTEXT ---
+`trailing_context` in EVIDENCE_JSON holds one paragraph per calendar quarter for
+the four quarters before the live 30-day window. They do not overlap it.
+
+Use them only to judge trajectory: is this country's position improving,
+decaying, or holding steady relative to those quarters? Recent evidence
+dominates. Where the live window and the trailing context disagree, the live
+window is what you are scoring; the context explains what it is a change from.
+The paragraphs are evidence, not prior assessments — nothing in them is a score.
+"""
+
 # ---------------------------------------------------------------------------
 # v3 — the friction framework. The model judges; nothing downstream edits it.
 # Scores are integers 0-100 here for rank resolution and are converted to 0-1

@@ -34,7 +34,11 @@ from backend.util import policy
 from backend.data_fetching import curated_loader
 from backend.util import config
 from backend.llm import client as ai_client
+from backend.llm import context as llm_context
 from backend.llm import digest_engine, gazetteer, probe, rewrite
+from backend.llm import payload as payload_mod
+from backend.util import provenance
+import datetime as _dt
 
 AS_OF = date(2024, 5, 6)
 SANCTIONED_DAY = date(2023, 1, 1)   # after Russia's effective_from (2022-06-06)
@@ -1362,3 +1366,119 @@ class TestTheDigestCacheKeyFollowsTheDigestModel:
         assert seen["write"] == ["some-candidate"], seen
         # And the same accessor the chat was built from, so they cannot drift.
         assert ai_client.digest_model() == "some-candidate"
+
+
+class TestTheContextBlockIsOptOnly:
+    """p3 must not be able to change what the daily run does by existing.
+
+    The same contract `client.scoring_model()` holds for the model: an unset
+    environment is byte-identical to the behaviour before any of this was
+    written. An A/B that quietly moved the production payload would be measuring
+    itself.
+    """
+
+    def test_an_unset_variant_is_todays_contract(self, monkeypatch):
+        monkeypatch.delenv("PAYLOAD_VARIANT", raising=False)
+        assert provenance.payload_variant() == "p2"
+        assert provenance.payload_version() == provenance.PAYLOAD_VERSION
+
+    def test_a_nonsense_variant_raises_rather_than_defaulting(self, monkeypatch):
+        """Silently falling back to p2 would run an A/B whose arms are identical
+        and report it as a null result."""
+        monkeypatch.setenv("PAYLOAD_VARIANT", "p9")
+        with pytest.raises(ValueError, match="PAYLOAD_VARIANT"):
+            provenance.payload_variant()
+
+    def test_a_payload_without_the_block_renders_the_old_prompt_exactly(self):
+        """The instruction follows the data. No block, no instruction, and the
+        stamped prompt version does not move."""
+        base = {"_meta": {"country": "PT"}}
+        assert not base.get("trailing_context")
+        rendered = ai_constants.AI_PROMPT_V3.format(
+            country="the country", as_of_date="2019-06-03",
+            evidence_json=json.dumps(base), articles_json="[]",
+            full_text_block="(no full-text articles supplied)")
+        assert ai_constants.TRAILING_CONTEXT_RULE not in rendered
+
+    def test_the_block_lands_inside_the_evidence_payload(self):
+        """Not a prompt placeholder — inside the dict, where `mask_payload` and
+        `assert_clean` already run over everything whole."""
+        out = payload_mod.build_evidence_payload(
+            "PT", as_of=_dt.date(2019, 6, 3),
+            trailing_context=[{"quarter": "2018Q4", "summary": "A thing happened."}])
+        assert out["trailing_context"]["quarters"][0]["quarter"] == "2018Q4"
+        assert "trailing_context" in json.dumps(out)
+
+    def test_an_empty_block_is_omitted_rather_than_sent_empty(self):
+        """Same reasoning as `structural`: an empty block reads to the model as
+        'this country has no history', which is false and worse than silence."""
+        out = payload_mod.build_evidence_payload(
+            "PT", as_of=_dt.date(2019, 6, 3), trailing_context=[])
+        assert "trailing_context" not in out
+
+
+class TestContextIsMaskedBeforeItIsCached:
+    """A leak cached is a leak served to every anchor in the quarter."""
+
+    ITEMS = [{"title": "Portugal ruling", "text": "Lisbon acted.",
+              "published": "2018-05-02", "link": "u1"}]
+
+    def _build(self, monkeypatch, paragraph, sweep=None):
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(llm_context, "_paragraph",
+                            lambda *_a, **_k: paragraph)
+        monkeypatch.setattr(llm_context.rewrite, "sweep_digest",
+                            lambda d, key, **k: sweep)
+        written = []
+
+        class Cache:
+            def read_context_cache(self, keys, version, mode):
+                return {}
+
+            def write_context_cache(self, rows, version, mode):
+                written.extend(rows)
+                return len(rows)
+
+        out = llm_context.build("PT", _dt.date(2019, 1, 7), cache=Cache(),
+                                select=lambda i, a, n, bounds=None: list(self.ITEMS))
+        return out, written
+
+    def test_a_leaking_paragraph_is_dropped_and_never_cached(self, monkeypatch):
+        out, written = self._build(monkeypatch, "Portugal did a thing.", sweep=None)
+        assert out == [], "a paragraph naming the country reached the payload"
+        assert written == [], "a leaking paragraph was cached"
+
+    def test_a_clean_paragraph_survives_and_is_cached(self, monkeypatch):
+        out, written = self._build(monkeypatch, "The country did a thing.")
+        assert len(out) == llm_context.QUARTERS
+        assert out[0]["summary"] == "The country did a thing."
+        assert len(written) == llm_context.QUARTERS
+
+    def test_the_sweep_result_is_preferred_when_it_returns_one(self, monkeypatch):
+        """The paragraph rides in `what_happened` so no field has to be added to
+        `_DIGEST_SWEEP_FIELDS`, which would move SWEEP_VERSION and invalidate
+        every cached masked digest to rename a key the prompt never reads."""
+        out, _ = self._build(monkeypatch, "The country did a thing.",
+                             sweep={"what_happened": "A swept sentence."})
+        assert out[0]["summary"] == "A swept sentence."
+
+    def test_the_cache_version_carries_the_masking_versions(self, monkeypatch):
+        """A masking change must invalidate context for the same reason it
+        invalidates digests."""
+        seen = {}
+
+        class Cache:
+            def read_context_cache(self, keys, version, mode):
+                seen["version"] = version
+                return {}
+
+            def write_context_cache(self, rows, version, mode):
+                return 0
+
+        monkeypatch.setenv("OPENAI_API_KEY", "k")
+        monkeypatch.setattr(llm_context, "_paragraph", lambda *_a, **_k: None)
+        llm_context.build("PT", _dt.date(2019, 1, 7), cache=Cache(),
+                          select=lambda i, a, n, bounds=None: list(self.ITEMS))
+        assert seen["version"].startswith(llm_context.CONTEXT_VERSION + ":")
+        assert gazetteer.MASK_MAP_VERSION in seen["version"]
+        assert rewrite.SWEEP_VERSION in seen["version"]

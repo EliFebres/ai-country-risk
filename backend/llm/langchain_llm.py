@@ -362,6 +362,18 @@ def country_llm_score(
         else "(no full-text articles supplied)",
     )
 
+    # The instruction follows the data, rather than both following a flag. If the
+    # payload carries the block the prompt explains it; if it does not, the
+    # template renders byte-for-byte as it always has and stamps the version it
+    # always did. Keying both off an environment variable instead would allow the
+    # one state that is silently wrong — an instruction about a block that is not
+    # there, or a block the model was never told how to read.
+    has_context = isinstance(payload, dict) and bool(payload.get("trailing_context"))
+    prompt_version = (ai_constants.PROMPT_VERSION_CONTEXT if has_context
+                      else ai_constants.PROMPT_VERSION)
+    if has_context:
+        prompt += ai_constants.TRAILING_CONTEXT_RULE
+
     if mask_iso2:
         # The gate, on the serialized blocks rather than on the objects they
         # came from. Those objects carry fields the model never sees — the
@@ -438,6 +450,6 @@ def country_llm_score(
         "legal_gate": investability.legal_gate,
         "non_investable": investability.non_investable,
         "model_id": ai_client.scoring_model(),
-        "prompt_version": ai_constants.PROMPT_VERSION,
+        "prompt_version": prompt_version,
         "policy_version": policy.POLICY_VERSION,
     }

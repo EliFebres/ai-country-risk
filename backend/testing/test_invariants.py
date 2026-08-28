@@ -36,6 +36,7 @@ from backend.util.pilot import score
 from backend.util import config
 from backend.data_upsert import schema, store
 from backend.data_fetching.vintage import lags, restamp
+from backend.llm import context as llm_context
 from backend.llm import gazetteer as gz, rewrite
 from backend.news_fetching import core
 
@@ -1101,3 +1102,105 @@ class TestBodyBeatsStub:
         db.mark_body(URL, body=None, body_status="degraded-title-only")
         db.upsert_articles([self._stub()])
         assert one()[1] == "degraded-title-only"
+
+
+# ---------------------------------------------------------------------------
+# Trailing context: older than the live window, and never younger than the anchor
+# ---------------------------------------------------------------------------
+
+class TestTrailingContextCannotSeeTheFuture:
+    """The first no-future test at *payload* level, not selection level.
+
+    Everything before this asserted that `select` refuses post-anchor articles.
+    The trailing-context block is the first thing that reaches into a different
+    date range than the anchor's own, so it is the first place the invariant
+    could be broken by construction rather than by a bad row — and the first
+    where a violation would be invisible, because a paragraph does not carry the
+    dates it was written from.
+    """
+
+    def test_every_quarter_ends_before_the_live_window_opens(self):
+        """No overlap, or a fact is counted twice — once as flow, once as stock."""
+        for anchor in (datetime.date(2019, 1, 7), datetime.date(2019, 12, 30),
+                       datetime.date(2018, 3, 31), datetime.date(2020, 2, 29)):
+            cutoff = anchor - datetime.timedelta(days=config.SNAPSHOT_WINDOW_DAYS)
+            labels = llm_context.trailing_quarters(anchor)
+            assert len(labels) == llm_context.QUARTERS
+            for label in labels:
+                _, end = llm_context.quarter_bounds(label)
+                assert end.date() <= cutoff, f"{label} overlaps the live window of {anchor}"
+
+    def test_the_quarters_are_consecutive_and_oldest_first(self):
+        """A trajectory read out of order is not a trajectory."""
+        labels = llm_context.trailing_quarters(datetime.date(2019, 12, 30))
+        assert labels == ["2018Q4", "2019Q1", "2019Q2", "2019Q3"]
+        ends = [llm_context.quarter_bounds(x)[1] for x in labels]
+        assert ends == sorted(ends)
+
+    def test_selection_is_asked_for_the_quarter_and_anchored_on_its_end(self):
+        """`select` enforces no-future; context must hand it the right anchor.
+
+        The quarter's own end is passed as `as_of`, so the body-vintage rule that
+        already refuses a capture younger than the anchor applies unchanged
+        rather than being re-implemented here — which is the only version of
+        this that cannot drift from the live path.
+        """
+        seen = []
+
+        def fake_select(iso2, as_of, max_articles, bounds=None):
+            seen.append((as_of, bounds))
+            return []
+
+        llm_context.build(COUNTRY, datetime.date(2019, 1, 7),
+                          cache=None, select=fake_select)
+
+        assert seen, "context never consulted the selector"
+        for as_of, (start, end) in seen:
+            assert as_of == end.date(), "quarter not anchored on its own end"
+            assert start < end
+            assert end.date() <= datetime.date(2019, 1, 7) - datetime.timedelta(days=30)
+
+    def test_no_source_article_is_younger_than_its_quarter(self, store_rows):
+        """End to end through the real selector, with rows straddling the bound."""
+        q_start, q_end = llm_context.quarter_bounds("2018Q2")
+        store_rows([
+            {"url": "https://ex.test/inside", "publisher_link": None,
+             "title": "Inside the quarter", "abstract": "a", "body": "b",
+             "body_status": "recovered", "body_vintage": "api-native",
+             "source_system": "guardian", "themes": ["order"], "tier": "full",
+             "published_at": q_end - datetime.timedelta(days=1)},
+            {"url": "https://ex.test/after", "publisher_link": None,
+             "title": "After the quarter", "abstract": "a", "body": "b",
+             "body_status": "recovered", "body_vintage": "api-native",
+             "source_system": "guardian", "themes": ["order"], "tier": "full",
+             "published_at": q_end + datetime.timedelta(days=1)},
+        ])
+        picked = sel.select(COUNTRY, q_end.date(), 40, bounds=(q_start, q_end))
+        urls = {i["link"] for i in picked}
+        assert "https://ex.test/inside" in urls
+        assert "https://ex.test/after" not in urls
+
+    def test_bounds_is_keyword_only_so_no_caller_passes_it_by_accident(self):
+        import inspect
+        kind = inspect.signature(sel.select).parameters["bounds"].kind
+        assert kind is inspect.Parameter.KEYWORD_ONLY
+
+
+class TestTheContextCacheKeyTracksItsEvidence:
+    """`(country, quarter)` alone would serve a paragraph written before the
+    evidence arrived, and a quarter that has gained articles looks exactly like
+    one that has not."""
+
+    def test_a_re_harvest_changes_the_key(self):
+        before = llm_context.cache_key("PT", "2018Q2", ["a", "b"])
+        after = llm_context.cache_key("PT", "2018Q2", ["a", "b", "c"])
+        assert before != after
+
+    def test_the_key_does_not_depend_on_article_order(self):
+        assert (llm_context.cache_key("PT", "2018Q2", ["b", "a"])
+                == llm_context.cache_key("PT", "2018Q2", ["a", "b"]))
+
+    def test_country_and_quarter_are_both_in_the_key(self):
+        base = llm_context.cache_key("PT", "2018Q2", ["a"])
+        assert base != llm_context.cache_key("TR", "2018Q2", ["a"])
+        assert base != llm_context.cache_key("PT", "2018Q3", ["a"])

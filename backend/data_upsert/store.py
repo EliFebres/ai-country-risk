@@ -585,6 +585,69 @@ def write_digest_cache(rows: Sequence[Dict[str, Any]], digest_model: str,
     return len(values)
 
 
+def read_context_cache(keys: Sequence[str], context_version: str,
+                       mode: str) -> Dict[str, str]:
+    """Cached trailing-context paragraphs for these keys, keyed by key.
+
+    Modelled on the rewrite pair rather than the digest pair because a context
+    paragraph is one string, not a structured digest — but it reads a *set* of
+    keys, because an anchor needs four quarters at once and four round trips to
+    fetch four short strings is three too many.
+
+    A miss is an absent key, and an empty paragraph is never a hit: an empty
+    context is how generation reports failure, and caching that would silence
+    the block for every future anchor in the quarter rather than letting the
+    next run try again.
+    """
+    if not keys:
+        return {}
+    with _transaction() as cur:
+        cur.execute(
+            """
+            SELECT content_sha256, payload ->> 'text'
+              FROM llm_artifact
+             WHERE kind = 'context' AND content_sha256 = ANY(%s)
+               AND version = %s AND mode = %s
+            """,
+            (list(keys), context_version, mode),
+        )
+        return {row[0]: row[1] for row in cur.fetchall() if row[1]}
+
+
+def write_context_cache(rows: Sequence[Dict[str, Any]], context_version: str,
+                        mode: str) -> int:
+    """Cache trailing-context paragraphs.
+
+    Args:
+        rows: dicts with ``key`` and ``text``. The key is not a hash of one
+            article's body — it hashes the *set of articles the quarter
+            selected*, so a re-harvest or a recovered body changes it and the
+            paragraph is rebuilt. Keying on ``(country, quarter)`` alone would
+            serve a paragraph written before half the evidence arrived, and
+            would do it silently, because a quarter that has gained articles
+            looks exactly like one that has not.
+    """
+    values = [(r["key"], "context", context_version, mode,
+               data_push._json_or_none({"text": r["text"]}))
+              for r in rows
+              if r.get("key") and (r.get("text") or "").strip()]
+    if not values:
+        return 0
+    with _transaction() as cur:
+        extras.execute_values(
+            cur,
+            """
+            INSERT INTO llm_artifact
+              (content_sha256, kind, version, mode, payload)
+            VALUES %s
+            ON CONFLICT (content_sha256, kind, version, mode) DO NOTHING
+            """,
+            values,
+            page_size=200,
+        )
+    return len(values)
+
+
 def read_rewrite_cache(hashes: Sequence[str], rewrite_version: str,
                        mode: str) -> Dict[str, str]:
     """Cached rewritten bodies for these content hashes, keyed by hash.

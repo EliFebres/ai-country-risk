@@ -42,7 +42,33 @@ _SCHEMA_VERSION = 1
 #   p1  the registry as it stood through the masked cutover
 #   p2  adds the IMF WEO block — aggregate real GDP growth, gross debt, net
 #       lending and the current account, all edition-vintaged
+#   p3-context  adds the trailing-context block: one masked paragraph per
+#       calendar quarter for the four completed quarters before the live window
 PAYLOAD_VERSION = "p2"
+
+# The variants this build knows about, and the environment that selects one.
+# Unset is `p2`, which is byte-identical to the daily run — the same contract
+# `client.scoring_model()` holds for the model, and for the same reason: an A/B
+# must not be able to change what the pilot does by existing.
+PAYLOAD_VARIANTS = ("p2", "p3-context")
+
+
+def payload_variant() -> str:
+    """Which evidence contract this process builds. Defaults to today's."""
+    variant = os.getenv("PAYLOAD_VARIANT") or PAYLOAD_VERSION
+    if variant not in PAYLOAD_VARIANTS:
+        raise ValueError(f"PAYLOAD_VARIANT must be one of {PAYLOAD_VARIANTS}, "
+                         f"got {variant!r}")
+    return variant
+
+
+def payload_version() -> str:
+    """The version stamped on a row, environment override included.
+
+    Read rather than imported by anything that records a version, so a manifest
+    and a freeze say what the run actually built and not what the file says.
+    """
+    return payload_variant()
 
 # How the macro panel this snapshot consumed relates to real point-in-time data.
 # "as-published-latest" means: latest published values, silently revised by the
@@ -255,6 +281,7 @@ def build_input_manifest(*,
                          prompt_entries: Optional[List[Dict]] = None,
                          fulltext_ids: Iterable[str] = (),
                          payload: Dict,
+                         evidence: Optional[Dict] = None,
                          model_id: Optional[str],
                          prompt_version: Optional[str],
                          policy_version: Optional[str],
@@ -298,7 +325,16 @@ def build_input_manifest(*,
         "model_id": model_id,
         "prompt_version": prompt_version,
         "policy_version": policy_version,
-        "payload_version": PAYLOAD_VERSION,
+        "payload_version": payload_version(),
+        # The bytes the model actually reasoned over, which nothing hashed until
+        # the trailing-context block made the omission expensive. `payload` above
+        # is the *panel* payload — the DB-facing one — and only `macro_vintages`
+        # reads it; the evidence payload reached the prompt and left no trace, so
+        # `payload_version` recorded which contract was used and never which
+        # evidence. A rebuild could differ in every number and match on every
+        # recorded field.
+        "evidence_sha256": text_sha256(
+            _canonical_json(evidence) if evidence is not None else None),
         "seed": seed,
         "git_sha": os.environ.get("GIT_SHA") or None,
         **({"masking": masking} if masking else {}),

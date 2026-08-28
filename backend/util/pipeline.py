@@ -33,6 +33,7 @@ from backend.data_fetching import (
     bis_bulk_fetch, curated_loader, fmp_calendar_fetch, imf_macro_fetch, wb_series_fetch,
 )
 from backend.data_upsert import data_push
+from backend.llm import context as llm_context
 from backend.llm import gazetteer, probe, rewrite
 from backend.news_fetching import article_enrichment, article_ranking
 
@@ -468,6 +469,16 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         # None and behaves exactly as before — handing it today's date would
         # drop the current year's annual figures, whose period ends in December.
         vintage_as_of=as_of if historical else None,
+        # Only under the p3 contract, and only for a historical run: the block is
+        # four quarters *before* the anchor, which is a question a live run with
+        # no anchor cannot ask. Additive and non-fatal — `context.build` returns
+        # what it managed and the payload omits an empty block entirely, on the
+        # same reasoning as `structural`: an empty one reads to the model as
+        # "this country has no history", which is false and worse than silence.
+        trailing_context=(
+            llm_context.build(iso2, as_of, masked=masked,
+                              cache=digest_content_cache)
+            if historical and provenance.payload_variant() == "p3-context" else None),
     )
 
     # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it anchors
@@ -540,6 +551,9 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             prompt_entries=langchain_llm.prompt_entries(scored),
             fulltext_ids=fulltext_ids,
             payload=payload,
+            # The evidence payload as well as the panel one. `evidence` is what
+            # the prompt carried; `payload` is what the row stores.
+            evidence=evidence,
             model_id=llm_output.get("model_id"),
             prompt_version=llm_output.get("prompt_version"),
             policy_version=llm_output.get("policy_version"),
