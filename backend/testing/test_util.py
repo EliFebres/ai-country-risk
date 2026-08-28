@@ -809,12 +809,20 @@ class TestTheEnvironmentIsRestored:
                 pass
         assert "SCORING_MODEL" not in os.environ
 
-    def test_the_deepseek_candidates_pin_thinking_off(self):
-        """Reasoning tokens bill as output; an unpinned run prices a fiction."""
-        for name in ("deepseek-v4-pro", "deepseek-v4-flash"):
+    def test_every_thinking_candidate_pins_thinking_off(self):
+        """Reasoning tokens bill as output; an unpinned run prices a fiction.
+
+        MiniMax is on this list because it was missed. It is a thinking model by
+        default exactly like the DeepSeek pair — measured at 15 of 17 output
+        tokens spent on `<think>` for a one-word answer — and it returns the
+        reasoning *in message content*, so an unpinned run pollutes the payload
+        as well as the bill. It was smoked once without the pin before anyone
+        noticed, which is what a per-vendor list rather than a rule costs.
+        """
+        for name in ("deepseek-v4-pro", "deepseek-v4-flash", "minimax-m3"):
             spec = bakeoff.CANDIDATES[name]
             body = next(v for k, v in spec["env"].items() if k.endswith("_EXTRA_BODY"))
-            assert json.loads(body) == {"thinking": {"type": "disabled"}}
+            assert json.loads(body) == {"thinking": {"type": "disabled"}}, name
 
 
 class TestEveryCandidateIsAScorer:

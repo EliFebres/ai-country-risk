@@ -166,9 +166,17 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
     },
     "minimax-m3": {
         "arm": "scoring",
-        "note": "primary candidate, <=512K tier",
+        "note": "primary candidate, <=512K tier; thinking pinned off",
+        # M3 is a thinking model by default and bills reasoning as output, the
+        # same trap DeepSeek sets — and it was measured here before the pin
+        # existed. On a one-word question it emitted 17 output tokens of which
+        # 15 were `<think>`, and the reasoning arrives *in message content*, so
+        # it pollutes the payload as well as the bill. `reasoning_effort: none`
+        # works identically; this shape is used because DeepSeek already needs
+        # it and one shape is one thing to remember.
         "env": {"SCORING_MODEL": "MiniMax-M3",
-                "SCORING_BASE_URL": "https://api.minimax.io/v1"},
+                "SCORING_BASE_URL": "https://api.minimax.io/v1",
+                "SCORING_EXTRA_BODY": '{"thinking": {"type": "disabled"}}'},
         "key_env": "MINIMAX_API_KEY",
         "key_target": "SCORING_API_KEY",
     },
