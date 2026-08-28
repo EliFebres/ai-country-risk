@@ -211,16 +211,35 @@ def _page(query: str, start: datetime.date, end: datetime.date, page: int) -> Di
     window that has to stop early stops at a known boundary. Relevance order
     would drop an arbitrary slice of the window with nothing to show for it.
     """
-    resp = _get({
-        "q": query,
-        "from-date": start.isoformat(),
-        "to-date": end.isoformat(),
-        "show-fields": "bodyText",
-        "page-size": config.GUARDIAN_PAGE_SIZE,
-        "order-by": "newest",
-        "page": page,
-        "api-key": _api_key(),
-    })
+    try:
+        resp = _get({
+            "q": query,
+            "from-date": start.isoformat(),
+            "to-date": end.isoformat(),
+            "show-fields": "bodyText",
+            "page-size": config.GUARDIAN_PAGE_SIZE,
+            "order-by": "newest",
+            "page": page,
+            "api-key": _api_key(),
+        })
+    except requests.HTTPError as exc:
+        # A 429 that outlives the retry budget is the quota wall, and it has to
+        # arrive as `QuotaExhausted` or the driver cannot tell "come back
+        # tomorrow" from "this country-year is broken".
+        #
+        # Without this it could not. `429` is retryable, so `retry_transient`
+        # spends five attempts on it and then re-raises the `HTTPError`, which
+        # sails past the `remaining <= 0` check below — that check only ever sees
+        # a *successful* response — and lands in the driver's catch-all, which
+        # writes `note='request error'` and moves on to the next country-year.
+        # On 2026-08-15 that turned one wall into 46 identical failed checkpoints
+        # across four countries in fifteen minutes, each a single call, and the
+        # harvest reported them as request errors rather than as a quota it should
+        # wait out. The whole point of `QuotaExhausted` is the branch it takes.
+        if getattr(exc.response, "status_code", None) == 429:
+            raise QuotaExhausted("Guardian returned 429 after backoff",
+                                 _QUOTA["limit"]) from exc
+        raise
     limit = _int_or_none(resp.headers.get(_LIMIT_HEADER))
     remaining = _int_or_none(resp.headers.get(_QUOTA_HEADER))
     _QUOTA.update(
@@ -232,8 +251,8 @@ def _page(query: str, start: datetime.date, end: datetime.date, page: int) -> Di
     )
     if remaining is not None and remaining <= 0:
         raise QuotaExhausted(f"daily Guardian call budget spent (limit {limit})", limit)
-    if resp.status_code == 429:
-        raise QuotaExhausted("Guardian returned 429 after backoff", limit)
+    # No 429 check here: `_get` raises on 429 before it can return one, so the
+    # branch that used to sit on this line was unreachable and is handled above.
     resp.raise_for_status()
     body = resp.json().get("response") or {}
     if body.get("status") != "ok":

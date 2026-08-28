@@ -483,3 +483,83 @@ class TestSelectionMatchesTheLiveRun:
         assert sel.relevance_snippet(
             {"abstract": "Lawmakers met on Friday."}, "body text",
             "Portugal") == "Lawmakers met on Friday."
+
+
+# ---------------------------------------------------------------------------
+# The quota wall has to arrive as a quota, not as a mystery
+# ---------------------------------------------------------------------------
+
+class TestTheQuotaWallIsNamed:
+    """"Come back tomorrow" and "this country-year is broken" take different
+    branches, so a 429 must not be reported as a generic request error.
+
+    On 2026-08-15 it was. `429` is retryable, so `retry_transient` spent five
+    attempts on it and re-raised the `HTTPError`; that sailed past the
+    `remaining <= 0` check — which only ever sees a *successful* response — into
+    the driver's catch-all, which wrote `note='request error'` and moved on to
+    the next country-year. One wall became 46 identical failed checkpoints across
+    four countries in fifteen minutes, and the harvest read as broken rather than
+    as rate-limited.
+    """
+
+    @staticmethod
+    def _raise_429(monkeypatch, calls=None):
+        """Make `_get` fail the way the API does once the day's budget is gone."""
+        import requests
+
+        response = requests.Response()
+        response.status_code = 429
+
+        def boom(_params):
+            if calls is not None:
+                calls.append(_params)
+            raise requests.HTTPError("429 Too Many Requests", response=response)
+
+        monkeypatch.setattr(guardian, "_get", boom)
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+
+    def test_a_429_that_outlives_the_retries_is_a_quota_not_a_request_error(
+            self, monkeypatch):
+        self._raise_429(monkeypatch)
+        with pytest.raises(guardian.QuotaExhausted, match="429"):
+            guardian._page("q", datetime.date(2019, 1, 1),
+                           datetime.date(2019, 12, 31), 1)
+
+    def test_the_harvest_stops_cleanly_instead_of_burning_the_roster(
+            self, monkeypatch):
+        """The whole point of the branch: `QuotaExhausted` returns, so the
+        remaining country-years stay unattempted and resumable rather than being
+        checkpointed `failed` one wasted call at a time."""
+        calls = []
+        self._raise_429(monkeypatch, calls)
+        checkpoints = []
+        monkeypatch.setattr(guardian.store, "completed_windows",
+                            lambda *_a, **_k: set())
+        monkeypatch.setattr(guardian.store, "write_checkpoint",
+                            lambda *a, **k: checkpoints.append(k.get("note", "")))
+
+        written = guardian.harvest(roster=["PT", "TR", "KR"], since="2017-01-01")
+
+        assert written == 0
+        # The wall was actually reached — without this the rest passes vacuously
+        # on an empty work list.
+        assert len(calls) == 1
+        # And it was reached *once*: the run returned rather than spending one
+        # wasted call per remaining country-year, which is the 46-row burst.
+        assert "request error" not in checkpoints
+
+    def test_a_genuine_http_error_is_still_an_error(self, monkeypatch):
+        """Only 429 means quota. A 404 must not be laundered into a wait."""
+        import requests
+
+        response = requests.Response()
+        response.status_code = 404
+
+        def boom(_params):
+            raise requests.HTTPError("404 Not Found", response=response)
+
+        monkeypatch.setattr(guardian, "_get", boom)
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+        with pytest.raises(requests.HTTPError):
+            guardian._page("q", datetime.date(2019, 1, 1),
+                           datetime.date(2019, 12, 31), 1)
