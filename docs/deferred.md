@@ -283,3 +283,48 @@ whatever else gets scheduled, not a sixth file in `testing/`.
 does not tell you the stored series was wrong, and it cannot repair anything
 already written. Its value is that the next claim made about reproducibility is
 made knowingly. That is worth having and it is not worth over-building.
+
+## 11. The `gpt-4o` migration is priced: ~$747, and it is a re-score
+
+**Decision taken 2026-08-27: stay on `gpt-4o-2024-08-06`.** No cheaper model was
+adopted. This item exists so the *next* decision — the one deprecation forces —
+is made from a measurement rather than under time pressure.
+
+`gpt-4o` is a 2024 model and this series is meant to run for years, so the move
+is not optional, only unscheduled. `gpt-4.1` is the stated successor: $2/$8
+against $2.50/$10, better instruction-following, 1M context.
+
+**What it costs, measured over 52 US-2019 anchors** (`docs/scorer-bakeoff.md`):
+
+| | |
+|---|---|
+| Repeat-stability | **±1 point**, flat across Low, Moderate and Extreme — 20% of a typical week's move. Good enough to be an instrument. |
+| Level offset | **−0.008 signed** — essentially none |
+| Week ordering | **ρ = 0.377, τ = 0.297** composite; `edge_vitality` **−0.100** |
+| Per-week disagreement | **0.089** absolute, against a 0.050 median weekly move |
+| Re-score cost | **~$747** for 25,104 snapshots at $0.0298 each (~$62 for the 2,092-snapshot pilot) |
+| Running cost after | **31% cheaper** than the incumbent |
+
+**It is not a recalibrate-and-go migration, and that is the load-bearing part.**
+A constant level offset would be survivable — move the prompt's calibration
+anchors and the series shifts with them. `gpt-4.1` instead moves individual weeks
+in both directions and cancels to −0.008 on average. There is no constant to
+remove, so **switching means re-scoring the history rather than adjusting it.**
+
+Two consequences for whoever picks this up:
+
+- Budget the **$747 and the wall-clock**, not just the price difference. The
+  articles and digests are already stored, so a re-score is scorer-only.
+- A series assembled half on `gpt-4o` and half on `gpt-4.1` is two instruments
+  wearing one name. `score.FROZEN_FIELDS` refuses that resume, which is correct
+  and will look like an obstacle on the day. It is not; it is the guard working.
+
+**Caveat on the ρ figure.** US 2019 never leaves the Moderate band, and rank
+correlation on a flat series is depressed by construction. See the volatile-window
+comparison in `docs/scorer-bakeoff.md` before treating 0.377 as the final number
+— it is a floor, not a verdict.
+
+**Related:** item 10, the determinism canary. `gpt-4o`'s determinism appears to
+be a property of how it is served, so it can move without notice — which would
+turn this from an elective migration into an urgent one. The canary is what would
+tell us.

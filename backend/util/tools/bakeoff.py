@@ -130,6 +130,28 @@ COUNTRY = "US"
 SINCE = datetime.date(2019, 1, 1)
 UNTIL = datetime.date(2019, 12, 31)
 
+# The window is overridable because one window cannot answer the question.
+#
+# Rank correlation on a *flat* series is depressed by construction: if every
+# anchor sits in one band, there is barely an ordering to agree about, and noise
+# decides most of the pairwise comparisons. US 2019 is exactly that — all 52
+# anchors land in Moderate. So a middling rho there has two readings that the US
+# window alone cannot separate: the candidates really do disagree, or the test
+# window had no ordering to reproduce.
+#
+# Running the identical candidate set on a volatile country-year separates them.
+# Results are filed per window rather than per candidate alone, so the two
+# comparisons coexist instead of the second silently overwriting the first.
+def set_window(country: str, since: datetime.date, until: datetime.date) -> None:
+    """Point the harness at a different country-year for this process."""
+    global COUNTRY, SINCE, UNTIL
+    COUNTRY, SINCE, UNTIL = country, since, until
+
+
+def window_slug() -> str:
+    """``US-2019``. What the results directory for this window is called."""
+    return f"{COUNTRY}-{SINCE.year}"
+
 # The four ledgers, plus the model's own composite. There is no `composite`
 # field anywhere in the schema and this is deliberate — the stored score *is*
 # `score_12m`, rescaled and otherwise untouched, and no code combines the
@@ -594,7 +616,7 @@ def projection(per_snapshot_usd: Optional[float]) -> Dict[str, Optional[float]]:
 # --- reading and writing the result files -----------------------------------
 
 def result_path(name: str) -> pathlib.Path:
-    return RESULTS_DIR / f"{name}.json"
+    return RESULTS_DIR / window_slug() / f"{name}.json"
 
 
 def load(name: str) -> Optional[Dict[str, Any]]:
@@ -606,7 +628,7 @@ def load(name: str) -> Optional[Dict[str, Any]]:
 
 
 def save(name: str, payload: Dict[str, Any]) -> pathlib.Path:
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    result_path(name).parent.mkdir(parents=True, exist_ok=True)
     path = result_path(name)
     path.write_text(json.dumps(payload, indent=2, default=str, sort_keys=True),
                     encoding="utf-8")
@@ -1142,7 +1164,22 @@ def main() -> None:
 
     sub.add_parser("compare", help="every candidate file against the baseline")
 
+    # Global rather than per-subcommand, because every subcommand has to agree
+    # about which window it is working on — a capture in one window and a score
+    # in another would compare two country-years and say nothing about either.
+    for name in ("smoke", "capture-baseline", "score", "compare"):
+        sp = sub.choices[name]
+        sp.add_argument("--country", default=COUNTRY,
+                        help=f"ISO2 of the window to work on (default {COUNTRY})")
+        sp.add_argument("--since", default=SINCE.isoformat())
+        sp.add_argument("--until", default=UNTIL.isoformat())
+
     args = parser.parse_args()
+    set_window(args.country,
+               datetime.date.fromisoformat(args.since),
+               datetime.date.fromisoformat(args.until))
+    logger.info("[bakeoff] window %s (%s..%s) -> %s",
+                window_slug(), SINCE, UNTIL, RESULTS_DIR / window_slug())
 
     if args.command == "smoke":
         result = smoke(args.candidate, repeats=args.repeats)
@@ -1160,8 +1197,9 @@ def main() -> None:
     if args.command == "capture-baseline":
         payload = capture_baseline()
         if not payload["rows"]:
-            print("risk_snapshot holds no masked PT 2019 rows. Gate 2 has not "
-                  "run — capture nothing rather than an empty baseline.")
+            print(f"risk_snapshot holds no masked {COUNTRY} "
+                  f"{SINCE}..{UNTIL} rows. The reference has not been scored — "
+                  f"capture nothing rather than an empty baseline.")
             return
         print(f"wrote {save('gpt-4o', payload)} — {len(payload['rows'])} anchor(s)")
         return
