@@ -1,0 +1,247 @@
+{
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.0-masked-production",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "f04da6804b161eb0faf85f82e8612083e2d420a5"
+  },
+  "cutoff_date": "2023-10-01",
+  "divergence": {
+    "PT": {
+      "abs_overall": 0.075,
+      "abs_post_cutoff": null,
+      "abs_pre_cutoff": 0.075,
+      "abs_without_structural": 0.08,
+      "n": 6,
+      "n_without_structural": 6,
+      "overall": 0.075,
+      "post_cutoff": null,
+      "pre_cutoff": 0.075,
+      "structural_recovery": 0.005,
+      "without_structural": 0.08
+    }
+  },
+  "evidence_texture": {
+    "PT 2019": {
+      "abstract": 81,
+      "abstract_share": 0.078,
+      "articles": 1040,
+      "articles_per_snapshot": 20.0,
+      "guardian": 959,
+      "nyt": 81,
+      "snapshots": 52
+    }
+  },
+  "harvest_pacing": {
+    "countries_measured": 5,
+    "countries_scaled": 5,
+    "hours_for_48_countries_linear": 20.5,
+    "per_source_country": {
+      "guardian BR": {
+        "calls": 11.0,
+        "calls_per_window": 1.0,
+        "failed": 11,
+        "items": 0,
+        "minutes": 3.7,
+        "seconds": 223.9,
+        "seconds_per_window": 20.4,
+        "untimed": 0,
+        "windows": 11
+      },
+      "guardian KR": {
+        "calls": 305.0,
+        "calls_per_window": 27.73,
+        "failed": 4,
+        "items": 5875,
+        "minutes": 14.6,
+        "seconds": 874.2,
+        "seconds_per_window": 79.5,
+        "untimed": 0,
+        "windows": 11
+      },
+      "guardian PT": {
+        "calls": 364.0,
+        "calls_per_window": 33.09,
+        "failed": 0,
+        "items": 9059,
+        "minutes": 15.3,
+        "seconds": 917.2,
+        "seconds_per_window": 83.4,
+        "untimed": 0,
+        "windows": 11
+      },
+      "guardian TR": {
+        "calls": 768.0,
+        "calls_per_window": 69.82,
+        "failed": 0,
+        "items": 15495,
+        "minutes": 31.7,
+        "seconds": 1899.5,
+        "seconds_per_window": 172.7,
+        "untimed": 0,
+        "windows": 11
+      },
+      "guardian US": {
+        "calls": 1450.0,
+        "calls_per_window": 131.82,
+        "failed": 3,
+        "items": 26380,
+        "minutes": 61.4,
+        "seconds": 3683.7,
+        "seconds_per_window": 334.9,
+        "untimed": 0,
+        "windows": 11
+      },
+      "nyt BR": {
+        "calls": 24.2,
+        "calls_per_window": 0.2,
+        "failed": 0,
+        "items": 2179,
+        "minutes": 2.3,
+        "seconds": 137.7,
+        "seconds_per_window": 1.1,
+        "untimed": 0,
+        "windows": 121
+      },
+      "nyt KR": {
+        "calls": 24.2,
+        "calls_per_window": 0.2,
+        "failed": 0,
+        "items": 4642,
+        "minutes": 2.3,
+        "seconds": 137.7,
+        "seconds_per_window": 1.1,
+        "untimed": 0,
+        "windows": 121
+      },
+      "nyt PT": {
+        "calls": 24.2,
+        "calls_per_window": 0.2,
+        "failed": 0,
+        "items": 709,
+        "minutes": 2.3,
+        "seconds": 137.7,
+        "seconds_per_window": 1.1,
+        "untimed": 0,
+        "windows": 121
+      },
+      "nyt TR": {
+        "calls": 24.2,
+        "calls_per_window": 0.2,
+        "failed": 0,
+        "items": 2430,
+        "minutes": 2.3,
+        "seconds": 137.7,
+        "seconds_per_window": 1.1,
+        "untimed": 0,
+        "windows": 121
+      },
+      "nyt US": {
+        "calls": 24.2,
+        "calls_per_window": 0.2,
+        "failed": 0,
+        "items": 18000,
+        "minutes": 2.3,
+        "seconds": 137.7,
+        "seconds_per_window": 1.1,
+        "untimed": 0,
+        "windows": 121
+      }
+    },
+    "roster_wide_minutes": 11.5,
+    "total_minutes": 138.1
+  },
+  "identifiability": {
+    "ceiling": 0.0,
+    "floor": 0.0,
+    "per_country": {
+      "PT": {
+        "mean_confidence": 0.0889,
+        "outcomes": {
+          "identified": 0,
+          "no_guess": 8,
+          "uncertain": 0,
+          "wrong": 1
+        },
+        "placed_rate": 0.111,
+        "post_cutoff": {
+          "hits": 0,
+          "n": 0,
+          "rate": null
+        },
+        "pre_cutoff": {
+          "hits": 0,
+          "n": 9,
+          "rate": 0.0
+        },
+        "rate": 0.0
+      }
+    },
+    "spread": 0.0
+  },
+  "lint": {
+    "by_rule": {},
+    "recent": [],
+    "total": 0
+  },
+  "roster": [
+    "PT"
+  ],
+  "spend": {
+    "budget_usd": 130.0,
+    "by_mode": {
+      "masked": {
+        "complete": 157,
+        "failed": 0,
+        "per_snapshot": 0.042,
+        "runs": 157,
+        "spend_usd": 6.59
+      },
+      "masked_nostructural": {
+        "complete": 6,
+        "failed": 0,
+        "per_snapshot": 0.0376,
+        "runs": 6,
+        "spend_usd": 0.23
+      },
+      "named": {
+        "complete": 6,
+        "failed": 0,
+        "per_snapshot": 0.0451,
+        "runs": 6,
+        "spend_usd": 0.27
+      }
+    },
+    "headroom_usd": 122.91,
+    "total_usd": 7.09
+  },
+  "stage1_degradation": {
+    "affected_snapshots": 30,
+    "per_country": {
+      "PT": {
+        "articles": 600,
+        "degraded": 5,
+        "degraded_share": 0.008,
+        "snapshots": 30,
+        "truncated": 31
+      }
+    }
+  },
+  "structural_candidates": [
+    {
+      "country": "PT",
+      "divergence": 0.075,
+      "measured_against_the_third_arm": true,
+      "n": 6,
+      "signed_divergence": 0.075,
+      "structural_recovery": 0.005,
+      "unexplained": 0.07
+    }
+  ]
+}
