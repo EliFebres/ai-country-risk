@@ -799,7 +799,19 @@ def capture_baseline() -> Dict[str, Any]:
             "status": "complete",
             "llm_score": float(score) if score is not None else None,
             "score_3m": float(score_3m) if score_3m is not None else None,
-            "ledger_scores": ledgers or {},
+            # Unwrapped, not copied. `risk_snapshot.ledger_scores` is a JSONB
+            # holding *two* things — `{ledger_scores: {...}, subscore_evidence:
+            # {...}}` — while the candidate arm returns the four scores flat,
+            # straight off `llm_output`. Copying the column whole nests them one
+            # level too deep, and then every ledger lookup misses.
+            #
+            # It failed silently, which is why it is called out here: `_paired`
+            # drops a None rather than raising, so the comparison printed `n=0`
+            # and an em dash for all four ledgers and looked like a metric nobody
+            # had populated instead of a bug. The composite still matched, so the
+            # report read as working. `.get("ledger_scores", ledgers)` rather than
+            # a bare index so a future flat column does not start returning empty.
+            "ledger_scores": (ledgers or {}).get("ledger_scores", ledgers) or {},
             "condition_flags": flags or {},
             "lint": lint or [],
             "model_id": model_id,

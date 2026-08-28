@@ -1009,3 +1009,40 @@ class TestTheNoiseFloorIsInTheDivergenceMeterUnits:
         """0.072 is masked-minus-named out of `risk_snapshot.score`, which is
         0-1. Reading it as 0-100 would understate every candidate 100-fold."""
         assert 0 < bakeoff.PT_MASKING_DIVERGENCE < 1
+
+
+class TestTheBaselineUnwrapsTheStoredLedgerColumn:
+    """`risk_snapshot.ledger_scores` holds two things; the candidate arm holds one.
+
+    The column is a JSONB `{ledger_scores: {...}, subscore_evidence: {...}}`,
+    while a candidate row carries the four scores flat off `llm_output`. Copying
+    the column whole nests them a level too deep, every ledger lookup misses, and
+    `_paired` drops a None rather than raising — so the comparison printed `n=0`
+    and an em dash for all four ledgers and read like a metric nobody had filled
+    in. The composite still matched, so the report looked healthy.
+    """
+
+    @staticmethod
+    def _rows(ledgers):
+        return [{"as_of": "2019-01-07", "status": "complete", "llm_score": 0.5,
+                 "score_3m": 0.5, "ledger_scores": ledgers, "condition_flags": {},
+                 "lint": []}]
+
+    def test_the_four_ledgers_are_actually_paired(self):
+        """The regression itself: n must not be 0 when both sides have ledgers."""
+        stored = {"ledger_scores": {"friction": 0.38, "order_uncertainty": 0.40,
+                                    "information_capacity": 0.25, "edge_vitality": 0.60},
+                  "subscore_evidence": {"friction": ["a1"]}}
+        flat = {"friction": 0.38, "order_uncertainty": 0.40,
+                "information_capacity": 0.25, "edge_vitality": 0.60}
+        unwrapped = (stored or {}).get("ledger_scores", stored) or {}
+        got = bakeoff.compare_one(self._rows(unwrapped), self._rows(flat))
+        for ledger in ("friction", "order_uncertainty",
+                       "information_capacity", "edge_vitality"):
+            assert got["metrics"][ledger]["n"] == 1, ledger
+
+    def test_a_flat_column_still_works(self):
+        """`.get(..., ledgers)` and not a bare index, so a future flat column
+        does not silently start returning nothing."""
+        flat = {"friction": 0.38}
+        assert (flat or {}).get("ledger_scores", flat) == flat

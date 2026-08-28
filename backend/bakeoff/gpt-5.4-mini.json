@@ -1,0 +1,1599 @@
+{
+  "arm": "scoring",
+  "candidate": "gpt-5.4-mini",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.0-masked-production",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-5.4-mini-2026-03-17",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "d063fc4fc9a57bf79ae4ba89a288d1e6df06a1ee"
+  },
+  "cost": {
+    "cache_share": 0.042,
+    "input_tokens_per_snapshot": 12818.2,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 725.4,
+    "per_snapshot_usd": 0.01246,
+    "snapshots": 52,
+    "spend_usd": 0.6479,
+    "utc_hours": [
+      2
+    ]
+  },
+  "country": "US",
+  "endpoint": {
+    "SCORING_EXTRA_BODY": "{\"reasoning_effort\": \"none\"}",
+    "SCORING_MODEL": "gpt-5.4-mini-2026-03-17"
+  },
+  "gates": {},
+  "note": "",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2019-01-07",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12207,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.47,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.34
+      },
+      "lint": [],
+      "llm_score": 0.46,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 752,
+      "score_3m": 0.43,
+      "seconds": 10.55,
+      "spend_usd": 0.012539,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-14",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12618,
+      "ledger_scores": {
+        "edge_vitality": 0.67,
+        "friction": 0.41,
+        "information_capacity": 0.28,
+        "order_uncertainty": 0.52
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 729,
+      "score_3m": 0.49,
+      "seconds": 9.5,
+      "spend_usd": 0.012744,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-21",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11110,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.52,
+        "information_capacity": 0.34,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.56,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 699,
+      "score_3m": 0.49,
+      "seconds": 9.1,
+      "spend_usd": 0.011478,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-28",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10334,
+      "ledger_scores": {
+        "edge_vitality": 0.41,
+        "friction": 0.74,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.86
+      },
+      "lint": [],
+      "llm_score": 0.84,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 400,
+      "score_3m": 0.82,
+      "seconds": 5.61,
+      "spend_usd": 0.00955,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-04",
+      "cached_tokens": 3200,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 14639,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.58,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.91
+      },
+      "lint": [],
+      "llm_score": 0.9,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 799,
+      "score_3m": 0.88,
+      "seconds": 9.02,
+      "spend_usd": 0.012072,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-11",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10878,
+      "ledger_scores": {
+        "edge_vitality": 0.56,
+        "friction": 0.62,
+        "information_capacity": 0.28,
+        "order_uncertainty": 0.74
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 732,
+      "score_3m": 0.72,
+      "seconds": 10.33,
+      "spend_usd": 0.011452,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-18",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11524,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.54,
+        "information_capacity": 0.34,
+        "order_uncertainty": 0.63
+      },
+      "lint": [],
+      "llm_score": 0.69,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 761,
+      "score_3m": 0.66,
+      "seconds": 7.53,
+      "spend_usd": 0.012068,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-25",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11470,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.66,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.78
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 744,
+      "score_3m": 0.74,
+      "seconds": 10.99,
+      "spend_usd": 0.01195,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-04",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11450,
+      "ledger_scores": {
+        "edge_vitality": 0.68,
+        "friction": 0.4,
+        "information_capacity": 0.17,
+        "order_uncertainty": 0.43
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 692,
+      "score_3m": 0.39,
+      "seconds": 7.98,
+      "spend_usd": 0.011702,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-11",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12408,
+      "ledger_scores": {
+        "edge_vitality": 0.42,
+        "friction": 0.74,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.88
+      },
+      "lint": [],
+      "llm_score": 0.84,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 502,
+      "score_3m": 0.86,
+      "seconds": 6.99,
+      "spend_usd": 0.011565,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-18",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11502,
+      "ledger_scores": {
+        "edge_vitality": 0.48,
+        "friction": 0.66,
+        "information_capacity": 0.34,
+        "order_uncertainty": 0.72
+      },
+      "lint": [],
+      "llm_score": 0.74,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 733,
+      "score_3m": 0.7,
+      "seconds": 7.92,
+      "spend_usd": 0.011925,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-25",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12601,
+      "ledger_scores": {
+        "edge_vitality": 0.58,
+        "friction": 0.72,
+        "information_capacity": 0.39,
+        "order_uncertainty": 0.83
+      },
+      "lint": [],
+      "llm_score": 0.79,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 750,
+      "score_3m": 0.86,
+      "seconds": 9.33,
+      "spend_usd": 0.012826,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-01",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12545,
+      "ledger_scores": {
+        "edge_vitality": 0.46,
+        "friction": 0.74,
+        "information_capacity": 0.31,
+        "order_uncertainty": 0.86
+      },
+      "lint": [],
+      "llm_score": 0.84,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 723,
+      "score_3m": 0.81,
+      "seconds": 7.72,
+      "spend_usd": 0.012662,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-08",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12074,
+      "ledger_scores": {
+        "edge_vitality": 0.71,
+        "friction": 0.54,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.29
+      },
+      "lint": [],
+      "llm_score": 0.47,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 747,
+      "score_3m": 0.43,
+      "seconds": 10.81,
+      "spend_usd": 0.012417,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-15",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13988,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.43,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.31
+      },
+      "lint": [],
+      "llm_score": 0.47,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 748,
+      "score_3m": 0.44,
+      "seconds": 11.88,
+      "spend_usd": 0.013857,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-22",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11617,
+      "ledger_scores": {
+        "edge_vitality": 0.67,
+        "friction": 0.46,
+        "information_capacity": 0.24,
+        "order_uncertainty": 0.41
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 742,
+      "score_3m": 0.5,
+      "seconds": 10.64,
+      "spend_usd": 0.012052,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-29",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12675,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.33,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.24
+      },
+      "lint": [],
+      "llm_score": 0.35,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 765,
+      "score_3m": 0.31,
+      "seconds": 11.98,
+      "spend_usd": 0.012949,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-06",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12970,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.57,
+        "information_capacity": 0.44,
+        "order_uncertainty": 0.71
+      },
+      "lint": [],
+      "llm_score": 0.69,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 499,
+      "score_3m": 0.66,
+      "seconds": 6.68,
+      "spend_usd": 0.011973,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-13",
+      "cached_tokens": 3712,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 15649,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.46,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.39
+      },
+      "lint": [],
+      "llm_score": 0.47,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 839,
+      "score_3m": 0.43,
+      "seconds": 12.53,
+      "spend_usd": 0.012686,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-20",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12531,
+      "ledger_scores": {
+        "edge_vitality": 0.62,
+        "friction": 0.39,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.57
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 726,
+      "score_3m": 0.54,
+      "seconds": 11.58,
+      "spend_usd": 0.012665,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-27",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12671,
+      "ledger_scores": {
+        "edge_vitality": 0.67,
+        "friction": 0.39,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.34
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 769,
+      "score_3m": 0.37,
+      "seconds": 8.29,
+      "spend_usd": 0.012964,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-03",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12580,
+      "ledger_scores": {
+        "edge_vitality": 0.71,
+        "friction": 0.43,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.39
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 770,
+      "score_3m": 0.46,
+      "seconds": 9.19,
+      "spend_usd": 0.0129,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-10",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13581,
+      "ledger_scores": {
+        "edge_vitality": 0.71,
+        "friction": 0.29,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.22
+      },
+      "lint": [],
+      "llm_score": 0.36,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 785,
+      "score_3m": 0.33,
+      "seconds": 12.19,
+      "spend_usd": 0.013718,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-17",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13909,
+      "ledger_scores": {
+        "edge_vitality": 0.67,
+        "friction": 0.41,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.18
+      },
+      "lint": [],
+      "llm_score": 0.34,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 704,
+      "score_3m": 0.31,
+      "seconds": 8.79,
+      "spend_usd": 0.0136,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-24",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 14059,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.54,
+        "information_capacity": 0.24,
+        "order_uncertainty": 0.29
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 781,
+      "score_3m": 0.47,
+      "seconds": 12.3,
+      "spend_usd": 0.014059,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-01",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 14185,
+      "ledger_scores": {
+        "edge_vitality": 0.71,
+        "friction": 0.39,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.22
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 731,
+      "score_3m": 0.41,
+      "seconds": 11.87,
+      "spend_usd": 0.013928,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-08",
+      "cached_tokens": 3456,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 15887,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.44,
+        "information_capacity": 0.24,
+        "order_uncertainty": 0.31
+      },
+      "lint": [],
+      "llm_score": 0.45,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 892,
+      "score_3m": 0.41,
+      "seconds": 12.98,
+      "spend_usd": 0.013206,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-15",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12328,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.52,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.46,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 817,
+      "score_3m": 0.41,
+      "seconds": 8.31,
+      "spend_usd": 0.012922,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-22",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11630,
+      "ledger_scores": {
+        "edge_vitality": 0.67,
+        "friction": 0.56,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.31
+      },
+      "lint": [],
+      "llm_score": 0.51,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 747,
+      "score_3m": 0.47,
+      "seconds": 8.28,
+      "spend_usd": 0.012084,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-29",
+      "cached_tokens": 3328,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 15108,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.48,
+        "information_capacity": 0.24,
+        "order_uncertainty": 0.34
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 794,
+      "score_3m": 0.49,
+      "seconds": 11.78,
+      "spend_usd": 0.01225,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-05",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 9839,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.58,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.51,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 740,
+      "score_3m": 0.46,
+      "seconds": 11.2,
+      "spend_usd": 0.010709,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-12",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10747,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.63,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.52
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 742,
+      "score_3m": 0.61,
+      "seconds": 10.82,
+      "spend_usd": 0.011399,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-19",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 10779,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.43,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.52
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 428,
+      "score_3m": 0.49,
+      "seconds": 8.58,
+      "spend_usd": 0.01001,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-26",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12174,
+      "ledger_scores": {
+        "edge_vitality": 0.71,
+        "friction": 0.49,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.23
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 749,
+      "score_3m": 0.46,
+      "seconds": 9.93,
+      "spend_usd": 0.012501,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-02",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12158,
+      "ledger_scores": {
+        "edge_vitality": 0.67,
+        "friction": 0.44,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.34
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 709,
+      "score_3m": 0.47,
+      "seconds": 10.34,
+      "spend_usd": 0.012309,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-09",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12196,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.63,
+        "information_capacity": 0.28,
+        "order_uncertainty": 0.58
+      },
+      "lint": [],
+      "llm_score": 0.66,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 567,
+      "score_3m": 0.61,
+      "seconds": 7.37,
+      "spend_usd": 0.011699,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-16",
+      "cached_tokens": 3712,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 16098,
+      "ledger_scores": {
+        "edge_vitality": 0.68,
+        "friction": 0.41,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.24
+      },
+      "lint": [],
+      "llm_score": 0.46,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 798,
+      "score_3m": 0.43,
+      "seconds": 12.56,
+      "spend_usd": 0.012859,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-23",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11625,
+      "ledger_scores": {
+        "edge_vitality": 0.54,
+        "friction": 0.69,
+        "information_capacity": 0.29,
+        "order_uncertainty": 0.63
+      },
+      "lint": [],
+      "llm_score": 0.71,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 694,
+      "score_3m": 0.66,
+      "seconds": 7.73,
+      "spend_usd": 0.011842,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-30",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11752,
+      "ledger_scores": {
+        "edge_vitality": 0.56,
+        "friction": 0.34,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.29
+      },
+      "lint": [],
+      "llm_score": 0.42,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 794,
+      "score_3m": 0.39,
+      "seconds": 8.2,
+      "spend_usd": 0.012387,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-07",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12253,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.62,
+        "information_capacity": 0.16,
+        "order_uncertainty": 0.39
+      },
+      "lint": [],
+      "llm_score": 0.56,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 514,
+      "score_3m": 0.51,
+      "seconds": 6.75,
+      "spend_usd": 0.011503,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-14",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 12133,
+      "ledger_scores": {
+        "edge_vitality": 0.62,
+        "friction": 0.54,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 691,
+      "score_3m": 0.52,
+      "seconds": 10.67,
+      "spend_usd": 0.012209,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-21",
+      "cached_tokens": 3456,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 15637,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.49,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.33
+      },
+      "lint": [],
+      "llm_score": 0.47,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 803,
+      "score_3m": 0.44,
+      "seconds": 10.82,
+      "spend_usd": 0.012734,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-28",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13155,
+      "ledger_scores": {
+        "edge_vitality": 0.68,
+        "friction": 0.47,
+        "information_capacity": 0.19,
+        "order_uncertainty": 0.43
+      },
+      "lint": [],
+      "llm_score": 0.49,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 753,
+      "score_3m": 0.46,
+      "seconds": 8.28,
+      "spend_usd": 0.013255,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-04",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11692,
+      "ledger_scores": {
+        "edge_vitality": 0.68,
+        "friction": 0.43,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.24
+      },
+      "lint": [],
+      "llm_score": 0.42,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 749,
+      "score_3m": 0.39,
+      "seconds": 7.9,
+      "spend_usd": 0.012139,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-11",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 11441,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.44,
+        "information_capacity": 0.23,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.45,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 740,
+      "score_3m": 0.41,
+      "seconds": 8.37,
+      "spend_usd": 0.011911,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-18",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13522,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.46,
+        "information_capacity": 0.19,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.39,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 752,
+      "score_3m": 0.34,
+      "seconds": 8.6,
+      "spend_usd": 0.013525,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-25",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13601,
+      "ledger_scores": {
+        "edge_vitality": 0.66,
+        "friction": 0.54,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.33
+      },
+      "lint": [],
+      "llm_score": 0.48,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 728,
+      "score_3m": 0.44,
+      "seconds": 8.08,
+      "spend_usd": 0.013477,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-02",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13104,
+      "ledger_scores": {
+        "edge_vitality": 0.66,
+        "friction": 0.48,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 739,
+      "score_3m": 0.47,
+      "seconds": 10.96,
+      "spend_usd": 0.013154,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-09",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 16820,
+      "ledger_scores": {
+        "edge_vitality": 0.63,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.34
+      },
+      "lint": [],
+      "llm_score": 0.45,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 815,
+      "score_3m": 0.42,
+      "seconds": 12.36,
+      "spend_usd": 0.013435,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-16",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 16138,
+      "ledger_scores": {
+        "edge_vitality": 0.71,
+        "friction": 0.46,
+        "information_capacity": 0.24,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.48,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 836,
+      "score_3m": 0.41,
+      "seconds": 13.29,
+      "spend_usd": 0.013087,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-23",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13130,
+      "ledger_scores": {
+        "edge_vitality": 0.61,
+        "friction": 0.63,
+        "information_capacity": 0.28,
+        "order_uncertainty": 0.34
+      },
+      "lint": [],
+      "llm_score": 0.61,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 785,
+      "score_3m": 0.58,
+      "seconds": 10.23,
+      "spend_usd": 0.01338,
+      "status": "complete",
+      "utc_hour": 2
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-30",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13826,
+      "ledger_scores": {
+        "edge_vitality": 0.68,
+        "friction": 0.56,
+        "information_capacity": 0.24,
+        "order_uncertainty": 0.39
+      },
+      "lint": [],
+      "llm_score": 0.47,
+      "model_id": "gpt-5.4-mini-2026-03-17",
+      "offpeak_usd": null,
+      "output_tokens": 721,
+      "score_3m": 0.44,
+      "seconds": 10.8,
+      "spend_usd": 0.013614,
+      "status": "complete",
+      "utc_hour": 2
+    }
+  ],
+  "since": "2019-01-01",
+  "until": "2019-12-31"
+}
