@@ -107,3 +107,94 @@ there — that window is where p2 is least informative. Demanding agreement on t
 window the change is meant to fix would be a criterion that only a no-op could
 pass. (c) is scoped to TR 2018 for exactly that reason: the determinate window is
 where p2 is trustworthy, so it is where the two arms ought to agree.
+
+---
+
+## The result: p3-context is rejected
+
+**Two of the three adoption criteria fail. The pilot runs on p2.**
+
+Arm B: 105 anchors re-scored with the block, scorer held at `gpt-4o`, $3.90.
+
+### Every criterion against its pre-registered line
+
+| # | Criterion | Line | Measured | Verdict |
+|---|---|---|---|---|
+| **(a)** | distinct values, US 2019 | **≥ 15** (from 9) | **7** | **FAIL** |
+| | round-number share, US 2019 | **≤ 44%** (from 69.2%) | **75.0%** | **FAIL** |
+| **(b)** | first ≥0.05 move above Q1 baseline, TR 2018 | no later than p2 | **identical** (2018-02-05 by Q1 mean; 2018-01-22 by first anchor) | **PASS** |
+| **(c)** | between-arm ρ, TR 2018 | **≥ 0.80** | **0.777** | **FAIL** |
+| **(d)** | autocorrelation / longest run | report only | see below | — |
+| **(e)** | per-snapshot cost | **≤ +15%** | **−5.9% US, −3.9% TR** | **PASS** |
+
+**Decision rule: adopt iff (a), (b) and (c) all hold.** (a) and (c) do not.
+Rejected.
+
+### (a) did not merely fail to move — it moved backwards
+
+This is the finding, and it was the thing p3 existed to fix.
+
+| US 2019 | p2 | p3-context |
+|---|---|---|
+| distinct composite values | 9 | **7** |
+| round-number share | 69.2% | **75.0%** |
+| band migration | — | **52 of 52 anchors stayed in Moderate** |
+
+Given four quarters of trailing evidence, the model resolved the year into
+*fewer* distinct scores and snapped to round numbers *more often*. Not one anchor
+changed band. The same pattern holds on TR 2018 (9 → 7 distinct, round share
+unchanged at 18.9%).
+
+So the amnesia diagnosis was right about the symptom and wrong about the cause.
+Coarseness is not the payload failing to carry history — the model was given the
+history, in the form it asked for, and became *more* coarse. Something about how
+it converts evidence into a number is doing this, and more evidence is not the
+lever.
+
+### (b) and (d): the feared failure did not happen either
+
+The other direction — context making the model sticky, anchored on last quarter's
+mood and late to a turn — was the tripwire in (b), and there is no sign of it.
+TR 2018's first ≥0.05 move above the Q1 baseline lands on the **same anchor** in
+both arms under either definition of the baseline.
+
+Autocorrelation *fell* in both windows, which is the opposite of what was
+predicted for it:
+
+| | US 2019 | TR 2018 |
+|---|---|---|
+| lag-1 autocorrelation | 0.299 → **0.142** | 0.564 → **0.493** |
+| longest identical run | 5 → 5 | 7 → **8** |
+
+(d) was written expecting autocorrelation to rise, because evidence stock is
+persistent. It did not. That is worth recording as a failed prediction rather
+than passed over: the block is not being read as a prior at all. Combined with
+(a), the most economical reading is that the trailing paragraphs are being
+largely **ignored** — they neither sharpened the series nor anchored it.
+
+### (e): cheaper, for a reason worth knowing
+
+p3 costs **less** per snapshot despite a larger payload — the evidence block grew
+from ~1,430 to ~2,130 tokens on US. Input rose and **output fell** (≈605 vs ≈650
+tokens), and `gpt-4o` bills output at four times input, so the output drop
+dominates. A longer prompt producing a shorter answer is consistent with the rest
+of the picture: the model wrote less, and discriminated less.
+
+### What follows
+
+**Rejected, and the pre-registered fallback applies.** Criterion (a)'s failure
+clause reads: *if (a) doesn't move, context is not the cure for snapping —
+propose, do not run, a within-band-discrimination prompt test.* That is what is
+proposed, and deliberately not run, in `docs/deferred.md`.
+
+The evidence now points at the prompt rather than the payload. The prompt already
+forbids multiples of 5 and is disobeyed on 69–75% of US anchors; it offers five
+calibration anchors that are themselves near band centres; and it never asks the
+model to distinguish two weeks that sit in the same band. A payload change cannot
+reach any of that.
+
+**The code stays.** `p3-context` remains available behind `PAYLOAD_VARIANT`,
+unset by default, so the measurement is reproducible and a later prompt change
+can be tested against the same block rather than rebuilding it. What was learned
+cost $3.90 and is worth more than the block: *more evidence did not make this
+instrument finer, and the next attempt should not assume it will.*

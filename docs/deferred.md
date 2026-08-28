@@ -332,3 +332,68 @@ the same series. See `docs/scorer-bakeoff.md`.
 be a property of how it is served, so it can move without notice — which would
 turn this from an elective migration into an urgent one. The canary is what would
 tell us.
+
+## 12. Within-band discrimination is a prompt problem, not a payload one
+
+The pre-registered fallback from the payload A/B (`docs/payload-ab.md`), proposed
+and deliberately not run.
+
+**What the A/B established.** Trailing quarterly context was added to fix
+coarseness — nine distinct scores across fifty-two weeks, a third of them exactly
+0.50 — and it made coarseness *worse*: seven distinct values, round-number share
+up from 69% to 75%, and not one of fifty-two anchors changing band. The model was
+handed a year of history in the form it asked for and became less discriminating,
+not more. More evidence is not the lever.
+
+**Why the prompt is the remaining suspect**, on evidence already collected:
+
+- It says *"use precise values (37, 62, 81) — never round to multiples of 5"* and
+  is disobeyed on **69–75%** of US 2019 anchors against a 20% chance floor. An
+  instruction that is ignored three times in four is not an instruction.
+- Its five calibration anchors (12/38/58/85/95) sit near band centres, so the
+  worked examples pull toward exactly the values the series over-produces.
+- **Nothing in it asks the model to separate two weeks inside one band.** Every
+  US 2019 anchor is "Moderate", and the prompt gives no vocabulary for
+  "Moderate, and worse than last week".
+- Compliance is evidence-dependent, not fixed: the same model on the same prompt
+  rounds on 69% of anchors where the evidence is ambiguous and 19% where it is
+  determinate. The instruction holds exactly where it is least needed.
+
+**The shape of the test.** A prompt variant against the same two windows and the
+same criteria, changed in one place: an explicit within-band instruction, e.g.
+*"Two weeks in the same band must differ unless the evidence is genuinely
+identical; the second decimal is where that difference goes."* Reuse the p3
+harness — `PROMPT_VARIANT` alongside `PAYLOAD_VARIANT`, the same `series_shape`
+meters, the same pre-registered thresholds, arm A free from stored rows.
+
+**Why not yet.** The scorer question is settled and the payload question is now
+settled; a prompt change moves `PROMPT_VERSION`, which is frozen, so it is a
+third instrument change and belongs in its own session with its own
+pre-registration rather than appended to this one. It should also be weighed
+against the cheaper answer: **report the series with an uncertainty band and stop
+claiming resolution the instrument does not have.** That costs nothing and may be
+the honest fix.
+
+## 13. A real migration mechanism, once there is a pattern
+
+`schema.create_all` now does double duty — creation and forward migration — via
+the `MIGRATIONS` tuple added for `llm_artifact.kind`. That is deliberate and
+documented at the block, and it is one constraint.
+
+Adopt a versioned mechanism when there are two or three and there is something to
+generalise, not a framework for a single CHECK. The thing to watch for: a
+migration that is not idempotent, or one that must run in a specific order
+relative to another, is the signal that the tuple has outgrown itself.
+
+## 14. The Guardian daily allowance is not a constant
+
+`docs/scorer-bakeoff.md` carries a roster estimate derived from one measurement:
+1,461 page-calls before `X-RateLimit-Remaining-Day` reached zero on 2026-08-15.
+On 2026-08-28 the wall arrived after **328**.
+
+So the remaining harvest — KR 2023–2026, all of BR, US 2024–2026, reported by the
+harness as 18 country-years and ~774 calls — is **two to three days, not one**,
+and any estimate quoting 1,461 should be re-derived from observed daily rates
+rather than from a single day's ceiling. The harness already reports what it
+spent and what is left every time it stops, which is the right place to read this
+from.
