@@ -299,6 +299,16 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
     # what declares this a payload arm, and it is what `candidate_env` scrubs
     # between runs. The evidence moved underneath a fixed contract, which is
     # the one kind of change this harness had no way to express.
+    # The prompt arm. No payload change and no scorer change -- one paragraph
+    # naming two fields the payload has carried since p1 and nothing has ever
+    # read. It is the cheap half of the trend question, and if it clears the
+    # criteria the computed block is optional.
+    "trend-prompt": {
+        "arm": "prompt",
+        "note": "one paragraph naming trend_1y/trend_5y; no new evidence",
+        "env": {"PROMPT_VARIANT": "trend"},
+        "key_env": "OPENAI_API_KEY",
+    },
     "p2-rebaseline": {
         "arm": "payload",
         "note": "p2 re-scored after the vintage fix, scorer held at gpt-4o",
@@ -360,7 +370,13 @@ def candidate_env(name: str) -> Iterator[Dict[str, str]]:
                # The payload axis. Missing from this list, a p3 arm would leak
                # into every arm scored after it in the same process and the
                # contamination would look like a finding.
-               "PAYLOAD_VARIANT"]
+               "PAYLOAD_VARIANT",
+               # And the prompt axis, for exactly the same reason. A leaked
+               # trend instruction is worse than a leaked payload variant,
+               # because it changes nothing observable in the evidence -- the
+               # arms would differ only in a paragraph nobody could see in the
+               # result file.
+               "PROMPT_VARIANT"]
     before = {k: os.environ.get(k) for k in managed}
     try:
         for k in managed:

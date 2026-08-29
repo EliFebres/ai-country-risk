@@ -92,6 +92,40 @@ window is what you are scoring; the context explains what it is a change from.
 The paragraphs are evidence, not prior assessments — nothing in them is a score.
 """
 
+# The prompt as it stands when it is told the trend fields exist.
+#
+# No payload change goes with this one, which is the whole point of it. Every
+# indicator entry has carried `trend_1y` and `trend_5y` since p1 and they are
+# serialized into every prompt; nothing has ever read them, and the template
+# explains `as_of` and `staleness_days` in the same breath without mentioning
+# them. So this variant adds a paragraph and not a byte of evidence, and it
+# separates "the model needed more" from "the model was never told".
+PROMPT_VERSION_TREND = "v4.1-trend-fields"
+
+# Three sentences, and the third is the one that matters. Naming the fields is
+# not enough on its own: the model has to be told what the sign means, because
+# a rising number is worse for debt and better for growth, and a model left to
+# infer that per indicator will infer it inconsistently. The last line is there
+# because the failure this is aimed at is a model answering a quiet week with
+# the calibration language rather than with the evidence.
+TREND_FIELDS_RULE = """
+
+--- TRAJECTORY ---
+Most indicators in EVIDENCE_JSON carry `trend_1y` and `trend_5y`: the change in
+that indicator's own units over the last one and five years, signed. A positive
+`trend_5y` on a debt ratio means the burden grew; a positive one on a growth
+rate means growth accelerated. Read the sign against what the indicator
+measures, not as good or bad in itself.
+
+Use them to judge trajectory — whether conditions are improving, decaying or
+holding — while the articles tell you what is happening now. A level that has
+been stable for five years and the same level reached by five years of steady
+deterioration are different risks, and only these fields distinguish them.
+
+Where an indicator has no trend field, its history does not reach back far
+enough. That is unknown, not flat, and it is not evidence of stability.
+"""
+
 # ---------------------------------------------------------------------------
 # v3 — the friction framework. The model judges; nothing downstream edits it.
 # Scores are integers 0-100 here for rank resolution and are converted to 0-1

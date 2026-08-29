@@ -1,0 +1,100 @@
+{
+  "arm": "payload",
+  "candidate": "p2-rebaseline",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.0-masked-production",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "e672f90dc50f0a6dccc3cb8b506e7ca6bea200ba"
+  },
+  "cost": {
+    "cache_share": 0.0,
+    "input_tokens_per_snapshot": 13765.5,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 627.5,
+    "per_snapshot_usd": 0.040689,
+    "snapshots": 2,
+    "spend_usd": 0.0814,
+    "utc_hours": [
+      20
+    ]
+  },
+  "country": "US",
+  "endpoint": {
+    "PAYLOAD_VARIANT": "p2"
+  },
+  "gates": {},
+  "note": "p2 re-scored after the vintage fix, scorer held at gpt-4o",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2019-06-03",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 13265,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 625,
+      "prompt_version": "v4.0-masked-production",
+      "score_3m": 0.45,
+      "seconds": 11.31,
+      "spend_usd": 0.039413,
+      "status": "complete",
+      "utc_hour": 20
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-10",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "error": null,
+      "input_tokens": 14266,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 630,
+      "prompt_version": "v4.0-masked-production",
+      "score_3m": 0.45,
+      "seconds": 10.43,
+      "spend_usd": 0.041965,
+      "status": "complete",
+      "utc_hour": 20
+    }
+  ],
+  "since": "2019-06-03",
+  "until": "2019-06-10"
+}

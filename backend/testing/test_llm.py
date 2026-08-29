@@ -1417,6 +1417,68 @@ class TestTheContextBlockIsOptOnly:
         assert "trailing_context" not in out
 
 
+class TestTheTrendRuleIsToldAndNotGiven:
+    """Arm C carries no evidence, which is the only reason it isolates anything.
+
+    `trend_1y` and `trend_5y` have been on every indicator since p1 and are
+    serialized into every prompt. So the trend arm cannot follow the data the
+    way the context arm does -- there is no new data to follow, and the fields
+    are present in every arm whether it was told about them or not. The variant
+    is therefore environment-selected, and these pin the two properties that
+    makes safe: it adds no bytes of evidence, and it stamps a version so "told"
+    and "not told" are distinguishable afterwards.
+    """
+
+    def test_an_unset_variant_renders_the_prompt_unchanged(self, monkeypatch):
+        monkeypatch.delenv("PROMPT_VARIANT", raising=False)
+        assert provenance.prompt_variant() == ""
+        assert provenance.prompt_version() == ai_constants.PROMPT_VERSION
+
+    def test_a_nonsense_variant_raises_rather_than_defaulting(self, monkeypatch):
+        """Falling back to the base prompt would run an A/B whose arms are
+        identical and report it as a null result."""
+        monkeypatch.setenv("PROMPT_VARIANT", "trendy")
+        with pytest.raises(ValueError, match="PROMPT_VARIANT"):
+            provenance.prompt_variant()
+
+    def test_the_freeze_reads_the_prompt_it_would_actually_render(self, monkeypatch):
+        """The defect that put `v4.0` in a committed p3 result file whose own
+        rows all say `v4.1`."""
+        from backend.util.pilot import score as pilot_score
+
+        monkeypatch.setenv("PROMPT_VARIANT", "trend")
+        assert pilot_score.versions()["PROMPT_VERSION"] ==             ai_constants.PROMPT_VERSION_TREND
+        monkeypatch.delenv("PROMPT_VARIANT")
+        assert pilot_score.versions()["PROMPT_VERSION"] ==             ai_constants.PROMPT_VERSION
+
+    def test_the_rule_names_the_fields_and_what_their_sign_means(self):
+        """Naming them is not enough: rising is worse for debt and better for
+        growth, and a model left to infer that per indicator infers it
+        inconsistently."""
+        rule = ai_constants.TREND_FIELDS_RULE
+        assert "trend_1y" in rule and "trend_5y" in rule
+        assert "sign" in rule.lower()
+        # Unknown must not read as flat -- the distinction the whole census
+        # exists to preserve.
+        assert "unknown, not flat" in rule
+
+    def test_the_trend_arm_carries_no_evidence_the_others_lack(self):
+        """The payload is identical with the variant set and unset. If this ever
+        fails, arm C has stopped being a prompt arm and its result means nothing
+        it claims to mean."""
+        import os
+
+        args = dict(as_of=_dt.date(2019, 6, 3), series={}, vintage_as_of=None)
+        os.environ.pop("PROMPT_VARIANT", None)
+        without = json.dumps(payload_mod.build_evidence_payload("PT", **args))
+        os.environ["PROMPT_VARIANT"] = "trend"
+        try:
+            with_variant = json.dumps(payload_mod.build_evidence_payload("PT", **args))
+        finally:
+            os.environ.pop("PROMPT_VARIANT", None)
+        assert without == with_variant
+
+
 class TestContextIsMaskedBeforeItIsCached:
     """A leak cached is a leak served to every anchor in the quarter."""
 

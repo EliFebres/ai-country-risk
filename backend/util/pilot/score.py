@@ -114,7 +114,12 @@ def versions() -> Dict[str, str]:
         "REWRITE_VERSION": rewrite.REWRITE_VERSION,
         "GAZETTEER_VERSION": gazetteer.GAZETTEER_VERSION,
         "MASK_MAP_VERSION": gazetteer.MASK_MAP_VERSION,
-        "PROMPT_VERSION": llm_constants.PROMPT_VERSION,
+        # The accessor, not the literal -- same reason as PAYLOAD_VERSION two
+        # lines down, and the same defect: an environment override is exactly
+        # what a freeze exists to catch, and the literal reports the file rather
+        # than the run. A committed A/B result file already carries the wrong
+        # value because of this.
+        "PROMPT_VERSION": provenance.prompt_version(),
         # The accessor, not the constant, for the same reason SCORING_MODEL uses
         # one: an environment override is exactly the case a freeze has to catch,
         # and reading the literal would report the contract the file names rather

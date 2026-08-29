@@ -918,16 +918,22 @@ class TestEveryCandidateIsAScorer:
         arm that also moved the model, would produce a number with two causes
         and no way to separate them."""
         for name, spec in bakeoff.CANDIDATES.items():
-            assert spec["arm"] in ("scoring", "payload"), name
+            assert spec["arm"] in ("scoring", "payload", "prompt"), name
             assert not [k for k in spec["env"] if k.startswith("DIGEST_")], (
                 f"{name} moves stage 1; it cannot be compared on this meter")
             assert spec.get("key_target", "SCORING_API_KEY") == "SCORING_API_KEY"
             moves_model = any(k.startswith("SCORING_") for k in spec["env"])
             moves_payload = "PAYLOAD_VARIANT" in spec["env"]
-            assert not (moves_model and moves_payload), (
-                f"{name} varies both the scorer and the payload")
+            moves_prompt = "PROMPT_VARIANT" in spec["env"]
+            assert sum((moves_model, moves_payload, moves_prompt)) <= 1, (
+                f"{name} varies more than one axis, so its number has more "
+                f"than one cause and no way to separate them")
             if spec["arm"] == "payload":
-                assert moves_payload and not moves_model, name
+                assert moves_payload and not (moves_model or moves_prompt), name
+            if spec["arm"] == "prompt":
+                # The one arm that changes what the model is *told* and not what
+                # it is given. It carries no new evidence by construction.
+                assert moves_prompt and not (moves_model or moves_payload), name
 
     def test_the_payload_axis_is_scrubbed_between_arms(self):
         """Missing from `managed`, a p3 arm leaks into every arm scored after it
@@ -935,6 +941,8 @@ class TestEveryCandidateIsAScorer:
         import inspect
         src = inspect.getsource(bakeoff.candidate_env)
         assert "PAYLOAD_VARIANT" in src
+        assert "PROMPT_VARIANT" in src, (
+            "a leaked trend instruction is invisible in the result file")
 
     def test_the_unrun_groq_candidate_is_gone(self):
         """An unrun candidate in a config file is one that gets run by accident."""

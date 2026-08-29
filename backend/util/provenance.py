@@ -276,6 +276,48 @@ def macro_vintages(payload: Dict) -> Dict[str, Any]:
     }
 
 
+# The prompt axis, alongside the payload one. A variant here changes what the
+# model is *told*, never what it is given -- which is the only reason it can sit
+# beside `PAYLOAD_VARIANT` without the two becoming one experiment with two
+# causes.
+#
+#   ""       the template as it stands
+#   trend    adds a paragraph naming `trend_1y` / `trend_5y`, which every
+#            indicator has carried since p1 and nothing has ever read
+PROMPT_VARIANTS = ("", "trend")
+
+
+def prompt_variant() -> str:
+    """Which prompt this process renders. Unset is today's, byte-for-byte."""
+    variant = (os.getenv("PROMPT_VARIANT") or "").strip().lower()
+    if variant not in PROMPT_VARIANTS:
+        raise ValueError(f"PROMPT_VARIANT must be one of {PROMPT_VARIANTS}, "
+                         f"got {variant!r}")
+    return variant
+
+
+def prompt_version() -> str:
+    """The prompt version this process would stamp, environment included.
+
+    The same defect `payload_version` was written to fix, in the sibling axis
+    and found the same way. `score.versions()` read `PROMPT_VERSION` as a module
+    literal while `langchain_llm` swapped in the context version at render time,
+    so `backend/bakeoff/US-2019/p3-context.json` records
+    `captured_under.PROMPT_VERSION = "v4.0-masked-production"` while every one
+    of its own rows says `v4.1-trailing-context`. A freeze that cannot see the
+    prompt its run used is not a freeze.
+
+    Only the environment-selected axis is resolvable here. The trailing-context
+    version is chosen from the payload's contents at render time and is recorded
+    per row in `prompt_version`, which is the honest place for a value that
+    depends on data this function cannot see.
+    """
+    from backend.llm import constants as ai_constants
+
+    return (ai_constants.PROMPT_VERSION_TREND if prompt_variant() == "trend"
+            else ai_constants.PROMPT_VERSION)
+
+
 def build_input_manifest(*,
                          items: List[Dict],
                          prompt_entries: Optional[List[Dict]] = None,

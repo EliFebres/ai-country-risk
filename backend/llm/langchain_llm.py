@@ -32,7 +32,7 @@ from langchain_core.messages import SystemMessage
 import backend.llm.constants as ai_constants
 from backend.llm import client as ai_client
 from backend.llm import digest_engine
-from backend.util import policy
+from backend.util import policy, provenance
 from backend.llm import rewrite
 
 logger = logging.getLogger(__name__)
@@ -373,6 +373,15 @@ def country_llm_score(
                       else ai_constants.PROMPT_VERSION)
     if has_context:
         prompt += ai_constants.TRAILING_CONTEXT_RULE
+
+    # The trend variant is the one case where the instruction cannot follow the
+    # data, because there is no new data to follow: `trend_1y` and `trend_5y`
+    # have been in the payload since p1 and are there in every arm, told about
+    # or not. So this one axis is environment-selected, and it is stamped, which
+    # is what keeps "told" and "not told" apart in the results.
+    if provenance.prompt_variant() == "trend":
+        prompt += ai_constants.TREND_FIELDS_RULE
+        prompt_version = ai_constants.PROMPT_VERSION_TREND
 
     if mask_iso2:
         # The gate, on the serialized blocks rather than on the objects they
