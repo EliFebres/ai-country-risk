@@ -179,6 +179,39 @@ then, not what is published now:
   dumps to `backend/data/backups/` first, and supports `--diff`, `--dry-run` and
   `--revert`.
 
+### The harvest runs itself
+
+The corpus is ~20 hours of requests across 48 countries, but wall clock is not
+what makes it long: the Guardian free tier is a **daily** call budget, and it is
+not a constant — 1,461 page-calls before the wall on 2026-08-15, 328 on
+2026-08-28. So the harvest is a multi-week job that has to survive being stopped
+and resumed dozens of times, which is what the checkpoints in `run_ledger` are
+for.
+
+Two cron entries drive it. Both wrappers live on the host in
+`/home/minipc/bin/`, not in this repo — they encode where one box keeps its venv
+and its logs, which is not the repo's business.
+
+| Job | Cadence | Runs | Why that cadence |
+|---|---|---|---|
+| `harvest-articles.sh` | every 6h | `guardian`, `nyt`, `wayback --no-scan` | quota-bound; four windows a day chip away at whatever the allowance turns out to be |
+| `harvest-macro.sh` | weekly | `weo`, `monthly` | WEO is semiannual and WB panels update a few times a year; more often is waste |
+
+Both take a `flock -n` lock and run under a `timeout` shorter than their own
+interval, so a run can never outlive its window and lock out the next tick.
+**Neither spends money**: no scoring call, and `wayback` runs `--no-scan`, so the
+billable leakage scan is never reached.
+
+The live pipeline — prices, econ calendar, the weekly ETL's scoring — is
+deliberately **not** in either job. The harvest converges and the ETL recurs, so
+sharing a process means an unrelated price-fetch failure aborts a harvest run;
+and nothing consumes the live output while the dashboard is unlaunched.
+
+Because the harvest is finite, both harvesters say so when they are done —
+`nothing to harvest — roster complete through <date>` — and the Guardian run
+reports what is still outstanding when it stops. Without that a converged
+harvest and a stuck one produce the same silence in a log nobody is watching.
+
 ## 4. What we anonymize
 
 Two layers, one gate, and a meter. In the order they run.

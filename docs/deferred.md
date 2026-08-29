@@ -397,3 +397,81 @@ and any estimate quoting 1,461 should be re-derived from observed daily rates
 rather than from a single day's ceiling. The harness already reports what it
 spent and what is left every time it stops, which is the right place to read this
 from.
+
+## 15. `restamp` is a correction tool the ETL never calls
+
+Three of the four live macro fetchers stamp `as_of` with the **fetch date**:
+`wb_series_fetch.py:53` says so in its own docstring ("the date we learned these
+values — the fetch date"), and `imf_macro_fetch.py` and `bis_bulk_fetch.py` both
+default to `date.today()`. The fourth, `country_data_fetch.py:85`, stamps 31
+December of the value's own year and escapes the problem.
+
+Measured on 2026-08-28: **11,810 rows carry today's fetch date** — IMF CPI 2,989,
+WB WDI 2,938, BIS XRU 2,880, BIS CBPOL 1,920, WB WGI 528, WB SPI 414, WB HCP 141.
+The 24,844 `World Bank panel` rows are unaffected.
+
+`vintage/restamp.py` exists to correct exactly this, and **nothing calls it**.
+`apply()` is reachable only from the `backfill restamp` CLI branch; neither
+`main._run_etl` nor `bootstrap` invokes it. (`monthly.restamp()` is a different,
+inline function that `monthly.py` does apply to its own rows.) So every macro
+fetch re-creates the condition and a human has to remember to clean up.
+
+**Which direction it leaks.** Not contamination — starvation. `payload._resolve`
+drops any observation with `as_of > anchor`, so those 11,810 rows are invisible
+to *every* historical anchor. A 2019 payload does not read a wrong number from
+those seven sources; it reads no number, arrives thinner, and nothing says why.
+`restamp.py`'s own docstring states it: "with a single fetch date on everything
+**a 2019 snapshot sees zero rows from this table**". The present-day payload is
+fine, since `as_of = today ≤ today`.
+
+This is the ninth instance of the write-a-thing-nobody-calls pattern, and it is
+the load-bearing one: it sits directly under the historical scoring the whole
+corpus is being harvested for. It needs a decision, not a comment — call it from
+the ETL after every macro fetch, or fix the fetchers to stamp a publication date
+and retire it. Deliberately not resolved in the session that found it.
+
+## 16. `util/pilot/` holds a harvest CLI that belongs under `news_fetching/`
+
+The folder rule is that code lives where its use lives, and `backend/util/` is
+not a drawer for the awkward. `backend/util/pilot/run.py` is a 492-line CLI whose
+subcommands span four packages: `guardian`/`nyt`/`gdelt`/`wayback` are
+`news_fetching`, `weo`/`monthly`/`restamp` are `data_fetching.vintage`,
+`score`/`diagnostic` are LLM-driven, and `report`/`pilot-report` are read-only
+reporting. Only the harvest half has an obvious home elsewhere.
+
+Splitting it is a wide, mechanical change across every doc and docstring that
+names `backend.util.pilot.run`, and it was deliberately not done in the same
+session that put the harvest on a cron — a rename landing at the same time as
+new automation makes both harder to bisect. Worth doing once the harvest has
+converged and the CLI is not being invoked four times a day.
+
+## 17. The IMF CPI endpoint answers about one country in six
+
+Measured on 2026-08-28, first weekly macro run across the full roster:
+
+| source | rows | countries |
+|---|---|---|
+| BIS XRU | 6,912 | 48 |
+| BIS CBPOL | 4,608 | 32 (BIS publishes policy rates for 32; not a failure) |
+| **IMF CPI** | **919** | **7 of 48** |
+
+41 of 48 countries returned nothing: 15 read timeouts at the 40s ceiling, 15
+HTTP 503, 11 HTTP 500. `imf_macro_fetch` degrades a failure to an empty series
+by design, so the run logs INFO and exits 0 having fetched almost no CPI.
+
+**It is not rate limiting introduced by widening the roster.** Successes and
+failures interleave from the first country — PT and US fail, TR succeeds, KR and
+BR fail, BE succeeds — rather than clustering after a burst, so this is the
+endpoint being unreliable per request. Widening the roster from four to
+forty-eight only made it visible.
+
+It half-converges: `indicator_series` upserts are idempotent and the job is
+weekly, so a country that timed out this week may land next week. At ~7 a run
+that is months to fill, and nothing reports the shortfall — the run says "12,439
+monthly row(s) written" and the number is dominated by BIS.
+
+Worth either a retry-with-backoff pass over the countries that came back empty
+within the same run, or a coverage line in the summary that names how many of
+the roster actually got a CPI print. Priority is low while the corpus is being
+harvested and no scoring is running, but a payload census before the first
+historical scores should check it rather than assume it.
