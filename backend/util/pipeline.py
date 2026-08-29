@@ -450,10 +450,13 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     #
     #     Each read degrades independently: a database or curated-file failure
     #     costs the country that evidence, not its score.
+    # Hoisted out of the call below so the census can be taken against the same
+    # rows the payload was built from. Read once either way.
+    series = _safe(lambda: data_push.read_indicator_series(iso2), iso2, "series") or {}
     evidence = llm_payload.build_evidence_payload(
         iso2,
         as_of=as_of,
-        series=_safe(lambda: data_push.read_indicator_series(iso2), iso2, "series") or {},
+        series=series,
         fx_regimes=constants.FX_REGIMES,
         elections=constants.ELECTIONS,
         # Static, so it needs no vintage bound and is read the same way for a
@@ -554,6 +557,16 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             # The evidence payload as well as the panel one. `evidence` is what
             # the prompt carried; `payload` is what the row stores.
             evidence=evidence,
+            # What the payload actually carried, against what the registry
+            # promised. `evidence_sha256` already proves two runs differed; it
+            # cannot say which of them was thinner, and that is the whole of why
+            # ten missing indicators went unnoticed for the length of a pilot.
+            # Taken here rather than from `payload_census.census`, which rebuilds
+            # a payload without the structural and trailing-context blocks and
+            # would therefore record a number about a payload nobody sent.
+            payload_health=_safe(
+                lambda: llm_payload.payload_health(evidence, series, as_of, scored),
+                iso2, "payload_health"),
             model_id=llm_output.get("model_id"),
             prompt_version=llm_output.get("prompt_version"),
             policy_version=llm_output.get("policy_version"),

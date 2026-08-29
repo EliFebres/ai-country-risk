@@ -447,6 +447,107 @@ class TestSurvivesTheVintageBound:
         only = payload._series_observations([changed[0]])
         assert payload._resolve(only)[0].as_of == datetime.date(2018, 12, 31)
 
+    def test_a_ledger_resolving_nothing_is_named_not_counted(self):
+        """The shape of the failure that hid for a whole pilot.
+
+        Information and edge resolved zero indicators at every historical
+        anchor. Nothing crashed, nothing warned, and a table of counts would
+        have printed a zero among other zeros. The census names them.
+        """
+        series = {"GOV_WGI_GE.EST": [
+            {"value": 1.0, "period": "2017", "freq": "A",
+             "as_of": datetime.date(2018, 12, 31)}]}
+        evidence = payload.build_evidence_payload(
+            "PT", as_of=datetime.date(2019, 6, 1), series=series,
+            vintage_as_of=datetime.date(2019, 6, 1))
+        health = payload.payload_health(
+            evidence, series, datetime.date(2019, 6, 1))
+
+        assert "information" in health["indicators"]["empty_ledgers"]
+        assert "edge" in health["indicators"]["empty_ledgers"]
+        assert health["indicators"]["by_ledger"]["friction"]["resolved"] == 1
+
+    def test_a_vintage_drop_is_told_apart_from_a_missing_row(self):
+        """The two need different fixes, and only one of them is invisible.
+
+        `no row` is a source that was never fetched. `vintage bound` is rows
+        that exist and were all published after the anchor -- which is what ten
+        indicators looked like, and which no row count could distinguish from a
+        series that was simply present.
+        """
+        anchor = datetime.date(2019, 6, 1)
+        fetch_dated = {"GOV_WGI_GE.EST": [
+            {"value": 1.0, "period": "2017", "freq": "A",
+             "as_of": datetime.date(2026, 8, 28)}]}
+        evidence = payload.build_evidence_payload(
+            "PT", as_of=anchor, series=fetch_dated, vintage_as_of=anchor)
+        health = payload.payload_health(evidence, fetch_dated, anchor)
+        assert health["indicators"]["dropped"]["GOV_WGI_GE.EST"] == "vintage bound"
+
+        health = payload.payload_health(evidence, {}, anchor)
+        assert health["indicators"]["dropped"]["GOV_WGI_GE.EST"] == "no row"
+
+    def test_the_manifest_records_the_census_and_the_corpus(self):
+        """A run must write down what its payload held and what it read.
+
+        The consumer-side rule this project adopted after the sixth
+        write-a-thing-nobody-reads instance, and had not applied to the census
+        itself. `evidence_sha256` proves two payloads differed; it cannot say
+        which was thinner, which is exactly how ten missing indicators survived
+        a pilot, a bake-off and two A/B arms.
+        """
+        from backend.util import provenance
+
+        stamps = dict(model_id="gpt-4o", prompt_version="v4.0",
+                      policy_version="p2.0", seed=42)
+        manifest = provenance.build_input_manifest(
+            items=[], payload={}, payload_health={"indicators": {"resolved": 23}},
+            **stamps)
+        assert manifest["payload_health"]["indicators"]["resolved"] == 23
+        assert manifest["article_set_sha256"]
+
+        # Absent rather than null when it could not be computed: a null the
+        # reader has to interpret is the same noise an absent indicator is.
+        assert "payload_health" not in provenance.build_input_manifest(
+            items=[], payload={}, **stamps)
+
+    def test_the_corpus_hash_moves_only_when_the_corpus_does(self):
+        """What makes a three-arm comparison checkable rather than assumed.
+
+        Two arms that selected different articles are not measuring the payload,
+        and until this there was no way to tell short of reconstructing the
+        selection by hand.
+        """
+        from backend.util import provenance
+
+        def manifest_for(urls):
+            return provenance.build_input_manifest(
+                items=[{"id": u, "link": u, "title": u} for u in urls], payload={},
+                model_id="gpt-4o", prompt_version="v4.0",
+                policy_version="p2.0", seed=42)
+
+        assert (manifest_for(["a", "b"])["article_set_sha256"]
+                == manifest_for(["a", "b"])["article_set_sha256"])
+        assert (manifest_for(["a", "b"])["article_set_sha256"]
+                != manifest_for(["a", "c"])["article_set_sha256"])
+
+    def test_the_pipeline_takes_the_census_of_what_it_sent(self):
+        """Not of a payload rebuilt afterwards.
+
+        `payload_census.census` builds its own payload without the structural
+        and trailing-context blocks, so a census taken from it would record a
+        number about a payload nobody sent -- the precise failure being fixed.
+        Asserted on the source, the way the panel-backfill scoping guard is,
+        because the alternative is standing up the whole scoring path.
+        """
+        import inspect
+
+        from backend.util import pipeline
+        src = inspect.getsource(pipeline._process_country)
+        assert "payload_health=" in src, "the run does not record a census"
+        assert "llm_payload.payload_health(evidence, series" in src, (
+            "the census must be taken against the payload that was sent")
+
     def test_the_panel_backfill_asks_about_its_own_codes(self):
         """A step that runs, logs OK and does no work is this project's
         signature defect, and the bootstrap reproduced it exactly.

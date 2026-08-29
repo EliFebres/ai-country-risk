@@ -282,6 +282,7 @@ def build_input_manifest(*,
                          fulltext_ids: Iterable[str] = (),
                          payload: Dict,
                          evidence: Optional[Dict] = None,
+                         payload_health: Optional[Dict] = None,
                          model_id: Optional[str],
                          prompt_version: Optional[str],
                          policy_version: Optional[str],
@@ -294,6 +295,10 @@ def build_input_manifest(*,
         prompt_entries: ``langchain_llm.prompt_entries(items)``.
         fulltext_ids: ids whose full text the prompt carried.
         payload: the macro payload the prompt carried.
+        payload_health: ``llm.payload.payload_health`` for this run — what the
+            evidence payload actually carried against what the registry
+            promised. Computed by the caller because `payload` imports this
+            module and the resolution lives there.
         model_id: the scoring model, from the LLM result's own stamp rather than
             from the client — so the manifest records the model that answered.
         prompt_version: ``ai.constants.PROMPT_VERSION`` at call time.
@@ -317,9 +322,10 @@ def build_input_manifest(*,
         from the ``GIT_SHA`` environment variable and is None when unset — this
         never shells out to git, which would make the module impure and slow.
     """
+    articles = build_article_manifest(items, prompt_entries, fulltext_ids)
     return {
         "schema_version": _SCHEMA_VERSION,
-        "articles": build_article_manifest(items, prompt_entries, fulltext_ids),
+        "articles": articles,
         "stage1": stage1_health(items),
         "macro_vintages": macro_vintages(payload),
         "model_id": model_id,
@@ -335,6 +341,18 @@ def build_input_manifest(*,
         # recorded field.
         "evidence_sha256": text_sha256(
             _canonical_json(evidence) if evidence is not None else None),
+        # The hash above proves two payloads differed; this says how. Computed
+        # by `llm.payload.payload_health` -- it needs that module's own vintage
+        # resolution, and `payload` already imports this one, so it cannot be
+        # computed here. Passed in rather than derived, like everything else in
+        # this module.
+        **({"payload_health": payload_health} if payload_health else {}),
+        # The corpus the anchor actually read, as one value. A three-arm
+        # comparison is only about the payload if every arm selected the same
+        # articles, and until now proving that meant reconstructing the
+        # selection by hand from the article manifest.
+        "article_set_sha256": text_sha256(_canonical_json(
+            [e.get("url") for e in (articles or []) if isinstance(e, dict)])),
         "seed": seed,
         "git_sha": os.environ.get("GIT_SHA") or None,
         **({"masking": masking} if masking else {}),

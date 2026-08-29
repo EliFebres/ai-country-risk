@@ -855,6 +855,54 @@ class TestTheEnvironmentIsRestored:
                 assert any(k.endswith("_EXTRA_BODY") for k in spec["env"]), name
 
 
+from backend.util.pilot import reports
+
+
+class TestAStalledHarvestIsNamed:
+    """Eleven consecutive failures on one country produced no line anybody read.
+
+    `_pace` counted them, and a total of eleven among a hundred windows reads
+    as an unreliable API. The gap surfaced months later only because a purchase
+    decision went looking for it. The run length is what separates flakiness
+    from a country that is simply not being harvested.
+    """
+
+    def _rows(self, statuses, source="guardian", iso2="BR"):
+        return [{"source": source, "country_iso2": iso2,
+                 "as_of": _dt.date(2015 + i, 1, 1), "status": st,
+                 "items": 0, "seconds": 20.0, "calls": 1}
+                for i, st in enumerate(statuses)]
+
+    def test_consecutive_failures_are_reported_as_a_run(self):
+        out = reports._pace(self._rows(["failed"] * 11))
+        assert out["per_source_country"]["guardian BR"]["longest_failure_run"] == 11
+        assert out["stalled"] == ["guardian BR"]
+
+    def test_scattered_failures_are_not_a_stall(self):
+        """Six failures, never two together — an unreliable API, not a gap."""
+        out = reports._pace(self._rows(
+            ["failed", "done"] * 5 + ["failed"]))
+        row = out["per_source_country"]["guardian BR"]
+        assert row["failed"] == 6 and row["longest_failure_run"] == 1
+        assert out["stalled"] == []
+
+    def test_the_run_is_counted_by_window_not_by_retry_order(self):
+        """`write_checkpoint` upserts `completed_at = now()` on every retry.
+
+        So completed-at order is retry order: a window retried today sorts after
+        one harvested last week, and a genuine run of failures reads as
+        scattered ones. Rows arrive here in whatever order the SQL produced.
+        """
+        rows = self._rows(["done", "failed", "failed", "failed", "done"])
+        assert (reports._pace(list(reversed(rows)))["per_source_country"]
+                ["guardian BR"]["longest_failure_run"] == 3)
+
+    def test_the_running_count_is_not_reported_as_a_result(self):
+        """`streak` is loop state; only its high-water mark is a finding."""
+        out = reports._pace(self._rows(["failed", "done"]))
+        assert "streak" not in out["per_source_country"]["guardian BR"]
+
+
 class TestEveryCandidateIsAScorer:
     """One variable, one axis. A digest candidate cannot share this meter.
 

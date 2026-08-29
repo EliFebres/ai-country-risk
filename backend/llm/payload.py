@@ -23,6 +23,7 @@ report a null ``latest`` for the slower half of the set.
 """
 
 import calendar
+import collections
 import json
 import logging
 import re
@@ -490,6 +491,131 @@ def _values(observations: List[_Observation], freq: Optional[str] = None) -> Lis
             consumers that do not care about the spacing.
     """
     return [o.value for o in observations if freq is None or o.freq == freq]
+
+
+_LEDGERS = ("friction", "uncertainty", "information", "edge")
+
+def payload_health(evidence: Dict[str, Any],
+                   series: Dict[str, List[dict]],
+                   as_of: date,
+                   items: Optional[List[dict]] = None) -> Dict[str, Any]:
+    """What actually reached the model, against what the registry promised.
+
+    The countermeasure to this project's recurring failure, which is not code
+    that crashes but code that runs, writes something, and is read by nobody.
+    The vintage bug is the worst instance so far: ten indicators stopped
+    reaching every historical payload, the information and edge ledgers
+    resolved *nothing* for the entire pilot, and the suite stayed green because
+    no test and no report ever compared what the registry expected against what
+    the payload carried.
+
+    Lives here rather than in `provenance` for two reasons. `payload` imports
+    `provenance`, so the other direction is a cycle; and the question is about
+    this module's own output, resolved through this module's own vintage bound.
+    Callers hand it `series` rather than letting it read, for the same reason
+    `build_evidence_payload` takes its stores as arguments.
+
+    A dropped indicator is classified rather than merely counted, because the
+    three reasons want three different fixes:
+
+    * ``no row``       -- nothing was ever fetched. A source problem.
+    * ``vintage bound`` -- rows exist and every one was published after the
+      anchor. This is the bug that hid, and it is invisible from row counts.
+    * ``unmapped``     -- it resolved and still did not reach the payload. A
+      wiring problem, and the one `payload_census` was written to catch.
+    """
+    label_of = {code: str(spec.get("label"))
+                for code, spec in constants.INDICATOR_REGISTRY.items()}
+    delivered: Dict[str, dict] = {}
+    for led in _LEDGERS:
+        for label, entry in (evidence.get(f"{led}_inputs") or {}).items():
+            if isinstance(entry, dict) and "period" in entry:
+                delivered[label] = entry
+
+    resolved, dropped = {}, {}
+    by_ledger = {led: {"expected": 0, "resolved": 0} for led in _LEDGERS}
+    for code, spec in constants.INDICATOR_REGISTRY.items():
+        led = str(spec.get("ledger"))
+        if led in by_ledger:
+            by_ledger[led]["expected"] += 1
+        entry = delivered.get(label_of[code])
+        if entry is not None:
+            resolved[code] = entry
+            if led in by_ledger:
+                by_ledger[led]["resolved"] += 1
+            continue
+        rows = series.get(code) or []
+        if not rows:
+            dropped[code] = "no row"
+        elif not _resolve(_series_observations(rows), as_of):
+            dropped[code] = "vintage bound"
+        else:
+            dropped[code] = "unmapped"
+
+    # A ledger at zero is the shape of the failure that hid, so it is named
+    # rather than left to be inferred from a count of zero in a table.
+    empty = [led for led in _LEDGERS
+             if by_ledger[led]["expected"] and not by_ledger[led]["resolved"]]
+
+    health: Dict[str, Any] = {
+        "indicators": {
+            "expected": len(constants.INDICATOR_REGISTRY),
+            "resolved": len(resolved),
+            "by_ledger": by_ledger,
+            "empty_ledgers": empty,
+            "dropped": dict(sorted(dropped.items())),
+        },
+        # Computed on every indicator since p1, serialized into every prompt,
+        # and read by nothing -- no consumer, no test, no mention in the
+        # prompt. Counted here so that stops being invisible.
+        "trends": {
+            "trend_1y": sum(1 for e in resolved.values() if "trend_1y" in e),
+            "trend_5y": sum(1 for e in resolved.values() if "trend_5y" in e),
+            "history": sum(1 for e in resolved.values() if e.get("history")),
+            "of": len(resolved),
+        },
+        # What the serialized payload holds, not what the database does. The
+        # gap between those two is exactly where the vintage bug lived.
+        "blocks": {key: len(value)
+                   for key, value in sorted(evidence.items())
+                   if isinstance(value, (dict, list)) and key != "_meta"},
+    }
+    if items is not None:
+        health["articles"] = _article_health(items)
+    return health
+
+
+def _article_health(items: List[dict]) -> Dict[str, Any]:
+    """The evidence half: how many, how thin, and which themes came up short.
+
+    Theme shortfall is exact rather than approximate. `select_with_theme_floor`
+    spends each theme's quota *before* it fills by relevance, so a theme can
+    never be crowded out below its floor -- which makes a post-hoc count under
+    the floor proof that the pool held fewer, and saves threading a return
+    value out of the selection.
+    """
+    from backend.news_fetching import article_enrichment, core
+
+    items = [i for i in (items or []) if isinstance(i, dict)]
+    themes = collections.Counter(str(i.get("_theme")) for i in items)
+    floor = article_enrichment._PER_THEME_FLOOR
+    return {
+        "articles": len(items),
+        "by_theme": {t: themes.get(t, 0) for t in core.THEME_QUERIES},
+        "thin_themes": sorted(t for t in core.THEME_QUERIES
+                              if themes.get(t, 0) < floor),
+        "theme_floor": floor,
+        "by_tier": dict(collections.Counter(
+            str(i.get("tier") or "unknown") for i in items)),
+        "with_body": sum(1 for i in items if i.get("text")),
+        # Ours, not the publisher's: every writer slices at exactly this, so an
+        # exact match is the clipped predicate. It never reaches the score --
+        # the prompt reads 12k of the top two or three -- but it does reach
+        # `content_sha256`, so the provenance hash identifies the first 24k of
+        # an article rather than the article.
+        "clipped_at_max": sum(1 for i in items
+                              if len(str(i.get("text") or "")) == core.MAX_BODY_CHARS),
+    }
 
 
 def build_evidence_payload(

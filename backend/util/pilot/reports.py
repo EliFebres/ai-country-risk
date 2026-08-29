@@ -327,14 +327,26 @@ def harvest_pacing() -> Dict[str, Any]:
     return _pace(rows)
 
 
+# Three consecutive failed windows on one (source, country). BR ran to eleven
+# before anybody noticed, and at three the answer is already the same: this
+# country is not being harvested, and no amount of further running will fix it.
+STALLED_AFTER_CONSECUTIVE_FAILURES = 3
+
+
 def _pace(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     """The arithmetic of :func:`harvest_pacing`, over checkpoint rows. Split out
     so it is testable without a database."""
     per: Dict[tuple, Dict[str, Any]] = {}
-    for row in rows:
+    # By window, not by when the row was written. `write_checkpoint` upserts
+    # `completed_at = now()` on every retry, so completed-at order is retry
+    # order -- a window retried today sorts after one harvested last week, and
+    # a run of consecutive failures reads as scattered ones.
+    for row in sorted(rows, key=lambda r: (r["source"], r["country_iso2"],
+                                           str(r.get("as_of") or ""))):
         key = (row["source"], row["country_iso2"])
         bucket = per.setdefault(key, {"windows": 0, "seconds": 0.0, "items": 0,
-                                      "calls": 0, "failed": 0, "untimed": 0})
+                                      "calls": 0, "failed": 0, "untimed": 0,
+                                      "streak": 0, "longest_failure_run": 0})
         bucket["windows"] += 1
         # A window whose harvester did not stamp a duration counts toward the
         # corpus and not toward the pacing, and says so. Treating it as zero
@@ -346,11 +358,21 @@ def _pace(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
             bucket["seconds"] += row["seconds"]
         bucket["items"] += row["items"] or 0
         bucket["calls"] += row.get("calls") or 0
-        bucket["failed"] += int(row["status"] != "done")
+        failed = row["status"] != "done"
+        bucket["failed"] += int(failed)
+        # The signal nobody had. BR's Guardian harvest failed eleven windows in
+        # a row and produced no line anybody read; the gap surfaced months later
+        # because a purchase decision went looking for it. A total of eleven
+        # failures scattered across a hundred windows is a flaky API, and eleven
+        # consecutive is a country with no corpus. Only the run tells them apart.
+        bucket["streak"] = bucket["streak"] + 1 if failed else 0
+        bucket["longest_failure_run"] = max(bucket["longest_failure_run"],
+                                            bucket["streak"])
 
     out = {}
     for (source, iso2), bucket in sorted(per.items()):
         timed = bucket["windows"] - bucket["untimed"]
+        bucket.pop("streak")          # running state, not a result
         out[f"{source} {iso2}"] = {
             **bucket,
             # Rounded on the way out: NYT charges a fifth of a call to each of
@@ -383,6 +405,13 @@ def _pace(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
                         if source not in _ROSTER_WIDE_SOURCES}
     return {
         "per_source_country": out,
+        # Named, not left to be spotted in a table of a hundred rows. Three in a
+        # row is already a country that is not being harvested, and eleven in a
+        # row went unread for months because the only place it appeared was a
+        # `failed` count that looked like ordinary flakiness.
+        "stalled": sorted(
+            key for key, b in out.items()
+            if b["longest_failure_run"] >= STALLED_AFTER_CONSECUTIVE_FAILURES),
         "total_minutes": round(total_seconds / 60, 1),
         "countries_measured": len({iso2 for _, iso2 in per}),
         "countries_scaled": len(scaled_countries),
@@ -598,7 +627,10 @@ def render(roster: Optional[List[str]] = None) -> None:
         print("  Nothing harvested yet.")
     for key, row in pacing["per_source_country"].items():
         notes = "".join([f"  {row['failed']} failed" if row["failed"] else "",
-                         f"  {row['untimed']} untimed" if row["untimed"] else ""])
+                         f"  {row['untimed']} untimed" if row["untimed"] else "",
+                         f"  {row['longest_failure_run']} IN A ROW"
+                         if row["longest_failure_run"]
+                         >= STALLED_AFTER_CONSECUTIVE_FAILURES else ""])
         print(f"  {key:<14} {row['windows']:>4} window(s)  {row['minutes']:>7.1f} min  "
               f"{row['items']:>7} article(s)  {row['calls']:>7.1f} call(s)  "
               f"{_fmt(row['calls_per_window']):>8}/window{notes}")
@@ -609,6 +641,12 @@ def render(roster: Optional[List[str]] = None) -> None:
         print(f"  ~{pacing['hours_for_48_countries_linear']}h for 48 countries, "
               f"scaling the per-country sources off "
               f"{pacing['countries_scaled']} measured country/ies")
+    if pacing["stalled"]:
+        print(f"  STALLED — {STALLED_AFTER_CONSECUTIVE_FAILURES}+ consecutive "
+              f"failed windows, so this is not flakiness: "
+              f"{', '.join(pacing['stalled'])}")
+        print("   (BR ran to eleven in a row before anyone noticed, and the only")
+        print("    trace was a `failed` count that read like an unreliable API.)")
 
 
 def _fmt(value: Optional[float]) -> str:

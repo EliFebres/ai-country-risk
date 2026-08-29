@@ -18,6 +18,8 @@ one quote batch, an unranked event) must not blank a previously-good value.
 import os
 import datetime
 import logging
+import socket
+import urllib.parse
 from contextlib import contextmanager
 from typing import Dict, Any, Iterator, NamedTuple, Optional, List, Tuple
 
@@ -30,6 +32,29 @@ import psycopg2.extras as extras
 from backend.data_fetching.vintage import lags
 
 logger = logging.getLogger(__name__)
+
+
+def write_origin() -> Dict[str, str]:
+    """Which machine and which database this write came from.
+
+    Nothing recorded either, and the cost of that was a session spent proving
+    by inspection which of two Neon projects a table belonged to -- the answer
+    being unavailable from the rows themselves, because a row written by the
+    six-hourly cron on the harvest box and one written from a laptop are
+    byte-identical.
+
+    Host and database name only. The DSN carries a password and this value goes
+    into a JSONB column that gets printed, exported and pasted into write-ups,
+    so it is assembled from parts rather than by redacting a string -- there is
+    no version of "strip the credentials" that stays correct when the URL
+    format changes.
+    """
+    try:
+        parts = urllib.parse.urlsplit(_require_db_url())
+        database = f"{parts.hostname or '?'}{parts.path or ''}"
+    except Exception:  # noqa: BLE001 - provenance must never cost a write
+        database = "?"
+    return {"host": socket.gethostname(), "database": database}
 
 
 def _require_db_url() -> str:

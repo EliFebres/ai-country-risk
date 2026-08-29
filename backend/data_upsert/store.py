@@ -387,7 +387,13 @@ def write_checkpoint(
                                       "note": note,
                                       "seconds": (round(seconds, 1)
                                                   if seconds is not None else None),
-                                      "calls": calls})),
+                                      "calls": calls,
+                                      # Which box and which database. A row from
+                                      # the six-hourly cron and one from a laptop
+                                      # were byte-identical until now, which cost
+                                      # a session proving by inspection which of
+                                      # two Neon projects a table belonged to.
+                                      "written_by": data_push.write_origin()})),
         )
 
 
@@ -441,7 +447,8 @@ def write_run(
               detail       = COALESCE(EXCLUDED.detail, run_ledger.detail)
             """,
             (country_iso2, as_of, mode, status, spend_usd,
-             data_push._json_or_none({"manifest": manifest} if manifest else None)),
+             data_push._json_or_none({"manifest": manifest,
+                                      "written_by": data_push.write_origin()})),
         )
         if result is not None:
             cur.execute(
