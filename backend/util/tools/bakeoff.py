@@ -352,13 +352,18 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
     #
     # A two-cause number is readable only because both single-cause corners
     # exist, which is what `crosses` names and what the one-axis test checks.
-    # Fill in the second name once the single-axis arms have been read; leaving
-    # it as a guess would be choosing the answer before measuring it.
+    #
+    # Resolved to `within-band` after both single-axis arms were read, on the
+    # measurements rather than on preference: it beat `vs-typical` on every
+    # discrimination figure -- 8 distinct against 6, a 67.3% round share against
+    # 90.4%, TR 10 against 9, rho 0.709 against 0.652, and a longest identical
+    # run of 2 against 16.
     "gpt-4.1-x-elicitation": {
         "arm": "crossed",
-        "crosses": ("gpt-4.1", None),
-        "note": "the better elicitation variant, re-scored under gpt-4.1",
-        "env": {"SCORING_MODEL": "gpt-4.1-2025-04-14", "PROMPT_VARIANT": None},
+        "crosses": ("gpt-4.1", "within-band"),
+        "note": "within-band, the better elicitation variant, re-scored under gpt-4.1",
+        "env": {"SCORING_MODEL": "gpt-4.1-2025-04-14",
+                "PROMPT_VARIANT": "within-band"},
         "key_env": "OPENAI_API_KEY",
     },
 }
@@ -779,6 +784,9 @@ def cost_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
         "snapshots": len(done),
         "spend_usd": round(spend, 4),
         "per_snapshot_usd": round(spend / len(done), 6),
+        # The comparable one. See `cache_neutral_per_snapshot`: realised spend
+        # depends on what ran before it, so criterion (e) reads this instead.
+        "cache_neutral_per_snapshot_usd": cache_neutral_per_snapshot(done),
         "offpeak_per_snapshot_usd": (round(sum(offpeak) / len(offpeak), 6)
                                      if offpeak else None),
         "input_tokens_per_snapshot": round(inputs / len(done), 1),
@@ -793,6 +801,37 @@ def cost_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 PILOT_SNAPSHOTS = 2_092
 BACKFILL_SNAPSHOTS = 25_104
+
+
+def cache_neutral_per_snapshot(rows: List[Dict[str, Any]]) -> Optional[float]:
+    """Per-snapshot cost with the prompt cache priced out.
+
+    `cost_summary` reports what was actually spent, which is the right number
+    for a budget and the wrong one for criterion (e). Realised spend depends on
+    the provider's prompt cache, and the cache depends on *what ran just before*
+    -- so an arm scored straight after another arm on the same anchors is
+    flattered by an effect that has nothing to do with the arm.
+
+    It is not hypothetical. `vs-typical` ran after `within-band` on identical
+    anchors and came back with a 90.8% cache share against A-prime's 3.9%,
+    reporting -36% per snapshot while sending *more* tokens than A-prime in both
+    directions. On this measure it is +2%. The same artifact is why arm B is
+    recorded as failing (e) at +17.0% on TR when its token counts put it at
+    +14.9%, inside the line, and why arm C is recorded as -10.2% cheaper when it
+    is +1.5% dearer.
+
+    Comparable across arms because it prices the same tokens the same way every
+    time, whatever the cache happened to be doing that afternoon.
+    """
+    scored = [r for r in rows if r.get("calls")]
+    if not scored:
+        return None
+    return usage.price(
+        scored[0].get("model_id") or "",
+        sum(r["input_tokens"] for r in scored),
+        sum(r["output_tokens"] for r in scored),
+        0,
+    ) / len(scored)
 
 
 def projection(per_snapshot_usd: Optional[float]) -> Dict[str, Optional[float]]:

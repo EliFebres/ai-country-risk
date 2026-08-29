@@ -1,0 +1,1911 @@
+{
+  "arm": "prompt",
+  "candidate": "within-band",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.3-within-band",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "0f5a27b152611affb74ad8ffb577a9b068d9244b"
+  },
+  "cost": {
+    "cache_share": 0.012,
+    "input_tokens_per_snapshot": 13744.2,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 556.4,
+    "per_snapshot_usd": 0.038307,
+    "snapshots": 52,
+    "spend_usd": 1.9919,
+    "utc_hours": [
+      22,
+      23
+    ]
+  },
+  "country": "US",
+  "endpoint": {
+    "PROMPT_VARIANT": "within-band"
+  },
+  "gates": {},
+  "note": "name the band, place the score inside it, justify the placement",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2019-01-07",
+      "bullet_summary": "The country faces moderate investor risk with a stable but high debt burden and rising interest payments. Political stability is moderate, with recent high-profile resignations and military threats. Information capacity is strong, with reliable statistics. Labor unrest and border issues add to uncertainty. The country's full monetary sovereignty and major reserve currency status mitigate some risks.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13133,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 374,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.45,
+      "seconds": 5.89,
+      "spend_usd": 0.036573,
+      "status": "complete",
+      "utc_hour": 22
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-14",
+      "bullet_summary": "The country faces moderate investor risk due to political instability and governance issues. Recent events, including the resignation of the defense secretary and concerns over the leader's legitimacy, contribute to uncertainty. Despite high government effectiveness, the debt burden and interest payments are significant. Information capacity is relatively strong, but political corruption and instability raise order uncertainty. Edge vitality is moderate, indicating some adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 13544,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 614,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 6.27,
+      "spend_usd": 0.04,
+      "status": "complete",
+      "utc_hour": 22
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-21",
+      "bullet_summary": "The country faces moderate investor risk due to political instability and economic uncertainties. Friction is moderate, with high government effectiveness but low tax revenue. Order uncertainty is elevated by political challenges and trade conflicts. Information capacity is relatively strong, but concerns exist over political influence. Edge vitality is high, indicating adaptive capacity. Key risks include political instability, trade tensions, and economic policy challenges.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12036,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 586,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 5.84,
+      "spend_usd": 0.03595,
+      "status": "complete",
+      "utc_hour": 22
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-28",
+      "bullet_summary": "The country faces moderate investor risk due to political instability and foreign influence, as highlighted by recent articles. Friction is moderate with high government effectiveness but low tax revenue. Order uncertainty is elevated due to political tensions and foreign involvement. Information capacity is strong, with reliable statistics. Edge vitality is moderate, indicating some adaptive capacity. No immediate sovereign stress or emergency rule is present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 11260,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 329,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 4.23,
+      "spend_usd": 0.03144,
+      "status": "complete",
+      "utc_hour": 22
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-04",
+      "bullet_summary": "The country faces moderate investor risk due to political instability and diplomatic tensions, as seen in articles a8 and a9. Friction is moderate, with low tax revenue and high interest payments. Information capacity is relatively strong, but asylum policy issues (a3) indicate potential human rights concerns. Economic indicators are stable, with low inflation and unemployment. The country's full monetary sovereignty and major reserve currency status mitigate some risks.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 15565,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.4,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 647,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 8.41,
+      "spend_usd": 0.036904,
+      "status": "complete",
+      "utc_hour": 22
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-11",
+      "bullet_summary": "The country faces moderate investor risk due to political instability and diplomatic tensions, notably with insurgent peace talks and asylum policy challenges. Friction is moderate, with low tax revenue and high interest payments. Information capacity is strong, suggesting reliable statistics. The country's full monetary sovereignty and major reserve currency status mitigate some risks. Edge vitality is moderate, indicating adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 11804,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.4,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 583,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 6.08,
+      "spend_usd": 0.03534,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-18",
+      "bullet_summary": "The country faces moderate investor risk with a stable but high debt burden and moderate political uncertainty. Recent diplomatic tensions and asylum policy issues contribute to uncertainty. Information systems are relatively strong, reducing risk of data misinterpretation. Economic indicators show moderate friction, with effective government and low corruption. Edge vitality is high, indicating adaptive capacity. Overall, the risk is moderate, with potential for improvement if political stability increases.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12450,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 633,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.87,
+      "spend_usd": 0.037455,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-25",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and interest payments, alongside political tensions and asylum policy challenges. Despite strong government effectiveness, political stability and rule of law are moderate concerns. Information capacity is relatively strong, suggesting reliable statistics. Edge vitality is high, indicating adaptive capacity. Recent diplomatic tensions and asylum policy issues elevate short-term uncertainty.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12396,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 373,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.49,
+      "spend_usd": 0.03472,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-04",
+      "bullet_summary": "The country faces moderate investor risk due to political instability concerns, including potential election disputes and asylum policy controversies. Economic indicators show manageable friction, but high government debt and low tax revenue are concerns. Information capacity is strong, with reliable statistics. Climate disruption and ISDS trade deal debates add uncertainty. Overall, the risk is moderate, with a stable information environment and moderate political uncertainty.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12376,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 616,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.37,
+      "spend_usd": 0.0371,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-11",
+      "bullet_summary": "The country faces moderate investor risk due to a severe power blackout impacting infrastructure and stability (a12). Political uncertainty is heightened by concerns over election integrity and democracy (a3, a4, a5). Friction is moderate with high government effectiveness but low tax revenue conversion. Information capacity is relatively strong, though recent events suggest potential underreporting of systemic issues. Edge vitality is robust, indicating adaptive capacity. Overall, the risk is moderate with potential for escalation if political and infrastructure issues persist.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13334,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.37,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 546,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 6.29,
+      "spend_usd": 0.038795,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-18",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and political instability. A severe power blackout and political tensions increase uncertainty. Despite effective governance and low inflation, the risk is compounded by political corruption and instability. Information capacity is moderate, with reliable statistics but concerns over political influence. The country's human capital and education spending indicate strong adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12428,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 316,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 5.73,
+      "spend_usd": 0.03423,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-25",
+      "bullet_summary": "The country faces moderate investor risk with significant friction due to high debt and interest payments. Political uncertainty is heightened by recent power blackouts and potential political violence. Information capacity is moderate, with some concerns about data reliability. Despite these challenges, the country shows strong human capital and education spending, indicating resilience. The risk is elevated in the short term due to recent events, but remains moderate over the next year.",
+      "cached_tokens": 2944,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13527,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.58,
+        "information_capacity": 0.4,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 626,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 7.91,
+      "spend_usd": 0.036397,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-01",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and interest payments, alongside a recent severe power blackout. Political stability is moderate, with threats of border closure and trade tensions impacting order. Information capacity is relatively strong, but the blackout raises concerns about infrastructure reliability. Economic growth is steady, and inflation is low, providing some stability. Overall, the risk is moderate with potential for escalation if infrastructure issues persist.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 13471,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.4,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 331,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.55,
+      "seconds": 5.36,
+      "spend_usd": 0.036987,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-08",
+      "bullet_summary": "The country faces moderate investor risk with a stable but high debt burden and low tax revenue. Political stability is moderate, with recent threats of border closure and trade tensions impacting economic outlook. Information systems are reliable, but recession fears and immigration issues add uncertainty. The country's human capital and education spending indicate strong adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13000,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.15,
+        "order_uncertainty": 0.3
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 606,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.95,
+      "spend_usd": 0.03856,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-15",
+      "bullet_summary": "The country faces moderate investor risk with a stable but high debt burden and low tax revenue conversion. Political stability is challenged by immigration and trade tensions, impacting order uncertainty. Information capacity is strong, with reliable statistics. Edge vitality is high, indicating adaptive capacity. Recent articles highlight trade wars, immigration policy issues, and political tensions, contributing to moderate risk levels over both short and long-term horizons.",
+      "cached_tokens": 2944,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 14914,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.4,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.5
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 597,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.55,
+      "seconds": 6.15,
+      "spend_usd": 0.039575,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-22",
+      "bullet_summary": "The country faces moderate investor risk with a high government debt-to-GDP ratio and rising interest payments. Political stability is challenged by sanctions affecting financial transactions and trade tensions impacting agriculture. Information capacity is moderate, with concerns over judiciary independence and censorship. Economic growth is stable, and inflation is low, but political and trade uncertainties persist.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12543,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 630,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 6.63,
+      "spend_usd": 0.037657,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-29",
+      "bullet_summary": "The country faces moderate investor risk due to financial sanctions and political tensions. Friction is moderate with effective governance but high debt. Order uncertainty is elevated by sanctions and political instability. Information capacity is relatively strong, but censorship concerns exist. Edge vitality is positive, indicating adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13601,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 627,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 6.94,
+      "spend_usd": 0.040273,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-06",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and political tensions. Sanctions limiting financial transactions and domestic political unrest contribute to uncertainty. However, strong government effectiveness and low inflation provide stability. Information capacity is relatively strong, suggesting reliable statistics. Edge vitality is moderate, indicating some adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13896,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 313,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 4.62,
+      "spend_usd": 0.03787,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-13",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and political tensions. Friction is moderate, with effective governance but low tax revenue. Order uncertainty is driven by political instability and foreign policy tensions. Information capacity is relatively strong, with reliable statistics. Edge vitality is moderate, indicating some adaptive capacity. Recent articles highlight foreign policy tensions and domestic political challenges.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 16575,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 434,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.94,
+      "spend_usd": 0.036446,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-20",
+      "bullet_summary": "The country faces moderate investor risk due to foreign policy tensions and trade disputes. Friction is moderate, with low tax revenue but effective governance. Order uncertainty is heightened by foreign policy tensions and domestic political challenges. Information capacity is relatively strong, with reliable statistics. Edge vitality is high, indicating adaptive capacity. No immediate war or sovereign stress is present, but foreign policy tensions could escalate.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 13457,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 554,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 5.87,
+      "spend_usd": 0.039183,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-27",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and rising interest payments, despite effective governance. Political tensions, driven by aggressive foreign policy and internal discontent, elevate order uncertainty. Information capacity is strong, with reliable statistics. Recent articles highlight foreign policy tensions and domestic tech restrictions, impacting short-term risk. Edge vitality is high, indicating adaptive capacity. Overall, the risk is moderate, with a focus on political stability and economic management.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13597,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 367,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 6.77,
+      "spend_usd": 0.037663,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-03",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and political tensions. Friction is moderate, with effective governance but low tax revenue. Order uncertainty is high, driven by aggressive foreign policy and trade tensions. Information capacity is strong, with reliable statistics. Edge vitality is high, indicating adaptive capacity. Recent articles highlight foreign policy aggression and trade tensions, impacting short-term risk.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13506,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 593,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 7.34,
+      "spend_usd": 0.039695,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-10",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and rising interest payments, despite effective governance. Political stability is challenged by trade tensions and foreign policy discontent. Information capacity is strong, with reliable statistics. Economic nationalism and climate initiatives may impact future stability. The drug kingpin trial highlights internal crime issues. Overall, the country's risk is moderate, with potential for increased uncertainty over the next year.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 14507,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.4,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.5
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 645,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.55,
+      "seconds": 8.78,
+      "spend_usd": 0.042717,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-17",
+      "bullet_summary": "The country faces moderate investor risk with a stable but high debt burden and moderate political stability. Friction is moderate due to effective governance but high debt. Order uncertainty is moderate, influenced by regional tensions and trade disputes. Information capacity is strong, with reliable statistics. Edge vitality is high, reflecting robust human capital. Key risks include trade tensions and legal challenges, while strong governance and economic growth provide stability.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 14835,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.37,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 617,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.45,
+      "seconds": 6.45,
+      "spend_usd": 0.043257,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-24",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and interest payments, alongside political tensions with a neighboring country. The risk of military conflict and ongoing trade disputes further elevate uncertainty. However, strong government effectiveness and low inflation provide some stability. Information capacity is relatively strong, with reliable statistics. Edge vitality is high, indicating adaptive capacity. Overall, the risk is moderate, with potential for escalation if geopolitical tensions worsen.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 14985,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.58,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 348,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.55,
+      "seconds": 6.5,
+      "spend_usd": 0.040942,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-01",
+      "bullet_summary": "The country faces moderate investor risk with a stable but high debt burden and low tax revenue. Political stability and rule of law are relatively strong, but trade tensions and military conflicts pose risks. Information capacity is robust, supporting reliable statistics. The refugee policy and drug war issues are significant concerns. Economic growth is steady, and inflation is low, but the trade war and military tensions could impact future stability.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 15111,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 620,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.2,
+      "spend_usd": 0.043978,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-08",
+      "bullet_summary": "The country's investor risk is moderate, with friction from high debt and low tax revenue. Order uncertainty is present due to political instability and corruption. Information capacity is relatively strong, with reliable statistics. Recent trade disputes and foreign policy tensions elevate short-term risk. The country's full monetary sovereignty and major reserve currency status mitigate some risks.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 16813,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.4,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.35
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 692,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 7.07,
+      "spend_usd": 0.039802,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-15",
+      "bullet_summary": "The country faces moderate investor risk with a focus on trade disputes and foreign policy tensions. Friction is moderate due to high debt and interest payments. Order uncertainty is driven by political stability and corruption concerns. Information capacity is relatively strong, but recent scandals suggest potential issues. Edge vitality is high, indicating adaptive capacity. Refugee policy and trade tensions are key concerns.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13254,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 611,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 6.29,
+      "spend_usd": 0.039245,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-22",
+      "bullet_summary": "The country faces moderate friction due to low tax revenue and high interest payments. Order uncertainty is low, supported by stable political and legal systems. Information capacity is strong, with reliable statistics and media. Recent military deployment and refugee policy changes indicate regional tensions and humanitarian concerns. Economic growth is steady, with low inflation and unemployment. Political rhetoric and foreign policy actions contribute to uncertainty, but overall risk remains manageable.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12556,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.3
+      },
+      "lint": [],
+      "llm_score": 0.42,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 628,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.39,
+      "seconds": 6.71,
+      "spend_usd": 0.03767,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-29",
+      "bullet_summary": "The country faces moderate investor risk with a stable but high debt burden and moderate political stability. Recent military deployments and corruption scandals increase uncertainty. Information systems are relatively strong, but political tensions and foreign policy criticisms add to friction. Economic indicators like low inflation and unemployment provide some stability, while high government effectiveness and human capital index suggest resilience.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 16034,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 667,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 9.08,
+      "spend_usd": 0.038025,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-05",
+      "bullet_summary": "The country faces moderate friction due to high debt and interest payments, but effective governance mitigates this. Order uncertainty is low-moderate, with stable political conditions but some corruption concerns. Information capacity is strong, with reliable statistics. Recent sanctions, trade tariffs, and military deployments increase short-term risk. Edge vitality is moderate, indicating adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 10765,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.3
+      },
+      "lint": [],
+      "llm_score": 0.42,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 455,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.39,
+      "seconds": 5.39,
+      "spend_usd": 0.031462,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-12",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and fiscal deficits, alongside political tensions and sanctions. Friction is moderate, with effective governance but low tax revenue. Order uncertainty is driven by political instability and trade tensions. Information capacity is relatively strong, with reliable statistics. Edge vitality is high, indicating adaptive capacity. Recent sanctions and trade tensions elevate short-term risk, but the country's full monetary sovereignty and major reserve currency status provide some stability.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 11673,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 628,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.12,
+      "spend_usd": 0.035463,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-19",
+      "bullet_summary": "The country faces moderate investor risk with a high government debt burden and rising interest payments. Political stability is challenged by sanctions and trade tensions, but inflation remains low. Information capacity is strong, with reliable statistics. Military and foreign policy issues add uncertainty. Economic growth is steady, but the current account deficit persists. Edge vitality is moderate, supported by education spending and human capital.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 11705,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 610,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 5.84,
+      "spend_usd": 0.035362,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-26",
+      "bullet_summary": "The country faces moderate investor risk due to trade tensions and military involvement, impacting economic stability. Friction is moderate with high government effectiveness but low tax revenue. Order uncertainty is moderate, driven by political stability concerns and trade tensions. Information capacity is strong, with reliable statistics. Edge vitality is high, indicating adaptive capacity. Recent articles highlight trade and military tensions, affecting short-term risk.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13100,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 425,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 5.08,
+      "spend_usd": 0.037,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-02",
+      "bullet_summary": "The country faces moderate investor risk due to escalating trade tensions with a foreign country, impacting economic stability. Political uncertainty is heightened by internal conflicts between the leader and the central bank. Despite high government effectiveness, the tax revenue is low relative to GDP, and debt levels are significant. Information capacity is strong, but the trade war and political instability contribute to uncertainty. Edge vitality is moderate, indicating some adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13084,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.37,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.58,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 606,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 7.95,
+      "spend_usd": 0.03877,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-09",
+      "bullet_summary": "The country faces moderate investor risk due to escalating trade tensions and political instability, impacting order uncertainty. Friction is moderate, with high government effectiveness but low tax revenue. Information capacity is relatively strong, with reliable statistics. The trade war and central bank conflicts are key concerns, while the economy shows resilience with low unemployment and stable inflation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13122,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.55
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 595,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 5.94,
+      "spend_usd": 0.038755,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-16",
+      "bullet_summary": "The country faces moderate investor risk due to escalating trade tensions and high government debt. Political stability and rule of law are relatively strong, but trade war impacts and fiscal challenges increase uncertainty. Information systems are reliable, reducing risk of data misinterpretation. Economic growth is steady, but trade disputes could affect future performance.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 17024,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 379,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.06,
+      "spend_usd": 0.036706,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-23",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and interest payments, alongside political instability and foreign policy tensions. Recent sanctions on a national bank and criticism of foreign policy exacerbate uncertainty. However, strong government effectiveness and low inflation provide some stability. Information capacity is relatively strong, suggesting reliable statistics. Edge vitality is high, indicating adaptive capacity. Overall, the risk is moderate, with potential for improvement if political tensions ease.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12551,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 619,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 8.72,
+      "spend_usd": 0.037567,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-30",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and interest payments, compounded by geopolitical tensions and sanctions. Political stability is challenged by internal conflict and international disputes, notably in nuclear negotiations and trade wars. Despite these challenges, the country maintains strong statistical performance and human capital, indicating resilience. The risk is elevated in the short term due to ongoing conflicts and sanctions, but the country's full monetary sovereignty provides some mitigation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12678,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.37,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 349,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 6.48,
+      "spend_usd": 0.035185,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-07",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and fiscal deficits, compounded by involvement in international conflicts and trade tensions. Political stability is moderate, with ongoing impeachment inquiries and foreign policy criticisms. Information capacity is relatively strong, but recent events suggest potential governance issues. Edge vitality is high, indicating adaptive capacity. Overall, the risk is moderate, with potential for increased uncertainty if current tensions escalate.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 13179,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.58,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 622,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 6.79,
+      "spend_usd": 0.039168,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-14",
+      "bullet_summary": "The country faces moderate investor risk with high government debt and a fiscal deficit. Political stability is moderate, with impeachment proceedings and trade tensions. Information capacity is relatively strong, but concerns over war crimes complicity and asylum policies raise friction. Economic growth is steady, and inflation is low, but tariffs on EU goods may impact trade. Overall, the risk is moderate with potential for escalation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13059,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.58,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 469,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 5.75,
+      "spend_usd": 0.037338,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-21",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and fiscal deficits, compounded by political instability and potential complicity in war crimes. The asylum seeker policy and tariff imposition add to uncertainty. However, strong government effectiveness and a stable inflation rate mitigate some risks. Information capacity is moderate, with reliable statistics but concerns over press freedom. The country's full monetary sovereignty and major reserve currency status provide some economic resilience.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 16563,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.4,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.5
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 706,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.55,
+      "seconds": 8.15,
+      "spend_usd": 0.039629,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-28",
+      "bullet_summary": "The country faces moderate investor risk with a high government debt-to-GDP ratio and a fiscal deficit. Political stability is moderate, with ongoing impeachment inquiries and asylum policy controversies. Information capacity is relatively strong, but concerns about war crimes complicity and asylum seeker policies raise uncertainty. Economic indicators like inflation and unemployment are stable, supporting a moderate risk outlook. The country's full monetary sovereignty and major reserve currency status provide some resilience.",
+      "cached_tokens": 2944,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 14081,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.37,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 653,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 7.19,
+      "spend_usd": 0.038053,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-04",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and fiscal deficits, compounded by trade sanctions and asylum policy issues. Political stability is moderate, with ongoing impeachment proceedings and trade war concerns. Information capacity is relatively strong, but data protection laws are lacking. Wildfires and power outages present significant short-term challenges. Overall, the country's economic and political environment is moderately stable, with some risks to monitor over the next year.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12618,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 690,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.75,
+      "spend_usd": 0.038445,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-11",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and fiscal deficits, compounded by recent trade sanctions and severe wildfires causing power outages. Political stability is moderate, with some challenges in rule of law and trade relations. Information capacity is relatively strong, but lacks comprehensive data protection laws. Edge vitality is moderate, supported by education spending and human capital. Overall, the risk is moderate with potential for improvement if fiscal and trade issues are addressed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12367,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 683,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.19,
+      "spend_usd": 0.037748,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-18",
+      "bullet_summary": "The country faces moderate investor risk due to political uncertainty and fiscal challenges. A referendum on trade bloc membership and voter suppression tactics increase order uncertainty. High government debt and low tax revenue contribute to friction. Information capacity is relatively strong, but recent wildfires and power outages highlight infrastructure vulnerabilities. Despite these challenges, the country maintains full monetary sovereignty and a major reserve currency, providing some stability.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 14448,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.4,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.5
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 651,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 6.45,
+      "spend_usd": 0.04263,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-25",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and fiscal deficits, compounded by political uncertainty from voter suppression and trade bloc exit discussions. Wildfires and power outages add to short-term instability. Despite these challenges, the country benefits from strong government effectiveness and low inflation. Information systems are reliable, supporting data credibility. The country's full monetary sovereignty and major reserve currency status provide some economic resilience.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 14527,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.58,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 631,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 6.6,
+      "spend_usd": 0.042627,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-02",
+      "bullet_summary": "The country faces moderate investor risk due to political and economic uncertainties. Friction is moderate, with high government debt and low tax revenue. Order uncertainty is driven by political instability and a negative current account balance. Information capacity is relatively strong, but concerns exist over voter suppression and political tensions. Edge vitality is moderate, reflecting decent human capital and education spending. The risk is heightened by potential impacts from a trade bloc referendum and voter suppression tactics.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 14030,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 344,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.3,
+      "spend_usd": 0.038515,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-09",
+      "bullet_summary": "The country faces moderate investor risk due to political uncertainty and fiscal challenges. High government debt and low tax revenue contribute to friction, while political instability and voter suppression concerns raise order uncertainty. Information capacity is relatively strong, but extradition and trade bloc issues add pressure. Economic growth is stable, and inflation is low, but political tensions and potential voter suppression could impact future stability.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 17746,
+      "ledger_scores": {
+        "edge_vitality": 0.7,
+        "friction": 0.38,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.5,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 728,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 8.64,
+      "spend_usd": 0.042057,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-16",
+      "bullet_summary": "The country's investor risk is moderate, with a high government debt burden and low tax revenue contributing to friction. Political stability is moderate, with concerns over healthcare privatization and trade bloc exit impacting order uncertainty. Information capacity is relatively strong, but extradition controversies and healthcare debates highlight potential risks. The country's full monetary sovereignty and major reserve currency status provide some mitigation.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 17064,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.38,
+        "information_capacity": 0.2,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 710,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.45,
+      "spend_usd": 0.04044,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-23",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and a healthcare crisis. Pollution-related deaths and potential healthcare privatization add to friction. Political stability is relatively strong, but concerns about healthcare and pollution persist. Information capacity is moderate, with reliable statistics but some environmental and healthcare issues. Edge vitality is high, indicating adaptive capacity. Overall, the risk is moderate, with a lower-middle placement due to persistent healthcare and environmental challenges.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 14056,
+      "ledger_scores": {
+        "edge_vitality": 0.6,
+        "friction": 0.4,
+        "information_capacity": 0.25,
+        "order_uncertainty": 0.3
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 627,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.91,
+      "spend_usd": 0.04141,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-30",
+      "bullet_summary": "The country faces moderate investor risk due to high government debt and fiscal deficits, alongside political and environmental challenges. Pollution and healthcare issues are significant, with potential privatization risks. Political stability is moderate, but the rule of law is relatively strong. Information capacity is fair, with some concerns about data reliability. Economic growth is steady, and inflation is low. Edge vitality is strong, indicating adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 14752,
+      "ledger_scores": {
+        "edge_vitality": 0.65,
+        "friction": 0.58,
+        "information_capacity": 0.3,
+        "order_uncertainty": 0.45
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 629,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.52,
+      "seconds": 7.5,
+      "spend_usd": 0.04317,
+      "status": "complete",
+      "utc_hour": 23
+    }
+  ],
+  "since": "2019-01-01",
+  "until": "2019-12-31"
+}

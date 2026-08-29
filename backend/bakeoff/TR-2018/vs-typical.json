@@ -11,10 +11,19 @@
     "SCORING_MODEL": "gpt-4o-2024-08-06",
     "SEED": "42",
     "SWEEP_VERSION": "9f4aee55",
-    "git_sha": "f94ba177181c0477df24e6c8ddacfebaea626d74"
+    "git_sha": "0f5a27b152611affb74ad8ffb577a9b068d9244b"
   },
   "cost": {
-    "snapshots": 0
+    "cache_share": 0.906,
+    "input_tokens_per_snapshot": 13000.7,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 650.9,
+    "per_snapshot_usd": 0.023511,
+    "snapshots": 53,
+    "spend_usd": 1.2461,
+    "utc_hours": [
+      23
+    ]
   },
   "country": "TR",
   "endpoint": {
@@ -88,7 +97,1916 @@
     }
   },
   "note": "describe this country's ordinary week, then score the departure",
-  "rows": [],
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2018-01-01",
+      "bullet_summary": "The country faces moderate investor risk with high inflation, political instability, and corruption. Recent events include sanctions evasion and political oppression, raising order uncertainty. Information capacity is moderate, with some transparency issues. Friction is stable but conversion is inefficient.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and moderate tax revenue conversion. Political stability is low, with high inflation and unemployment. Information capacity is moderate, with some press freedom but issues with transparency. Political tensions and corruption are a"
+      },
+      "error": null,
+      "input_tokens": 11352,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.5,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 492,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.5,
+      "seconds": 5.66,
+      "spend_usd": 0.02066,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-08",
+      "bullet_summary": "The country faces moderate investor risk with high inflation, political instability, and corruption. Recent political events, including leadership challenges and corruption allegations, increase uncertainty. Information reliability is moderate, with some concerns over press freedom and statistical accuracy. Economic indicators show moderate friction, with tax revenue not fully converting into capability.",
+      "cached_tokens": 9088,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and moderate tax revenue conversion. Political stability is low, with high inflation and unemployment. Information capacity is moderate, with some issues in statistical reliability and press freedom."
+      },
+      "error": null,
+      "input_tokens": 9997,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.5,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 427,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.5,
+      "seconds": 4.62,
+      "spend_usd": 0.017902,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-15",
+      "bullet_summary": "The country faces moderate friction with moderate tax revenue and government effectiveness, but high political corruption. Order uncertainty is high due to political instability and inflation. Information capacity is weak, with limited trust in statistics and media. Recent articles highlight political instability and declining democracy, increasing investor risk.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political corruption. Order uncertainty is high due to political instability and inflation. Information capacity is weak, with limited trust in statistics and media. Political and,"
+      },
+      "error": null,
+      "input_tokens": 11864,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 469,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.06,
+      "spend_usd": 0.02043,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-22",
+      "bullet_summary": "The country faces heightened investor risk due to recent military operations in a neighboring Kurdish enclave, increasing order uncertainty. Political instability and high inflation further exacerbate risks. Friction remains moderate, with some government effectiveness. Information capacity is moderate, but statistical reliability is questionable. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness. Order uncertainty is high, driven by political instability and corruption. Information capacity is moderate, with some statistical performance issues. Military operations and political maneu"
+      },
+      "error": null,
+      "input_tokens": 11807,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 685,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 6.09,
+      "spend_usd": 0.023727,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-29",
+      "bullet_summary": "The country is engaged in a significant military campaign against Kurdish groups, raising order uncertainty and internal conflict levels. Inflation and political instability contribute to high uncertainty. Information capacity is moderate, with concerns about corruption and statistical reliability. Friction is moderate, with manageable debt levels and tax revenue. The military campaign and political tensions elevate short-term risk.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction with a government effectiveness z-score of 0.2092 and tax revenue at 18.328% of GDP. Order uncertainty is high due to political instability (z-score -1.7062) and inflation at 11.9197%. Information capacity is moderate with a statistical performance"
+      },
+      "error": null,
+      "input_tokens": 13087,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 710,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 6.7,
+      "spend_usd": 0.024618,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-05",
+      "bullet_summary": "The country is engaged in significant military operations in a neighboring region, raising order uncertainty. Domestic crackdowns on dissent further destabilize the political environment. Inflation and unemployment are high, contributing to friction. Information capacity is moderate, with some concerns about data reliability.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political corruption. Order uncertainty is high due to political instability and rule of law issues. Information capacity is moderate, with some concerns about statistical accuracy"
+      },
+      "error": null,
+      "input_tokens": 12910,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 640,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 5.89,
+      "spend_usd": 0.023475,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-12",
+      "bullet_summary": "The country is experiencing heightened military tensions due to ongoing operations in a neighboring country, leading to increased order uncertainty. Friction remains moderate with stable tax revenue and government effectiveness. Information capacity is moderate, with some issues in statistical performance. The military operations have led to significant internal conflict, raising short-term investor risk.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political corruption. Order uncertainty is high due to political instability and inflation. Information capacity is moderate, with some issues in statistical performance and ruleof"
+      },
+      "error": null,
+      "input_tokens": 12914,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 678,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 5.93,
+      "spend_usd": 0.023865,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-19",
+      "bullet_summary": "The country faces heightened investor risk due to ongoing military operations in a neighboring country, leading to internal conflict and human rights issues. Political instability and high inflation contribute to order uncertainty. Information capacity is moderate, with concerns over corruption and statistical reliability. Friction is moderate, with government effectiveness and tax revenue as key factors.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to moderate government effectiveness and tax revenue. Order uncertainty is high, driven by political instability and high inflation. Information capacity is moderate, with some issues in statistical performance and corruption. Military tensions"
+      },
+      "error": null,
+      "input_tokens": 13047,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 678,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 6.12,
+      "spend_usd": 0.024198,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-26",
+      "bullet_summary": "The country faces high investor risk due to ongoing military operations in Kurdish regions, significant political instability, and moderate information capacity. Friction is elevated by corruption and inefficient tax revenue use. The internal conflict level is severe, with sustained military activity and regional instability. Despite a donor conference pledging $30bn for reconstruction, corruption remains a major concern. The country's statistical and press freedom issues further compound the risk.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to corruption and moderate tax revenue conversion. Political stability is low, with high inflation and unemployment. Information capacity is moderate, with some press freedom issues. Military operations and regional conflicts are common, with a"
+      },
+      "error": null,
+      "input_tokens": 12120,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.62,
+        "information_capacity": 0.5,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 724,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 8.17,
+      "spend_usd": 0.02362,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-03-05",
+      "bullet_summary": "The country faces high investor risk due to ongoing military conflicts, authoritarian shifts, and human rights issues. Inflation is high at 10.35%, and political stability is low. Friction is moderate, with government effectiveness and tax revenue at reasonable levels. Information capacity is weakened by corruption and rule of law issues. The situation is exacerbated by emergency rule and internal conflict, impacting both short and long-term risk assessments.",
+      "cached_tokens": 9088,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction with a government effectiveness z-score of 0.2092 and tax revenue at 18.328% of GDP. Order uncertainty is high due to political instability and inflation around 10.3456%. Information capacity is moderate, with a corruption index of 0.837 and a rule"
+      },
+      "error": null,
+      "input_tokens": 10659,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 673,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 6.85,
+      "spend_usd": 0.022017,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-03-12",
+      "bullet_summary": "The country faces significant investor risk due to ongoing military conflicts, high inflation, and political instability. Government control over media and political dissent is strong, raising order uncertainty. Corruption remains a major issue, affecting friction. Despite reconstruction efforts, the risk of instability persists. Information capacity is moderate, with concerns over data reliability.",
+      "cached_tokens": 13440,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate political instability with a high level of corruption and a challenging economic environment. Inflation is high, and there are ongoing conflicts involving Kurdish forces. The government exerts significant control over media and political dissent."
+      },
+      "error": null,
+      "input_tokens": 14282,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.62,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 747,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 7.73,
+      "spend_usd": 0.021355,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-19",
+      "bullet_summary": "The country faces heightened investor risk due to ongoing military operations against Kurdish forces, leading to significant internal conflict. Political instability and high inflation contribute to order uncertainty. Media crackdowns and authoritarian shifts further degrade information capacity. Despite moderate friction, the overall risk is elevated by persistent conflict and governance challenges.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction with a government effectiveness z-score of 0.2092 and tax revenue at 18.328% of GDP. Order uncertainty is high due to political instability (z-score -1.7062) and inflation at 10.3456%. Information capacity is moderate, with a statistical score of  "
+      },
+      "error": null,
+      "input_tokens": 11605,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 507,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 4.85,
+      "spend_usd": 0.021442,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-26",
+      "bullet_summary": "The country faces high investor risk due to ongoing military operations, authoritarian governance, and media suppression. Political instability and inflation contribute to order uncertainty. Information capacity is weakened by corruption and restricted press freedom. Friction is moderate, with government effectiveness and tax revenue challenges. Military actions and emergency rule elevate short-term risk.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and tax revenue challenges. Order uncertainty is high, driven by political instability and inflation. Information capacity is compromised by corruption and media suppression. Military operations and authoritarianism,"
+      },
+      "error": null,
+      "input_tokens": 11603,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 654,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 5.57,
+      "spend_usd": 0.022908,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-04-02",
+      "bullet_summary": "The country faces high investor risk due to ongoing military operations on its territory, authoritarian shifts, and media suppression. Inflation remains high at 10.26%, and political instability is evident. Information capacity is weak, with high corruption and media control. Friction is moderate, with government effectiveness and tax revenue at reasonable levels.",
+      "cached_tokens": 13568,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction with a government effectiveness z-score of 0.2092 and tax revenue at 18.328% of GDP. Order uncertainty is high due to political instability and inflation around 10%. Information capacity is weak, with high corruption and media suppression. Military"
+      },
+      "error": null,
+      "input_tokens": 14895,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.75,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.78,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 746,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.75,
+      "seconds": 7.37,
+      "spend_usd": 0.022763,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-09",
+      "bullet_summary": "The country faces high investor risk due to ongoing military operations and ethnic tensions, impacting order uncertainty. Friction is moderate, with corruption and tax revenue issues. Information capacity is weakened by media control. Recent military actions and press freedom concerns elevate short-term risk.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and moderate tax revenue conversion. Order uncertainty is high, with political instability and inflation concerns. Information capacity is moderate, with some press freedom issues. Military operations and ethnic tensions are not a"
+      },
+      "error": null,
+      "input_tokens": 12550,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 436,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.73,
+      "seconds": 4.4,
+      "spend_usd": 0.021815,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-16",
+      "bullet_summary": "The country faces high order uncertainty due to political instability and corruption. Information capacity is weak, with press freedom under threat. Recent military operations and foreign relations tensions elevate risk. Friction is moderate, with manageable debt levels. Economic indicators show inflation and unemployment concerns. Overall, investor risk is elevated.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and tax revenue challenges. Order uncertainty is high, driven by political instability and corruption. Information capacity is weak, with limited press freedom and questionable statistical reliability. Military and a"
+      },
+      "error": null,
+      "input_tokens": 12090,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 694,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 6.4,
+      "spend_usd": 0.023245,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-23",
+      "bullet_summary": "The country faces increased investor risk due to snap elections, military tensions, and high inflation. Political stability is low, with emergency rule in place. Corruption and moderate government effectiveness contribute to friction. Information capacity is moderate, with concerns over media control and statistical reliability. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate political stability with some corruption and a functioning but not highly effective government. Inflation is high, and there are ongoing tensions with neighboring countries. The political environment is dominated by a strong leader with control over media, "
+      },
+      "error": null,
+      "input_tokens": 12088,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.48,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 667,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.95,
+      "spend_usd": 0.02297,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-30",
+      "bullet_summary": "The country faces heightened investor risk due to upcoming snap elections, military tensions, and migration issues. Political instability and high inflation contribute to order uncertainty. Information capacity is moderate, with concerns over press freedom and government transparency. Friction is moderate, driven by political corruption and tax revenue conversion challenges.",
+      "cached_tokens": 14848,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to political corruption and moderate tax revenue conversion. Order uncertainty is heightened by political instability and inflation volatility. Information capacity is moderate, with some press freedom but concerns over government transparency."
+      },
+      "error": null,
+      "input_tokens": 16136,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.5,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 738,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 8.39,
+      "spend_usd": 0.023938,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-07",
+      "bullet_summary": "The country faces increased investor risk due to snap elections, military tensions, and foreign relations challenges. Political instability and high inflation contribute to order uncertainty. Press freedom issues affect information capacity. Friction remains moderate with political corruption and tax revenue challenges. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to political corruption and moderate tax revenue conversion. Order uncertainty is heightened by political instability and inflation, while information capacity is moderate due to press freedom issues. The country often faces regional tensions, "
+      },
+      "error": null,
+      "input_tokens": 12452,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 655,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.98,
+      "spend_usd": 0.02376,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-14",
+      "bullet_summary": "The country faces heightened investor risk due to snap elections, military tensions, and media repression. Political stability is low, with high inflation and a repressive media environment. Friction is moderate, with government effectiveness and tax revenue at reasonable levels. Information capacity is weak, with high corruption and media suppression. Edge vitality is low, indicating limited adaptive capacity. Overall, investor risk is elevated in the short and medium term.",
+      "cached_tokens": 14720,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate political friction with a government effectiveness z-score of 0.2092 and a tax revenue of 18.328% of GDP. Political stability is low with a z-score of -1.7062, and inflation is high at 10.2346% y/y. The media environment is repressive, with high political, "
+      },
+      "error": null,
+      "input_tokens": 16281,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 801,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 7.69,
+      "spend_usd": 0.025048,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-21",
+      "bullet_summary": "The country faces high order uncertainty due to political instability and inflation. Information capacity is weak, with significant media repression and corruption. Friction is moderate, with government effectiveness challenges. Recent protests and military tensions elevate short-term risk. Edge vitality is low, indicating limited economic dynamism. Overall, investor risk is elevated, with potential for further instability.",
+      "cached_tokens": 16896,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and tax revenue challenges. Order uncertainty is high, driven by political instability and inflation. Information capacity is weak, with high corruption and media repression. Edge vitality is low, with limited new or"
+      },
+      "error": null,
+      "input_tokens": 17791,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 752,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 7.83,
+      "spend_usd": 0.025646,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-05-28",
+      "bullet_summary": "The country faces heightened investor risk due to political instability, high inflation, and media repression. Recent protests and currency pressure exacerbate uncertainty. Corruption and weak rule of law further undermine information reliability. Despite moderate debt levels, the economic environment remains challenging. The upcoming elections add to the uncertainty, impacting both short and long-term risk assessments.",
+      "cached_tokens": 13184,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to a relatively low tax revenue to GDP ratio and moderate government effectiveness. Order uncertainty is heightened by political instability and high inflation. Information capacity is compromised by high corruption and media repression. The 3m"
+      },
+      "error": null,
+      "input_tokens": 14392,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 655,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 6.52,
+      "spend_usd": 0.02605,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-04",
+      "bullet_summary": "The country faces elevated investor risk due to political instability, high inflation, and weak information capacity. Recent protests and currency volatility exacerbate uncertainty. Corruption and media repression further undermine trust in official data. Despite moderate debt levels, economic and political challenges persist.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness. Order uncertainty is elevated with political instability and high inflation. Information capacity is weak, with high corruption and limited press freedom. Protests and political tensions are"
+      },
+      "error": null,
+      "input_tokens": 13831,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 661,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.65,
+      "seconds": 6.7,
+      "spend_usd": 0.025988,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-06-11",
+      "bullet_summary": "The country faces heightened investor risk due to political instability, high inflation, and recent protests. Friction is moderate, with corruption and fiscal challenges. Order uncertainty is elevated by political tensions and currency volatility. Information capacity is moderate, with press freedom concerns. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 13184,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to political corruption and a modest tax revenue base. Order uncertainty is heightened by political instability and inflationary pressures. Information capacity is moderate, with some press freedom issues and statistical performance concerns. T"
+      },
+      "error": null,
+      "input_tokens": 14051,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.48,
+        "information_capacity": 0.45,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 650,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.55,
+      "seconds": 6.04,
+      "spend_usd": 0.025147,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-18",
+      "bullet_summary": "The country faces heightened investor risk due to political instability, currency pressure, and strained foreign relations. Inflation remains high, and political corruption is a concern. Recent events, including tensions with a foreign country and cultural performances under blockade, exacerbate uncertainty. Information capacity is moderate, with some press freedom issues. Overall, the risk is elevated compared to a typical week.",
+      "cached_tokens": 16000,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to political corruption and a modest tax revenue base. Order uncertainty is heightened by political instability and inflationary pressures. Information capacity is moderate, with some press freedom issues. The country is not in a state of war, "
+      },
+      "error": null,
+      "input_tokens": 16834,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.4,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 767,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 7.45,
+      "spend_usd": 0.024425,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-25",
+      "bullet_summary": "The country faces heightened investor risk due to political instability, economic challenges, and weak information capacity. Recent elections have increased uncertainty, with potential changes in governance and economic policy. High inflation and political corruption exacerbate friction, while press freedom is limited. Emergency rule is in place, further complicating the investment climate.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political corruption. Order uncertainty is high due to political instability, rule of law issues, and inflation. Information capacity is weak, with limited press freedom and a poor"
+      },
+      "error": null,
+      "input_tokens": 12189,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 733,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 6.11,
+      "spend_usd": 0.023883,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-02",
+      "bullet_summary": "The country faces increased investor risk due to recent elections consolidating power under the leader, raising order uncertainty. High inflation and a volatile exchange rate exacerbate economic instability. Information capacity is weak, with media and judiciary under government influence. Friction remains moderate due to corruption and inefficient tax revenue conversion. Emergency rule persists, further elevating risk.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and moderate tax revenue conversion. Political stability is low, with high inflation and a volatile exchange rate. Information capacity is weak, with concerns over media freedom and statistical reliability. Elections are often fra"
+      },
+      "error": null,
+      "input_tokens": 11778,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 677,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 7.46,
+      "spend_usd": 0.023575,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-09",
+      "bullet_summary": "The country faces moderate investor risk with high political uncertainty following recent elections that consolidated the leader's power. Inflation is high, and the currency is under pressure. Friction is moderate due to government effectiveness and tax revenue. Information capacity is moderate, with concerns about data reliability. Emergency rule is in place, reflecting political instability.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political corruption. Order uncertainty is high due to political instability and high inflation. Information capacity is moderate, with some concerns about the reliability of data."
+      },
+      "error": null,
+      "input_tokens": 11811,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.55,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 745,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.5,
+      "seconds": 6.86,
+      "spend_usd": 0.024338,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-16",
+      "bullet_summary": "The country faces increased investor risk due to recent elections consolidating power under an autocratic leader, raising order uncertainty. Inflation and currency volatility are high, with a state of emergency in place. Information capacity is moderate, with concerns about data reliability. Friction is moderate due to corruption and inefficiencies. The political environment is unstable, impacting both short and long-term risk assessments.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and inefficiencies, with a stable but not high tax revenue. Political stability is low, with high inflation and a volatile currency. Information capacity is moderate, with some concerns about data reliability. The political scene,"
+      },
+      "error": null,
+      "input_tokens": 11847,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.62,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 742,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.58,
+      "seconds": 6.27,
+      "spend_usd": 0.024397,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-23",
+      "bullet_summary": "The country faces heightened investor risk due to recent political consolidation and economic instability. The leader's increased powers and control over institutions raise order uncertainty. High inflation and currency volatility exacerbate economic concerns. Information capacity is moderate, with some data reliability issues. Emergency rule is in effect, reflecting political tensions. Friction remains moderate, with manageable debt levels. Overall, investor risk is elevated in the short to medium term.",
+      "cached_tokens": 9088,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness. Order uncertainty is high, driven by political instability and high inflation. Information capacity is moderate, with some concerns about data reliability. Political events often involve the"
+      },
+      "error": null,
+      "input_tokens": 10801,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.6,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 385,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.55,
+      "seconds": 5.44,
+      "spend_usd": 0.019492,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-30",
+      "bullet_summary": "The country faces heightened investor risk due to political instability, high inflation, and authoritarian governance. Recent events include a currency crisis and increased political control, raising order uncertainty. Information capacity is moderate, with some distrust in official data. Friction is moderate, with government effectiveness and tax revenue not fully converting into capability. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political corruption. Order uncertainty is high due to political instability and high inflation. Information capacity is moderate, with some distrust in statistics and media. The 3"
+      },
+      "error": null,
+      "input_tokens": 12834,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 674,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.72,
+      "seconds": 6.25,
+      "spend_usd": 0.024905,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-08-06",
+      "bullet_summary": "The country faces heightened investor risk due to escalating diplomatic tensions and sanctions, high inflation, and political instability. Friction is moderate, with corruption and fiscal deficits. Order uncertainty is high, driven by autocratic governance and economic volatility. Information capacity is moderate, with some trust in statistics. Edge vitality is low, indicating limited adaptive capacity. Overall, the risk is elevated in the short and medium term.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to political corruption and a moderate tax revenue base. Order uncertainty is high, driven by political instability and high inflation. Information capacity is moderate, with some trust in official statistics but concerns about governance. The "
+      },
+      "error": null,
+      "input_tokens": 11615,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.5,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 715,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.65,
+      "seconds": 6.29,
+      "spend_usd": 0.023547,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-13",
+      "bullet_summary": "The country faces heightened investor risk due to a currency crisis exacerbated by foreign sanctions and political interference in monetary policy. Inflation is high, and the central bank's independence is questioned. Political tensions with a foreign country add to uncertainty. Information capacity is moderate, but press freedom concerns persist.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and tax revenue challenges. Order uncertainty is high, driven by political instability and inflation. Information capacity is moderate, with some trust in official statistics but concerns about press freedom. Edge is"
+      },
+      "error": null,
+      "input_tokens": 11862,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 690,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 6.48,
+      "spend_usd": 0.022635,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-20",
+      "bullet_summary": "The country is facing a severe economic crisis with rampant inflation, a plunging currency, and external sanctions. The central bank's independence is compromised, leading to investor uncertainty. Sovereign stress is evident with high borrowing costs and potential defaults. Political interference and weak rule of law exacerbate the situation.",
+      "cached_tokens": 14720,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate inflation around 9%, political instability, and a weak rule of law. The government has full monetary sovereignty but faces challenges with corruption and moderate tax revenue. The local currency is volatile, and the central bank's independence is often in a"
+      },
+      "error": null,
+      "input_tokens": 15685,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.62,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.78,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 741,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.72,
+      "seconds": 9.23,
+      "spend_usd": 0.02306,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-27",
+      "bullet_summary": "The country faces severe economic challenges, including high inflation, a plunging currency, and political interference in monetary policy. Sanctions and diplomatic tensions exacerbate the crisis, leading to sovereign stress. Friction is moderate due to corruption and fiscal deficits. Information capacity is moderate, with some reliance on official statistics. Investor risk is elevated in the short and medium term.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": true,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to political corruption and moderate tax revenue conversion. Order uncertainty is heightened by political instability and inflation, with occasional currency volatility. Information capacity is moderate, with some trust in official statistics."
+      },
+      "error": null,
+      "input_tokens": 12016,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.62,
+        "information_capacity": 0.5,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 656,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.72,
+      "seconds": 6.25,
+      "spend_usd": 0.02268,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-03",
+      "bullet_summary": "The country faces heightened investor risk due to a severe currency crisis, high inflation, and political interference in monetary policy. Sanctions from another country exacerbate economic instability. Friction is moderate, but order uncertainty is high due to political and economic volatility. Information capacity is moderate, with some reliance on external data sources.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and corruption, with a stable but not high tax revenue. Order uncertainty is elevated by political instability and inflation concerns. Information capacity is moderate, with some reliance on external sources for data"
+      },
+      "error": null,
+      "input_tokens": 12007,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.62,
+        "information_capacity": 0.4,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 646,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 5.83,
+      "spend_usd": 0.022558,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-10",
+      "bullet_summary": "The country faces heightened investor risk due to a severe economic crisis marked by high inflation, currency depreciation, and political instability. Friction is moderate, with political corruption and fiscal challenges. Order uncertainty is high, driven by economic mismanagement and foreign tensions. Information capacity is moderate, with some trust in statistics. The next 3-12 months are risky, with potential for further economic deterioration.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to political corruption and a moderate tax revenue base. Order uncertainty is high, driven by political instability and high inflation. Information capacity is moderate, with some trust in official statistics but concerns about transparency. Ge"
+      },
+      "error": null,
+      "input_tokens": 13248,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.58,
+        "information_capacity": 0.45,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 725,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 7.13,
+      "spend_usd": 0.02517,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-17",
+      "bullet_summary": "The country faces heightened investor risk due to recent interest rate hikes to curb inflation, political instability, and regional conflict warnings. Inflation is high, and the currency is under pressure. Information capacity is moderate, with some reliance on external sources. Friction is moderate, with government effectiveness and tax revenue challenges. The edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and tax revenue challenges. Order uncertainty is high, driven by political instability, corruption, and inflation. Information capacity is moderate, with some reliance on external sources for accurate data. The edge,"
+      },
+      "error": null,
+      "input_tokens": 12701,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 692,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 7.01,
+      "spend_usd": 0.024753,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-24",
+      "bullet_summary": "The country faces heightened investor risk due to recent interest rate hikes to curb inflation and prevent a currency crisis. Political instability and regional conflicts further exacerbate uncertainty. Despite moderate government effectiveness, high inflation and political corruption challenge economic stability. Information systems are moderately reliable, but political tensions and economic turmoil increase risk. The next 3-12 months are expected to see continued volatility.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political instability and corruption. Inflation is high, and the currency is under pressure. Information systems are moderately reliable, but there are concerns about political and"
+      },
+      "error": null,
+      "input_tokens": 12711,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.48,
+        "information_capacity": 0.45,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 681,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 6.26,
+      "spend_usd": 0.024667,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-01",
+      "bullet_summary": "The country faces high investor risk due to political instability, high inflation, and recent interest rate hikes. Friction is moderate, with government effectiveness and tax revenue challenges. Information capacity is weakened by press freedom issues and statistical reliability concerns. Recent events, including regional conflict warnings and domestic political tensions, exacerbate uncertainty.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and tax revenue challenges. Order uncertainty is high, driven by political instability, corruption, and inflation. Information capacity is moderate, with some concerns about press freedom and statistical reliability."
+      },
+      "error": null,
+      "input_tokens": 12850,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 663,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 6.45,
+      "spend_usd": 0.024835,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-08",
+      "bullet_summary": "The country faces high inflation and political instability, with recent interest rate hikes to curb inflation. Corruption and moderate tax revenue conversion contribute to friction. Information capacity is moderate, with press freedom issues. Recent events include extradition cases and regional conflict warnings, increasing short-term risk.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and moderate tax revenue conversion. Order uncertainty is high, driven by inflation and political instability. Information capacity is moderate, with some press freedom issues. Edge vitality is low, with limited business dynamism."
+      },
+      "error": null,
+      "input_tokens": 12701,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 639,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.98,
+      "spend_usd": 0.024223,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-15",
+      "bullet_summary": "The country faces heightened investor risk due to political instability, high inflation, and recent diplomatic tensions. Friction is moderate, driven by corruption and inefficiencies. Information capacity is compromised by press freedom issues. Recent events, including a journalist's disappearance and diplomatic disputes, exacerbate uncertainty.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and inefficiencies, with political instability and rule of law concerns. Inflation is high, and the currency is volatile. Information capacity is moderate, with some press freedom issues."
+      },
+      "error": null,
+      "input_tokens": 13097,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 395,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 4.49,
+      "spend_usd": 0.021493,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-22",
+      "bullet_summary": "The country faces moderate friction from corruption and inefficiencies, with high inflation and political instability increasing order uncertainty. Information capacity is weak, with limited press freedom. Recent events, including journalist detentions and refugee deportations, exacerbate risks.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and inefficiencies, with political instability and high inflation contributing to significant order uncertainty. Information capacity is weak, with limited press freedom and questionable statistics. The country often faces human, "
+      },
+      "error": null,
+      "input_tokens": 13232,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.48,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 651,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 6.07,
+      "spend_usd": 0.02439,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-29",
+      "bullet_summary": "The country faces high order uncertainty with political instability and high inflation. Information capacity is weak, with compromised press freedom and statistical reliability. Friction is moderate, with some government effectiveness but high corruption. Recent events include journalist detentions and refugee deportations, raising short-term risk.",
+      "cached_tokens": 13184,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate government effectiveness and tax revenue, with some political corruption. Order uncertainty is high due to political instability, high inflation, and volatile exchange rates. Information capacity is compromised by weak statistical, "
+      },
+      "error": null,
+      "input_tokens": 13989,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 665,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 7.83,
+      "spend_usd": 0.025143,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-05",
+      "bullet_summary": "The country faces heightened investor risk due to high inflation, political instability, and weak rule of law. Recent events include domestic repression and refugee deportations, exacerbating order uncertainty. Information capacity is compromised by limited press freedom and unreliable statistics. Friction remains moderate, with corruption and tax revenue issues. Edge vitality is low, indicating limited adaptive capacity. Overall, investor risk is elevated, with significant uncertainty over the next year.",
+      "cached_tokens": 13184,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to corruption and moderate tax revenue conversion. Political stability is low, with high inflation and a volatile exchange rate. Information capacity is weak, with limited press freedom and statistical reliability. The country often faces human"
+      },
+      "error": null,
+      "input_tokens": 13948,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 691,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.65,
+      "seconds": 6.42,
+      "spend_usd": 0.0253,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-12",
+      "bullet_summary": "The country faces heightened investor risk due to political instability, high inflation, and weak rule of law. Recent events include a crackdown on journalists and dissidents, and refugee deportations, increasing order uncertainty. Information capacity is compromised by limited press freedom and statistical reliability.",
+      "cached_tokens": 15744,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political instability and corruption. Information capacity is weakened by limited press freedom and statistical performance. The country faces high inflation and political tensions"
+      },
+      "error": null,
+      "input_tokens": 17554,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.65,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 824,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 7.62,
+      "spend_usd": 0.027289,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-19",
+      "bullet_summary": "The country faces high investor risk due to political instability, high inflation, and weak rule of law. Recent sanctions and journalist detentions exacerbate uncertainty. Information capacity is low, with unreliable statistics and press suppression. Friction is moderate, with manageable debt levels. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness. Order uncertainty is high, driven by political instability, high inflation, and corruption. Information capacity is weak, with limited press freedom and statistical reliability. Edge is low,"
+      },
+      "error": null,
+      "input_tokens": 12429,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 669,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.89,
+      "spend_usd": 0.023842,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-26",
+      "bullet_summary": "The country faces high inflation and political instability, with recent sanctions exacerbating economic challenges. Government crackdowns and regional tensions add to uncertainty. Information capacity is moderate, with some press freedom issues. Despite these challenges, the country maintains moderate friction and edge vitality.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political corruption. Order uncertainty is high, driven by political instability, high inflation, and volatile exchange rates. Information capacity is moderate, with some press and"
+      },
+      "error": null,
+      "input_tokens": 12521,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 645,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.92,
+      "spend_usd": 0.023832,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-03",
+      "bullet_summary": "The country faces high investor risk due to political instability, high inflation, and weak rule of law. Recent government crackdowns and economic sanctions exacerbate uncertainty. Information capacity is low, with high corruption and moderate statistical performance. Friction is moderate, with manageable debt levels but inefficient government spending. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness. Order uncertainty is high, driven by political instability, high inflation, and a volatile exchange rate. Information capacity is weak, with high corruption and moderate statistical quality."
+      },
+      "error": null,
+      "input_tokens": 12311,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.48,
+        "information_capacity": 0.7,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 493,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.18,
+      "spend_usd": 0.021788,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-10",
+      "bullet_summary": "The country faces high order uncertainty due to political instability, corruption, and rising inflation. Friction is moderate, with manageable debt levels but inefficient government spending. Information capacity is weakened by political repression and interference in the press. Recent political tensions and corruption scandals elevate short-term risk. Edge vitality is low, indicating limited adaptive capacity.",
+      "cached_tokens": 10112,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness. Order uncertainty is high, driven by political instability, corruption, and high inflation. Information capacity is moderate, with some press freedom but significant political interference."
+      },
+      "error": null,
+      "input_tokens": 11636,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 684,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.61,
+      "spend_usd": 0.02329,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-17",
+      "bullet_summary": "The country faces heightened investor risk due to military operations against Kurdish forces and international tensions over a journalist's death. High inflation and political instability exacerbate order uncertainty. Friction remains moderate, with government effectiveness and tax revenue challenges. Information capacity is weakened by political interference and moderate statistical performance. Edge vitality is low, reflecting limited entrepreneurial activity.",
+      "cached_tokens": 11136,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 10,
+        "typical_week": "The country typically experiences moderate friction due to government effectiveness and tax revenue challenges, with a stable but not high debt level. Order uncertainty is elevated by political corruption and instability, alongside high inflation and volatile exchange rates. Information capacity is "
+      },
+      "error": null,
+      "input_tokens": 12842,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.42,
+        "information_capacity": 0.55,
+        "order_uncertainty": 0.65
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 486,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.68,
+      "seconds": 4.85,
+      "spend_usd": 0.023045,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-24",
+      "bullet_summary": "The country faces heightened investor risk due to military tensions with Kurdish forces and international scrutiny over a journalist's death. High inflation and political instability exacerbate order uncertainty. Friction is moderate, with manageable debt levels. Information capacity is weakened by press freedom issues. Edge vitality is low, indicating limited adaptive capacity. Overall, the risk is elevated in the short and medium term.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness. Order uncertainty is high, driven by political instability, corruption, and high inflation. Information capacity is moderate, with some press freedom issues. The country is involved in tense"
+      },
+      "error": null,
+      "input_tokens": 12896,
+      "ledger_scores": {
+        "edge_vitality": 0.3,
+        "friction": 0.45,
+        "information_capacity": 0.6,
+        "order_uncertainty": 0.7
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 705,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 6.59,
+      "spend_usd": 0.02409,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-31",
+      "bullet_summary": "The country faces heightened investor risk due to military operations against Kurdish forces and international tensions over a journalist's death. Inflation and high policy rates contribute to uncertainty. Moderate friction arises from tax revenue and government effectiveness. Information capacity is affected by corruption and moderate statistical performance. Edge vitality is moderate, with some business formation. Overall, the situation is slightly worse than typical, with increased geopolitical tensions.",
+      "cached_tokens": 12160,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "delta_vs_typical": 5,
+        "typical_week": "The country typically experiences moderate friction due to moderate tax revenue and government effectiveness, with some political instability and rule of law concerns. Inflation is high, and the policy rate is elevated. Information capacity is moderate, with some corruption and effectiveness issues."
+      },
+      "error": null,
+      "input_tokens": 13290,
+      "ledger_scores": {
+        "edge_vitality": 0.4,
+        "friction": 0.45,
+        "information_capacity": 0.5,
+        "order_uncertainty": 0.6
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 482,
+      "prompt_version": "v4.4-vs-typical",
+      "score_3m": 0.63,
+      "seconds": 5.07,
+      "spend_usd": 0.022845,
+      "status": "complete",
+      "utc_hour": 23
+    }
+  ],
   "since": "2018-01-01",
   "until": "2018-12-31"
 }
