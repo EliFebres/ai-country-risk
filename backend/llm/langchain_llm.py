@@ -374,6 +374,11 @@ def country_llm_score(
     if has_context:
         prompt += ai_constants.TRAILING_CONTEXT_RULE
 
+    has_trend_block = isinstance(payload, dict) and bool(payload.get("trend"))
+    if has_trend_block:
+        prompt += ai_constants.TREND_BLOCK_RULE
+        prompt_version = ai_constants.PROMPT_VERSION_TREND_BLOCK
+
     # The trend variant is the one case where the instruction cannot follow the
     # data, because there is no new data to follow: `trend_1y` and `trend_5y`
     # have been in the payload since p1 and are there in every arm, told about

@@ -858,6 +858,27 @@ class TestTheEnvironmentIsRestored:
 from backend.util.pilot import reports
 
 
+class TestAnArmThatScoredNothingSaysSo:
+    """An exhausted API key produced 47 rows marked `complete`.
+
+    The pipeline degrades a model failure into an empty result rather than
+    raising, which is right for the daily run -- one country must not end the
+    pass. Through the bake-off it meant `status: complete`, `llm_score: null`,
+    `error: null`, `calls: 0`, and an arm that called itself finished having
+    scored six anchors of fifty-three. `capture-baseline` would then have read
+    it as a reference.
+    """
+
+    def test_a_result_with_no_score_is_not_complete(self):
+        import inspect
+
+        from backend.util.tools import bakeoff
+        src = inspect.getsource(bakeoff.score_anchors)
+        assert 'out.get("score") is None' in src, (
+            "a returned dict is being taken as proof an anchor was scored")
+        assert '"unscored"' in src
+
+
 class TestAStalledHarvestIsNamed:
     """Eleven consecutive failures on one country produced no line anybody read.
 

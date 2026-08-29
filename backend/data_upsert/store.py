@@ -755,6 +755,41 @@ def _rows(sql: str, params: Iterable[Any] = ()) -> List[Dict[str, Any]]:
         return [dict(zip(cols, row)) for row in cur.fetchall()]
 
 
+def counts_by_theme_quarter(country_iso2: str, start: datetime.date,
+                            end: datetime.date) -> Dict[str, Dict[str, int]]:
+    """Articles per retrieving theme per calendar quarter, for one country.
+
+    Counted on ``themes[1]`` -- the array's first element, which the store
+    writes as the theme of the query that found the article, with the
+    classifier's guesses after it. That is the same element
+    ``snapshot_select.to_item`` collapses to, so a shortfall here is the
+    shortfall the theme floor would have seen rather than a second opinion
+    about what an article is about.
+
+    ``end`` is exclusive and is the caller's ``as_of``: coverage is evidence
+    like any other, so a count that included the anchor's own week would be the
+    same no-future leak as an article published after it.
+    """
+    with _transaction() as cur:
+        cur.execute(
+            """
+            SELECT to_char(published_at, 'YYYY"Q"Q') AS quarter,
+                   COALESCE(themes[1], 'unclassified') AS theme,
+                   count(*)
+              FROM article
+             WHERE country_iso2 = %s
+               AND published_at >= %s AND published_at < %s
+             GROUP BY 1, 2
+             ORDER BY 1, 2
+            """,
+            (country_iso2, start, end),
+        )
+        out: Dict[str, Dict[str, int]] = {}
+        for quarter, theme, count in cur.fetchall():
+            out.setdefault(quarter, {})[theme] = count
+        return out
+
+
 def counts_by_year() -> List[Dict[str, Any]]:
     """Article counts per source x country x year."""
     return _rows("""

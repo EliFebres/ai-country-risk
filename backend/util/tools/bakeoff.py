@@ -299,6 +299,12 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
     # what declares this a payload arm, and it is what `candidate_env` scrubs
     # between runs. The evidence moved underneath a fixed contract, which is
     # the one kind of change this harness had no way to express.
+    "p4-trend": {
+        "arm": "payload",
+        "note": "computed trend block: annual paths, ledger directions, theme volume",
+        "env": {"PAYLOAD_VARIANT": "p4-trend"},
+        "key_env": "OPENAI_API_KEY",
+    },
     # The prompt arm. No payload change and no scorer change -- one paragraph
     # naming two fields the payload has carried since p1 and nothing has ever
     # read. It is the cheap half of the trend question, and if it clears the
@@ -1061,7 +1067,19 @@ def score_anchors(name: str, budget_usd: float = BAKEOFF_BUDGET_USD,
                         scoring_mode="masked",
                         upsert=False,
                         digest_content_cache=store)
-                    status, error = "complete", None
+                    # A returned dict is not a scored anchor. The pipeline
+                    # degrades an API failure into an empty result rather than
+                    # raising -- correct for the daily run, where one country
+                    # must not end the pass -- so an exhausted API key produced
+                    # 47 rows marked `complete` with `llm_score: null`,
+                    # `error: null` and `calls: 0`, and the arm reported itself
+                    # finished. An arm that scored nothing must not look like an
+                    # arm that scored zero.
+                    if out.get("score") is None:
+                        status = "unscored"
+                        error = "the pipeline returned no score; see the run log"
+                    else:
+                        status, error = "complete", None
                 except Exception as exc:  # noqa: BLE001
                     logger.exception("[bakeoff] %s %s failed", name, as_of)
                     out, manifest, status = {}, {}, "failed"

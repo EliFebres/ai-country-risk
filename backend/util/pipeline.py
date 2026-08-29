@@ -32,8 +32,9 @@ from backend.llm import client as ai_client
 from backend.data_fetching import (
     bis_bulk_fetch, curated_loader, fmp_calendar_fetch, imf_macro_fetch, wb_series_fetch,
 )
-from backend.data_upsert import data_push
+from backend.data_upsert import data_push, store
 from backend.llm import context as llm_context
+from backend.llm import trend as llm_trend
 from backend.llm import gazetteer, probe, rewrite
 from backend.news_fetching import article_enrichment, article_ranking
 
@@ -482,6 +483,19 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             llm_context.build(iso2, as_of, masked=masked,
                               cache=digest_content_cache)
             if historical and provenance.payload_variant() == "p3-context" else None),
+        # p4. Unlike p3 this needs no model call and no cache, so it is cheap
+        # enough to build inline -- and unlike p3 it is not restricted to
+        # historical runs: a live snapshot has an anchor too, and the trajectory
+        # of its own indicators is as true today as it is for a backfill. Kept
+        # behind the variant anyway, because the pilot's contract is p2 and an
+        # A/B must not be able to move the production payload by existing.
+        trend_block=(
+            _safe(lambda: llm_trend.build(
+                series, as_of,
+                theme_counts=store.counts_by_theme_quarter(
+                    iso2, as_of - timedelta(days=365 * 2 + 90), as_of)),
+                iso2, "trend")
+            if provenance.payload_variant() == "p4-trend" else None),
     )
 
     # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it anchors

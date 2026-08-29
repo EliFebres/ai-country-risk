@@ -126,6 +126,36 @@ Where an indicator has no trend field, its history does not reach back far
 enough. That is unknown, not flat, and it is not evidence of stability.
 """
 
+# The prompt as it stands when the payload carries the computed trend block.
+PROMPT_VERSION_TREND_BLOCK = "v4.2-trend-block"
+
+# Says what the block is *for* and what its vocabulary means, and nothing about
+# its shape -- the JSON labels that itself. The last paragraph is the one that
+# earns its place: `unknown` and `flat` are the distinction the whole block is
+# built to preserve, and a model that reads them as the same thing has been
+# handed a stability claim nobody made.
+TREND_BLOCK_RULE = """
+
+--- TRAJECTORY ---
+`trend` in EVIDENCE_JSON is computed, not reported: directions and changes
+derived from the same vintage-bounded series as the evidence above, so it
+contains nothing that was not knowable on this date. It holds the last five
+annual observations for the headline macro series, the 1-, 3- and 5-year
+direction for each ledger constituent, and article counts per theme per quarter.
+
+Use it to judge trajectory — improving, decaying, or holding — while the
+articles tell you what is happening now. A level that has been stable for five
+years and the same level reached by five years of steady deterioration are
+different risks, and this block is what distinguishes them. `accelerating` means
+the last year moved faster than the five-year average pace.
+
+`unknown` means the series does not reach back that far at this date. It is not
+`flat`, and it is not reassurance. A theme whose article count collapses is a
+fact about the reporting rather than about the country: quiet because nothing
+happened and quiet because nobody wrote it down are different, and this is the
+only place you can tell them apart.
+"""
+
 # ---------------------------------------------------------------------------
 # v3 — the friction framework. The model judges; nothing downstream edits it.
 # Scores are integers 0-100 here for rank resolution and are converted to 0-1

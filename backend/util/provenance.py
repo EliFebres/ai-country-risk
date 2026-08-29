@@ -44,13 +44,18 @@ _SCHEMA_VERSION = 1
 #       lending and the current account, all edition-vintaged
 #   p3-context  adds the trailing-context block: one masked paragraph per
 #       calendar quarter for the four completed quarters before the live window
+#   p4-trend  adds the computed trend block: five annual points and a stated
+#       direction per macro series, 1/3/5-year directions per ledger
+#       constituent, and article counts per theme per quarter. No model call
+#       inside it, unlike p3 -- so no cache, no nondeterminism, and it rebuilds
+#       byte-for-byte from `indicator_series` and `article`.
 PAYLOAD_VERSION = "p2"
 
 # The variants this build knows about, and the environment that selects one.
 # Unset is `p2`, which is byte-identical to the daily run — the same contract
 # `client.scoring_model()` holds for the model, and for the same reason: an A/B
 # must not be able to change what the pilot does by existing.
-PAYLOAD_VARIANTS = ("p2", "p3-context")
+PAYLOAD_VARIANTS = ("p2", "p3-context", "p4-trend")
 
 
 def payload_variant() -> str:

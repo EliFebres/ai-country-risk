@@ -1,0 +1,80 @@
+{
+  "arm": "payload",
+  "candidate": "p2-rebaseline",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.0-masked-production",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "2bd63a2e91ca5bcc2e6a07a6a1f546bfda1e9556"
+  },
+  "cost": {
+    "cache_share": null,
+    "input_tokens_per_snapshot": 0.0,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 0.0,
+    "per_snapshot_usd": 0.0,
+    "snapshots": 2,
+    "spend_usd": 0.0,
+    "utc_hours": [
+      20
+    ]
+  },
+  "country": "TR",
+  "endpoint": {
+    "PAYLOAD_VARIANT": "p2"
+  },
+  "gates": {},
+  "note": "p2 re-scored after the vintage fix, scorer held at gpt-4o",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2018-02-12",
+      "cached_tokens": null,
+      "calls": 0,
+      "condition_flags": {},
+      "error": null,
+      "input_tokens": 0,
+      "ledger_scores": {},
+      "lint": [],
+      "llm_score": null,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 0,
+      "prompt_version": "v4.0-masked-production",
+      "score_3m": null,
+      "seconds": 2.51,
+      "spend_usd": 0.0,
+      "status": "complete",
+      "utc_hour": 20
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-19",
+      "cached_tokens": null,
+      "calls": 0,
+      "condition_flags": {},
+      "error": null,
+      "input_tokens": 0,
+      "ledger_scores": {},
+      "lint": [],
+      "llm_score": null,
+      "model_id": "gpt-4o-2024-08-06",
+      "offpeak_usd": null,
+      "output_tokens": 0,
+      "prompt_version": "v4.0-masked-production",
+      "score_3m": null,
+      "seconds": 2.14,
+      "spend_usd": 0.0,
+      "status": "complete",
+      "utc_hour": 20
+    }
+  ],
+  "since": "2018-02-12",
+  "until": "2018-02-19"
+}
