@@ -330,3 +330,96 @@ rank correlation.
 **Agreement between A and A′.** They *should* disagree — A was scored without
 two of its ledgers. Demanding agreement would be a criterion only a no-op could
 pass, and would amount to requiring that the bug fix changed nothing.
+
+---
+
+## The result: arm A′ and arm C
+
+Corpus pinned and verified: article counts identical on all 105 anchors across
+both arms, so the difference between them is the payload and the prompt and
+nothing else. 105/105 scored in each arm, every arm-C row stamped
+`v4.1-trend-fields`.
+
+### A′ against the old p2 rows — the vintage fix, isolated
+
+| | US 2019 | | TR 2018 | |
+|---|---|---|---|---|
+| | old p2 | A′ | old p2 | A′ |
+| distinct values | 9 | **8** | 9 | **9** |
+| round-number share | 69.2% | **76.9%** | 18.9% | **26.4%** |
+| lag-1 autocorrelation | 0.299 | 0.433 | 0.564 | 0.642 |
+| longest run | 5 | 4 | 7 | 5 |
+| ρ vs old p2 | — | 0.582 | — | 0.808 |
+| cost/snapshot | $0.0402 | $0.0376 (−6.5%) | $0.0382 | $0.0352 (−7.9%) |
+
+Ten indicators restored, two of them entire previously-empty ledgers, and the
+series got coarser. What did move: **10 of 53 TR anchors went Moderate → High**,
+and `edge_vitality` correlates at 0.06 (TR) and −0.29 (US) between the arms —
+the ledgers that had no macro evidence were not producing a weak signal, they
+were producing noise.
+
+### Arm C against A′, against its pre-registered lines
+
+| # | Criterion | The line | Measured | Verdict |
+|---|---|---|---|---|
+| **(a)** | distinct, US 2019 | **≥ 15** | **8** (from 8) | **FAIL** |
+| | round share, US 2019 | **≤ 44%** | **82.7%** (from 76.9%) | **FAIL** |
+| **(b)** | first ≥0.05 move, TR | no later than A′ | **earlier** — 2018-01-22 vs 2018-02-05 by Q1 mean; identical by first anchor | **PASS** |
+| **(c)** | ρ vs A′, TR 2018 | **≥ 0.65** | **0.833** | **PASS** |
+| **(d)** | direction-mention share | report only | **not measured — see below** | — |
+| **(e)** | cost delta | **≤ +15%** | **+2.8% US, −10.2% TR** | **PASS** |
+| **(f)** | autocorrelation / run | report only | 0.433→0.235 US, 0.642→0.670 TR; runs 4→3, 5→6 | — |
+
+**Adopt iff (a), (b) and (c). (a) fails. Arm C is rejected.**
+
+### (d) was unmeasurable, and that is a pre-registration failure
+
+The criterion asked for the share of `bullet_summary` outputs referencing
+direction. Bake-off arm rows carry every number the run produced and not one
+word of its prose, so the field the criterion reads does not exist on the arm it
+was written for.
+
+Recorded as a failure rather than quietly dropped. It is the same class of
+mistake this whole session has been chasing — a value nothing reads, except
+here the criterion was written against a field nothing *writes*. `bullet_summary`
+is now captured on every arm row, which fixes it for the next attempt and not
+for this one.
+
+### The finding: three interventions, one direction
+
+| US 2019 | distinct | round share |
+|---|---|---|
+| p2, as it stood | 9 | 69.2% |
+| p3-context | 7 | 75.0% |
+| A′ — vintage fixed, ten indicators restored | 8 | 76.9% |
+| C — told the trend fields exist | 8 | **82.7%** |
+
+Three independent interventions by three different mechanisms — masked prose
+summaries, ten real vintage-corrected indicators, and one paragraph of
+instruction carrying no new data at all. **Round-number share rose every time.**
+Distinct values never came near fifteen and never exceeded nine.
+
+Whatever produces nine-ish distinct scores across fifty-two weeks is not
+downstream of how much evidence the payload carries, and not downstream of
+whether the model is told the evidence is there.
+
+### The one place it worked, and what that says
+
+On **TR 2018 — the determinate window — arm C moved distinct values 9 → 12**,
+the best discrimination figure any arm has produced on either window, at a
+round-number share that did not budge and a cost 10% *lower*. It also turned
+earlier, not later: the tripwire in (b) fired in the good direction.
+
+So the trend instruction is read, and it helps — on the window where the
+evidence already resolves. On the ambiguous window it changed nothing and the
+snapping got worse.
+
+That is the same shape the bake-off found for the prompt's own
+"never round to multiples of 5" line: obeyed at 18.9% where evidence is
+determinate, ignored at 69% where it is not. **The instruction holds exactly
+where it is least needed.** Two independent instructions now show that
+signature, which points at how the model converts ambiguous evidence into a
+number rather than at what the prompt tells it to do with clear evidence.
+
+`docs/deferred.md` §12 — the within-band discrimination test — is the successor
+this argues for, and it is still proposed and not run.

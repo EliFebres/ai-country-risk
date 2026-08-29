@@ -1093,6 +1093,16 @@ def score_anchors(name: str, budget_usd: float = BAKEOFF_BUDGET_USD,
                 "error": error,
                 "llm_score": out.get("score"),
                 "score_3m": out.get("score_3m"),
+                # Recorded because a criterion needed it and it was not here.
+                # `docs/payload-ab.md` attempt 2 pre-registered (d) as "share of
+                # bullet_summary outputs referencing direction" -- a diagnostic
+                # for whether a block was read at all, which is the thing p3
+                # could not tell -- and the arm rows carried every number and
+                # not one word of prose, so the criterion was unmeasurable on
+                # the run it was written for. Pre-registering against a field
+                # the harness does not store is the same class of mistake as
+                # writing a value nothing reads.
+                "bullet_summary": out.get("bullet_summary"),
                 "ledger_scores": out.get("ledger_scores") or {},
                 "condition_flags": out.get("condition_flags") or {},
                 "lint": manifest.get("lint") or [],
