@@ -17,7 +17,6 @@ Usage:
     python -m backend.util.pilot.run gdelt        # step 3 (dormant, needs --anyway)
     python -m backend.util.pilot.run wayback      # step 4 (asks before spending)
     python -m backend.util.pilot.run nyt          # step 5
-    python -m backend.util.pilot.run newsapi-ai --dry-run   # metered; measures, writes nothing
     python -m backend.util.pilot.run weo          # step 7 (per-edition macro)
     python -m backend.util.pilot.run monthly      # step 7 (IMF monthly, back-dated)
     python -m backend.util.pilot.run restamp      # step 7 (re-date stored rows)
@@ -51,9 +50,7 @@ from backend.data_upsert import store  # noqa: E402
 from backend.news_fetching import wayback  # noqa: E402
 from backend.util.pilot import reports, score  # noqa: E402
 from backend.util import config  # noqa: E402
-from backend.news_fetching.adapters import (  # noqa: E402
-    gdelt, guardian, newsapi_ai, nyt)
-from backend.util.pilot import newsapi_eval  # noqa: E402
+from backend.news_fetching.adapters import gdelt, guardian, nyt  # noqa: E402
 from backend.data_fetching.vintage import lags, monthly, restamp, weo  # noqa: E402
 
 logger = logging.getLogger("history")
@@ -382,7 +379,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
-    for name in ("guardian", "gdelt", "nyt", "newsapi-ai"):
+    for name in ("guardian", "gdelt", "nyt"):
         p = sub.add_parser(name)
         p.add_argument("--since", help="ISO date overriding the configured floor")
         p.add_argument("--country", action="append", dest="roster",
@@ -390,22 +387,6 @@ def main() -> None:
         if name == "gdelt":
             p.add_argument("--anyway", action="store_true",
                            help="harvest anyway, knowing what it costs")
-        if name == "newsapi-ai":
-            # `--until` only here, and deliberately. The other two harvests are
-            # free, so running them to today costs patience; this one bills per
-            # search, and a run that cannot say where it stops cannot be priced.
-            # (Deferred: the other two would be better with it too.)
-            p.add_argument("--until", help="ISO date bounding the top; "
-                                           "defaults to today")
-            p.add_argument("--granularity", choices=("year", "month"),
-                           default="year",
-                           help="window width. Archive tokens bill per searched "
-                                "year, so this is a price as well as a shape.")
-            p.add_argument("--dry-run", action="store_true", dest="dry_run",
-                           help="measure and report; write nothing. This is the "
-                                "evaluation path — see util/pilot/newsapi_eval.")
-            p.add_argument("--year", type=int, default=2019,
-                           help="country-year for --dry-run. Default 2019.")
 
     p = sub.add_parser("wayback")
     p.add_argument("--limit", type=int, help="stop after this many articles")
@@ -481,18 +462,6 @@ def main() -> None:
         gdelt.harvest(roster=args.roster, since=args.since)
     elif args.command == "nyt":
         nyt.harvest(roster=args.roster, since=args.since)
-    elif args.command == "newsapi-ai":
-        if args.dry_run:
-            # The evaluation, not a harvest. Returns before `_report()` because
-            # nothing was written for it to report on.
-            roster = args.roster or ["PT"]
-            newsapi_eval.render(newsapi_eval.evaluate(
-                iso2=roster[0], year=args.year,
-                fixtures=PROJECT_ROOT / "backend" / "testing" / "fixtures"
-                / "newsapi_ai" / "pt_2019.json"))
-            return
-        newsapi_ai.harvest(roster=args.roster, since=args.since,
-                           until=args.until, granularity=args.granularity)
     elif args.command == "wayback":
         _wayback(args)
     elif args.command == "restamp":

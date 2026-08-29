@@ -152,6 +152,13 @@ more", with no pile-up on any exact length and no empty bodies: publisher
 teasers, not clips. Body length is **continuous rather than bimodal**, so no
 natural floor exists in the data and any threshold is a judgement call.
 
+**Our own clip is bigger than theirs.** Ten newsapi.ai bodies came back at
+exactly 24,000 characters — `core.MAX_BODY_CHARS`, applied in the adapter, not a
+vendor limit. Checking the same thing against the existing corpus found **6,165
+of 53,377 Guardian rows clipped at exactly 24,000**, 11.6%. That is a finding
+about this repo rather than about the vendor, and it outlives the evaluation:
+`deferred.md` item 23.
+
 **Overlap with the existing corpus is ~zero** — 0 of 1,200 URLs for PT, 1 of
 1,200 for BR. The index does not collide with the Guardian's URLs.
 

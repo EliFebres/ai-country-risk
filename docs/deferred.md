@@ -480,10 +480,15 @@ historical scores should check it rather than assume it.
 
 ## 18. `source_system` carries two facts, and a merge overwrites one of them
 
-**Sized and deliberately not done in the session that found it.** It is not a
-bug today because only one source has ever supplied a body for a given URL. It
-becomes one the moment a second does, and the corruption is silent and
-irreversible.
+**Sized, and dormant again.** It is not a bug today because only one source has
+ever supplied a body for a given URL — Guardian writes bodies, NYT never does,
+so the branch below has never fired. It becomes one the moment a second body
+source exists, and the corruption is silent and irreversible.
+
+The third source that made this urgent was evaluated and rejected
+(`docs/news-source-evaluation.md`), so this is back to latent. Left here at full
+size because the sizing is the expensive part and it will be wanted verbatim the
+day another source is considered.
 
 `store.upsert_articles` resolves a URL collision with `ON CONFLICT (url) DO
 UPDATE`, and one branch of that update reads:
@@ -528,8 +533,8 @@ entirely in the DB-gated tests (`TestBodyBeatsStub`,
 set — so doing it without standing up a test database first would be changing
 the most dangerous SQL in the codebase unverified.
 
-**Do it before the first newsapi.ai write**, not before the next evaluation: the
-evaluation path writes nothing, so nothing is at risk until a harvest runs.
+**Do it before the first write from any second body source**, not on a
+schedule. Nothing is at risk while Guardian is the only source writing bodies.
 
 ---
 
@@ -539,8 +544,7 @@ evaluation path writes nothing, so nothing is at risk until a harvest runs.
 
 `adapters.guardian` decides a body is a body with `if item.get("text")` — bare
 truthiness, so a one-character string is stored as `body_status='recovered'` and
-nothing downstream re-checks it. `adapters.newsapi_ai` is the first module in
-the codebase with a real floor (`config.NEWSAPI_MIN_BODY_CHARS`).
+nothing downstream re-checks it. No adapter in the tree applies a length floor.
 
 The obvious worry was that the corpus's headline body-coverage number had never
 been validated, and that Gate 2's evidence quality and the p3 context blocks
@@ -561,7 +565,8 @@ there is no natural cut to read off it. Any floor is a judgement call rather
 than something the data hands over, which is worth knowing before the same
 question is asked of a source that aggregates 150,000 publishers.
 
-Re-run it with `newsapi_eval.guardian_stub_audit()`. It is read-only.
+The query is one `SELECT` over `article WHERE body_status = 'recovered'`
+grouped by `source_system`, counting rows under the floor. Read-only.
 
 ---
 
@@ -579,12 +584,10 @@ passes.
 The Guardian answers BR fine: one live call returned `pages=15, total=1421` for
 2019 alone. This is a transient failure that was checkpointed and forgotten.
 
-**It resumes on its own** — only `done` is skipped, so `run guardian --country BR`
-retries all eleven. At the measured ~26 calls a country-year that is ~300 calls,
-comfortably inside a day's allowance. The two never-attempted windows (2015 and
-2016 on every country, not just BR) are a separate question: `HARVEST_FLOOR` is
-2015-01-01 but the earliest checkpoint anywhere is 2016-08-03, so something
-moved the floor after those runs.
+**It resumed on its own** — only `done` is skipped, so `run guardian --country BR`
+retried all eleven. BR 2019 alone came back with 1,421 rows in 65 calls and now
+passes every theme floor at 0% short. The remaining ten BR years are ~300 calls,
+comfortably inside a day's allowance, and are still owed.
 
 The real deferred item is not the retry, it is that **nothing reports this**.
 Eleven consecutive failed checkpoints on one country produced no summary line
@@ -594,52 +597,79 @@ countries whose windows are mostly `failed` would have caught it months ago.
 
 ---
 
-## 20. `--until` exists on one harvest subcommand out of four
+## 20. No harvest subcommand takes `--until`, so a single country-year is inexpressible
 
-`run.py` gives `--since` and `--country` to every harvest, and `--until` only to
-`newsapi-ai`. The asymmetry is deliberate and thin: Guardian and NYT are free,
-so running them to today costs patience, while newsapi.ai bills per search and a
-run that cannot say where it stops cannot be priced.
+`run.py` gives `--since` and `--country` to every harvest and `--until` to none
+of them, so a harvest always runs from its floor to today and **a single
+country-year cannot be expressed**.
 
-It is still an inconsistency a reader has to be told about rather than one they
-can infer. Adding `--until` to the shared `for name in (...)` loop and threading
-an `until` parameter through `guardian.harvest` and `nyt.harvest` is a small
-change, and it would let a single country-year be harvested from any source —
-useful for exactly the kind of A/B this session ran.
+That cost real time during the 2026-08 source evaluation: comparing one
+country-year across sources meant calling `guardian.harvest_window` directly and
+hand-writing the checkpoint, because the CLI had no way to say "just 2019".
+Adding `--until` to the shared `for name in (...)` loop and threading an `until`
+parameter through `guardian.harvest` and `nyt.harvest` is a small change and it
+is the difference between a one-line comparison and a scratch script.
 
 
 ---
 
-## 21. newsapi.ai needs a theme top-up, and the probe needs re-running before either
+## 21. Closed — newsapi.ai was evaluated and rejected
 
-Both fall out of the 2026-08-28 evaluation, written up in full in
-`docs/historical-ratings.md`.
+Kept as a pointer rather than deleted, because the next person to notice that
+half the corpus has no bodies will have the same idea.
 
-**The top-up.** A single concept query per window fails the `information` and
-`edge` theme floors on 46% and 56% of anchors — against a pre-agreed line of 25%
-— because a broad "Portugal" query returns football. The remedy is measured and
-works: a keyword-directed search on the failing themes only, using their own
-`core.THEME_QUERIES` terms, returns 62 information-classified articles a month
-against roughly 1.7 from the broad query. It is not built, because it triples the
-cost per country-year (60 tokens to 180) and that only earns its place once the
-roster it will run on is decided.
+The keyword top-up this item used to describe is moot: the adapter is removed
+(`git show 458140a`, `d707a8e`, `4d97c63`). The measurement that killed it is in
+**`docs/news-source-evaluation.md`** — a broad concept query against an index of
+~150,000 general-news publishers returns sport, so the source supplied twice the
+Guardian's volume and a worse fit to the ledgers, and the remedy cost more than
+the scoring it fed.
 
-Do **not** implement it as six per-theme queries. The whole reason this adapter
-is affordable is that it asks once and classifies locally; the top-up is a
-narrow patch on two thin themes, not a return to the Guardian's shape.
+The one durable requirement, if a body source is ever sought again: **it has to
+be retrievable per theme, or its volume is worth nothing.**
 
-**The probe.** 19.7% of a PT corpus and 15.6% of a BR one come from local
-outlets, against a Guardian mix that is almost entirely foreign desks. That
-changes what `llm.probe` is reading in a way the gazetteer cannot see — it masks
-names, not register, and a Portuguese regional paper writing "the government" is
-far more identifying than the Guardian writing it.
+---
 
-This makes `deferred.md` item 7 — the deleted two-run masking comparison,
-explicitly including *"outlet fingerprinting: whether the probe is reading the
-evidence or the newspaper"* — **a precondition on any newsapi.ai corpus reaching
-a scored series**.
+## 22. The 2015–2016 lead-in was never harvested — a p3 prerequisite
 
-Scope it precisely: it blocks *that corpus*, not the pilot. The Guardian/NYT
-series is unaffected — its source mix is the one the probe was calibrated
-against, and nothing measured here changes it. Item 7 remains owed for the
-pilot on its own merits and blocking only for newsapi.ai.
+`config.HARVEST_FLOOR` is `2015-01-01`, but the earliest checkpoint in
+`run_ledger` anywhere is **2016-08-03**. Every country is missing its 2015 and
+2016-to-August windows: they are not `failed`, they were never attempted, so
+nothing retries them and `completed_windows` cannot tell them from windows that
+do not exist.
+
+Something moved the floor after those runs and no migration went back for the
+lead-in.
+
+**Why it is a prerequisite rather than a nice-to-have.** The trailing-context
+work (p3) reads a quarter of history behind each anchor, and `PILOT_START` is
+2016-08-03 — the *same date* as the earliest checkpoint. So the first anchors in
+the series have no lead-in behind them at all, and a context block built there is
+reading an absence it cannot distinguish from a quiet quarter. Any p3 rebuild
+should either harvest the lead-in first or refuse to build context for anchors
+whose window predates the corpus.
+
+Cheap to check, cheap to fix: `run guardian --since 2015-01-01` re-derives the
+windows and skips everything already `done`.
+
+---
+
+## 23. 11.6% of Guardian bodies are clipped at `core.MAX_BODY_CHARS`
+
+Measured 2026-08-28: **6,165 of 53,377 Guardian rows have a body of exactly
+24,000 characters**, which is `core.MAX_BODY_CHARS`. 6,175 sit in the top 100
+characters below it. That is not the API's limit, it is ours — applied in
+`guardian.to_item` and in `wayback` before anything downstream sees the text.
+
+It is very probably fine and it has never been checked. The scoring stage reads
+`FULL_TEXT` for only the top two or three articles at 12k characters each, so a
+24k clip is twice what the prompt uses and the truncation is invisible to the
+score. What it does touch is `content_sha256`, which hashes the clipped body —
+so the provenance hash identifies "the first 24k of this article", not the
+article, and a future change to `MAX_BODY_CHARS` would silently re-hash 6,165
+rows into apparent changes.
+
+Worth one decision rather than one investigation: either the cap is part of the
+provenance contract and should be recorded next to the hash, or bodies should be
+stored whole and clipped at read time. Doing nothing is defensible; not knowing
+which is not.
