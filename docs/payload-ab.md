@@ -1,8 +1,21 @@
-# The payload: does trailing context restore discrimination?
+# The payload: what has to be in it before the model can discriminate?
+
+Two attempts, against the same criteria, recorded together so they can be read
+against each other. The scorer is settled at `gpt-4o`; this is the other half of
+the instrument.
+
+1. **[p3-context](#attempt-1-trailing-context)** — four quarters of masked prose
+   history. Measured and **rejected**: it made the instrument coarser.
+2. **[the vintage fix, then p4-trend](#attempt-2-the-baseline-was-wrong)** — and
+   the discovery that attempt 1 was measured on a payload that was missing two
+   of its four ledgers entirely.
+
+---
+
+## Attempt 1: trailing context
 
 Whether the pilot runs on **p2** (30-day window only) or **p3-context** (plus four
-quarters of masked history). The scorer is settled at `gpt-4o`; this is the other
-half of the instrument.
+quarters of masked history).
 
 **Written before any p3 data existed.** The criteria below, including their
 numeric thresholds, were committed before the arm was run. That is the only thing
@@ -198,3 +211,122 @@ unset by default, so the measurement is reproducible and a later prompt change
 can be tested against the same block rather than rebuilding it. What was learned
 cost $3.90 and is worth more than the block: *more evidence did not make this
 instrument finer, and the next attempt should not assume it will.*
+
+---
+
+# Attempt 2: the baseline was wrong
+
+**Written 2026-08-29, before any arm of this attempt was read.** Arm A′ was
+executing when the criteria below were committed and no result had been seen.
+That is the only thing that makes a verdict against them worth anything, and it
+is the same discipline attempt 1 was held to.
+
+## What changed underneath attempt 1
+
+`indicator_series.as_of` means "when this observation became public" — the whole
+no-future rule for macro rests on it. Three writers stamped it from the clock
+instead, so `payload._resolve`'s vintage bound dropped every row they wrote at
+every historical anchor. Ten indicators vanished from every backfilled payload.
+
+Measured at a 2019-06-01 anchor on the pilot corpus, indicators resolvable per
+country, before the fix and after:
+
+| ledger | registry | before | after |
+|---|---|---|---|
+| friction | 14 | 5.00 | 9.67 |
+| uncertainty | 16 | 9.67 | 10.00 |
+| **information** | 4 | **0.00** | **1.00** |
+| **edge** | 4 | **0.00** | **2.67** |
+| total | 38 | 14.7 | 23.3 |
+
+**Two of the four ledgers resolved nothing at all.** Not a thin ledger — an
+empty one, at every anchor, for the entire pilot. The information and edge
+scores in every backfilled snapshot were produced from news articles and the
+prompt's own calibration language, with no macro evidence beneath them.
+
+Everything measured on backfilled anchors was measured through that: the p2
+reference, the GATE2 baseline, the scorer bake-off, and both arms of attempt 1.
+
+## What that does to attempt 1's verdict
+
+p3-context was rejected on the finding that *more evidence made the instrument
+coarser* — distinct values 9 → 7, round-number share 69.2% → 75.0%. That result
+is not withdrawn, and it should not be treated as settled either.
+
+The honest reading: p3 added four quarters of prose to a payload whose
+information and edge ledgers were empty, and the model got coarser. Whether it
+would do the same to a payload with all four ledgers populated is **not a
+question attempt 1 answered**, because that payload did not exist when it ran.
+The *conclusion* — that more evidence is not automatically the lever — survives.
+The *measurement* was taken on a degraded instrument.
+
+Re-running p3 on the fixed payload is not planned here. It is recorded as a
+question the branch can no longer claim to have closed.
+
+## The arms
+
+| arm | what it is | cost |
+|---|---|---|
+| **A** | the stored p2 rows, scored **before** the fix | $0 — read from `risk_snapshot` |
+| **A′** | p2 re-scored **after** the fix. The new reference | ~$4.20 |
+| **C** | A′ plus one prompt rule pointing at `trend_1y` / `trend_5y` | ~$4.20 |
+| **B** | A′ plus the computed p4 trend block | ~$4.20 |
+
+**A′ against A isolates the vintage fix**, and is a supporting illustration
+rather than the evidence for it — the per-ledger indicator counts above are the
+measurement, and they are already in hand.
+
+**Why arm C exists.** `_stamp` has emitted `trend_1y` and `trend_5y` on every
+indicator since p1. They are serialized into every prompt. Nothing reads them:
+no consumer, no test, and `AI_PROMPT_V3` — which explains `as_of` and
+`staleness_days` — never mentions them. Measured on the fixed payload they are
+populated on 22 of 23 resolved indicators for US and 24 of 25 for TR.
+
+So the model has been handed a one-year and five-year change on nearly every
+indicator for the life of the project and was never told the fields were there.
+C is a **pure prompt change** — no new data — and it separates *"the model
+needed more evidence"* from *"the model was never told what it already had"*.
+Attempt 1 could not tell those apart, which is why its criterion (d) existed.
+
+**The corpus is pinned.** The selected article set is recorded per anchor for
+all 105 before arm A′ ran, and every later arm asserts an identical set. A
+three-arm comparison where the arms read different evidence measures nothing, so
+a mismatch is a hard failure rather than a footnote.
+
+## Criteria
+
+Baselined on **A′**, not on the old p2 rows.
+
+| # | Criterion | The line |
+|---|---|---|
+| **(a)** | **Discrimination** | distinct composite values on US 2019 **≥ 15** and round-number share **≤ 44%** |
+| **(b)** | **No lag** | on TR 2018, first move **≥ 0.05** above the Q1 baseline **no later** than A′ |
+| **(c)** | **Not a rewrite** | between-arm Spearman ρ on TR 2018 **≥ 0.65** |
+| **(d)** | **Trajectory is read** | share of `bullet_summary` outputs referencing direction. **No threshold** |
+| **(e)** | **Cost** | per-snapshot delta **≤ ~15%** against A′ |
+| **(f)** | **Report only** | lag-1 autocorrelation and run-length, all arms, both windows |
+
+**Decision rule: adopt iff (a), (b) and (c) hold.**
+
+- **If C alone clears them, that is the answer** and B's machinery is optional.
+  Report it that way rather than adopting the larger change by default: a
+  paragraph of prompt that works is worth more than a block of code that also
+  works.
+- **(c) is loosened from attempt 1's 0.80 to 0.65, deliberately.** A payload
+  that genuinely discriminates on quiet weeks *must* disagree with A′ where A′
+  is weakest, so the tighter line would have penalised the improvement being
+  bought. 0.65 still catches an arm that has thrown the determinate window away.
+- **(d) is the diagnostic attempt 1 lacked.** Near-zero means the block is being
+  ignored, and an ignored block and a diluting block need different next steps.
+- **(a) is unchanged from attempt 1**, thresholds and derivation included. It is
+  the right test and this is the second attempt at it.
+
+## What is deliberately not a criterion
+
+**Absolute score level.** The fix adds ten indicators and the level may move;
+that is survivable and recalibratable. Reordering is not, which is why (c) is a
+rank correlation.
+
+**Agreement between A and A′.** They *should* disagree — A was scored without
+two of its ledgers. Demanding agreement would be a criterion only a no-op could
+pass, and would amount to requiring that the bug fix changed nothing.
