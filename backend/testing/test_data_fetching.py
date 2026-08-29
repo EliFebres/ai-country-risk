@@ -22,6 +22,7 @@ from backend.util import constants
 from backend.llm import payload
 from backend.data_fetching import curated_loader as cl
 from backend.data_fetching import imf_macro_fetch as imf
+from backend.data_upsert import data_push
 from backend.data_fetching.vintage import lags, monthly, restamp, weo
 
 HEADER = ("WEO Country Code\tISO\tWEO Subject Code\tCountry\tSubject Descriptor\t"
@@ -286,6 +287,67 @@ class TestTheLagTable:
         assert lags.lag_days("SOME.NEW.CODE", "M") == 45
 
 
+class TestTheUpsertRefusesAClockStampedRow:
+    """The guard at the chokepoint, because the per-caller fix kept losing.
+
+    Three writers stamped `as_of = date.today()` on observations describing past
+    periods; two were found only after the second one had silently emptied two
+    ledgers for the whole pilot. They all meet in `upsert_indicator_series`, and
+    it accepted any date at all -- so the fourth writer would have been broken by
+    default. These pin the shape of the guard rather than any one caller.
+    """
+
+    def _row(self, **kw):
+        return {"country_iso2": "PT", "indicator_code": "GOV_WGI_GE.EST",
+                "freq": "A", "period": "2018", "value": 1.0,
+                "as_of": datetime.date(2026, 8, 28),
+                "source": "World Bank WGI", **kw}
+
+    def test_a_fetch_date_on_a_past_period_is_re_dated(self):
+        stamp = data_push._corrected_stamp(
+            "GOV_WGI_GE.EST", "A", "2018", datetime.date(2026, 8, 28))
+        assert stamp == lags.published_on("2018", "A", "GOV_WGI_GE.EST")
+
+    def test_a_declared_edition_date_is_never_touched(self):
+        """A WEO edition date is a fact; this guard's table is an estimate."""
+        assert data_push._corrected_stamp(
+            "WEO.GGXWDG_NGDP", "A", "2017", datetime.date(2018, 4, 1)) is None
+
+    def test_a_date_earlier_than_its_period_is_left_alone(self):
+        """The opposite defect, and not this guard's business.
+
+        `country_data_fetch.panel_rows` stamps 31-December-of-the-year on
+        purpose and caps the current year at today. Both are pinned elsewhere.
+        Re-dating them here would be a second, unrequested change to the one
+        annual path that never broke.
+        """
+        assert data_push._corrected_stamp(
+            "GOV_WGI_GE.EST", "A", "2018", datetime.date(2018, 12, 31)) is None
+        assert data_push._corrected_stamp(
+            "GOV_WGI_GE.EST", "A", "2026", datetime.date(2026, 8, 28)) is None
+
+    def test_a_plausible_publication_lag_is_left_alone(self):
+        """Within two years of period end is a publisher being slow, not a bug."""
+        assert data_push._corrected_stamp(
+            "GOV_WGI_GE.EST", "A", "2018", datetime.date(2019, 9, 1)) is None
+
+    def test_an_unparseable_period_is_not_guessed_at(self):
+        assert data_push._corrected_stamp(
+            "GOV_WGI_GE.EST", "A", "garbage", datetime.date(2026, 8, 28)) is None
+
+    def test_a_curated_row_declares_a_scheme_so_nothing_re_dates_it(self):
+        """The CSV's `as_of` was typed by someone holding the publication.
+
+        Left undeclared it filed under the name that means "stamped off the
+        clock", which both this guard and `restamp.plan` read as permission.
+        """
+        assert (cl.CURATED_VINTAGE_SCHEME
+                != data_push._UNDECLARED_VINTAGE)
+        _, skipped = restamp.plan([stored_row(
+            vintage_scheme=cl.CURATED_VINTAGE_SCHEME)])
+        assert "as-published-curated" in skipped[0]["skip_reason"]
+
+
 class TestRestampingIsAMoveAndNotACopy:
     """`as_of` is in the primary key, so an upsert cannot re-date anything.
 
@@ -447,6 +509,10 @@ class TestTheCuratedLoader:
             "freq": "A", "period": "2025", "value": 31.5,
             "as_of": datetime.date(2026, 7, 1),
             "source": "OECD Corporate Tax Statistics",
+            # Declared, so neither `restamp` nor the upsert guard may move it.
+            # An operator typed that `as_of` off the publication itself; left
+            # blank it defaulted to the name meaning "read off the clock".
+            "vintage_scheme": cl.CURATED_VINTAGE_SCHEME,
         }
 
     def test_freq_and_source_come_from_the_registry(self, tmp_path):

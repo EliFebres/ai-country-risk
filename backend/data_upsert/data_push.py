@@ -24,6 +24,11 @@ from typing import Dict, Any, Iterator, NamedTuple, Optional, List, Tuple
 import psycopg2
 import psycopg2.extras as extras
 
+# `lags` imports nothing from this package -- it is a table of publication
+# delays and two date functions -- so this does not close the data_fetching ->
+# data_upsert loop that already exists.
+from backend.data_fetching.vintage import lags
+
 logger = logging.getLogger(__name__)
 
 
@@ -545,6 +550,41 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
 _SERIES_FREQS = ("M", "Q", "A")
 
 
+# The scheme a row carries when its writer said nothing about where the date
+# came from — which is also, in practice, the mark of a date read off the clock.
+_UNDECLARED_VINTAGE = "as-published-latest"
+
+
+def _corrected_stamp(code: str, freq: str, period: str,
+                     as_of: datetime.date) -> Optional[datetime.date]:
+    """A publication date for a row whose ``as_of`` is implausibly late, else None.
+
+    The chokepoint guard. Three writers stamped `as_of = date.today()` on
+    observations describing past periods, and `payload._resolve`'s vintage bound
+    then dropped every one of them at every historical anchor -- two whole
+    ledgers resolved nothing for the entire pilot. Each writer was a one-line
+    fix and the next writer would have been the fourth, because this function is
+    where they all meet and it accepted any date at all.
+
+    The test is deliberately "too late", not "not equal to what lags would say":
+
+    * A stamp more than `MAX_LAG_DAYS` past its own period end cannot be a
+      publication date. No publisher is two years late, so it is a clock read.
+    * A stamp *earlier* than its period end is the opposite defect and is left
+      alone. `country_data_fetch.panel_rows` writes 31-December-of-the-year
+      deliberately, and its current-year row is capped at today by design; both
+      are pinned by tests. Re-dating those here would be a second, unrequested
+      change to the one annual path that always worked.
+    * A row that declares a real scheme is never touched: a WEO edition date is
+      a fact, and a curated row's date was typed by someone who knew it.
+    """
+    if not lags.within_bounds(as_of, period, freq):
+        end = lags.period_end(period, freq)
+        if end is not None and as_of > end + datetime.timedelta(days=lags.MAX_LAG_DAYS):
+            return lags.published_on(period, freq, code)
+    return None
+
+
 def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
     """Upsert observations into the generic ``indicator_series`` store.
 
@@ -568,6 +608,7 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
 
     prepared: List[Tuple] = []
     skipped = 0
+    restamped = 0
     for row in rows:
         if not isinstance(row, dict):
             skipped += 1
@@ -593,13 +634,26 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
                 skipped += 1
                 continue
 
+        scheme = str(row.get("vintage_scheme") or _UNDECLARED_VINTAGE)
+        if scheme == _UNDECLARED_VINTAGE:
+            corrected = _corrected_stamp(str(code), freq, str(period), as_of)
+            if corrected is not None:
+                restamped += 1
+                as_of, scheme = corrected, lags.SCHEME
+
         prepared.append((
             str(iso2), str(code), freq, str(period), value, as_of, str(source),
-            str(row.get("vintage_scheme") or "as-published-latest"),
+            scheme,
         ))
 
     if skipped:
         logger.warning("indicator_series: skipped %d malformed row(s) of %d", skipped, len(rows))
+    if restamped:
+        # Loud rather than silent: a writer landing here is one that has not been
+        # taught to date its own rows, and the count is how you find it.
+        logger.warning("indicator_series: re-dated %d clock-stamped row(s) of %d "
+                       "-- the writer stamped a fetch date on a past period",
+                       restamped, len(rows))
     if not prepared:
         return
 

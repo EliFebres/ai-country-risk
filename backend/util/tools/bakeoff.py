@@ -288,6 +288,23 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
         "env": {"PAYLOAD_VARIANT": "p3-context"},
         "key_env": "OPENAI_API_KEY",
     },
+    # p2 again, re-scored rather than read. `capture-baseline` reads
+    # `risk_snapshot`, and those rows were written when `wb_series_fetch`
+    # stamped its rows with the fetch date — so every one of them was scored on
+    # roughly fifteen indicators where the table held twenty-three, with the
+    # information and edge ledgers empty. The stored reference and any arm run
+    # after the vintage fix are no longer the same experiment.
+    #
+    # Pinning PAYLOAD_VARIANT to its default looks redundant and is not: it is
+    # what declares this a payload arm, and it is what `candidate_env` scrubs
+    # between runs. The evidence moved underneath a fixed contract, which is
+    # the one kind of change this harness had no way to express.
+    "p2-rebaseline": {
+        "arm": "payload",
+        "note": "p2 re-scored after the vintage fix, scorer held at gpt-4o",
+        "env": {"PAYLOAD_VARIANT": "p2"},
+        "key_env": "OPENAI_API_KEY",
+    },
 }
 
 # Every candidate is an OpenAI model, and that is the round-2 result rather than
