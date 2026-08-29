@@ -257,7 +257,7 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
     Returns:
         Rows written this run.
     """
-    roster = roster or config.PILOT_ROSTER
+    roster = roster or config.HARVEST_ROSTER
     start = datetime.date.fromisoformat(since or config.HARVEST_FLOOR)
     end = datetime.date.today()
 
@@ -268,6 +268,15 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
         wanted = [iso2 for iso2 in roster if first not in done[iso2]]
         if wanted:
             todo.append((year, month, first, last, wanted))
+
+    # Same convergence signal as the Guardian harvest, and the same reason: a
+    # finite job that has finished must say so, or a tail of the log cannot tell
+    # it from one that is stuck.
+    if not todo:
+        logger.info("[nyt] nothing to harvest — roster complete through %s "
+                    "(%d country/ies, every month checkpointed done)",
+                    end.isoformat(), len(roster))
+        return 0
 
     logger.info("[nyt] %d month(s) to fetch, ~%d minutes at %.0fs each. One call "
                 "covers every country in the roster.",

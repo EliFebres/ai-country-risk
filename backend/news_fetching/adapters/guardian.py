@@ -404,14 +404,32 @@ def harvest(roster: Optional[List[str]] = None,
     Returns:
         Rows written this run.
     """
-    roster = roster or config.PILOT_ROSTER
+    roster = roster or config.HARVEST_ROSTER
     start = datetime.date.fromisoformat(since or config.HARVEST_FLOOR)
     end = datetime.date.today()
     windows = year_windows(start, end)
 
+    # One query per country, not one per (country, window). As a comprehension
+    # condition this ran `completed_windows` on every pair — 48 countries by a
+    # decade of windows is 528 round trips to Postgres to answer 48 questions,
+    # on a job that now runs four times a day. `nyt.harvest` already read it
+    # this way.
+    done = {iso2: store.completed_windows(SOURCE_SYSTEM, iso2) for iso2 in roster}
     todo = [(iso2, w) for iso2 in roster for w in windows
-            if w[0] not in store.completed_windows(SOURCE_SYSTEM, iso2)]
+            if w[0] not in done[iso2]]
     estimate = len(todo) * len(core.THEME_QUERIES)
+    # The convergence signal. This harvest is a *finite* job — once the roster is
+    # banked from the floor to today, every run should read the checkpoints and
+    # do nothing — and a finite job running unattended for weeks has to be able
+    # to say so out loud. Without this line a converged harvest and a broken one
+    # produce the same silence, and the choice is between killing it early and
+    # leaving it running for months.
+    if not todo:
+        logger.info("[guardian] nothing to harvest — roster complete through %s "
+                    "(%d country/ies x %d window(s), all checkpointed done)",
+                    end.isoformat(), len(roster), len(windows))
+        return 0
+
     budget = quota()
     logger.info("[guardian] %d country-years x %d themes = ~%d calls before any "
                 "subdivision (%d country-years already done). Daily budget %s "
@@ -488,7 +506,16 @@ def harvest(roster: Optional[List[str]] = None,
                     iso2, window_start.year, n, spent, calls[0],
                     _QUOTA["remaining"] if _QUOTA["remaining"] is not None else "?")
 
-    logger.info("[guardian] done: %d rows in %d calls, ~%d per country-year",
+    # `todo` was the outstanding set when the run started and `cost` counts what
+    # this run actually finished, so the difference is what is still owed. Read
+    # off the run rather than re-queried, because a second `completed_windows`
+    # call would be a different question asked at a different time.
+    outstanding = len(todo) - len(cost)
+    logger.info("[guardian] done: %d rows in %d calls, ~%d per country-year. "
+                "%s",
                 written, calls[0],
-                round(sum(cost) / len(cost)) if cost else 0)
+                round(sum(cost) / len(cost)) if cost else 0,
+                f"{outstanding} country-year(s) still outstanding"
+                if outstanding else
+                f"roster complete through {end.isoformat()}")
     return written

@@ -69,6 +69,29 @@ PILOT_START: str = "2016-08-03"
 # and expensive to go back for once the archive quota has moved on.
 HARVEST_FLOOR: str = "2015-01-01"
 
+# The order the harvest walks the roster, most-blocking first.
+#
+# Not `PILOT_ROSTER`, and deliberately a different list: what gets *scored* and
+# what gets *harvested* are different questions, and coupling them is how BR —
+# harvested, not scored — fell out of a harvest that was only ever supposed to
+# skip it at scoring time.
+#
+# Tier 1 is the pilot five, because everything measured so far is measured on
+# them: a bake-off re-run, a Gate-2 re-measure or a scoring smoke test is
+# blocked until they are banked, and the other 43 block nothing. Tier 2 is the
+# rest of the roster in `COUNTRY_ROSTER` order.
+#
+# Read from `constants.COUNTRY_ROSTER` rather than `gazetteer.DEFAULT_ROSTER`,
+# which is built from the same list: identical content, and it keeps config
+# from importing the llm package. `DEFAULT_ROSTER` stays all 48 regardless of
+# what is being harvested — masking correctness does not care whose turn it is.
+HARVEST_TIER_1: tuple[str, ...] = ("PT", "US", "TR", "KR", "BR")
+
+HARVEST_ROSTER: list[str] = list(HARVEST_TIER_1) + [
+    entry["iso2"] for entry in constants.COUNTRY_ROSTER
+    if entry["iso2"] not in HARVEST_TIER_1
+]
+
 # The GDELT DOC 2.0 API's own article floor. Dormant: the pilot is Guardian and
 # NYT only, because the DOC endpoint answers roughly one call per multi-minute
 # window from a single IP — see the measurement in ``adapters/gdelt``. Kept so

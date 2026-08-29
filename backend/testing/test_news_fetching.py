@@ -16,6 +16,7 @@ No network, no model: every boundary is monkeypatched.
 """
 
 import datetime
+import logging
 import inspect
 import re
 
@@ -717,3 +718,129 @@ class TestTheLedgerSaysWhyTheHarvestStopped:
         guardian.harvest(roster=["PT"], since="2017-01-01")
 
         assert rows[0]["status"] == "failed"
+
+
+# ---------------------------------------------------------------------------
+# Harvest order, and knowing when the harvest is done
+# ---------------------------------------------------------------------------
+
+class TestTheHarvestOrderUnblocksTheBlockedWork:
+    """Tier 1 is the pilot five, because everything measured sits on them.
+
+    Order matters here in a way it does not for most loops: the harvest is
+    quota-bound over weeks, so whatever is late in the list is late by days. A
+    bake-off re-run or a Gate-2 re-measure is blocked until the pilot five are
+    banked; the other 43 block nothing.
+    """
+
+    def test_the_pilot_five_come_first(self):
+        assert config.HARVEST_ROSTER[:5] == list(config.HARVEST_TIER_1)
+
+    def test_brazil_is_harvested_even_though_it_is_not_scored(self):
+        """The coupling that lost BR's corpus once already.
+
+        BR is deliberately absent from `PILOT_ROSTER` — harvested, not scored —
+        so defaulting the harvest to the scoring roster drops it.
+        """
+        assert "BR" in config.HARVEST_ROSTER
+        assert "BR" not in config.PILOT_ROSTER
+
+    def test_it_is_the_whole_roster_exactly_once(self):
+        from backend.util import constants
+
+        assert sorted(config.HARVEST_ROSTER) == sorted(
+            e["iso2"] for e in constants.COUNTRY_ROSTER)
+        assert len(config.HARVEST_ROSTER) == len(set(config.HARVEST_ROSTER)) == 48
+
+    def test_the_masking_roster_is_not_the_harvest_roster(self):
+        """`DEFAULT_ROSTER` must stay all 48 whatever is being harvested.
+
+        Masking correctness does not care whose turn it is, and wiring the two
+        together would make the mask map a function of harvest progress.
+        """
+        from backend.llm import gazetteer
+
+        assert set(gazetteer.DEFAULT_ROSTER) == set(config.HARVEST_ROSTER)
+        assert gazetteer.DEFAULT_ROSTER != tuple(config.HARVEST_ROSTER), (
+            "same members, different order — the masking roster is its own thing")
+
+    def test_the_harvesters_default_to_it(self, monkeypatch):
+        """The consumer side: what `harvest()` actually walks with no roster."""
+        seen = []
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+        monkeypatch.setattr(guardian.store, "completed_windows",
+                            lambda _s, iso2: seen.append(iso2) or set())
+        monkeypatch.setattr(guardian, "harvest_window",
+                            lambda *_a, **_k: (_ for _ in ()).throw(
+                                guardian.QuotaExhausted("spent", 500)))
+        monkeypatch.setattr(guardian.store, "write_checkpoint", lambda *a, **k: None)
+
+        guardian.harvest(since="2016-01-01")
+
+        # One lookup per country now, but assert on first-appearance order so
+        # the test survives the loop shape changing again.
+        order = list(dict.fromkeys(seen))
+        assert order[:5] == list(config.HARVEST_TIER_1)
+        assert len(order) == 48
+        assert len(seen) == 48, "one completed_windows query per country, not per window"
+
+
+class TestAConvergedHarvestSaysSo:
+    """A finite job running unattended has to be able to report that it is done.
+
+    Otherwise a converged harvest and a stuck one produce identical silence in
+    the log, and the only choices are killing it early or leaving it for months.
+    """
+
+    def test_guardian_reports_completion_and_does_no_work(self, monkeypatch, caplog):
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+        # Every window already done.
+        monkeypatch.setattr(
+            guardian.store, "completed_windows",
+            lambda _s, _i: {w[0] for w in guardian.year_windows(
+                datetime.date(2016, 1, 1), datetime.date.today())})
+
+        def must_not_run(*_a, **_k):
+            raise AssertionError("a converged harvest must not call the API")
+
+        monkeypatch.setattr(guardian, "harvest_window", must_not_run)
+
+        with caplog.at_level(logging.INFO):
+            assert guardian.harvest(roster=["PT"], since="2016-01-01") == 0
+        assert "nothing to harvest" in caplog.text
+        assert "roster complete through" in caplog.text
+
+    def test_nyt_reports_completion_and_does_no_work(self, monkeypatch, caplog):
+        monkeypatch.setenv("NYT_API_KEY", "k")
+        monkeypatch.setattr(
+            nyt.store, "completed_windows",
+            lambda _s, _i: {nyt.month_bounds(y, m)[0] for y, m in nyt.months(
+                datetime.date(2016, 1, 1), datetime.date.today())})
+
+        def must_not_run(*_a, **_k):
+            raise AssertionError("a converged harvest must not call the API")
+
+        monkeypatch.setattr(nyt, "harvest_month", must_not_run)
+
+        with caplog.at_level(logging.INFO):
+            assert nyt.harvest(roster=["PT"], since="2016-01-01") == 0
+        assert "nothing to harvest" in caplog.text
+
+    def test_an_unfinished_harvest_reports_what_is_left(self, monkeypatch, caplog):
+        """The other half: the number that says how far from done it is."""
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+        monkeypatch.setattr(guardian.store, "completed_windows", lambda *_a: set())
+        monkeypatch.setattr(guardian.store, "write_checkpoint", lambda *a, **k: None)
+        calls = {"n": 0}
+
+        def one_then_wall(*_a, **_k):
+            calls["n"] += 1
+            if calls["n"] > 1:
+                raise guardian.QuotaExhausted("spent", 500)
+            return 3
+
+        monkeypatch.setattr(guardian, "harvest_window", one_then_wall)
+        with caplog.at_level(logging.INFO):
+            guardian.harvest(roster=["PT"], since="2016-01-01")
+
+        assert "country-years left" in caplog.text

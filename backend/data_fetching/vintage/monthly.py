@@ -93,7 +93,11 @@ def backfill(roster: Optional[List[str]] = None,
     them, so the caller decides whether to accept the overwrite described in the
     module docstring.
     """
-    roster = roster or config.PILOT_ROSTER
+    # The whole roster, not the pilot four — the same reason `weo.load_all`
+    # takes all 48. A country missing from here is a country scored without its
+    # monthly CPI or its policy rate, live as well as historically, and the
+    # fetch is one call per country against a free API.
+    roster = roster or config.HARVEST_ROSTER
     start = datetime.date.fromisoformat(since or config.HARVEST_FLOOR)
     today = datetime.date.today()
     lookback = today.year - start.year + 1
