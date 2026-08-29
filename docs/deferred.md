@@ -113,7 +113,34 @@ section at the top of this file is what that costs.
 API would have exactly one caller to replace. Worth deciding later whether it
 belongs; explicitly out of scope so far.
 
-## 3. Thirteen registry indicators have no reachable source
+## 3. HIGH — thirteen indicators have no source, and one ledger runs on a single one
+
+**Raised 2026-08-29 from a footnote to the top of this list.** The count was
+never the point. The distribution is: of the `information` ledger's four
+registry codes, three are curated (`RSF.PRESS.SCORE`, `OBS.SCORE`, `UN.EGDI`)
+and `curated.csv` has never held a data row, so that ledger scores on **one**
+indicator — `IQ.SPI.OVRL`, and only since the vintage fix made it visible at
+all. Before that fix it scored on **none**, at every backfilled anchor, for the
+length of the pilot. `edge` is second thinnest at 2.7 of 4.
+
+`friction` and `uncertainty` resolve about ten each. So two of the four ledgers
+the whole instrument is built on are carrying an order of magnitude less
+evidence than the other two, and nothing in the output said so until
+`payload_health` started counting.
+
+That is a hole in the instrument rather than a missing input to any one
+experiment, and it may bear on why the ledgers behave oddly — `edge_vitality`
+resolving a whole year into three distinct values (`docs/scorer-bakeoff.md`)
+reads differently once you know it had at most three indicators underneath it.
+
+Filling `curated.csv` is a research task with sources to cite, not a coding one,
+and is deliberately not squeezed into a session that was doing something else.
+The ranked fill order with per-source instructions is `backend/README.md:217`;
+`RESERVES.USD` and `STAT.TAX.TOP.RATE` first, `RSF.PRESS.SCORE` third.
+
+### The original item
+
+
 
 `bootstrap` builds 25 of the 38 codes in `INDICATOR_REGISTRY`. The other thirteen
 are all curated-source, and `backend/data/curated.csv` ships with a header and
@@ -398,37 +425,38 @@ rather than from a single day's ceiling. The harness already reports what it
 spent and what is left every time it stops, which is the right place to read this
 from.
 
-## 15. `restamp` is a correction tool the ETL never calls
+## 15. Closed — the fetchers date their own rows, and the upsert enforces it
 
-Three of the four live macro fetchers stamp `as_of` with the **fetch date**:
-`wb_series_fetch.py:53` says so in its own docstring ("the date we learned these
-values — the fetch date"), and `imf_macro_fetch.py` and `bis_bulk_fetch.py` both
-default to `date.today()`. The fourth, `country_data_fetch.py:85`, stamps 31
-December of the value's own year and escapes the problem.
+Kept as a pointer because the diagnosis here was right and the cost it named
+turned out to be larger than it estimated.
 
-Measured on 2026-08-28: **11,810 rows carry today's fetch date** — IMF CPI 2,989,
-WB WDI 2,938, BIS XRU 2,880, BIS CBPOL 1,920, WB WGI 528, WB SPI 414, WB HCP 141.
-The 24,844 `World Bank panel` rows are unaffected.
+This item said three of four macro fetchers stamped `as_of` with the fetch date,
+that `restamp.py` existed to correct exactly that and nothing called it, and that
+the leak was *starvation* rather than contamination — a 2019 payload reading no
+number rather than a wrong one. All correct.
 
-`vintage/restamp.py` exists to correct exactly this, and **nothing calls it**.
-`apply()` is reachable only from the `backfill restamp` CLI branch; neither
-`main._run_etl` nor `bootstrap` invokes it. (`monthly.restamp()` is a different,
-inline function that `monthly.py` does apply to its own rows.) So every macro
-fetch re-creates the condition and a human has to remember to clean up.
+What it under-counted was the damage. Measured on 2026-08-29 at a 2019 anchor,
+the pilot corpus resolved **14.7 of 38 indicators per country**, and the
+**information and edge ledgers resolved zero** — not thin, empty, at every
+backfilled anchor for the length of the pilot. After the fix: 23.3 of 38, with
+information at 1.0 and edge at 2.7. Everything measured on a backfilled anchor
+was measured through that, the p2 reference and the GATE2 baseline included.
 
-**Which direction it leaks.** Not contamination — starvation. `payload._resolve`
-drops any observation with `as_of > anchor`, so those 11,810 rows are invisible
-to *every* historical anchor. A 2019 payload does not read a wrong number from
-those seven sources; it reads no number, arrives thinner, and nothing says why.
-`restamp.py`'s own docstring states it: "with a single fetch date on everything
-**a 2019 snapshot sees zero rows from this table**". The present-day payload is
-fine, since `as_of = today ≤ today`.
+`restamp` also could not have run: `read_all()` called
+`data_push._INDICATOR_SERIES_DDL`, deleted in the ten-table rebuild, so every
+path into the module raised `AttributeError` before touching a row. And its
+`apply()` upserted re-dated rows without deleting the originals — `as_of` is in
+the primary key, so it would have *duplicated* every row and left the fetch-dated
+copy, which carries the later date, still winning `_resolve`'s freshest-wins
+tie-break. It would have reported success and changed nothing anybody reads.
 
-This is the ninth instance of the write-a-thing-nobody-calls pattern, and it is
-the load-bearing one: it sits directly under the historical scoring the whole
-corpus is being harvested for. It needs a decision, not a comment — call it from
-the ETL after every macro fetch, or fix the fetchers to stamp a publication date
-and retire it. Deliberately not resolved in the session that found it.
+Both fixed, the migration run against both databases, and the root cause closed
+at the chokepoint: `upsert_indicator_series` now re-dates any row whose `as_of`
+is implausibly late for its period, so the next fetcher added is not the fourth
+instance. See `git show fd3fa8d`, `d4a1017`, `f8db7d7`.
+
+**What is still owed** is item 24 below: the fourth fetcher, which stamps too
+*early* and leaks in the other direction.
 
 ## 16. `util/pilot/` holds a harvest CLI that belongs under `news_fetching/`
 
@@ -673,3 +701,82 @@ Worth one decision rather than one investigation: either the cap is part of the
 provenance contract and should be recorded next to the hash, or bodies should be
 stored whole and clipped at read time. Doing nothing is defensible; not knowing
 which is not.
+
+## 24. The fourth fetcher stamps too *early*, and that leaks
+
+`country_data_fetch.panel_rows` (`country_data_fetch.py:101,119`) escaped the
+fetch-date bug by stamping `as_of = min(31 December of the value's own year,
+today)`. That is why it was the one annual path that always worked, and it is
+also wrong in the opposite direction.
+
+WDI and WGI annuals land **9–18 months** after the year they describe — WGI
+publishes around September of year+1, which is why `lags._DEFAULT_BY_FREQ["A"]`
+is a full 365 days. Stamping 31-Dec-2018 on a WGI 2018 score claims it was
+public on a date when it did not exist, so an anchor between January and
+September 2019 reads a number nobody had. That is **leakage**, and it is the
+quiet direction: starvation makes a payload visibly thin, while leakage makes a
+backtest look good.
+
+Its current-year row is also capped at `today`, giving an `as_of` *earlier* than
+its own period end — a shape `lags.within_bounds` rejects. Deliberate, and
+pinned by `test_invariants.py:485`.
+
+Not fixed here, and deliberately outside the chokepoint guard added in
+`fd3fa8d`, which only re-dates rows stamped implausibly *late*. Re-dating these
+would move every backfilled annual by up to a year and change every historical
+score, so it wants its own session, its own before/after measurement, and its
+own re-baseline — the same treatment the late-stamping bug just got. The
+guard's test asserts it is left alone, so the exemption is recorded rather than
+accidental.
+
+## 25. The trend fields were computed, serialized, and read by nobody
+
+`_stamp` has emitted `trend_1y` and `trend_5y` on every indicator since p1 —
+38 indicators per country, every snapshot, in the JSON the prompt carries. On
+the fixed payload they are populated on 22 of 23 resolved indicators for US.
+
+Nothing reads them. No consumer, no test, no report, and `AI_PROMPT_V3`, which
+explains `as_of` and `staleness_days` in the same breath, never mentions them.
+`docs/pipeline.md:184` lists the stamped fields and omits them. `payload.py:15`
+states the intent plainly — *"a couple of change horizons are included, enough
+for the model to reason about trend and level"* — so the data was put there for
+exactly this and the instruction was never written.
+
+Another instance of the write-a-thing-nobody-reads pattern (item 15 numbered it
+at nine before this session added two more), and the first where the unread
+artifact was the exact thing a later session set out to build from scratch: a
+brief arrived proposing a computed trend block, and most of it was already in
+the payload, unmentioned.
+
+It is being measured rather than left — arm C of `docs/payload-ab.md` attempt 2
+is one prompt paragraph pointing at these two fields and nothing else. The
+standing rule this argues for: **every writer needs a consumer-side test**, and
+`payload_health` now counts these two fields for exactly that reason.
+
+## 26. The notebook writes clock-stamped rows to the real table
+
+`notebooks/country_rating_walkthrough.ipynb:459-471` upserts fetched rows
+straight into `indicator_series` with `as_of=AS_OF`, the snapshot anchor. Better
+than `date.today()` — it cannot leak into the anchor being scored — but it is
+still not a publication date, and it writes to production.
+
+The chokepoint guard in `upsert_indicator_series` now catches it, so this is
+closed in effect. Left recorded because a notebook that writes to the real
+database is worth knowing about independently of what it stamps.
+
+## 27. GATE2_BASELINE was captured on the degraded payload
+
+`GATE2_BASELINE.md` / `.json` (PT 2019, 52 masked anchors) were captured before
+the vintage fix, so every number in them was produced with the information and
+edge ledgers resolving zero indicators. The file's "Captured under" block
+records nine version stamps and none of them moved, which is precisely the
+problem: the contract looks identical and the evidence underneath it is not.
+
+Re-capturing is ~$2.20 and was not in this session's budget. Until it happens,
+the baseline is a regression check against a run that cannot be reproduced —
+comparing a post-fix run to it will show a difference on every meter, and that
+difference is the bug fix rather than a regression.
+
+The durable fix is the one now in place: `input_manifest.payload_health` records
+how many indicators each run actually resolved, so a future baseline states its
+own evidence depth instead of leaving it to be inferred from a version tuple.
