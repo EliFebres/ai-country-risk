@@ -17,6 +17,8 @@ No network, no model: every boundary is monkeypatched.
 
 import datetime
 import json
+import pathlib
+import os
 import logging
 import inspect
 import re
@@ -1222,3 +1224,277 @@ class TestABadKeyIsNotAQuotaStop:
             newsapi_ai.harvest(roster=["PT", "TR"], since="2019-01-01",
                                until="2019-12-31")
         assert written == [], "a misconfiguration must not write checkpoints"
+
+
+class TestTokensAreFractional:
+    """`req-tokens` arrives as "1.000", not "1". Measured against the live
+    endpoint on 2026-08-28. Parsed as an int it is unparseable, so the meter
+    falls back to the price list on *every* response and the run reports
+    arithmetic while `tokens_are_measured` still says True for nothing — the
+    one path that would not have tripped the flag built to catch exactly this."""
+
+    def setup_method(self):
+        newsapi_ai._SPEND.update(tokens=0.0, calls=0, measured_calls=0,
+                                 limit=None, remaining=None)
+
+    def test_a_fractional_charge_is_read_not_discarded(self):
+        resp = _response(headers={"req-tokens": "1.000"})
+        assert newsapi_ai._read_spend_headers(resp, fallback=5) == 1.0
+        assert newsapi_ai.spend()["tokens"] == 1.0
+        assert newsapi_ai.spend()["tokens_are_measured"] is True
+
+    def test_a_sub_token_charge_survives(self):
+        # The whole reason the field is fractional: a cheap call must not round
+        # to zero and report a harvest that cost nothing.
+        resp = _response(headers={"req-tokens": "0.250"})
+        newsapi_ai._read_spend_headers(resp, fallback=5)
+        assert newsapi_ai.spend()["tokens"] == 0.25
+
+    def test_a_whole_number_still_parses(self):
+        resp = _response(headers={"req-tokens": "5"})
+        assert newsapi_ai._read_spend_headers(resp, fallback=1) == 5.0
+
+    def test_rubbish_falls_back_and_is_flagged(self):
+        resp = _response(headers={"req-tokens": "lots"})
+        assert newsapi_ai._read_spend_headers(resp, fallback=5) == 5
+        assert newsapi_ai.spend()["tokens_are_measured"] is False
+
+
+class TestAnEmptyArchiveIsNotAQuietYear:
+    """The expensive silence. Measured against a live 5K key on 2026-08-28:
+    every window older than ~30 days returned `totalResults: 0` while the same
+    concept over the last three days returned 26,224 — and each empty archive
+    request still billed a token. No error, no warning, no flag.
+
+    Unguarded, a 48-country decade would spend ~480 tokens writing nothing and
+    checkpoint all 480 windows `done`, so the next run skips them and the store
+    records a completed backfill that never happened."""
+
+    def setup_method(self):
+        newsapi_ai._ARCHIVE_VERDICT = None
+
+    def teardown_method(self):
+        newsapi_ai._ARCHIVE_VERDICT = None
+
+    @staticmethod
+    def _pages(monkeypatch, recent_total):
+        """Archive windows return nothing; the last three days return what is
+        passed. The exact shape the clamped account produces."""
+        seen = []
+
+        def fake_page(_name, start, end, _page_no, spent):
+            spent[0] += 1
+            seen.append((start, end))
+            recent = datetime.date.today() - datetime.timedelta(days=31)
+            total = recent_total if start >= recent else 0
+            return {"results": [], "totalResults": total, "pages": 1}
+
+        monkeypatch.setattr(newsapi_ai, "_page", fake_page)
+        return seen
+
+    def test_a_clamped_account_stops_instead_of_billing_the_whole_roster(
+            self, monkeypatch):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.time, "sleep", lambda *_a: None)
+        monkeypatch.setattr(newsapi_ai.store, "completed_windows", lambda *_a: set())
+        written = []
+        monkeypatch.setattr(newsapi_ai.store, "write_checkpoint",
+                            lambda *a, **k: written.append(k))
+        monkeypatch.setattr(newsapi_ai.store, "upsert_articles", lambda rows: len(rows))
+        self._pages(monkeypatch, recent_total=26224)
+
+        with pytest.raises(newsapi_ai.ArchiveUnavailable, match="cannot reach the archive"):
+            newsapi_ai.harvest(roster=["PT", "TR", "KR"], since="2015-01-01",
+                               until="2019-12-31")
+        # The point of the guard: no window is recorded `done`, so nothing is
+        # skipped when the entitlement is fixed and the harvest re-runs.
+        assert written == []
+
+    def test_a_wrong_concept_is_not_blamed_on_the_archive(self, monkeypatch):
+        # Recent is empty too, so the query is what is broken. Stopping here
+        # would report a fixable URI as an unfixable subscription.
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.time, "sleep", lambda *_a: None)
+        monkeypatch.setattr(newsapi_ai.store, "completed_windows", lambda *_a: set())
+        monkeypatch.setattr(newsapi_ai.store, "write_checkpoint", lambda *a, **k: None)
+        monkeypatch.setattr(newsapi_ai.store, "upsert_articles", lambda rows: len(rows))
+        self._pages(monkeypatch, recent_total=0)
+
+        # Completes rather than raising: an empty harvest, honestly empty.
+        assert newsapi_ai.harvest(roster=["PT"], since="2019-01-01",
+                                  until="2019-12-31") == 0
+
+    def test_the_diagnosis_is_paid_for_once(self, monkeypatch):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.time, "sleep", lambda *_a: None)
+        seen = self._pages(monkeypatch, recent_total=99)
+        spent = [0.0]
+        assert newsapi_ai.diagnose_empty_window("Portugal", spent) == "clamped"
+        assert newsapi_ai.diagnose_empty_window("Portugal", spent) == "clamped"
+        assert len(seen) == 1, "the verdict must be memoised, not re-bought"
+        # And charged to the run, so the budget and the ledger agree.
+        assert spent[0] == 1
+
+    def test_a_healthy_archive_never_pays_for_the_probe(self, monkeypatch):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.time, "sleep", lambda *_a: None)
+        monkeypatch.setattr(newsapi_ai.store, "completed_windows", lambda *_a: set())
+        monkeypatch.setattr(newsapi_ai.store, "write_checkpoint", lambda *a, **k: None)
+        monkeypatch.setattr(newsapi_ai.store, "upsert_articles", lambda rows: len(rows))
+
+        def fake_page(_name, _s, _e, _p, spent):
+            spent[0] += 1
+            return {"results": [_article()], "totalResults": 1, "pages": 1}
+
+        monkeypatch.setattr(newsapi_ai, "_page", fake_page)
+        newsapi_ai.harvest(roster=["PT"], since="2019-01-01", until="2019-12-31")
+        assert newsapi_ai._ARCHIVE_VERDICT is None, "a working run must not probe"
+
+
+# ---------------------------------------------------------------------------
+# The write path, against real captured payloads
+# ---------------------------------------------------------------------------
+
+FIXTURE = (pathlib.Path(__file__).resolve().parent
+           / "fixtures" / "newsapi_ai" / "pt_2019.json")
+
+TEST_DB = os.getenv("HISTORY_TEST_DATABASE_URL")
+needs_db = pytest.mark.skipif(not TEST_DB, reason="set HISTORY_TEST_DATABASE_URL to run")
+
+
+def _fixture_items():
+    """Real articles the live API returned for PT 2019, saved by the evaluation.
+
+    Real payloads rather than invented ones because the shapes that break a
+    writer are the ones nobody thinks to make up: a body under the floor, a
+    source with no location, an accented publisher name, a body clipped at
+    `core.MAX_BODY_CHARS`.
+    """
+    return json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+
+class TestTheFixtureIsUsable:
+    """Runs without a database, so the fixture cannot rot unnoticed while every
+    test that reads it is skipping."""
+
+    def test_the_capture_exists_and_carries_what_the_tests_need(self):
+        items = _fixture_items()
+        assert items, "the evaluation writes this; re-run it if it is missing"
+        for item in items:
+            assert item["link"] and item["published"]
+            # The clip keeps journalism out of the repo; the true length is what
+            # body classification is actually about, so it is kept beside it.
+            assert item["_body_chars"] >= len(item["text"])
+
+    def test_no_credential_rode_along(self):
+        raw = FIXTURE.read_text(encoding="utf-8")
+        for leaked in ("apiKey", "api_key", "NEWSAPI_AI_API_KEY"):
+            assert leaked not in raw
+
+    def test_the_capture_spans_both_sides_of_the_body_floor(self):
+        # Otherwise the classification tests below prove only one branch.
+        lengths = [i["_body_chars"] for i in _fixture_items()]
+        assert any(n >= config.NEWSAPI_MIN_BODY_CHARS for n in lengths)
+        assert any(n < config.NEWSAPI_MIN_BODY_CHARS for n in lengths)
+
+
+@needs_db
+class TestTheWritePathOnRealPayloads:
+    """The evaluation deliberately writes nothing, which would leave the whole
+    store boundary unexercised. These close that gap against captured payloads,
+    in a throwaway database."""
+
+    @pytest.fixture(autouse=True)
+    def db(self, monkeypatch):
+        import psycopg2
+        from backend.data_upsert import schema
+        monkeypatch.setenv("DATABASE_URL", TEST_DB)
+        conn = psycopg2.connect(TEST_DB)
+        conn.autocommit = True
+        with conn.cursor() as cur:
+            schema.create_all(cur)
+            cur.execute("DELETE FROM article")
+            cur.execute("DELETE FROM run_ledger")
+        yield conn
+        conn.close()
+
+    @staticmethod
+    def _rows(items):
+        out = []
+        for item in items:
+            status, vintage, adjusted = newsapi_ai.classify_body(item)
+            out.append(store.article_row(
+                adjusted, country_iso2="PT", source_system=newsapi_ai.SOURCE_SYSTEM,
+                body_status=status, body_vintage=vintage))
+        return out
+
+    def test_every_captured_article_survives_the_row_builder(self):
+        # `article_row` raises on an unparseable date or a missing URL. Real
+        # payloads are the only honest test of that.
+        assert len(self._rows(_fixture_items())) == len(_fixture_items())
+
+    def test_the_write_lands_and_is_idempotent(self, db):
+        rows = self._rows(_fixture_items())
+        store.upsert_articles(rows)
+        store.upsert_articles(rows)
+        with db.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM article")
+            assert cur.fetchone()[0] == len({r["url"] for r in rows})
+
+    def test_the_floor_decides_what_is_called_a_body(self, db):
+        store.upsert_articles(self._rows(_fixture_items()))
+        with db.cursor() as cur:
+            cur.execute("""SELECT body_status, body_vintage,
+                                  COALESCE(length(body), 0)
+                             FROM article""")
+            for status, vintage, chars in cur.fetchall():
+                if status == "recovered":
+                    assert chars >= config.NEWSAPI_MIN_BODY_CHARS
+                    # Only legitimate because the text arrived inside the search
+                    # response; `snapshot_select.usable_body` trusts it blindly.
+                    assert vintage == "api-native"
+                else:
+                    assert (status, vintage) == ("pending", None)
+                    assert chars == 0
+
+    def test_a_sub_floor_body_is_kept_as_an_abstract_not_thrown_away(self, db):
+        store.upsert_articles(self._rows(_fixture_items()))
+        with db.cursor() as cur:
+            cur.execute("""SELECT COUNT(*) FROM article
+                            WHERE body_status = 'pending' AND abstract IS NOT NULL""")
+            short = [i for i in _fixture_items()
+                     if 0 < i["_body_chars"] < config.NEWSAPI_MIN_BODY_CHARS]
+            assert cur.fetchone()[0] == len(short)
+
+    def test_a_url_the_guardian_already_holds_is_not_duplicated(self, db):
+        """The overlap case. Dedupe is `url`, the article table's primary key,
+        so the same story from two sources collapses onto one row — which is
+        also why the evaluation counts overlap *before* writing rather than
+        after, when there is nothing left to count."""
+        items = _fixture_items()
+        first = items[0]
+        store.upsert_articles([store.article_row(
+            core.normalize_item(link=first["link"], title="guardian copy",
+                                published=first["published"], text="g" * 5000),
+            country_iso2="PT", source_system="guardian",
+            body_status="recovered", body_vintage="api-native")])
+        store.upsert_articles(self._rows(items))
+        with db.cursor() as cur:
+            cur.execute("SELECT COUNT(*) FROM article WHERE url = %s", (first["link"],))
+            assert cur.fetchone()[0] == 1
+
+    def test_the_checkpoint_records_what_the_window_cost(self, db):
+        newsapi_ai.store.write_checkpoint(
+            newsapi_ai.SOURCE_SYSTEM, "PT", datetime.date(2019, 1, 1),
+            datetime.date(2019, 1, 31), items_written=100, seconds=12.5,
+            calls=5, note="tokens=5.0")
+        # Resume reads this: only `done` is skipped, so a window that failed is
+        # retried and one that succeeded is not re-bought.
+        assert datetime.date(2019, 1, 1) in store.completed_windows(
+            newsapi_ai.SOURCE_SYSTEM, "PT")
+        with db.cursor() as cur:
+            cur.execute("""SELECT detail ->> 'note', (detail ->> 'calls')::float
+                             FROM run_ledger WHERE variant = %s""",
+                        (newsapi_ai.SOURCE_SYSTEM,))
+            note, calls = cur.fetchone()
+            assert note == "tokens=5.0" and calls == 5

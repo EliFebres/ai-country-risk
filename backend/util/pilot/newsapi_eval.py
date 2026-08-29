@@ -47,7 +47,7 @@ import statistics
 from typing import Any, Dict, List, Optional
 
 from backend.data_upsert import store
-from backend.news_fetching import core
+from backend.news_fetching import article_enrichment, core
 from backend.news_fetching.adapters import newsapi_ai
 from backend.util import config
 
@@ -69,6 +69,10 @@ _ARTICLES_PER_SNAPSHOT = 20
 _SNAPSHOTS_PER_MONTH = 4.3
 
 _HISTOGRAM_EDGES = (0, 200, 400, 600, 1000, 2000, 4000, 8000, 16000, 10**9)
+
+# Pages per *window*, per arm, sized so both arms buy a comparable corpus and
+# the comparison is about distribution rather than about depth.
+_PAGE_CAP = {"year": 10, "month": 1}
 
 
 def _histogram(values: List[int]) -> List[Dict[str, Any]]:
@@ -107,18 +111,52 @@ def _truncation_signals(items: List[Dict]) -> Dict[str, Any]:
               if (i.get("text") or "").strip().lower().endswith(tails)]
     lengths = [len(i.get("text") or "") for i in items if i.get("text")]
     repeats = collections.Counter(lengths).most_common(3)
+    share = len(marked) / len(items) if items else 0.0
+    # A handful of markers is publishers syndicating teasers; a large share, or
+    # a pile-up on one exact length, is the API clipping. Measured on 100 live
+    # PT articles 2026-08-28: 1 marker, no repeated length, no empty body — so
+    # the markers are the publishers and the floor stays the primary test.
+    #
+    # The distinction is the whole point. Reporting "marker found, use it" off a
+    # 1% hit rate would retire the length floor in favour of an instrument that
+    # catches one stub in a hundred.
+    # `core.MAX_BODY_CHARS` is our own truncation, applied in `to_item` before
+    # any of this runs. A pile-up there says the harvest is clipping long
+    # articles, which is worth reporting and is emphatically not evidence about
+    # the API.
+    ours = [c for c, n in repeats if c == core.MAX_BODY_CHARS and n > 1]
+    capped = [c for c, n in repeats
+              if n > max(3, 0.05 * len(items)) and c != core.MAX_BODY_CHARS]
+    if capped:
+        verdict = (f"SYSTEMATIC: {capped[0]} chars repeats across the sample — "
+                   f"the API is clipping. Use that, not the length floor.")
+    elif ours:
+        n = next(n for c, n in repeats if c == core.MAX_BODY_CHARS)
+        verdict = (f"{n} bodies sit exactly on core.MAX_BODY_CHARS "
+                   f"({core.MAX_BODY_CHARS}) — that is *our* clip, not theirs. "
+                   f"The API returned longer articles than the store keeps.")
+    elif share > 0.2:
+        verdict = (f"SYSTEMATIC: {share:.0%} of bodies end in a truncation "
+                   f"marker. Treat the marker as the test.")
+    elif marked:
+        verdict = (f"publisher teasers, not API truncation: {len(marked)} of "
+                   f"{len(items)} ({share:.1%}) end in a marker, no length "
+                   f"pile-up. The length floor stays the primary test; the "
+                   f"marker is worth keeping as a second signal for stubs.")
+    else:
+        verdict = "no marker and no length pile-up; the floor is the only test"
     return {
         "bodies_with_truncation_marker": len(marked),
-        "marker_examples": [(i.get("text") or "")[-60:] for i in marked[:3]],
+        "marker_share": round(share, 4),
+        "marker_examples": [(i.get("text") or "")[-80:] for i in marked[:3]],
         "most_repeated_lengths": [{"chars": c, "n": n} for c, n in repeats if n > 1],
-        "verdict": ("explicit marker found — use it, keep the length floor as a "
-                    "backstop" if marked else
-                    "no marker seen; the length floor is the only test available"),
+        "empty_bodies": sum(1 for i in items if not (i.get("text") or "")),
+        "verdict": verdict,
     }
 
 
 def fetch_arm(iso2: str, start: datetime.date, end: datetime.date,
-              granularity: str) -> Dict[str, Any]:
+              granularity: str, max_pages: Optional[int] = None) -> Dict[str, Any]:
     """Run one arm and return what it cost and what it returned.
 
     Spend is read from the module's own meter rather than recomputed here, so
@@ -129,7 +167,8 @@ def fetch_arm(iso2: str, start: datetime.date, end: datetime.date,
     spent = [0]
     items: List[Dict] = []
     for window_start, window_end in newsapi_ai.windows(start, end, granularity):
-        items.extend(newsapi_ai.window_items(name, window_start, window_end, spent))
+        items.extend(newsapi_ai.window_items(name, window_start, window_end,
+                                             spent, max_pages))
 
     after = newsapi_ai.spend()
     # Collapse across windows: a monthly arm can return the same story twice if
@@ -179,7 +218,68 @@ def by_theme(items: List[Dict]) -> Dict[str, int]:
     return dict(out)
 
 
-def sufficiency(items: List[Dict]) -> Dict[str, Any]:
+def theme_floor_fill(items: List[Dict], start: datetime.date,
+                     end: datetime.date) -> Dict[str, Any]:
+    """The pre-registered failure line, computed rather than eyeballed.
+
+    `core.select_with_theme_floor` reserves `_PER_THEME_FLOOR` slots per theme
+    inside each snapshot, so what matters is not a theme's annual total but
+    whether **the 30-day window each anchor reads** holds enough of it. A year
+    with 20 `information` articles spread evenly starves every anchor equally;
+    the annual number alone cannot tell you that.
+
+    So this walks the real anchors — weekly, the cadence the pilot scores at —
+    builds each one's window the way `snapshot_select` does, and counts.
+
+    **The line: if a theme falls short on more than a quarter of anchors, the
+    one-query shape has failed for that theme.** The remedy is a targeted
+    top-up search for the short themes only, not a return to six queries per
+    country-year.
+    """
+    dated = []
+    for item in items:
+        raw = str(item.get("published") or "")
+        try:
+            when = datetime.datetime.fromisoformat(raw.replace("Z", "+00:00")).date()
+        except ValueError:
+            continue
+        dated.append((when, set(core.classify_themes(item.get("title"),
+                                                     item.get("text")))))
+
+    floor = article_enrichment._PER_THEME_FLOOR
+    window = datetime.timedelta(days=config.SNAPSHOT_WINDOW_DAYS)
+    anchors, short = [], collections.Counter()
+    anchor = start + window
+    while anchor <= end:
+        anchors.append(anchor)
+        in_window = [themes for when, themes in dated
+                     if anchor - window <= when < anchor]
+        for theme in core.THEME_QUERIES:
+            if sum(1 for t in in_window if theme in t) < floor:
+                short[theme] += 1
+        anchor += datetime.timedelta(days=7)
+
+    n = len(anchors) or 1
+    per_theme = {theme: {"anchors_short": short.get(theme, 0),
+                         "share_short": round(short.get(theme, 0) / n, 3),
+                         "fails": short.get(theme, 0) / n > 0.25}
+                 for theme in core.THEME_QUERIES}
+    failed = [t for t, v in per_theme.items() if v["fails"]]
+    return {
+        "anchors": n, "floor_per_theme": floor,
+        "window_days": config.SNAPSHOT_WINDOW_DAYS,
+        "per_theme": per_theme,
+        "failed_themes": failed,
+        "verdict": ("every theme fills its floor on at least three anchors in "
+                    "four" if not failed else
+                    f"FAILED for {', '.join(failed)} — short on more than a "
+                    f"quarter of anchors. Needs a targeted top-up search, not "
+                    f"six queries."),
+    }
+
+
+def sufficiency(items: List[Dict], start: Optional[datetime.date] = None,
+                end: Optional[datetime.date] = None) -> Dict[str, Any]:
     """Whether each month holds enough articles for the snapshots drawn from it.
 
     The production cap should come from this rather than from parity with the
@@ -187,6 +287,12 @@ def sufficiency(items: List[Dict]) -> Dict[str, Any]:
     is bought and never read, across 480 country-years.
     """
     monthly = by_month(items)
+    # Only months the request actually asked for. A handful of articles whose
+    # publisher stamp falls outside the window would otherwise invent phantom
+    # months holding one article each and report them as starved.
+    if start and end:
+        monthly = {m: n for m, n in monthly.items()
+                   if start.strftime("%Y-%m") <= m <= end.strftime("%Y-%m")}
     appetite = int(_ARTICLES_PER_SNAPSHOT * _SNAPSHOTS_PER_MONTH)
     thin = {m: n for m, n in monthly.items() if n < appetite}
     return {
@@ -378,34 +484,69 @@ def save_fixtures(items: List[Dict], where: pathlib.Path, limit: int = 12) -> pa
     items rather than raw requests.
     """
     where.parent.mkdir(parents=True, exist_ok=True)
-    sample = [{**i, "text": (i.get("text") or "")[:1500]} for i in items[:limit]]
+    # The clip is what keeps someone's journalism out of the repo, and it is
+    # also what would destroy the evidence truncation detection runs on: a body
+    # cut at 1,500 characters ends mid-sentence and looks truncated whatever the
+    # API did. So the true length and the true ending are recorded beside the
+    # clipped text rather than being clipped away with it.
+    sample = []
+    for i in items[:limit]:
+        text = i.get("text") or ""
+        sample.append({**i, "text": text[:1500],
+                       "_body_chars": len(text), "_body_tail": text[-160:]})
     where.write_text(json.dumps(sample, indent=2, ensure_ascii=False), encoding="utf-8")
     return where
 
 
 def evaluate(iso2: str = "PT", year: int = 2019, arms: tuple = ("year", "month"),
-             fixtures: Optional[pathlib.Path] = None) -> Dict[str, Any]:
+             fixtures: Optional[pathlib.Path] = None,
+             start: Optional[datetime.date] = None,
+             end: Optional[datetime.date] = None) -> Dict[str, Any]:
     """Run the evaluation and return every measurement. Writes nothing.
 
     Args:
         iso2: country to evaluate. PT by default — the thinnest in the store.
-        year: the country-year.
+        year: the country-year, unless ``start``/``end`` override it.
         arms: which window granularities to run. Both, by default: the
             comparison is the point.
         fixtures: where to save sample articles, or None to skip.
+        start: explicit window start, overriding ``year``. Exists because an
+            account without archive entitlement can still be measured over the
+            window it *can* reach — which answers body quality, source mix and
+            theme fill even when it cannot answer anything about 2019.
+        end: explicit window end, overriding ``year``.
 
     Returns:
-        One dict per arm plus the cross-arm comparison and the Guardian audit.
+        One dict per arm plus the projection and the Guardian audit.
     """
-    start = datetime.date(year, 1, 1)
-    end = datetime.date(year, 12, 31)
+    start = start or datetime.date(year, 1, 1)
+    end = end or datetime.date(year, 12, 31)
     baseline = guardian_baseline(iso2, start, end)
     out: Dict[str, Any] = {"country": iso2, "year": year, "arms": {},
+                           "start": start.isoformat(), "end": end.isoformat(),
                            "baseline": baseline}
+    # An evaluation that silently reports a substitute window under the label of
+    # the one that was asked for is worse than one that fails outright.
+    if (start, end) != (datetime.date(year, 1, 1), datetime.date(year, 12, 31)):
+        out["proxy_note"] = (
+            f"PROXY WINDOW. This is {start}..{end}, NOT the {year} country-year. "
+            f"Volume, monthly distribution and token cost do NOT transfer to an "
+            f"archive year; body quality, source mix and theme fill do.")
 
     for granularity in arms:
         logger.info("[eval] %s %s — %s-wide windows", iso2, year, granularity)
-        arm = fetch_arm(iso2, start, end, granularity)
+        # Per-window caps, because the token price is per window. Ten pages
+        # over a year and one page a month both buy ~1,000 articles; the
+        # difference is 50 tokens against 60, and whether the year's evidence
+        # is evenly spread or piled at whichever end the sort favours.
+        cap = _PAGE_CAP.get(granularity)
+        try:
+            arm = fetch_arm(iso2, start, end, granularity, cap)
+        except newsapi_ai.TokenBudgetExhausted as exc:
+            # Report what the arm bought before the cap bit rather than losing
+            # the whole run to it. The budget is the point of the exercise.
+            out["arms"][granularity] = {"stopped_on_budget": str(exc)}
+            continue
         items = arm.pop("articles")
         out["arms"][granularity] = {
             **arm,
@@ -413,7 +554,8 @@ def evaluate(iso2: str = "PT", year: int = 2019, arms: tuple = ("year", "month")
             "body_quality": body_quality(items),
             "by_month": by_month(items),
             "by_theme": by_theme(items),
-            "sufficiency": sufficiency(items),
+            "sufficiency": sufficiency(items, start, end),
+            "theme_floor": theme_floor_fill(items, start, end),
             "composition": composition(items, iso2),
             "overlap": overlap(items, iso2, start, end),
             "date_integrity": date_integrity(items, start, end),
@@ -457,8 +599,14 @@ def render(result: Dict[str, Any]) -> None:
     cost, the body-length shape and the monthly distribution, and those have to
     be readable side by side or the comparison does not get made.
     """
-    iso2, year = result["country"], result["year"]
-    print(f"\n{'=' * 72}\nnewsapi.ai evaluation — {iso2} {year} — nothing written\n{'=' * 72}")
+    iso2 = result["country"]
+    window = f"{result['start']}..{result['end']}"
+    print()
+    print("=" * 72)
+    print(f"newsapi.ai evaluation — {iso2} {window} — nothing written")
+    if result.get("proxy_note"):
+        print(f"!! {result['proxy_note']}")
+    print("=" * 72)
 
     for granularity, arm in result["arms"].items():
         vol, bq = arm["volume"], arm["body_quality"]
@@ -485,9 +633,16 @@ def render(result: Dict[str, Any]) -> None:
         if bq["truncation"]["most_repeated_lengths"]:
             print(f"              repeated lengths: {bq['truncation']['most_repeated_lengths']}")
 
-        print("  by month:   " + "  ".join(f"{m[-2:]}={n}" for m, n in arm["by_month"].items()))
+        print("  by month:   " + "  ".join(f"{m}={n}" for m, n in arm["by_month"].items()))
         print("  by theme:   " + "  ".join(f"{t}={n}" for t, n in arm["by_theme"].items()))
         print(f"  sufficiency {arm['sufficiency']['verdict']}")
+        tf = arm["theme_floor"]
+        print(f"  theme floor over {tf['anchors']} weekly anchors, "
+              f"{tf['floor_per_theme']} per theme in a "
+              f"{tf['window_days']}-day window:")
+        print("              " + "  ".join(
+            f"{t}={v['share_short']:.0%}short" for t, v in tf["per_theme"].items()))
+        print(f"              {tf['verdict']}")
         comp = arm["composition"]
         print(f"  publishers  {comp['distinct_publishers']} distinct; "
               f"{comp['articles_from_local_outlets']} articles from "

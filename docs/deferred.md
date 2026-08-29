@@ -577,3 +577,35 @@ can infer. Adding `--until` to the shared `for name in (...)` loop and threading
 an `until` parameter through `guardian.harvest` and `nyt.harvest` is a small
 change, and it would let a single country-year be harvested from any source —
 useful for exactly the kind of A/B this session ran.
+
+
+---
+
+## 21. newsapi.ai needs a theme top-up, and the probe needs re-running before either
+
+Both fall out of the 2026-08-28 evaluation, written up in full in
+`docs/historical-ratings.md`.
+
+**The top-up.** A single concept query per window fails the `information` and
+`edge` theme floors on 46% and 56% of anchors — against a pre-agreed line of 25%
+— because a broad "Portugal" query returns football. The remedy is measured and
+works: a keyword-directed search on the failing themes only, using their own
+`core.THEME_QUERIES` terms, returns 62 information-classified articles a month
+against roughly 1.7 from the broad query. It is not built, because it triples the
+cost per country-year (60 tokens to 180) and that only earns its place once the
+roster it will run on is decided.
+
+Do **not** implement it as six per-theme queries. The whole reason this adapter
+is affordable is that it asks once and classifies locally; the top-up is a
+narrow patch on two thin themes, not a return to the Guardian's shape.
+
+**The probe.** 19.7% of a PT corpus and 15.6% of a BR one come from local
+outlets, against a Guardian mix that is almost entirely foreign desks. That
+changes what `llm.probe` is reading in a way the gazetteer cannot see — it masks
+names, not register, and a Portuguese regional paper writing "the government" is
+far more identifying than the Guardian writing it.
+
+This makes `deferred.md` item 7 — the deleted two-run masking comparison,
+explicitly including *"outlet fingerprinting: whether the probe is reading the
+evidence or the newspaper"* — **blocking rather than owed**. No newsapi.ai
+corpus should reach a scored series before it is restored and run.

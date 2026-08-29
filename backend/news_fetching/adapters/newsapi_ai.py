@@ -91,8 +91,8 @@ _REMAINING_HEADER = "x-ratelimit-remaining"
 # measurement or arithmetic — the same distinction `guardian.quota()` draws with
 # `limit_is_measured`, and for the same reason: a number that might be either is
 # the kind that quietly misinforms the next estimate.
-_SPEND: Dict[str, Optional[int]] = {
-    "tokens": 0, "calls": 0, "measured_calls": 0, "limit": None, "remaining": None}
+_SPEND: Dict[str, Any] = {
+    "tokens": 0.0, "calls": 0, "measured_calls": 0, "limit": None, "remaining": None}
 
 
 def spend() -> Dict[str, Any]:
@@ -129,6 +129,23 @@ class QuotaExhausted(RuntimeError):
 # provided is not recognized as a valid key for a user."
 _BAD_KEY_MARKERS = ("not recognized as a valid key", "not a valid key",
                     "invalid api key", "unable to execute the request")
+
+
+class ArchiveUnavailable(RuntimeError):
+    """The account cannot reach past the recent window, so a backfill is futile.
+
+    Measured against a live 5K-plan key on 2026-08-28: every request dated
+    older than ~30 days returned ``totalResults: 0`` while the same query over
+    the last three days returned 26,224 — and **each of those empty archive
+    requests still billed a token**. Nothing in the response says the archive
+    was refused. There is no error, no warning, and no flag; the window is
+    silently clamped and the result is a clean, empty, paid answer.
+
+    That combination is the expensive one. A 48-country decade harvest would
+    have spent ~480 tokens writing nothing and checkpointed all 480 windows
+    `done`, so the next run would skip them and the corpus would record a
+    completed backfill that never happened.
+    """
 
 
 class BadKey(RuntimeError):
@@ -241,14 +258,30 @@ def asserted_tokens(start: datetime.date, end: datetime.date) -> int:
 # ---------------------------------------------------------------------------
 
 def _int_or_none(value: Optional[str]) -> Optional[int]:
-    """Parse a header, tolerating an absent or malformed one."""
+    """Parse a whole-number header, tolerating an absent or malformed one."""
     try:
         return int(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return None
 
 
-def _read_spend_headers(resp: requests.Response, fallback: int) -> int:
+def _float_or_none(value: Optional[str]) -> Optional[float]:
+    """Parse a fractional header, tolerating an absent or malformed one.
+
+    `req-tokens` arrives as ``"1.000"``, not ``"1"`` — measured against the live
+    endpoint on 2026-08-28. Parsing it with :func:`_int_or_none` returns None on
+    every response, so the meter silently falls back to the price list and the
+    run reports arithmetic while believing it reported a measurement. Which is
+    the exact failure `tokens_are_measured` exists to make visible, arriving
+    through the one path that would not have tripped it.
+    """
+    try:
+        return float(value)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return None
+
+
+def _read_spend_headers(resp: requests.Response, fallback: float) -> float:
     """Fold one response's billing headers into ``_SPEND`` and return its cost.
 
     Read from *every* response, refusals included — a refused archive search is
@@ -259,7 +292,7 @@ def _read_spend_headers(resp: requests.Response, fallback: int) -> int:
         resp: the response, successful or not.
         fallback: what to charge if the response carried no ``req-tokens``.
     """
-    billed = _int_or_none(resp.headers.get(_TOKEN_HEADER))
+    billed = _float_or_none(resp.headers.get(_TOKEN_HEADER))
     limit = _int_or_none(resp.headers.get(_LIMIT_HEADER))
     remaining = _int_or_none(resp.headers.get(_REMAINING_HEADER))
     cost = billed if billed is not None else fallback
@@ -274,7 +307,7 @@ def _read_spend_headers(resp: requests.Response, fallback: int) -> int:
 
 
 @http.retry_transient(frozenset({429, 500, 502, 503, 504}))
-def _post(payload: Dict[str, object], fallback: int) -> requests.Response:
+def _post(payload: Dict[str, object], fallback: float) -> requests.Response:
     """One search, retrying transient errors but never a refusal.
 
     **401 is not an auth failure here.** Event Registry answers 401 when the
@@ -342,7 +375,7 @@ def _payload(country_name: str, start: datetime.date, end: datetime.date,
 
 
 def _page(country_name: str, start: datetime.date, end: datetime.date,
-          page: int, spent: List[int]) -> Dict:
+          page: int, spent: List[float]) -> Dict:
     """Fetch one page, charging it against the run's token budget first.
 
     The budget is checked *before* the call, against what the call is expected
@@ -456,17 +489,26 @@ def classify_body(item: Dict) -> Tuple[str, Optional[str], Dict]:
 
 
 def window_items(country_name: str, start: datetime.date, end: datetime.date,
-                 spent: List[int]) -> List[Dict]:
+                 spent: List[float], max_pages: Optional[int] = None) -> List[Dict]:
     """Every article for one window, up to the page cap.
+
+    ``max_pages`` is per *window*, not per country-year, and that is the whole
+    economics of this source. Measured 2026-08-28: an archival search costs a
+    flat 5 tokens per calendar year it touches, however narrow the window — a
+    five-day range in 2025 bills the same 5 tokens as the whole of 2025. Nothing
+    is prorated. So twelve monthly windows cost 60 tokens a page where one
+    year-wide window costs 5, and the cap has to move with the granularity or
+    the monthly shape is twelve times the price for no reason.
 
     Truncation is announced rather than inferred. A window that hits the cap has
     left articles behind, and a silent stop reads afterwards as "that is all
     there was" — the failure `guardian._window_items` names when its own
     subdivision runs out of room.
     """
+    cap = max_pages if max_pages is not None else config.NEWSAPI_MAX_PAGES_PER_WINDOW
     seen: Dict[str, Dict] = {}
     total: Optional[int] = None
-    for page in range(1, config.NEWSAPI_MAX_PAGES_PER_WINDOW + 1):
+    for page in range(1, cap + 1):
         time.sleep(config.REQUEST_INTERVAL_SECONDS)
         block = _page(country_name, start, end, page, spent)
         results = block.get("results") or []
@@ -480,9 +522,9 @@ def window_items(country_name: str, start: datetime.date, end: datetime.date,
             break
     else:
         if total and total > len(seen):
-            logger.warning("  %s %s..%s: %s articles indexed, capped at %d pages, "
+            logger.warning("  %s %s..%s: %s articles indexed, capped at %d page(s), "
                            "%s left behind", country_name, start, end, total,
-                           config.NEWSAPI_MAX_PAGES_PER_WINDOW, total - len(seen))
+                           cap, total - len(seen))
 
     if total == 0 or (total is None and not seen):
         # Almost always the concept URI rather than a quiet year: an unresolvable
@@ -494,7 +536,7 @@ def window_items(country_name: str, start: datetime.date, end: datetime.date,
 
 
 def harvest_window(iso2: str, country_name: str, start: datetime.date,
-                   end: datetime.date, spent: List[int]) -> int:
+                   end: datetime.date, spent: List[float]) -> int:
     """Fetch one window and write it. Returns rows written."""
     rows = []
     for item in window_items(country_name, start, end, spent):
@@ -515,6 +557,45 @@ def harvest_window(iso2: str, country_name: str, start: datetime.date,
 # ---------------------------------------------------------------------------
 # The harvest
 # ---------------------------------------------------------------------------
+
+# How far back the un-entitled window reaches. Their own no-archive clamp is
+# `forceMaxDataTimeWindow=31`, so 31 days is the boundary being tested for.
+_RECENT_HORIZON_DAYS = 31
+
+# Memoised across a run: the probe costs a token and the answer cannot change
+# mid-harvest. None until asked.
+_ARCHIVE_VERDICT: Optional[str] = None
+
+
+def diagnose_empty_window(country_name: str, spent: List[float]) -> str:
+    """Why did an archival window come back empty? One probe, three answers.
+
+    Called only when an archival window returns nothing, so an account that
+    works never pays for it. It asks the *same concept* over the last three
+    days, where every account can reach, and reads the difference:
+
+    * ``"clamped"`` — recent returns articles, the archive returns none. The
+      account has no archive entitlement. Stop: every further window bills a
+      token to write nothing.
+    * ``"query"`` — recent returns nothing either, so the concept URI is wrong
+      and the archive is not implicated. Deliberately **not** treated as a
+      clamp: a false "archive unavailable" would stop a harvest that a corrected
+      URI would have completed.
+    * ``"quiet"`` — never returned here, but named because it is the third
+      possibility the caller must not rule out on one window. A genuinely empty
+      country-month is why this asks rather than assumes.
+
+    The probe's token is charged to ``spent`` like any other, so the run's
+    budget and its ledger agree about what it cost.
+    """
+    global _ARCHIVE_VERDICT
+    if _ARCHIVE_VERDICT is not None:
+        return _ARCHIVE_VERDICT
+    today = datetime.date.today()
+    block = _page(country_name, today - datetime.timedelta(days=3), today, 1, spent)
+    _ARCHIVE_VERDICT = "clamped" if (block.get("totalResults") or 0) else "query"
+    return _ARCHIVE_VERDICT
+
 
 def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None,
             until: Optional[str] = None, granularity: str = "year") -> int:
@@ -563,20 +644,31 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None,
                 len(roster) * len(all_windows) - len(todo),
                 config.NEWSAPI_TOKEN_BUDGET, floor)
 
-    spent = [0]
+    spent = [0.0]
     written = 0
+    recent_floor = datetime.date.today() - datetime.timedelta(days=_RECENT_HORIZON_DAYS)
     for done_n, (iso2, (window_start, window_end)) in enumerate(todo):
         name = config.country_name(iso2)
         started, before = time.monotonic(), spent[0]
-        logger.info("[newsapi_ai] %d/%d %s %s..%s starting (%d tokens spent)",
+        logger.info("[newsapi_ai] %d/%d %s %s..%s starting (%.1f tokens spent)",
                     done_n + 1, len(todo), iso2, window_start, window_end, spent[0])
         try:
             n = harvest_window(iso2, name, window_start, window_end, spent)
-        except BadKey:
+            if (n == 0 and window_end < recent_floor
+                    and diagnose_empty_window(name, spent) == "clamped"):
+                raise ArchiveUnavailable(
+                    f"{window_start}..{window_end} returned nothing while the "
+                    f"last three days return articles for the same concept. The "
+                    f"account cannot reach the archive — every further window "
+                    f"would bill a token to write nothing, and checkpoint `done` "
+                    f"over a backfill that never happened. Enable archive access "
+                    f"at https://newsapi.ai/dashboard before re-running.")
+        except (BadKey, ArchiveUnavailable):
             # Deliberately not caught by the handler below. A key the service
             # rejects fails every window identically, so swallowing it would
             # write one useless checkpoint per country-year and report a
-            # misconfiguration as a harvest that found nothing.
+            # misconfiguration as a harvest that found nothing. `done` on an
+            # empty archival window is worse still: it is not retried.
             raise
         except (TokenBudgetExhausted, QuotaExhausted) as exc:
             # The wall gets a row of its own, so the ledger says why a run
@@ -588,7 +680,7 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None,
                                    seconds=time.monotonic() - started,
                                    calls=spent[0] - before)
             logger.warning("[newsapi_ai] %s", exc)
-            logger.warning("[newsapi_ai] stopped at %d/%d, %d tokens spent (%s). "
+            logger.warning("[newsapi_ai] stopped at %d/%d, %.1f tokens spent (%s). "
                            "Re-run to resume.", done_n, len(todo), spent[0],
                            "measured" if spend()["tokens_are_measured"]
                            else "asserted; no billing header seen")
@@ -609,12 +701,12 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None,
         store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
                                items_written=n, seconds=time.monotonic() - started,
                                calls=spent[0] - before,
-                               note=f"tokens={spent[0] - before}")
+                               note=f"tokens={spent[0] - before:.1f}")
         written += n
-        logger.info("[newsapi_ai] %d/%d %s %s..%s: %d rows, %d tokens (%d total)",
+        logger.info("[newsapi_ai] %d/%d %s %s..%s: %d rows, %.1f tokens (%.1f total)",
                     done_n + 1, len(todo), iso2, window_start, window_end, n,
                     spent[0] - before, spent[0])
 
-    logger.info("[newsapi_ai] done: %d rows, %d tokens (%s)", written, spent[0],
+    logger.info("[newsapi_ai] done: %d rows, %.1f tokens (%s)", written, spent[0],
                 "measured" if spend()["tokens_are_measured"] else "asserted")
     return written

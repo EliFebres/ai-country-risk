@@ -777,3 +777,174 @@ python -m backend.util.tools.bakeoff compare
 `backend/notebooks/historical_rating_walkthrough.ipynb` walks one anchor through
 every layer above and writes nothing — no snapshot, no probe result, no ledger
 row. `country_rating_walkthrough.ipynb` walks the other half.
+
+---
+
+# newsapi.ai (Event Registry) — the evaluation, 2026-08-28
+
+Measured on a live 5K-plan key, 240 tokens of a 500 cap, **nothing written to the
+store**. Reproduce with `newsapi_eval.evaluate(...)`; the Guardian audit and the
+floor-fill control are read-only SQL and cost nothing.
+
+## How it bills, measured
+
+| window | tokens per page |
+|---|---|
+| inside the last ~30 days | **1** |
+| anything older | **5** |
+
+Flat 5 per calendar year the range touches, **not prorated**. A five-day range in
+2025 bills the same 5 tokens as the whole of 2025. Their documentation says the
+same thing once you know to read it that way: *"the number of used tokens per
+search will depend on the number of years included in the search."*
+
+That kills the attractive hypothesis that twelve narrow monthly windows would be
+cheaper than one wide annual one. They are 12× the price per page, not 1/12th.
+
+**Archive access is an account checkbox, not a request parameter.** Before it was
+enabled every pre-30-day query returned `totalResults: 0`, billed a token, and
+raised no error of any kind. `adapters.newsapi_ai.ArchiveUnavailable` exists
+because of that hour: unguarded, a 48-country decade would have spent ~480 tokens
+writing nothing and checkpointed all 480 windows `done`, so the next run would
+skip them and the store would record a backfill that never happened.
+
+## The two arms, PT 2019
+
+| | year-wide, 10 pages | monthly, 1 page each |
+|---|---|---|
+| tokens | 50 | 60 |
+| articles | 1,000 | 1,200 |
+| distribution | **800 of 1,000 in December** | 100 per month, every month |
+| bodies ≥1,000 chars | 830 | 995 |
+| mean body | 4,391 | 3,511 |
+| distinct publishers | 499 | 542 |
+| local-outlet share | 8.8% | 19.7% |
+
+**Monthly wins outright.** Twenty percent more tokens buys twenty percent more
+articles and fixes the distribution completely. The year-wide arm is not a
+cheaper option, it is a broken one: `articlesSortBy=date` under a page cap
+returns the newest N, so 80% of a year's evidence lands in its last month and
+eleven of twelve anchors read a near-empty window. An annual total cannot see
+this, which is exactly why `by_month` is reported.
+
+**Express the page cap per window, never per country-year.** It is the only
+form in which the number means anything.
+
+## The theme floors — the pre-registered failure line
+
+`core.select_with_theme_floor` reserves two slots per theme per snapshot. What
+matters is not a theme's annual total but whether each anchor's 30-day window
+holds two, so `newsapi_eval.theme_floor_fill` walks all 48 weekly anchors and
+counts. The line agreed in advance: **short on more than a quarter of anchors
+fails.**
+
+Percent of anchors short, PT 2019:
+
+| source | n | friction | order | security | information | edge | broad |
+|---|---|---|---|---|---|---|---|
+| guardian (in store) | 642 | 0 | 0 | 0 | 10% | 0 | 0 |
+| **newsapi.ai monthly** | **1,200** | 4% | 4% | 4% | **46%** | **56%** | 4% |
+| nyt (in store) | 57 | 100% | 98% | 100% | 100% | 100% | 10% |
+
+**The one-query shape fails for `information` and `edge`.** And the control is
+what makes it legible: the Guardian fills every floor with *642* articles where
+newsapi.ai fails two with *1,200*. This source is not thin, it is differently
+shaped — the top publishers say why. SAPO Desporto, O Jogo, Maisfutebol. A broad
+concept query for "Portugal" returns football.
+
+This is the Guardian docstring's claim, now measured rather than asserted: *"The
+six per-theme queries are kept rather than collapsed into one OR'd query.
+Collapsing would be cheaper and would break the point."*
+
+**The remedy works.** A keyword-directed top-up on the failing themes only —
+`conceptUri=Portugal` AND the theme's own `core.THEME_QUERIES` terms — returned
+**62 information-classified articles in one month** against roughly 1.7 from the
+broad query, and 67 for `edge`. Two extra searches a month, 10 tokens, 120 a
+country-year on top of the 60 baseline.
+
+## Where the money actually buys something
+
+PT was chosen as the thinnest country in the store, and the evaluation's most
+useful accident is that the premise was wrong: PT's Guardian coverage already
+fills every floor. Across every country with 2019 data:
+
+| iso2 | rows in store | themes failing |
+|---|---|---|
+| US | 5,035 | none |
+| TR | 1,653 | none |
+| KR | 905 | none |
+| PT | 699 | none |
+| **BR** | **242** | **friction, order, security, information, edge** |
+
+Four of five are already sufficient. **BR is the case for buying this**, and
+newsapi.ai fixes it: 1,200 articles against 242, and friction/order/security/broad
+all move from failing to 4% short. `information` and `edge` still fail without
+the top-up.
+
+The other 43 countries have no 2019 data yet, so this comparison rests on five.
+
+## Body quality
+
+Continuous, not bimodal, so no natural cut is visible and any floor is a
+judgement call. `NEWSAPI_MIN_BODY_CHARS = 1000` keeps 995 of 1,200 (PT) and 1,199
+of 1,200 have some text.
+
+**The API does not truncate.** 1.0–1.4% of bodies end in an ellipsis or "read
+more", with no pile-up on any exact length and no empty bodies — those are
+publishers syndicating teasers, not a clip. An earlier reading of this called it
+an explicit marker to rely on; on 100 live articles it was one, a 415-character
+regional stub ending mid-name. The length floor stays the primary test and the
+marker is a useful second signal for stubs.
+
+The one real pile-up is ours: ten PT bodies sat at exactly 24,000 characters,
+which is `core.MAX_BODY_CHARS`. The API returns longer articles than the store
+keeps.
+
+## Masking risk
+
+19.7% of the monthly-arm corpus comes from Portuguese outlets (28 of 542
+publishers); BR is 15.6% from 54 local outlets. That is a **masking** exposure,
+not a quality one — a regional paper writing "the government" identifies a
+country far more sharply than the Guardian doing the same, and `llm.gazetteer`
+masks names rather than register.
+
+Portugal is already `llm.probe`'s hardest case: a masked bundle that passed the
+integrity scan with zero flagged tokens was still named at 0.9 confidence off the
+Douro Valley and the Algarve. **The probe must be re-run against a newsapi.ai
+corpus before any of it is trusted**, and `deferred.md` item 7 — the deleted
+two-run masking comparison, including outlet fingerprinting — is now blocking
+rather than merely owed.
+
+## Overlap
+
+Effectively zero: 0 of 1,200 URLs for PT, 1 of 1,200 for BR already in `article`.
+The index does not overlap the Guardian's URLs at all, so this is additive
+coverage rather than a second copy of what is already held — and the
+`source_system` rebranding in `deferred.md` item 18 is a smaller risk than
+feared, though still real for the handful that do collide.
+
+## Cost
+
+| shape | tokens/country-year | 5×10 | 48×10 |
+|---|---|---|---|
+| monthly, 1 page | 60 | 3,000 | 28,800 |
+| monthly + top-up on 2 themes | 180 | 9,000 | 86,400 |
+
+At the 5K plan, the full 48×10 backfill with top-up is ~17 months of allowance,
+or roughly $1,220 in overage bought in one month. Without the top-up it is ~5.8
+months, and `information` and `edge` are thin in every country-year of it.
+
+## The source-mix continuity problem
+
+Unresolved, and it is a decision rather than a finding. Whatever mix is adopted
+has to be the same for the backfill **and** the ongoing live run. If the archive
+is newsapi.ai-rich and the live feed reverts to Guardian-only when the
+subscription is cancelled, the masked series carries a source-composition break
+at the boundary — and a model reading a 20%-local-outlet corpus before the break
+and a Guardian-only corpus after it sees a change in the country, not a change in
+the vendor.
+
+The evaluation points at **the narrow shape**: newsapi.ai for the countries the
+Guardian cannot carry, Guardian everywhere it can, and the same blend maintained
+live. A blanket newsapi.ai backfill across all 48 would maximise the break for
+the four countries in five that did not need it.
