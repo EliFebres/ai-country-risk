@@ -95,6 +95,7 @@ from backend.llm import client as ai_client  # noqa: E402
 from backend.llm import constants as ai_constants  # noqa: E402
 from backend.llm import usage  # noqa: E402
 from backend.util import config  # noqa: E402
+from backend.util import provenance  # noqa: E402
 from backend.util.pilot import reports  # noqa: E402
 
 logger = logging.getLogger(__name__)
@@ -874,13 +875,22 @@ def smoke_prompt() -> str:
     `additionalProperties: false` at every level. So the gate runs the thing
     that will actually be sent.
     """
-    return ai_constants.AI_PROMPT_V3.format(
+    from backend.llm import langchain_llm
+
+    prompt = ai_constants.AI_PROMPT_V3.format(
         country="the country",
         as_of_date="2019-06-03",
         evidence_json=json.dumps(_SMOKE_EVIDENCE, ensure_ascii=False),
         articles_json=json.dumps(_SMOKE_ARTICLES, ensure_ascii=False),
         full_text_block="(no full-text articles supplied)",
     )
+    # Including the rule blocks the variant appends, resolved by the same
+    # function the scoring call uses. Without this the gate rendered the base
+    # template under a prompt variant and reported that the candidate could hold
+    # a schema the run would never send it -- harmless while a variant only
+    # added a paragraph, and actively wrong once one changes the schema.
+    rules, _ = langchain_llm._prompt_rules_and_version(_SMOKE_EVIDENCE)
+    return prompt + rules
 
 
 # Reported but not gated. Everything outside this set — every score, every
@@ -908,13 +918,41 @@ def smoke_prompt() -> str:
 # row and the manifest hashing what the model read. Prose and citation drift are
 # still reported, as `exact_match_rate`, because a candidate that churns them far
 # harder than the incumbent is worth seeing even though it is not disqualifying.
-_UNGATED_FIELDS: Tuple[str, ...] = ("bullet_summary", "subscore_evidence")
+#   `band_placement`     — the elicitation arms' own prose, and prose on the same
+#   `typical_week`         terms as `bullet_summary`: reworded between repeats
+#                          while every number holds. Measured over three repeats
+#                          under `vs-typical`, gpt-4o returned identical
+#                          `score_12m`, `score_3m`, `evidence_coverage`,
+#                          `delta_vs_typical`, `ledger_scores` and
+#                          `condition_flags`, and two distinct `typical_week`
+#                          paragraphs. Gating on those words would fail the
+#                          variant for the defect the incumbent already has.
+#
+# `band` and `delta_vs_typical` are deliberately NOT here. They are the decisions
+# the variants exist to force, not descriptions of one, and a variant whose band
+# wanders between repeats while its score does not is a finding rather than
+# noise.
+_UNGATED_FIELDS: Tuple[str, ...] = ("bullet_summary", "subscore_evidence",
+                                    "band_placement", "typical_week")
 
 
 def _scored_only(payload: Dict[str, Any]) -> str:
     """The answer minus what is reported-but-not-gated, canonicalised."""
     return json.dumps({k: v for k, v in payload.items() if k not in _UNGATED_FIELDS},
                       sort_keys=True, default=str)
+
+
+def smoke_schema() -> Dict[str, Any]:
+    """The schema the run would actually send, variant included.
+
+    The gate's whole claim is that it exercises the real contract rather than a
+    toy one, and a hardcoded `RISK_SCHEMA_V3` quietly stopped being that the
+    moment a prompt variant started asking for extra fields.
+    """
+    from backend.llm import langchain_llm
+
+    return langchain_llm._SCHEMA_BY_PROMPT_VARIANT.get(
+        provenance.prompt_variant(), ai_constants.RISK_SCHEMA_V3)
 
 
 def smoke(name: str, repeats: int = 3) -> Dict[str, Any]:
@@ -932,13 +970,21 @@ def smoke(name: str, repeats: int = 3) -> Dict[str, Any]:
                            "note": spec.get("note", "")}
 
     with candidate_env(name) as env:
+        from backend.util.pilot import score as pilot_score
+
         out["endpoint"] = {k: v for k, v in env.items() if not k.endswith("API_KEY")}
+        # Read here, inside the environment. `_wrap` runs after this block has
+        # exited and would stamp the process default -- which is how
+        # `backend/bakeoff/US-2019/p3-context.json` came to record
+        # `PROMPT_VERSION: v4.0-masked-production` while every row inside it says
+        # v4.1-trailing-context.
+        out["captured_under"] = pilot_score.versions()
         api_key = os.getenv("OPENAI_API_KEY") or ""
         answers: List[str] = []
         with usage.meter(budget_usd=BAKEOFF_BUDGET_USD) as meter:
             try:
                 chat = ai_client.build_chat(api_key).with_structured_output(
-                    schema=ai_constants.RISK_SCHEMA_V3, strict=True)
+                    schema=smoke_schema(), strict=True)
                 for _ in range(repeats):
                     result = chat.invoke([SystemMessage(content=prompt)])
                     answers.append(json.dumps(result, sort_keys=True, default=str))
@@ -1434,6 +1480,8 @@ def main() -> None:
             args.candidate, CANDIDATES[args.candidate]["arm"], [])
         existing["gates"] = {k: result[k] for k in ("schema", "determinism", "cost")}
         existing["endpoint"] = result.get("endpoint") or existing.get("endpoint") or {}
+        if result.get("captured_under"):
+            existing["captured_under"] = result["captured_under"]
         print(json.dumps(result, indent=2, default=str)[:4000])
         print(f"\nwrote {save(args.candidate, existing)}")
         return

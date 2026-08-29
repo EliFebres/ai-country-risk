@@ -1,0 +1,94 @@
+{
+  "arm": "prompt",
+  "candidate": "within-band",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.3-within-band",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "f94ba177181c0477df24e6c8ddacfebaea626d74"
+  },
+  "cost": {
+    "snapshots": 0
+  },
+  "country": "TR",
+  "endpoint": {
+    "PROMPT_VARIANT": "within-band"
+  },
+  "gates": {
+    "cost": {
+      "cached_tokens": 9600,
+      "calls": 3,
+      "input_tokens": 10131,
+      "output_tokens": 768,
+      "spend_usd": 0.021007
+    },
+    "determinism": {
+      "exact_match_rate": 0.0,
+      "repeats": 3,
+      "score_spread": 5,
+      "scored_match_rate": 0.0,
+      "scores": [
+        45,
+        50,
+        50
+      ]
+    },
+    "schema": {
+      "error": null,
+      "passed": true,
+      "sample": {
+        "band": "Moderate",
+        "band_placement": "Lower",
+        "bullet_summary": "The country's investor risk is moderate, with a government debt at 117.2% of GDP and a stable central bank policy rate. Recent regional election results introduce some political uncertainty, affecting policy continuity. Inflation is low at 0.9%, and GDP growth is modest at 2.1%. The information environment is relatively stable, but the political landscape may affect future fiscal plans. Overall, the risk is moderate over both 3 and 12 months, with no immediate severe threats.",
+        "condition_flags": {
+          "emergency_rule": false,
+          "internal_conflict_level": "none",
+          "sovereign_stress": false,
+          "war_on_territory": false
+        },
+        "evidence_coverage": 60,
+        "ledger_scores": {
+          "edge_vitality": null,
+          "friction": 45,
+          "information_capacity": 30,
+          "order_uncertainty": 40
+        },
+        "news_article_scores": [
+          {
+            "id": "a1",
+            "impact": 25,
+            "topic_group": "central_bank_policy_rate"
+          },
+          {
+            "id": "a2",
+            "impact": 45,
+            "topic_group": "regional_election_results"
+          }
+        ],
+        "score_12m": 45,
+        "score_3m": 42,
+        "subscore_evidence": {
+          "friction": [
+            "structural"
+          ],
+          "information_capacity": [
+            "a1"
+          ],
+          "order_uncertainty": [
+            "a2"
+          ]
+        }
+      }
+    }
+  },
+  "note": "name the band, place the score inside it, justify the placement",
+  "rows": [],
+  "since": "2018-01-01",
+  "until": "2018-12-31"
+}

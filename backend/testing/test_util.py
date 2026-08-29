@@ -1183,8 +1183,26 @@ class TestDeterminismGatesScoresNotProse:
         assert bakeoff._scored_only(base) != bakeoff._scored_only(moved_flag)
 
     def test_only_prose_and_citations_are_ungated(self):
-        """Anything added to this set stops being checked, so it is pinned."""
-        assert bakeoff._UNGATED_FIELDS == ("bullet_summary", "subscore_evidence")
+        """Anything added to this set stops being checked, so it is pinned.
+
+        `band_placement` and `typical_week` joined it with the elicitation arms,
+        on the evidence that decided `bullet_summary`: measured over repeats at
+        temperature 0 and seed 42, gpt-4o rewords them while every number holds.
+        """
+        assert bakeoff._UNGATED_FIELDS == ("bullet_summary", "subscore_evidence",
+                                           "band_placement", "typical_week")
+
+    def test_the_decisions_the_variants_force_are_still_gated(self):
+        """The prose describing a decision is ungated; the decision is not. A
+        band that wanders between repeats while the score holds is a finding
+        about the variant, and ungating it would hide exactly that."""
+        for field in ("band", "delta_vs_typical"):
+            assert field not in bakeoff._UNGATED_FIELDS
+        base = {"score_12m": 50, "band": "Moderate", "delta_vs_typical": 3}
+        assert bakeoff._scored_only(base) != bakeoff._scored_only(
+            {**base, "band": "High"})
+        assert bakeoff._scored_only(base) != bakeoff._scored_only(
+            {**base, "delta_vs_typical": 9})
 
 
 class TestTheNoiseFloorIsInTheDivergenceMeterUnits:

@@ -1,0 +1,94 @@
+{
+  "arm": "prompt",
+  "candidate": "vs-typical",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.4-vs-typical",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "f94ba177181c0477df24e6c8ddacfebaea626d74"
+  },
+  "cost": {
+    "snapshots": 0
+  },
+  "country": "TR",
+  "endpoint": {
+    "PROMPT_VARIANT": "vs-typical"
+  },
+  "gates": {
+    "cost": {
+      "cached_tokens": 9600,
+      "calls": 3,
+      "input_tokens": 10092,
+      "output_tokens": 820,
+      "spend_usd": 0.02143
+    },
+    "determinism": {
+      "exact_match_rate": 0.0,
+      "repeats": 3,
+      "score_spread": 3,
+      "scored_match_rate": 0.5,
+      "scores": [
+        52,
+        52,
+        55
+      ]
+    },
+    "schema": {
+      "error": null,
+      "passed": true,
+      "sample": {
+        "bullet_summary": "The country's investor risk is moderate, with a high government debt-to-GDP ratio of 117.2% and stable but low inflation at 0.9%. The central bank's decision to hold the policy rate suggests balanced economic risks. Political uncertainty arises from the governing party losing a regional majority, impacting policy continuity. Information capacity is moderate, with reliable central bank actions but potential political instability. Overall, the risk is stable over the next 3 to 12 months.",
+        "condition_flags": {
+          "emergency_rule": false,
+          "internal_conflict_level": "none",
+          "sovereign_stress": false,
+          "war_on_territory": false
+        },
+        "delta_vs_typical": 0,
+        "evidence_coverage": 60,
+        "ledger_scores": {
+          "edge_vitality": null,
+          "friction": 45,
+          "information_capacity": 30,
+          "order_uncertainty": 50
+        },
+        "news_article_scores": [
+          {
+            "id": "a1",
+            "impact": 25,
+            "topic_group": "central_bank_policy_rate"
+          },
+          {
+            "id": "a2",
+            "impact": 45,
+            "topic_group": "regional_election_results"
+          }
+        ],
+        "score_12m": 52,
+        "score_3m": 48,
+        "subscore_evidence": {
+          "friction": [
+            "structural"
+          ],
+          "information_capacity": [
+            "a1"
+          ],
+          "order_uncertainty": [
+            "a2"
+          ]
+        },
+        "typical_week": "A typical week for this country involves moderate political and economic stability, with occasional political shifts and stable economic indicators."
+      }
+    }
+  },
+  "note": "describe this country's ordinary week, then score the departure",
+  "rows": [],
+  "since": "2018-01-01",
+  "until": "2018-12-31"
+}
