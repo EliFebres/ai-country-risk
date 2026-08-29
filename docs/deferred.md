@@ -475,3 +475,105 @@ within the same run, or a coverage line in the summary that names how many of
 the roster actually got a CPI print. Priority is low while the corpus is being
 harvested and no scoring is running, but a payload census before the first
 historical scores should check it rather than assume it.
+
+---
+
+## 18. `source_system` carries two facts, and a merge overwrites one of them
+
+**Sized and deliberately not done in the session that found it.** It is not a
+bug today because only one source has ever supplied a body for a given URL. It
+becomes one the moment a second does, and the corruption is silent and
+irreversible.
+
+`store.upsert_articles` resolves a URL collision with `ON CONFLICT (url) DO
+UPDATE`, and one branch of that update reads:
+
+```sql
+source_system = CASE WHEN EXCLUDED.body IS NOT NULL
+                     THEN EXCLUDED.source_system
+                     ELSE article.source_system END,
+```
+
+So the column answers "who discovered this row" until somebody supplies a body,
+and "who supplied the body" afterwards. With Guardian and NYT that never fires —
+NYT never writes a body. With newsapi.ai in the mix, a newsapi.ai body landing
+on a URL the Guardian already discovered **rebrands the Guardian's row**, and
+every count keyed on `source_system` moves with it: `counts_by_year`,
+`recovery_curve`, `reports.evidence_texture`, and `probe.source_mix_caveat`,
+which reads `nyt_share` to say whether an identifiability result is confounded
+by the source blend. All of those are measured against a Gate-2 baseline that
+assumed a fixed mix.
+
+**The fix is two columns.** `source_system` for discovery, immutable, set once by
+whoever first inserted the row; `body_source` for whoever supplied the body
+currently stored, mutable, following the existing CASE.
+
+**Estimated ~6 files, ~30 lines**, and it is *not* only a column plus a backfill
+— that is why it was estimated rather than done:
+
+| Site | Change |
+|---|---|
+| `schema.py` TABLES | `body_source TEXT` on `article` |
+| `schema.py` MIGRATIONS | `ADD COLUMN IF NOT EXISTS`, then `UPDATE article SET body_source = source_system WHERE body_source IS NULL AND body IS NOT NULL` — correct precisely because today's column already means "who supplied the body" for rows that have one |
+| `store.article_row` + `_ROW_COLUMNS` | set and carry it |
+| `store.upsert_articles` | drop the `source_system` CASE, add it on `body_source` |
+| `store.recovery_curve` | group by `body_source`; it is a body-outcome curve |
+| `snapshot_select.to_item` | decide which fact `source` means — the probe reads it |
+| `reports.py:238,545` | the per-source bucket |
+
+**Why it waits.** It rewrites the merge semantics of every existing row, which
+does not belong in the same commit as a new adapter. And its correctness lives
+entirely in the DB-gated tests (`TestBodyBeatsStub`,
+`TestBodyStatusTransitions`), which skip unless `HISTORY_TEST_DATABASE_URL` is
+set — so doing it without standing up a test database first would be changing
+the most dangerous SQL in the codebase unverified.
+
+**Do it before the first newsapi.ai write**, not before the next evaluation: the
+evaluation path writes nothing, so nothing is at risk until a harvest runs.
+
+---
+
+## 19. The Guardian adapter has no body-length floor, and now we know what that cost
+
+**Measured 2026-08-28: almost nothing, and that is the finding.**
+
+`adapters.guardian` decides a body is a body with `if item.get("text")` — bare
+truthiness, so a one-character string is stored as `body_status='recovered'` and
+nothing downstream re-checks it. `adapters.newsapi_ai` is the first module in
+the codebase with a real floor (`config.NEWSAPI_MIN_BODY_CHARS`).
+
+The obvious worry was that the corpus's headline body-coverage number had never
+been validated, and that Gate 2's evidence quality and the p3 context blocks
+were built on stubs. Audited over all 51,872 Guardian rows marked `recovered`:
+
+| below 1,000 chars | below 400 | null | mean | median | min |
+|---|---|---|---|---|---|
+| 131 (0.25%) | 6 | 0 | 8,234 | 5,599 | 206 |
+
+So the missing check is a **latent** risk, not a realised one: the Guardian
+returns whole articles, and 0.25% of rows sitting under a floor it never
+promised to clear is not a corpus problem. Gate 2 was not overstated.
+
+Two things follow. First, the floor is not worth retrofitting to Guardian for
+data-quality reasons — 131 rows. Second, the distribution is **continuous, not
+bimodal** (206→390: 6 rows, 800→997: 72, 1,600→1,799: 329, rising smoothly), so
+there is no natural cut to read off it. Any floor is a judgement call rather
+than something the data hands over, which is worth knowing before the same
+question is asked of a source that aggregates 150,000 publishers.
+
+Re-run it with `newsapi_eval.guardian_stub_audit()`. It is read-only.
+
+---
+
+## 20. `--until` exists on one harvest subcommand out of four
+
+`run.py` gives `--since` and `--country` to every harvest, and `--until` only to
+`newsapi-ai`. The asymmetry is deliberate and thin: Guardian and NYT are free,
+so running them to today costs patience, while newsapi.ai bills per search and a
+run that cannot say where it stops cannot be priced.
+
+It is still an inconsistency a reader has to be told about rather than one they
+can infer. Adding `--until` to the shared `for name in (...)` loop and threading
+an `until` parameter through `guardian.harvest` and `nyt.harvest` is a small
+change, and it would let a single country-year be harvested from any source —
+useful for exactly the kind of A/B this session ran.

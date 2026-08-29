@@ -235,7 +235,8 @@ def evidence_texture(roster: Optional[List[str]] = None) -> Dict[str, Any]:
             continue  # an empty week, or a manifest that failed to build
         key = (iso2, row["as_of"].year)
         bucket = per.setdefault(key, {"snapshots": 0, "articles": 0, "abstract": 0,
-                                      "guardian": 0, "nyt": 0})
+                                      "guardian": 0, "nyt": 0,
+                                      "newsapi_ai": 0})
         bucket["snapshots"] += 1
         for article in articles:
             bucket["articles"] += 1
@@ -542,7 +543,8 @@ def render(roster: Optional[List[str]] = None) -> None:
         print(f"  {key}  snapshots={row['snapshots']:>3} "
               f"articles/snapshot={_fmt(row['articles_per_snapshot']):>5}  "
               f"abstract={_fmt(row['abstract_share']):>6}  "
-              f"guardian={row['guardian']:>5} nyt={row['nyt']:>5}")
+              f"guardian={row['guardian']:>5} nyt={row['nyt']:>5} "
+              f"newsapi_ai={row['newsapi_ai']:>5}")
 
     print("\n=== 4. spend ===")
     money = spend()

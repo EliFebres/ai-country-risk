@@ -16,6 +16,7 @@ No network, no model: every boundary is monkeypatched.
 """
 
 import datetime
+import json
 import logging
 import inspect
 import re
@@ -24,7 +25,7 @@ import pytest
 
 from backend.news_fetching import snapshot_select as sel, wayback
 from backend.util import config
-from backend.news_fetching.adapters import gdelt, guardian, nyt
+from backend.news_fetching.adapters import gdelt, guardian, newsapi_ai, nyt
 from backend.news_fetching import article_enrichment as ae
 from backend.news_fetching import article_ranking, core, source_filter
 
@@ -70,7 +71,7 @@ class TestNoAdapterForksTheCore:
     shared core exists to prevent, and exactly the kind that looks fine in every
     count."""
 
-    MODULES = (guardian, gdelt, nyt)
+    MODULES = (guardian, gdelt, nyt, newsapi_ai)
     FORBIDDEN = ("_HIGH_KEYWORDS", "score_relevance", "select_with_theme_floor",
                  "_select_with_theme_floor", "headline_key", "_by_relevance")
     THEME_QUERYING = (guardian, gdelt)
@@ -90,9 +91,11 @@ class TestNoAdapterForksTheCore:
 
     @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)
     def test_no_adapter_carries_its_own_theme_queries(self, module):
-        # NYT is exempt from the second half: the archive endpoint takes a year
-        # and a month and returns the whole paper, so its themes come from
-        # `store.article_row`'s classifier. It is still forbidden a theme list.
+        # NYT and newsapi.ai are exempt from the second half. The NYT archive
+        # endpoint takes a year and a month and returns the whole paper;
+        # newsapi.ai is a concept query priced per search, where six theme
+        # queries would cost six times one. Both get their themes from
+        # `store.article_row`'s classifier. Both are still forbidden a theme list.
         source = inspect.getsource(module)
         assert "THEME_QUERIES: dict" not in source
         if module in self.THEME_QUERYING:
@@ -844,3 +847,378 @@ class TestAConvergedHarvestSaysSo:
             guardian.harvest(roster=["PT"], since="2016-01-01")
 
         assert "country-years left" in caplog.text
+
+
+# ---------------------------------------------------------------------------
+# newsapi.ai — the first metered source
+# ---------------------------------------------------------------------------
+
+def _response(status=200, headers=None, payload=None):
+    """A hand-built response, the way the Guardian wall tests build theirs."""
+    import requests
+    resp = requests.Response()
+    resp.status_code = status
+    resp.headers.update(headers or {})
+    resp._content = json.dumps(payload if payload is not None else {}).encode()
+    return resp
+
+
+def _article(url="https://p.test/a", body="x" * 5000, published="2019-06-01T09:00:00",
+             title="A thing happened", source_title="Publico",
+             source_country="Portugal"):
+    """One Event Registry article in the shape their API returns."""
+    return {
+        "url": url, "title": title, "body": body, "dateTimePub": published,
+        "source": {"uri": "publico.pt", "title": source_title,
+                   "location": {"country": {"label": {"eng": source_country}}}},
+    }
+
+
+class TestTheArchiveStaysReachable:
+    """The failure this guards is silent and total: `forceMaxDataTimeWindow`
+    clamps a search to the last 31 days, so every archive window would come back
+    empty and correctly billed. Every account of this API describes an
+    `allowUseOfArchive` flag you switch *on*; the SDK's real default is on, and
+    the flag exists only to turn it off."""
+
+    def test_the_clamp_is_never_sent(self, monkeypatch):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        payload = newsapi_ai._payload("Portugal", datetime.date(2019, 1, 1),
+                                      datetime.date(2019, 12, 31), 1)
+        assert "forceMaxDataTimeWindow" not in payload
+
+    def test_the_clamp_is_nowhere_in_the_code(self):
+        # Belt and braces: a future edit adding it to a different code path
+        # would pass the test above and still lose the archive. Matched as a
+        # quoted string rather than as a word, because the module names it
+        # twice in prose in order to forbid it — and a test that cannot tell
+        # the documentation from the payload would have to be deleted the
+        # first time someone explained the rule.
+        source = inspect.getsource(newsapi_ai)
+        assert '"forceMaxDataTimeWindow"' not in source
+        assert "'forceMaxDataTimeWindow'" not in source
+
+    def test_the_body_is_asked_for_whole(self, monkeypatch):
+        # articleBodyLen is a truncation length, not a flag: any value but -1
+        # silently caps every article, and the cap would read as short bodies.
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        payload = newsapi_ai._payload("Portugal", datetime.date(2019, 1, 1),
+                                      datetime.date(2019, 12, 31), 1)
+        assert payload["articleBodyLen"] == -1
+
+
+class TestABodyIsNotJustNonEmptyText:
+    """`adapters.guardian` calls anything truthy a body, so a one-character
+    string is stored there as `recovered`. Aggregating 150,000 publishers makes
+    that untenable: a 400-character syndication stub read as full evidence
+    poisons every digest built on it, and the count still says `recovered`."""
+
+    def test_a_full_body_is_recovered_and_api_native(self):
+        item = core.normalize_item(link="https://p.test/a", text="x" * 5000)
+        status, vintage, out = newsapi_ai.classify_body(item)
+        assert (status, vintage) == ("recovered", "api-native")
+        assert out["text"] == "x" * 5000
+
+    def test_a_stub_is_demoted_to_an_abstract_and_queued(self):
+        item = core.normalize_item(link="https://p.test/a", text="x" * 400)
+        status, vintage, out = newsapi_ai.classify_body(item)
+        assert (status, vintage) == ("pending", None)
+        # Demoted, not discarded: the store writes `snippet` to `abstract`.
+        assert out["text"] == ""
+        assert out["snippet"] == "x" * 400
+
+    def test_no_text_at_all_is_queued_not_invented(self):
+        item = core.normalize_item(link="https://p.test/a", text="")
+        status, vintage, out = newsapi_ai.classify_body(item)
+        assert (status, vintage) == ("pending", None)
+        assert not out["text"]
+
+    def test_the_floor_is_the_boundary_it_claims_to_be(self):
+        floor = config.NEWSAPI_MIN_BODY_CHARS
+        at = core.normalize_item(link="https://p.test/a", text="x" * floor)
+        under = core.normalize_item(link="https://p.test/b", text="x" * (floor - 1))
+        assert newsapi_ai.classify_body(at)[0] == "recovered"
+        assert newsapi_ai.classify_body(under)[0] == "pending"
+
+    def test_only_states_the_queue_can_return_are_written(self):
+        # The one-way-door rule: a status outside BODY_STATUSES would pass here
+        # and fail at the CHECK constraint, mid-harvest.
+        from backend.data_upsert import schema
+        for text in ("", "x" * 400, "x" * 5000):
+            status, _v, _i = newsapi_ai.classify_body(
+                core.normalize_item(link="https://p.test/a", text=text))
+            assert status in schema.BODY_STATUSES
+
+
+class TestTheSpendIsMeasuredNotAssumed:
+    """The number that decides a $90/mo purchase must come off the wire. The
+    published price list gives '5 tokens/searched year' and says nothing about a
+    sub-year window, so arithmetic here would be an assertion wearing a
+    measurement's clothes."""
+
+    def setup_method(self):
+        newsapi_ai._SPEND.update(tokens=0, calls=0, measured_calls=0,
+                                 limit=None, remaining=None)
+
+    def test_the_billing_header_is_what_gets_counted(self):
+        resp = _response(headers={"req-tokens": "7", "x-ratelimit-remaining": "4993"})
+        assert newsapi_ai._read_spend_headers(resp, fallback=5) == 7
+        assert newsapi_ai.spend()["tokens"] == 7
+        assert newsapi_ai.spend()["remaining"] == 4993
+        assert newsapi_ai.spend()["tokens_are_measured"] is True
+
+    def test_a_response_with_no_header_falls_back_and_says_so(self):
+        resp = _response(headers={})
+        assert newsapi_ai._read_spend_headers(resp, fallback=5) == 5
+        assert newsapi_ai.spend()["tokens"] == 5
+        # The whole point of the flag: 5 here is the price list, not the bill.
+        assert newsapi_ai.spend()["tokens_are_measured"] is False
+
+    def test_a_refusal_is_still_read(self):
+        # The remaining count arrives precisely when the API refuses, which is
+        # the one moment anybody wants to read it. Guardian learned this by
+        # folding headers only on success and blinding itself to its own wall.
+        resp = _response(status=401, headers={"req-tokens": "5",
+                                              "x-ratelimit-remaining": "0"})
+        newsapi_ai._read_spend_headers(resp, fallback=5)
+        assert newsapi_ai.spend()["remaining"] == 0
+        assert newsapi_ai.spend()["tokens"] == 5
+
+    def test_the_asserted_price_charges_a_whole_year_for_a_month(self):
+        # Conservative on purpose: the budget check has to be safe when the
+        # header is missing, and over-charging stops early where under-charging
+        # overshoots.
+        one_month = newsapi_ai.asserted_tokens(datetime.date(2019, 3, 1),
+                                               datetime.date(2019, 3, 31))
+        assert one_month == config.NEWSAPI_TOKENS_PER_ARCHIVE_YEAR
+        three_years = newsapi_ai.asserted_tokens(datetime.date(2015, 1, 1),
+                                                 datetime.date(2017, 12, 31))
+        # Their own worked example: 2015 to 2017 is 15 tokens.
+        assert three_years == 15
+
+
+class TestTheBudgetIsACapNotASuggestion:
+    """Checked before the call, against what the call is expected to cost. A
+    budget checked afterwards lets the run overshoot by exactly the call that
+    broke it, which on a source billing 5 tokens a page is the difference
+    between a cap and a hope."""
+
+    def test_the_call_that_would_breach_is_never_made(self, monkeypatch):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+
+        def must_not_run(*_a, **_k):
+            raise AssertionError("the budget was checked after the spend")
+
+        monkeypatch.setattr(newsapi_ai, "_post", must_not_run)
+        spent = [config.NEWSAPI_TOKEN_BUDGET - 1]
+        with pytest.raises(newsapi_ai.TokenBudgetExhausted, match="budget"):
+            newsapi_ai._page("Portugal", datetime.date(2019, 1, 1),
+                             datetime.date(2019, 12, 31), 1, spent)
+
+    def test_a_run_with_room_left_proceeds_and_charges_what_it_was_billed(
+            self, monkeypatch):
+        # Patched at the wire rather than at `_post`, deliberately: the spend
+        # is folded in by `_read_spend_headers` *inside* `_post`, so a fake
+        # that replaces `_post` reports a run that cost nothing. The first
+        # version of this test did exactly that and passed while measuring
+        # neither the call nor the charge.
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.requests, "post", lambda *_a, **_k: _response(
+            headers={"req-tokens": "5"},
+            payload={"articles": {"results": [], "totalResults": 0, "pages": 1}}))
+        spent = [0]
+        newsapi_ai._page("Portugal", datetime.date(2019, 1, 1),
+                         datetime.date(2019, 12, 31), 1, spent)
+        assert spent[0] == 5
+
+
+class TestA401IsAWallNotAnAuthError:
+    """Event Registry answers 401 when the account's tokens run out, which is
+    the same status a bad key gets. Retrying either is wrong, and every attempt
+    is a billable search spent against the allowance that just ran out. The
+    Guardian learned the general form on 2026-08-15, when one wall became 46
+    identical `request error` checkpoints in fifteen minutes."""
+
+    def test_the_refusal_is_not_retried(self, monkeypatch):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.time, "sleep", lambda *_a: None)
+        attempts = []
+
+        def refuse(_url, **kwargs):
+            attempts.append(kwargs)
+            return _response(status=401, headers={"req-tokens": "5"},
+                             payload={"error": "token limit reached"})
+
+        monkeypatch.setattr(newsapi_ai.requests, "post", refuse)
+        with pytest.raises(newsapi_ai.QuotaExhausted, match="401"):
+            newsapi_ai._post({"action": "getArticles"}, 5)
+        assert len(attempts) == 1, "a refusal must not be retried five times"
+
+    def test_the_harvest_checkpoints_the_wall_and_returns(self, monkeypatch, caplog):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.store, "completed_windows", lambda *_a: set())
+        written = []
+        monkeypatch.setattr(newsapi_ai.store, "write_checkpoint",
+                            lambda *a, **k: written.append(k))
+
+        def wall(*_a, **_k):
+            raise newsapi_ai.QuotaExhausted("spent")
+
+        monkeypatch.setattr(newsapi_ai, "harvest_window", wall)
+
+        with caplog.at_level(logging.WARNING):
+            # Returns rather than raising: a spent allowance is a scheduling
+            # fact, and the run has to leave a resumable ledger behind.
+            assert newsapi_ai.harvest(roster=["PT"], since="2019-01-01",
+                                      until="2019-12-31") == 0
+        assert written and written[0]["note"] == "quota exhausted"
+        assert written[0]["status"] == "failed"
+        assert "Re-run to resume" in caplog.text
+
+    def test_a_transient_error_is_still_retried(self, monkeypatch):
+        # The other half. A 503 is not a wall, and treating it as one would
+        # abandon a window the service was merely too busy to serve.
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.time, "sleep", lambda *_a: None)
+        attempts = []
+
+        def busy(_url, **kwargs):
+            attempts.append(kwargs)
+            return _response(status=503)
+
+        monkeypatch.setattr(newsapi_ai.requests, "post", busy)
+        with pytest.raises(Exception):
+            newsapi_ai._post({"action": "getArticles"}, 5)
+        assert len(attempts) == 5
+
+
+class TestPublishedAtIsLoadBearing:
+    """It feeds the no-future invariant. A naive string reaches Postgres to be
+    read in the session's timezone, which is a backfill that silently re-dates
+    itself by the deploy region's offset — an error that reads as data."""
+
+    def test_a_missing_date_drops_the_article_rather_than_defaulting(self):
+        assert newsapi_ai.to_item({"url": "https://p.test/a", "title": "t"}) is None
+
+    def test_a_missing_url_drops_the_article(self):
+        assert newsapi_ai.to_item({"dateTimePub": "2019-06-01T09:00:00Z"}) is None
+
+    def test_a_naive_stamp_is_marked_utc_not_left_bare(self):
+        item = newsapi_ai.to_item(_article(published="2019-06-01T09:00:00"))
+        assert item["published"].endswith("Z")
+
+    def test_an_offset_that_is_already_there_is_left_alone(self):
+        item = newsapi_ai.to_item(_article(published="2019-06-01T09:00:00+01:00"))
+        assert item["published"] == "2019-06-01T09:00:00+01:00"
+
+    def test_the_publishers_stamp_wins_over_the_index_stamp(self):
+        # `dateTime` is when the index saw the article; `dateTimePub` is when it
+        # was published. Only the second is what a snapshot window means.
+        item = newsapi_ai.to_item({"url": "https://p.test/a",
+                                   "dateTime": "2019-07-02T00:00:00Z",
+                                   "dateTimePub": "2019-06-01T09:00:00Z"})
+        assert item["published"] == "2019-06-01T09:00:00Z"
+
+    def test_the_store_refuses_what_the_adapter_let_through(self):
+        # The backstop: `article_row` raises rather than writing a NULL date.
+        from backend.data_upsert import store as _store
+        bad = core.normalize_item(link="https://p.test/a", published="not a date")
+        with pytest.raises(ValueError, match="publication date"):
+            _store.article_row(bad, country_iso2="PT",
+                               source_system="newsapi_ai", body_status="pending")
+
+
+class TestTheWindowsAreThePriceTag:
+    """Archive searches bill per searched year, so window width is a cost as
+    well as a shape. Calendar boundaries rather than rolling spans, for the
+    reason `guardian.year_windows` gives: a resumed harvest must ask the same
+    windows as the run before it or its checkpoints mean nothing."""
+
+    def test_a_year_is_one_window(self):
+        got = newsapi_ai.windows(datetime.date(2019, 1, 1),
+                                 datetime.date(2019, 12, 31), "year")
+        assert got == [(datetime.date(2019, 1, 1), datetime.date(2019, 12, 31))]
+
+    def test_a_year_is_twelve_monthly_windows(self):
+        got = newsapi_ai.windows(datetime.date(2019, 1, 1),
+                                 datetime.date(2019, 12, 31), "month")
+        assert len(got) == 12
+        assert got[0] == (datetime.date(2019, 1, 1), datetime.date(2019, 1, 31))
+        assert got[-1] == (datetime.date(2019, 12, 1), datetime.date(2019, 12, 31))
+
+    def test_windows_are_clamped_to_the_request(self):
+        got = newsapi_ai.windows(datetime.date(2019, 3, 15),
+                                 datetime.date(2019, 5, 10), "month")
+        assert got[0][0] == datetime.date(2019, 3, 15)
+        assert got[-1][1] == datetime.date(2019, 5, 10)
+
+    def test_february_does_not_lose_a_day(self):
+        got = newsapi_ai.windows(datetime.date(2020, 2, 1),
+                                 datetime.date(2020, 2, 29), "month")
+        assert got == [(datetime.date(2020, 2, 1), datetime.date(2020, 2, 29))]
+
+    def test_an_unknown_granularity_is_refused(self):
+        with pytest.raises(ValueError, match="granularity"):
+            newsapi_ai.windows(datetime.date(2019, 1, 1),
+                               datetime.date(2019, 12, 31), "fortnight")
+
+    def test_the_concept_uri_is_derived_not_looked_up(self):
+        # A lookup would be a billed call per country to learn a string that
+        # never changes.
+        assert newsapi_ai.concept_uri("Portugal").endswith("/Portugal")
+        assert newsapi_ai.concept_uri("South Korea").endswith("/South_Korea")
+
+
+class TestABadKeyIsNotAQuotaStop:
+    """Both arrive as 401 and they want opposite handling. Measured against the
+    live endpoint on 2026-08-28: an unrecognised key returns a bare-text 401
+    with no JSON and no billing headers, reading "The apiKey that was provided
+    is not recognized as a valid key for a user."
+
+    Conflated, a bad key would checkpoint every window `quota exhausted`, return
+    0 like any ordinary wall, and print "re-run to resume" about a run that can
+    never succeed."""
+
+    @staticmethod
+    def _refuse(monkeypatch, text):
+        import requests
+        resp = requests.Response()
+        resp.status_code = 401
+        resp._content = text.encode()
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.time, "sleep", lambda *_a: None)
+        monkeypatch.setattr(newsapi_ai.requests, "post", lambda *_a, **_k: resp)
+
+    def test_an_unrecognised_key_raises_bad_key(self, monkeypatch):
+        self._refuse(monkeypatch, "The apiKey that was provided is not "
+                                  "recognized as a valid key for a user.")
+        with pytest.raises(newsapi_ai.BadKey, match="dashboard"):
+            newsapi_ai._post({"action": "getArticles"}, 5)
+
+    def test_a_spent_allowance_is_still_a_quota_stop(self, monkeypatch):
+        self._refuse(monkeypatch, "Your account has reached the limit of tokens")
+        with pytest.raises(newsapi_ai.QuotaExhausted, match="allowance spent"):
+            newsapi_ai._post({"action": "getArticles"}, 5)
+
+    def test_a_bad_key_is_not_a_quota_stop(self, monkeypatch):
+        # The distinction that matters: BadKey must not be catchable as the
+        # thing the harvest treats as resumable.
+        self._refuse(monkeypatch, "not recognized as a valid key")
+        assert not issubclass(newsapi_ai.BadKey, newsapi_ai.QuotaExhausted)
+
+    def test_the_harvest_stops_dead_rather_than_checkpointing_every_window(
+            self, monkeypatch):
+        monkeypatch.setenv("NEWSAPI_AI_API_KEY", "k")
+        monkeypatch.setattr(newsapi_ai.store, "completed_windows", lambda *_a: set())
+        written = []
+        monkeypatch.setattr(newsapi_ai.store, "write_checkpoint",
+                            lambda *a, **k: written.append(k))
+
+        def bad(*_a, **_k):
+            raise newsapi_ai.BadKey("nope")
+
+        monkeypatch.setattr(newsapi_ai, "harvest_window", bad)
+        with pytest.raises(newsapi_ai.BadKey):
+            newsapi_ai.harvest(roster=["PT", "TR"], since="2019-01-01",
+                               until="2019-12-31")
+        assert written == [], "a misconfiguration must not write checkpoints"

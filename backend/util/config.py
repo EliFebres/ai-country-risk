@@ -213,6 +213,70 @@ NYT_REQUEST_INTERVAL_SECONDS: float = 12.0
 # nobody reports reads afterwards as "we harvested everything".
 NYT_MAX_PER_COUNTRY_MONTH: int = 150
 
+# ---------------------------------------------------------------------------
+# newsapi.ai (Event Registry)
+# ---------------------------------------------------------------------------
+#
+# The only *metered* source in the harvest. Guardian and NYT cost calls and
+# patience; this one costs money per search, so every constant below is a spend
+# control and is labelled as such.
+
+# **Published, not measured — the evaluation is what measures it.** Their plans
+# page states the billing: a recent-article search is 1 token, an archive search
+# is "5 tokens/searched year", and "retrieving each page of results counts as a
+# search action". Every call this adapter makes is archival.
+#
+# What the page does not say is how a *sub-year* window is billed — whether a
+# one-month archive search costs a whole year's 5 tokens or some fraction. That
+# is the difference between one shape of harvest and another, so the adapter
+# reads the real cost off the `req-tokens` response header and only falls back
+# to this arithmetic when the header is absent.
+NEWSAPI_TOKENS_PER_ARCHIVE_YEAR: int = 5
+
+# **A hard cap, enforced in code.** The 5K plan is 5,000 tokens a month and
+# overage bills at $0.015/token, so an adapter bug that paginates forever is a
+# money bug. 500 is a tenth of the plan: enough for the PT 2019 evaluation with
+# room for retries, and small enough that being wrong is cheap.
+#
+# Metered from `req-tokens` on every response — the same discipline as
+# `LEAKAGE_SCAN_BUDGET_USD`, and for the same reason: a budget that is only
+# checked at the end is not a budget.
+NEWSAPI_TOKEN_BUDGET: int = 500
+
+# **Their documented maximum.** "With each search action, you can retrieve up to
+# 100 articles or 50 events."
+NEWSAPI_PAGE_SIZE: int = 100
+
+# **A choice, sized for parity rather than for sufficiency.** Ten pages is about
+# 1,000 articles, which is the same order as the Guardian's PT 2019 (823) — so
+# the volume comparison in the evaluation measures the source rather than
+# measuring how deep each adapter was allowed to dig.
+#
+# This is an evaluation number and is expected to fall. The selector takes 20
+# articles a snapshot and a month holds ~4.3 of them, so ~86 articles a month is
+# the real appetite; anything past that is bought and never read. The production
+# cap should be derived from that sufficiency floor, per *time window* rather
+# than per country-year — a year-wide cap can return a thousand articles
+# clustered in three months and leave whole windows empty, and an annual count
+# cannot see it.
+NEWSAPI_MAX_PAGES_PER_WINDOW: int = 10
+
+# **Provisional — the evaluation's body-length histogram is what sets it.**
+# Below this many characters a returned body is not treated as a body: the text
+# goes to the abstract and the row stays `pending` so the Wayback drain can try
+# for a real one. Nothing is discarded and nothing is mislabelled.
+#
+# The number is a guess between two measured points: 400 characters is a stub by
+# inspection, and the Guardian's recovered bodies average 8,822. It is a
+# backstop, not the primary test — if the API marks truncation explicitly, that
+# flag is better evidence than any length, because a genuine 800-character wire
+# item is complete and a 1,200-character teaser is not.
+#
+# Worth knowing while reading this: `adapters.guardian` applies **no** length
+# test at all — `if item.get("text")` — so a one-character body is stored there
+# as `recovered`. This constant is the first floor in the codebase.
+NEWSAPI_MIN_BODY_CHARS: int = 1000
+
 # **Asserted.** A judgement about archive quality, not a rate limit; the
 # Wayback Machine publishes no quota, and `wayback.py` paces at one request a
 # second with 429 backoff rather than against a number.
