@@ -286,6 +286,60 @@ class TestTheLagTable:
         assert lags.lag_days("SOME.NEW.CODE", "M") == 45
 
 
+class TestRestampingIsAMoveAndNotACopy:
+    """`as_of` is in the primary key, so an upsert cannot re-date anything.
+
+    The migration read as if it worked: it reported every fetch-dated row
+    changed, and the correctly-dated rows really did appear. They appeared
+    *beside* the originals, which carry the later date and therefore go on
+    winning `_resolve`'s freshest-wins tie-break — so the live path read exactly
+    what it read before and the table doubled. Insert then delete, in that
+    order: a failure between the two leaves a duplicate, and the other order
+    loses the row.
+    """
+
+    def test_the_plan_carries_the_date_it_is_moving_from(self):
+        changed, _ = restamp.plan([stored_row()])
+        assert changed[0]["_prior_as_of"] == FETCHED
+        assert changed[0]["as_of"] != FETCHED
+
+    def test_apply_deletes_the_row_it_replaced(self, monkeypatch):
+        deleted, inserted = [], []
+        monkeypatch.setattr(restamp, "read_all", lambda: [stored_row()])
+        monkeypatch.setattr(restamp, "dump", lambda rows, directory=None: "dump.csv")
+        monkeypatch.setattr(restamp.data_push, "upsert_indicator_series",
+                            lambda rows: inserted.extend(rows))
+        monkeypatch.setattr(restamp.data_push, "delete_series_rows",
+                            lambda keys: deleted.extend(keys) or len(keys))
+
+        result = restamp.apply()
+
+        assert result["changed"] == 1
+        assert inserted[0]["as_of"] == lags.published_on("2018-03", "M", "CPI.YOY")
+        assert deleted == [("PT", "CPI.YOY", "M", "2018-03", FETCHED)], (
+            "the fetch-dated row survived, so nothing was actually re-dated")
+
+    def test_the_insert_happens_before_the_delete(self, monkeypatch):
+        """Losing a row is worse than briefly holding two."""
+        order = []
+        monkeypatch.setattr(restamp, "read_all", lambda: [stored_row()])
+        monkeypatch.setattr(restamp, "dump", lambda rows, directory=None: "dump.csv")
+        monkeypatch.setattr(restamp.data_push, "upsert_indicator_series",
+                            lambda rows: order.append("insert"))
+        monkeypatch.setattr(restamp.data_push, "delete_series_rows",
+                            lambda keys: order.append("delete") or 0)
+        restamp.apply()
+        assert order == ["insert", "delete"]
+
+    def test_a_dry_run_writes_nothing(self, monkeypatch):
+        monkeypatch.setattr(restamp, "read_all", lambda: [stored_row()])
+        monkeypatch.setattr(restamp.data_push, "upsert_indicator_series",
+                            lambda rows: pytest.fail("dry run wrote rows"))
+        monkeypatch.setattr(restamp.data_push, "delete_series_rows",
+                            lambda keys: pytest.fail("dry run deleted rows"))
+        assert restamp.apply(dry_run=True)["changed"] == 1
+
+
 class TestTheRestampPlan:
     def test_a_fetch_dated_row_is_re_dated_to_its_publication(self):
         changed, _ = restamp.plan([stored_row()])

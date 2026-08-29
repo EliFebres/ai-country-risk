@@ -621,6 +621,46 @@ def upsert_indicator_series(rows: List[Dict[str, Any]]) -> None:
         )
 
 
+def delete_series_rows(keys: List[Tuple[str, str, str, str, datetime.date]]) -> int:
+    """Delete ``indicator_series`` rows by full primary key.
+
+    Exists because ``as_of`` is *in* that key. Re-dating an observation is
+    therefore not an upsert — it inserts a second row and leaves the first one
+    standing, which is how a migration that reports "re-dated 36,654 rows" can
+    leave every one of them still readable at its old date. The move is insert
+    the new, then delete the old, in that order: a failure between the two
+    duplicates a row, and the alternative order loses it.
+
+    Returns the number of rows actually removed.
+    """
+    if not keys:
+        return 0
+    removed = 0
+    with _transaction() as cur:
+        # Batched by hand rather than by `execute_values`' own `page_size`,
+        # because `cur.rowcount` reports only the last statement it ran — a
+        # 11,698-row delete in pages of 500 reports 198, which reads as a
+        # migration that mostly did not happen.
+        for start in range(0, len(keys), 500):
+            extras.execute_values(
+                cur,
+                """
+                DELETE FROM indicator_series s
+                USING (VALUES %s) AS v(country_iso2, indicator_code, freq, period, as_of)
+                WHERE s.country_iso2   = v.country_iso2
+                  AND s.indicator_code = v.indicator_code
+                  AND s.freq           = v.freq
+                  AND s.period         = v.period
+                  AND s.as_of          = v.as_of::date
+                """,
+                [(a, b, c, d, e.isoformat())
+                 for a, b, c, d, e in keys[start:start + 500]],
+                page_size=500,
+            )
+            removed += cur.rowcount
+    return removed
+
+
 def has_annual_series(country_iso2: str,
                       codes: Optional[List[str]] = None,
                       *, source: Optional[str] = None) -> bool:

@@ -17,14 +17,18 @@ live there rather than here because they belong to the publisher, not to the
 fetcher — and because the same table has to date the annual and quarterly rows
 this module never touches.
 
-Writing these rows **overwrites** the daily run's copies, since
-``indicator_series`` is keyed on ``(country_iso2, indicator_code, freq, period)``
-and carries ``as_of`` as a column rather than in the key. That is now the
-intended behaviour rather than a hazard: an ``as_of`` naming when a print landed
-is more truthful than one naming when this project happened to fetch it, and the
-live payload's staleness numbers become right rather than merely stable. The
-migration in :mod:`backend.data_fetching.vintage.restamp` does the same thing to
-the rows already stored, and dumps them first.
+Writing these rows does **not** overwrite the daily run's copies. This docstring
+claimed it did, on the grounds that ``indicator_series`` is keyed on
+``(country_iso2, indicator_code, freq, period)`` with ``as_of`` a plain column.
+It is not: ``as_of`` is in the primary key (``schema.py``), and
+``upsert_indicator_series`` names it in the conflict target. So a re-dated row is
+a second row, and the fetch-dated original — carrying the *later* date — goes on
+winning ``_resolve``'s freshest-wins tie-break on the live path.
+
+Where that matters is the migration in
+:mod:`backend.data_fetching.vintage.restamp`, which re-dates rows already stored:
+it now inserts the new row and deletes the one it replaces, in that order, rather
+than upserting and assuming the old one went away.
 """
 
 import datetime

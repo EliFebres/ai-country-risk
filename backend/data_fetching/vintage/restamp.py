@@ -68,7 +68,11 @@ def read_all() -> List[Dict[str, Any]]:
     disagreeing with itself about what ``as_of`` means.
     """
     with data_push._transaction() as cur:
-        cur.execute(data_push._INDICATOR_SERIES_DDL)
+        # No DDL here. This used to call `data_push._INDICATOR_SERIES_DDL`,
+        # which the ten-table rebuild moved to `schema.create_all` and deleted —
+        # so every path into this module raised AttributeError before touching a
+        # row, and nothing noticed, because the tests call `plan()` on literal
+        # dicts and never reach the database.
         cur.execute(f"SELECT {', '.join(_DUMP_COLUMNS)} FROM indicator_series "
                     "ORDER BY country_iso2, indicator_code, freq, period")
         columns = [c[0] for c in cur.description]
@@ -119,7 +123,10 @@ def plan(rows: List[Dict[str, Any]]) -> Tuple[List[Dict[str, Any]], List[Dict[st
             skipped.append({**row, "skip_reason": "already dated"})
             continue
 
-        changed.append({**row, "as_of": stamp, "vintage_scheme": lags.SCHEME})
+        # `_prior_as_of` rides along because `as_of` is part of the primary
+        # key: re-dating is a move, and the caller needs both ends of it.
+        changed.append({**row, "as_of": stamp, "vintage_scheme": lags.SCHEME,
+                        "_prior_as_of": row.get("as_of")})
 
     return changed, skipped
 
@@ -146,9 +153,14 @@ def revert(path: pathlib.Path) -> int:
     """Put a dump back, exactly as it was written.
 
     Reads the CSV, restores the ``as_of`` and ``vintage_scheme`` each row had
-    before the migration, and returns the count. The upsert is keyed on
-    ``(country, indicator, freq, period)``, so this overwrites in place rather
-    than duplicating.
+    before the migration, and returns the count.
+
+    A revert is a move, not an upsert. ``as_of`` is part of the primary key, so
+    re-inserting the original rows leaves the migrated ones sitting beside them
+    and the table ends up holding both dates for every observation. Where each
+    row went is not recorded in the dump, but it is recomputable: ``plan`` is
+    deterministic, so running it over the dumped rows yields exactly the dates
+    the migration wrote, which are the rows to remove.
     """
     with path.open("r", encoding="utf-8", newline="") as handle:
         rows = [
@@ -158,6 +170,11 @@ def revert(path: pathlib.Path) -> int:
             for row in csv.DictReader(handle)
         ]
     data_push.upsert_indicator_series(rows)
+    migrated, _ = plan(rows)
+    data_push.delete_series_rows([
+        (r["country_iso2"], r["indicator_code"], r["freq"], r["period"], r["as_of"])
+        for r in migrated
+    ])
     return len(rows)
 
 
@@ -183,5 +200,15 @@ def apply(dry_run: bool = False) -> Dict[str, Any]:
     result["backup"] = dump([r for r in stored
                              if (r["country_iso2"], r["indicator_code"],
                                  r["freq"], r["period"]) in keys])
+    # Insert first, delete second. `as_of` is in the primary key, so the upsert
+    # alone adds a correctly-dated row and leaves the fetch-dated one in place —
+    # and the fetch-dated one has the later date, so it keeps winning
+    # `_resolve`'s freshest-wins tie-break on the live path. The migration would
+    # report every row re-dated and change nothing anybody reads.
     data_push.upsert_indicator_series(changed)
+    result["deleted"] = data_push.delete_series_rows([
+        (r["country_iso2"], r["indicator_code"], r["freq"], r["period"],
+         r["_prior_as_of"])
+        for r in changed if isinstance(r.get("_prior_as_of"), datetime.date)
+    ])
     return result
