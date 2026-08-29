@@ -116,9 +116,13 @@ def _wayback(args) -> None:
         return
 
     if args.no_scan:
-        print(f"{len(pending)} pending; live refetches will be skipped "
-              f"(--no-scan), so uncaptured articles will be marked failed.")
-        wayback.drain(limit=args.limit, api_key=None)
+        print(f"{len(pending)} in the queue; live refetches will be skipped "
+              f"(--no-scan), so an article with no archive capture is marked "
+              f"'no-capture' and offered again in "
+              f"{config.WAYBACK_RECHECK_DAYS} days rather than being written off.")
+        counts = wayback.drain(limit=args.limit, api_key=None)
+        print(f"attempted {counts['attempted']}, recovered {counts['recovered']}, "
+              f"no capture {counts['no-capture']}, transient {counts['transient']}")
         return
 
     # A rough upper bound: every article needing a live refetch, at a full-size
