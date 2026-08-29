@@ -565,6 +565,35 @@ Re-run it with `newsapi_eval.guardian_stub_audit()`. It is read-only.
 
 ---
 
+## 20a. BR's Guardian harvest failed eleven times and nothing retried it
+
+**Found 2026-08-28 while pricing a paid news API to fix a gap BR did not have.**
+
+`run_ledger` holds eleven `status='failed', note='request error'` rows for
+`variant='guardian', country_iso2='BR'` — every attempted window, zero articles,
+one call and ~20 seconds each — and two windows never attempted at all. BR has
+**zero** Guardian rows in `article`; its entire corpus is NYT abstract-only,
+which is why it fails all five theme floors where every other harvested country
+passes.
+
+The Guardian answers BR fine: one live call returned `pages=15, total=1421` for
+2019 alone. This is a transient failure that was checkpointed and forgotten.
+
+**It resumes on its own** — only `done` is skipped, so `run guardian --country BR`
+retries all eleven. At the measured ~26 calls a country-year that is ~300 calls,
+comfortably inside a day's allowance. The two never-attempted windows (2015 and
+2016 on every country, not just BR) are a separate question: `HARVEST_FLOOR` is
+2015-01-01 but the earliest checkpoint anywhere is 2016-08-03, so something
+moved the floor after those runs.
+
+The real deferred item is not the retry, it is that **nothing reports this**.
+Eleven consecutive failed checkpoints on one country produced no summary line
+anybody read, and the gap surfaced only because a purchase decision went looking
+for it. `reports.harvest_pacing` already reads the ledger; a line naming
+countries whose windows are mostly `failed` would have caught it months ago.
+
+---
+
 ## 20. `--until` exists on one harvest subcommand out of four
 
 `run.py` gives `--since` and `--country` to every harvest, and `--until` only to
@@ -607,5 +636,10 @@ far more identifying than the Guardian writing it.
 
 This makes `deferred.md` item 7 — the deleted two-run masking comparison,
 explicitly including *"outlet fingerprinting: whether the probe is reading the
-evidence or the newspaper"* — **blocking rather than owed**. No newsapi.ai
-corpus should reach a scored series before it is restored and run.
+evidence or the newspaper"* — **a precondition on any newsapi.ai corpus reaching
+a scored series**.
+
+Scope it precisely: it blocks *that corpus*, not the pilot. The Guardian/NYT
+series is unaffected — its source mix is the one the probe was calibrated
+against, and nothing measured here changes it. Item 7 remains owed for the
+pilot on its own merits and blocking only for newsapi.ai.

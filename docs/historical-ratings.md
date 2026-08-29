@@ -786,6 +786,31 @@ Measured on a live 5K-plan key, 240 tokens of a 500 cap, **nothing written to th
 store**. Reproduce with `newsapi_eval.evaluate(...)`; the Guardian audit and the
 floor-fill control are read-only SQL and cost nothing.
 
+## The finding
+
+**A broad concept query on a local-media-heavy index returns sport.** newsapi.ai
+supplies roughly twice the Guardian's article count for a country-year and a
+*worse* fit to the ledgers the scorer actually reads: measured on PT 2019, the
+`information` theme falls under its per-snapshot floor on 46% of anchors and
+`edge` on 56%, against a pre-agreed failure line of 25%. The Guardian fills
+every floor with 642 articles where this fails two floors with 1,200.
+
+The remedy is measured and it works — a keyword-directed top-up on the failing
+themes returns 62 information-classified articles a month against roughly 1.7
+from the broad query. It costs 120 tokens a country-year on top of a 60-token
+baseline, which is **~$1,220 in overage to cover 48 countries by a decade**.
+
+That is the result. The volume comparison is the less interesting half: more
+articles that fit the ledgers worse is not a corpus improvement, and the whole
+reason `adapters.guardian` keeps six per-theme queries instead of collapsing
+them into one is now measured rather than asserted.
+
+**And the case for paying it did not survive contact with the ledger** — see
+"Where the money would actually buy something" below. Every country whose
+Guardian harvest actually completed passes every floor. The one that failed had
+never been harvested.
+
+
 ## How it bills, measured
 
 | window | tokens per page |
@@ -862,26 +887,73 @@ Collapsing would be cheaper and would break the point."*
 broad query, and 67 for `edge`. Two extra searches a month, 10 tokens, 120 a
 country-year on top of the 60 baseline.
 
-## Where the money actually buys something
+## Where the money would actually buy something
 
-PT was chosen as the thinnest country in the store, and the evaluation's most
-useful accident is that the premise was wrong: PT's Guardian coverage already
-fills every floor. Across every country with 2019 data:
+PT was chosen as the thinnest country in the store, and the first useful
+accident is that the premise was wrong: PT's Guardian coverage already fills
+every floor. The second is larger.
 
-| iso2 | rows in store | themes failing |
-|---|---|---|
-| US | 5,035 | none |
-| TR | 1,653 | none |
-| KR | 905 | none |
-| PT | 699 | none |
-| **BR** | **242** | **friction, order, security, information, edge** |
+Percent of weekly 2019 anchors **short** of the two-per-theme floor:
 
-Four of five are already sufficient. **BR is the case for buying this**, and
-newsapi.ai fixes it: 1,200 articles against 242, and friction/order/security/broad
-all move from failing to 4% short. `information` and `edge` still fail without
-the top-up.
+| country | source | n | friction | order | security | information | edge | broad | |
+|---|---|---|---|---|---|---|---|---|---|
+| US | guardian | 3,344 | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| TR | guardian | 1,277 | 0 | 0 | 0 | 0 | 0 | 0 | PASS |
+| PT | guardian | 642 | 0 | 0 | 0 | 10% | 0 | 0 | PASS |
+| KR | guardian | 462 | 0 | 0 | 0 | 23% | 0 | 0 | PASS |
+| **ID** | guardian | 432 | 0 | 0 | 0 | 2% | 2% | 4% | **PASS** |
+| **BR** | all | 242 | 83% | 71% | 71% | 100% | 100% | 0 | **FAIL** |
 
-The other 43 countries have no 2019 data yet, so this comparison rests on five.
+**BR was the entire case for buying this, and BR has zero Guardian rows.** All
+242 of its 2019 articles are NYT abstract-only, which is exactly why every
+theme floor fails — the NYT tier fails all five floors everywhere, by design.
+
+The ledger says why. Of twelve expected country-year windows, BR has **eleven
+checkpointed `failed` with `note='request error'`, zero rows, one call and ~20
+seconds each**, and two never attempted:
+
+| iso2 | done | failed | never attempted | articles | calls |
+|---|---|---|---|---|---|
+| PT | 11 | 0 | 2 | 9,059 | 364 |
+| TR | 11 | 0 | 2 | 15,495 | 768 |
+| US | 8 | 3 | 2 | 26,380 | 1,450 |
+| KR | 7 | 4 | 2 | 5,875 | 305 |
+| **BR** | **0** | **11** | **2** | **0** | **11** |
+
+It is not that the Guardian cannot cover Brazil. A single live call on
+2026-08-28 returned `pages=15, total=1421` for BR 2019 — more than Portugal
+has. **The harvest failed transiently, wrote `failed` checkpoints, and was
+never re-run.** Every window is retryable; only `done` is skipped on resume.
+
+And the roster test says BR is the outlier rather than the pattern. Indonesia —
+mid-size, non-anglophone, not in the pilot, never harvested before — took **26
+calls and 60 seconds** to return 530 rows and passes every floor comfortably.
+
+So the honest reading: **every country whose Guardian harvest actually
+completed passes every theme floor, and the only failure in the store is a
+country that was never successfully harvested.** The paid source was being
+asked to fix a bug in the free one.
+
+**Resolved on 2026-08-28, for free.** BR 2019 was re-harvested from the
+Guardian: **1,421 rows in 65 calls and 143 seconds** — more than Portugal or
+Turkey hold — and it now passes every theme floor at 0% short, the cleanest
+result of any country in the store:
+
+| country | source | n | short on any theme | |
+|---|---|---|---|---|
+| US | guardian | 3,344 | none | PASS |
+| TR | guardian | 1,277 | none | PASS |
+| **BR** | **guardian** | **1,067** | **none** | **PASS** |
+| PT | guardian | 642 | information 10% | PASS |
+| KR | guardian | 462 | information 23% | PASS |
+| ID | guardian | 432 | information 2%, edge 2% | PASS |
+
+Six for six. The gap the paid source was bought to fill was a failed HTTP
+request that nothing retried and nothing reported.
+
+The remaining 42 unharvested countries could still change this, and six
+countries is six countries. But the prior has moved a long way, and the order of
+operations is now obvious: **finish the free harvest before pricing a paid one.**
 
 ## Body quality
 
