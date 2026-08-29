@@ -43,22 +43,10 @@ from backend.data_fetching.vintage import lags
 logger = logging.getLogger(__name__)
 
 
-def restamp(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Re-date fetched rows from "today" to when each print landed.
-
-    Rows whose period cannot be parsed are dropped rather than kept with a
-    wrong date: an unusable observation is better than an undatable one in a
-    series whose whole point is knowing what was knowable when.
-    """
-    out = []
-    for row in rows:
-        stamp = lags.published_on(str(row.get("period")), str(row.get("freq")),
-                                  str(row.get("indicator_code") or ""))
-        if stamp is None:
-            logger.debug("[monthly] undatable period %r; dropped", row.get("period"))
-            continue
-        out.append({**row, "as_of": stamp, "vintage_scheme": lags.SCHEME})
-    return out
+# Moved to `lags`, which is where the publication dates live and which the
+# annual fetcher now needs too. Re-exported rather than relocated at the call
+# sites: this name is what the tests and `backfill` below already say.
+restamp = lags.restamp
 
 
 def _bis(months: int) -> List[Dict[str, Any]]:

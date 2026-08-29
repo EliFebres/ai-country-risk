@@ -35,7 +35,10 @@ is a fact, and these constants are an estimate standing in for one.
 """
 
 import datetime
-from typing import Dict, Optional
+import logging
+from typing import Any, Dict, List, Optional
+
+logger = logging.getLogger(__name__)
 
 # The scheme name written into `indicator_series.vintage_scheme` for any row
 # dated by this module, so a value's provenance says which of the two regimes
@@ -127,6 +130,30 @@ def published_on(period: str, freq: str,
     if end is None:
         return None
     return end + datetime.timedelta(days=lag_days(indicator_code, freq))
+
+
+def restamp(rows: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Re-date fetched rows from "today" to when each print landed.
+
+    Lives here rather than beside any one fetcher because every fetcher has the
+    same problem: `indicator_series.as_of` is documented as "when this
+    observation became public, NOT when it was fetched", and a bulk fetch knows
+    only the latter. Monthly had this applied and annual did not, which is the
+    whole of why a 2019 anchor saw ten fewer indicators than the table held.
+
+    Rows whose period cannot be parsed are dropped rather than kept with a
+    wrong date: an unusable observation is better than an undatable one in a
+    series whose whole point is knowing what was knowable when.
+    """
+    out = []
+    for row in rows:
+        stamp = published_on(str(row.get("period")), str(row.get("freq")),
+                             str(row.get("indicator_code") or ""))
+        if stamp is None:
+            logger.debug("undatable period %r; dropped", row.get("period"))
+            continue
+        out.append({**row, "as_of": stamp, "vintage_scheme": SCHEME})
+    return out
 
 
 def within_bounds(as_of: datetime.date, period: str, freq: str) -> bool:

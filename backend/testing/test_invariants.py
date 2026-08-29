@@ -393,6 +393,60 @@ class TestSurvivesTheVintageBound:
         kept = payload._resolve(observations, as_of=datetime.date(2019, 6, 1))
         assert [o.period for o in kept] == ["2017", "2018"]
 
+    def test_the_wb_series_fetcher_survives_the_bound_too(self):
+        """The half of the annual store that did *not* survive it, until now.
+
+        `country_data_fetch.panel_rows` stamps each value with its own year end
+        and the test above pins that. `wb_series_fetch` writes to the same table
+        from a different fetcher and stamped `date.today()`, so every one of its
+        ten indicators was dropped by the bound at every historical anchor --
+        the information and edge ledgers scored on zero macro evidence for the
+        whole pilot, and the suite stayed green because nothing asserted what
+        the *fetcher* produced, only what `_resolve` did with a literal.
+
+        This is that missing assertion: the rows a fetcher writes must be
+        readable by an anchor after their period.
+        """
+        rows = lags.restamp([
+            {"country_iso2": "PT", "indicator_code": "GOV_WGI_GE.EST",
+             "freq": "A", "period": period, "value": 1.0,
+             "as_of": datetime.date(2026, 8, 28), "source": "World Bank WGI"}
+            for period in ("2016", "2017", "2018", "2024")
+        ])
+
+        # Not the fetch date any more, and never before the period it describes.
+        assert all(r["as_of"] != datetime.date(2026, 8, 28) for r in rows)
+        assert all(lags.within_bounds(r["as_of"], r["period"], r["freq"])
+                   for r in rows)
+
+        kept = payload._resolve(payload._series_observations(rows),
+                                as_of=datetime.date(2019, 6, 1))
+        assert [o.period for o in kept] == ["2016", "2017"], (
+            "a 2019 anchor still cannot see the World Bank annual series")
+
+    def test_re_dating_a_row_moves_it_rather_than_copying_it(self):
+        """`as_of` is in the primary key, so the correction is a move.
+
+        An upsert alone leaves the fetch-dated row in place carrying the later
+        date, which then wins `_resolve`'s freshest-wins tie-break — so the
+        migration reports success and the live path reads exactly what it read
+        before.
+        """
+        stale = {"country_iso2": "PT", "indicator_code": "GOV_WGI_GE.EST",
+                 "freq": "A", "period": "2017", "value": 1.0,
+                 "as_of": datetime.date(2026, 8, 28),
+                 "source": "World Bank WGI",
+                 "vintage_scheme": "as-published-latest"}
+        changed, _ = restamp.plan([stale])
+        assert changed[0]["_prior_as_of"] == stale["as_of"]
+
+        # Both rows present is the bug: the stale one still wins.
+        both = payload._series_observations([stale, changed[0]])
+        assert payload._resolve(both)[0].as_of == datetime.date(2026, 8, 28)
+        # The move leaves only the corrected row.
+        only = payload._series_observations([changed[0]])
+        assert payload._resolve(only)[0].as_of == datetime.date(2018, 12, 31)
+
     def test_the_panel_backfill_asks_about_its_own_codes(self):
         """A step that runs, logs OK and does no work is this project's
         signature defect, and the bootstrap reproduced it exactly.
