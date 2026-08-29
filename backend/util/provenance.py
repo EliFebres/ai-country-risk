@@ -289,7 +289,16 @@ def macro_vintages(payload: Dict) -> Dict[str, Any]:
 #   ""       the template as it stands
 #   trend    adds a paragraph naming `trend_1y` / `trend_5y`, which every
 #            indicator has carried since p1 and nothing has ever read
-PROMPT_VARIANTS = ("", "trend")
+#
+# The two elicitation variants below change neither the evidence nor what the
+# model is told *about* the evidence. They change what it is asked to decide,
+# and in what order, because five payload and prompt interventions moved the
+# round-number share the wrong way and none moved the distinct-value count off
+# nine. See the schema comment in `llm/constants.py`.
+#
+#   within-band  name the band, place the score inside it, justify the placement
+#   vs-typical   describe this country's ordinary week, then score the departure
+PROMPT_VARIANTS = ("", "trend", "within-band", "vs-typical")
 
 
 def prompt_variant() -> str:
@@ -319,8 +328,11 @@ def prompt_version() -> str:
     """
     from backend.llm import constants as ai_constants
 
-    return (ai_constants.PROMPT_VERSION_TREND if prompt_variant() == "trend"
-            else ai_constants.PROMPT_VERSION)
+    return {
+        "trend": ai_constants.PROMPT_VERSION_TREND,
+        "within-band": ai_constants.PROMPT_VERSION_WITHIN_BAND,
+        "vs-typical": ai_constants.PROMPT_VERSION_VS_TYPICAL,
+    }.get(prompt_variant(), ai_constants.PROMPT_VERSION)
 
 
 def build_input_manifest(*,

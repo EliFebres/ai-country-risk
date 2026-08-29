@@ -1462,21 +1462,118 @@ class TestTheTrendRuleIsToldAndNotGiven:
         # exists to preserve.
         assert "unknown, not flat" in rule
 
-    def test_the_trend_arm_carries_no_evidence_the_others_lack(self):
+    @pytest.mark.parametrize("variant", ["trend", "within-band", "vs-typical"])
+    def test_a_prompt_arm_carries_no_evidence_the_others_lack(self, variant):
         """The payload is identical with the variant set and unset. If this ever
-        fails, arm C has stopped being a prompt arm and its result means nothing
-        it claims to mean."""
+        fails, the arm has stopped being a prompt arm and its result means
+        nothing it claims to mean.
+
+        Every variant on this axis, not just the first one: the elicitation arms
+        make a stronger claim than arm C did -- that the *only* thing that moved
+        is the question -- and it is the same claim this assertion is the whole
+        evidence for.
+        """
         import os
 
         args = dict(as_of=_dt.date(2019, 6, 3), series={}, vintage_as_of=None)
         os.environ.pop("PROMPT_VARIANT", None)
         without = json.dumps(payload_mod.build_evidence_payload("PT", **args))
-        os.environ["PROMPT_VARIANT"] = "trend"
+        os.environ["PROMPT_VARIANT"] = variant
         try:
             with_variant = json.dumps(payload_mod.build_evidence_payload("PT", **args))
         finally:
             os.environ.pop("PROMPT_VARIANT", None)
         assert without == with_variant
+
+
+class TestTheElicitationVariants:
+    """Order is the intervention. A field appended after the score is a
+    rationalisation of a number already emitted, which is what `bullet_summary`
+    has always been."""
+
+    @pytest.mark.parametrize("schema, added", [
+        (ai_constants.RISK_SCHEMA_V3_WITHIN_BAND, ["band", "band_placement"]),
+        (ai_constants.RISK_SCHEMA_V3_VS_TYPICAL,
+         ["typical_week", "delta_vs_typical"]),
+    ])
+    def test_the_added_fields_are_decided_before_either_horizon(self, schema, added):
+        keys = list(schema["properties"])
+        for field in added:
+            assert keys.index(field) < keys.index("score_3m"), field
+            assert keys.index(field) < keys.index("score_12m"), field
+        # Strict mode requires every property; a variant field that is optional
+        # is a variant the model may decline to run.
+        assert set(added) <= set(schema["required"])
+
+    @pytest.mark.parametrize("schema", [
+        ai_constants.RISK_SCHEMA_V3_WITHIN_BAND,
+        ai_constants.RISK_SCHEMA_V3_VS_TYPICAL,
+    ])
+    def test_the_variants_differ_from_the_base_only_by_their_own_fields(self, schema):
+        """Two properties, and not a comma anywhere else. These arms are read
+        against A-prime on the claim that nothing else moved."""
+        base = ai_constants.RISK_SCHEMA_V3
+        shared = set(base["properties"]) & set(schema["properties"])
+        assert shared == set(base["properties"])
+        for key in shared:
+            assert schema["properties"][key] == base["properties"][key], key
+        assert schema["additionalProperties"] is False
+
+    def test_the_base_schema_is_not_mutated_by_building_a_variant(self):
+        """Deep-copied, not assembled from shared parts: an edit to one arm must
+        not rewrite a prompt another arm already ran under."""
+        before = json.dumps(ai_constants.RISK_SCHEMA_V3, sort_keys=True)
+        built = ai_constants._schema_with_leading(
+            "Scratch", {"zzz": {"type": "string"}})
+        built["properties"]["ledger_scores"]["title"] = "mutated"
+        assert json.dumps(ai_constants.RISK_SCHEMA_V3, sort_keys=True) == before
+
+    def test_the_band_enum_is_the_prompt_own_bands(self):
+        """One source, so a band renamed in the prompt cannot leave the schema
+        offering the old name."""
+        enum = ai_constants.RISK_SCHEMA_V3_WITHIN_BAND["properties"]["band"]["enum"]
+        assert enum == ai_constants.BAND_NAMES
+        for name in enum:
+            assert name in ai_constants.AI_PROMPT_V3
+
+    def test_each_variant_stamps_its_own_version(self, monkeypatch):
+        """A row that cannot say which prompt produced it is not evidence."""
+        seen = set()
+        for variant in ["", "trend", "within-band", "vs-typical"]:
+            monkeypatch.setenv("PROMPT_VARIANT", variant)
+            _, version = llm._prompt_rules_and_version({})
+            seen.add(version)
+        assert len(seen) == 4
+
+    def test_a_failed_call_stamps_the_prompt_it_would_have_rendered(self, monkeypatch):
+        """The defect this fixes: `_failure_result` stamped the module literal,
+        so an arm running under a variant wrote unscored rows claiming a prompt
+        the run never rendered."""
+        monkeypatch.setenv("PROMPT_VARIANT", "within-band")
+        assert (llm._failure_result()["prompt_version"]
+                == ai_constants.PROMPT_VERSION_WITHIN_BAND)
+
+    def test_the_environment_axis_wins_over_the_payload_derived_one(self, monkeypatch):
+        """Precedence stated rather than inherited from assignment order. Both
+        rule blocks are appended; exactly one version can be stamped."""
+        monkeypatch.setenv("PROMPT_VARIANT", "within-band")
+        rules, version = llm._prompt_rules_and_version(
+            {"trailing_context": ["q1"]})
+        assert ai_constants.TRAILING_CONTEXT_RULE in rules
+        assert ai_constants.WITHIN_BAND_RULE in rules
+        assert version == ai_constants.PROMPT_VERSION_WITHIN_BAND
+
+    def test_the_elicitation_answers_are_reported_and_never_read_back(self):
+        """The line between these arms and the components-then-composite arm
+        that was proposed and not built: `delta_vs_typical` records how the
+        model reached its number, and nothing recomputes a score from it. A
+        computed composite and a judged composite are not the same field,
+        whatever the column is called."""
+        captured = {"band": "Moderate", "band_placement": "upper-middle",
+                    "typical_week": "quiet", "delta_vs_typical": 11}
+        assert set(captured) == set(llm._ELICITATION_FIELDS)
+        # The only arithmetic between the model's number and the stored one.
+        assert llm._from_100(58) == pytest.approx(0.58)
 
 
 class TestContextIsMaskedBeforeItIsCached:

@@ -705,6 +705,95 @@ class TestTheBandsAreThePromptsOwn:
         assert matrix["Low"]["Low"] == 0
 
 
+class TestTheSeriesShapeMeter:
+    """The function every discrimination verdict in `docs/payload-ab.md` rests
+    on, and it had no test until the fourth experiment was about to use it."""
+
+    def test_it_reproduces_the_published_a_prime_figures(self):
+        """Pinned to the numbers the docs already argue from. If this drifts,
+        either the meter changed or the write-ups are wrong, and both are worth
+        a failing test."""
+        path = (bakeoff.RESULTS_DIR / "US-2019" / "p2-rebaseline.json")
+        if not path.exists():
+            pytest.skip("arm file not present")
+        rows = json.loads(path.read_text(encoding="utf-8"))["rows"]
+        shape = bakeoff.series_shape([r.get("llm_score") for r in rows])
+        assert shape["n"] == 52
+        assert shape["distinct"] == 8
+        assert shape["round_share"] == pytest.approx(0.769, abs=0.001)
+        assert shape["longest_run"] == 4
+
+    def test_round_share_counts_multiples_of_five_on_the_hundred_scale(self):
+        """0.45 is a round number and 0.47 is not; the prompt's instruction is
+        about the integer the model emitted, not the float we store."""
+        shape = bakeoff.series_shape([0.45, 0.47, 0.50, 0.63])
+        assert shape["round_share"] == pytest.approx(0.5)
+
+    def test_a_float_that_is_not_an_integer_score_is_never_round(self):
+        """A computed composite lands between the integers. Counting 0.475 as a
+        near-miss for 0.475*100 would make any averaged series look precise."""
+        assert bakeoff.series_shape([0.475, 0.4625])["round_share"] == 0.0
+
+    def test_distinct_counts_values_and_not_anchors(self):
+        assert bakeoff.series_shape([0.5, 0.5, 0.5, 0.6])["distinct"] == 2
+
+    def test_the_longest_run_is_of_identical_neighbours(self):
+        assert bakeoff.series_shape([0.5, 0.5, 0.6, 0.5, 0.5, 0.5])["longest_run"] == 3
+
+    def test_a_constant_series_has_no_autocorrelation_to_report(self):
+        """None, not 0.0: a series that never moves has no correlation rather
+        than an uncorrelated one, and 0.0 would read as the healthy answer."""
+        assert bakeoff.series_shape([0.5] * 6)["lag1_autocorr"] is None
+
+    def test_unscored_anchors_are_excluded_rather_than_counted_as_a_value(self):
+        assert bakeoff.series_shape([0.5, None, 0.5, 0.6])["distinct"] == 2
+
+
+class TestTheFirstMoveMeter:
+    """Criterion (d) of three experiments, and until now never once code.
+
+    Both previous attempts computed it by hand from the committed arm files and
+    kept only the verdict, so the number deciding whether an intervention made
+    the instrument *late* could not be recomputed or checked.
+    """
+
+    def test_it_reproduces_the_published_verdicts_on_the_determinate_window(self):
+        """A-prime moves at 2018-02-05 and both trend arms a fortnight earlier;
+        those three readings were arrived at independently and by hand."""
+        expected = {"p2-rebaseline": "2018-02-05", "p3-context": "2018-02-05",
+                    "trend-prompt": "2018-01-22", "p4-trend": "2018-01-22"}
+        for candidate, when in expected.items():
+            path = bakeoff.RESULTS_DIR / "TR-2018" / f"{candidate}.json"
+            if not path.exists():
+                pytest.skip(f"{candidate} not present")
+            rows = json.loads(path.read_text(encoding="utf-8"))["rows"]
+            index = bakeoff.first_move([r.get("llm_score") for r in rows])
+            assert rows[index]["as_of"] == when, candidate
+
+    def test_a_flat_series_never_moves_and_says_so(self):
+        """None is a real answer about a flat arm, not a missing measurement."""
+        assert bakeoff.first_move([0.5] * 20, baseline_n=4) is None
+
+    def test_the_baseline_is_the_opening_mean_and_not_the_opening_anchor(self):
+        """A single first week is one draw from a series whose noise floor is a
+        point or two. Attempt 1 recorded both readings because they disagreed
+        about which arm moved first."""
+        values = [0.48, 0.52, 0.50, 0.50, 0.54, 0.70]
+        # Opening mean is 0.50, so 0.54 falls short and 0.70 clears. Read
+        # against the opening *anchor* of 0.48 instead, 0.54 would clear it and
+        # the arm would be reported as moving a week earlier than it did.
+        assert bakeoff.first_move(values, baseline_n=4) == 5
+
+    def test_a_series_shorter_than_its_baseline_returns_nothing(self):
+        assert bakeoff.first_move([0.5, 0.9], baseline_n=13) is None
+
+    def test_unscored_anchors_do_not_shift_the_index(self):
+        """The index must address the row, not the position among scored rows --
+        a verdict is reported as a date."""
+        values = [0.50, None, 0.50, 0.50, 0.50, 0.80]
+        assert bakeoff.first_move(values, baseline_n=4) == 5
+
+
 class TestTheObservationOnlyFlags:
     """Per flag, because the flags are not equivalent.
 
@@ -939,14 +1028,45 @@ class TestEveryCandidateIsAScorer:
         arm that also moved the model, would produce a number with two causes
         and no way to separate them."""
         for name, spec in bakeoff.CANDIDATES.items():
-            assert spec["arm"] in ("scoring", "payload", "prompt"), name
+            assert spec["arm"] in ("scoring", "payload", "prompt", "crossed"), name
             assert not [k for k in spec["env"] if k.startswith("DIGEST_")], (
                 f"{name} moves stage 1; it cannot be compared on this meter")
             assert spec.get("key_target", "SCORING_API_KEY") == "SCORING_API_KEY"
             moves_model = any(k.startswith("SCORING_") for k in spec["env"])
             moves_payload = "PAYLOAD_VARIANT" in spec["env"]
             moves_prompt = "PROMPT_VARIANT" in spec["env"]
-            assert sum((moves_model, moves_payload, moves_prompt)) <= 1, (
+            axes = sum((moves_model, moves_payload, moves_prompt))
+            if spec["arm"] == "crossed":
+                # The one exception, and it is not a relaxation. A crossed cell
+                # exists to answer whether two changes are additive, which is
+                # readable only because both single-cause corners were measured
+                # separately -- so it must name them, they must exist, and
+                # between them they must cover exactly the axes it moves.
+                # Without that it is the two-cause number this test was written
+                # against, wearing a label.
+                assert axes > 1, f"{name} is crossed but varies one axis"
+                # A crossed cell is registered before it can be filled in --
+                # which variant it crosses is a result, not a preference. The
+                # two unknowns must agree: an env slot left open iff the sibling
+                # naming it is left open, so a half-filled cell cannot run.
+                assert (None in spec["crosses"]) == (None in spec["env"].values()), (
+                    f"{name} is half-resolved")
+                covered = set()
+                for sibling in spec["crosses"]:
+                    if sibling is None:
+                        continue
+                    assert sibling in bakeoff.CANDIDATES, (
+                        f"{name} crosses {sibling!r}, which is not a candidate")
+                    sib = bakeoff.CANDIDATES[sibling]
+                    assert sib["arm"] != "crossed", (
+                        f"{name} crosses {sibling}, which is itself crossed")
+                    covered |= set(sib["env"])
+                moved = {k for k, v in spec["env"].items() if v is not None}
+                assert moved <= covered, (
+                    f"{name} moves {sorted(moved - covered)}, which no arm it "
+                    f"crosses measured alone")
+                continue
+            assert axes <= 1, (
                 f"{name} varies more than one axis, so its number has more "
                 f"than one cause and no way to separate them")
             if spec["arm"] == "payload":

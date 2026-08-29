@@ -212,7 +212,66 @@ def _from_100(value: Any) -> Optional[float]:
         return None
 
 
-def _failure_result() -> Dict[str, object]:
+def _prompt_rules_and_version(payload: object) -> Tuple[str, str]:
+    """The rule blocks to append and the version to stamp, resolved together.
+
+    One function because they are one decision, and splitting them is how the
+    failure path came to disagree with the success path: `_failure_result` stamped
+    the module literal, so an arm running under `PROMPT_VARIANT` wrote `unscored`
+    rows claiming a prompt the run never rendered. That is the defect `2bd63a2`
+    fixed in `score.versions()`, one file over and still open here until now, and
+    it matters more since `e3dc94c` started recording unscored rows rather than
+    calling them complete.
+
+    Precedence is explicit rather than incidental. It used to be whichever branch
+    happened to assign last; a payload carrying the trailing-context block under
+    `PROMPT_VARIANT=trend` appended both rule blocks and stamped only the trend
+    version. The bake-off's one-axis test makes that unreachable from the harness,
+    but not from a hand-run, and a version that is wrong only when someone is
+    experimenting is wrong exactly when it is being relied on.
+    """
+    rules = ""
+    # Payload-derived first: the instruction follows the data. If the payload
+    # carries the block the prompt explains it; if it does not, the template
+    # renders byte-for-byte as it always has.
+    version = ai_constants.PROMPT_VERSION
+    if isinstance(payload, dict) and payload.get("trailing_context"):
+        rules += ai_constants.TRAILING_CONTEXT_RULE
+        version = ai_constants.PROMPT_VERSION_CONTEXT
+    if isinstance(payload, dict) and payload.get("trend"):
+        rules += ai_constants.TREND_BLOCK_RULE
+        version = ai_constants.PROMPT_VERSION_TREND_BLOCK
+
+    # Then the environment axis, which wins. These variants cannot follow the
+    # data because they add no data to follow -- `trend_1y`/`trend_5y` are in
+    # every payload told about or not, and the elicitation variants change only
+    # what is asked for. So this axis is env-selected and stamped, which is what
+    # keeps "told" and "not told" apart in the results.
+    variant = provenance.prompt_variant()
+    rules += {
+        "trend": ai_constants.TREND_FIELDS_RULE,
+        "within-band": ai_constants.WITHIN_BAND_RULE,
+        "vs-typical": ai_constants.VS_TYPICAL_RULE,
+    }.get(variant, "")
+    if variant:
+        version = provenance.prompt_version()
+    return rules, version
+
+
+# The schema each elicitation variant asks for. Absent from this map means the
+# base schema, which is every arm but two.
+_SCHEMA_BY_PROMPT_VARIANT = {
+    "within-band": ai_constants.RISK_SCHEMA_V3_WITHIN_BAND,
+    "vs-typical": ai_constants.RISK_SCHEMA_V3_VS_TYPICAL,
+}
+
+# What each variant asks the model to decide before it reaches a horizon. Kept
+# for the arm rows: the whole claim of these arms is that the extra decision is
+# made and not skipped, and that is only checkable if the answer is recorded.
+_ELICITATION_FIELDS = ("band", "band_placement", "typical_week", "delta_vs_typical")
+
+
+def _failure_result(payload: object = None) -> Dict[str, object]:
     """The no-score return shape, used by every failure path.
 
     Same keys as a successful call — the caller reads several of them
@@ -235,8 +294,9 @@ def _failure_result() -> Dict[str, object]:
         "legal_gate": None,
         "non_investable": False,
         "model_id": ai_client.scoring_model(),
-        "prompt_version": ai_constants.PROMPT_VERSION,
+        "prompt_version": _prompt_rules_and_version(payload)[1],
         "policy_version": policy.POLICY_VERSION,
+        "elicitation": {},
     }
 
 
@@ -362,31 +422,11 @@ def country_llm_score(
         else "(no full-text articles supplied)",
     )
 
-    # The instruction follows the data, rather than both following a flag. If the
-    # payload carries the block the prompt explains it; if it does not, the
-    # template renders byte-for-byte as it always has and stamps the version it
-    # always did. Keying both off an environment variable instead would allow the
-    # one state that is silently wrong — an instruction about a block that is not
-    # there, or a block the model was never told how to read.
-    has_context = isinstance(payload, dict) and bool(payload.get("trailing_context"))
-    prompt_version = (ai_constants.PROMPT_VERSION_CONTEXT if has_context
-                      else ai_constants.PROMPT_VERSION)
-    if has_context:
-        prompt += ai_constants.TRAILING_CONTEXT_RULE
-
-    has_trend_block = isinstance(payload, dict) and bool(payload.get("trend"))
-    if has_trend_block:
-        prompt += ai_constants.TREND_BLOCK_RULE
-        prompt_version = ai_constants.PROMPT_VERSION_TREND_BLOCK
-
-    # The trend variant is the one case where the instruction cannot follow the
-    # data, because there is no new data to follow: `trend_1y` and `trend_5y`
-    # have been in the payload since p1 and are there in every arm, told about
-    # or not. So this one axis is environment-selected, and it is stamped, which
-    # is what keeps "told" and "not told" apart in the results.
-    if provenance.prompt_variant() == "trend":
-        prompt += ai_constants.TREND_FIELDS_RULE
-        prompt_version = ai_constants.PROMPT_VERSION_TREND
+    # Which rules are appended and which version is stamped, resolved in one
+    # place so the failure path cannot disagree with this one about what was
+    # rendered. See `_prompt_rules_and_version`.
+    rules, prompt_version = _prompt_rules_and_version(payload)
+    prompt += rules
 
     if mask_iso2:
         # The gate, on the serialized blocks rather than on the objects they
@@ -408,19 +448,23 @@ def country_llm_score(
     # a network timeout, and letting it propagate would contradict this module's
     # promise that a failure returns the no-score shape.
     try:
+        # The elicitation variants ask for two extra fields ahead of the
+        # horizons; every other arm gets the base schema unchanged.
+        schema = _SCHEMA_BY_PROMPT_VARIANT.get(
+            provenance.prompt_variant(), ai_constants.RISK_SCHEMA_V3)
         structured_llm = ai_client.build_chat(api_key).with_structured_output(
-            schema=ai_constants.RISK_SCHEMA_V3, strict=True
+            schema=schema, strict=True
         )
         data = structured_llm.invoke([SystemMessage(content=prompt)])
     except Exception as exc:
         logger.error("LangChain structured output error: %s", exc)
-        return _failure_result()
+        return _failure_result(payload)
 
     # Validate shape minimally
     if (not isinstance(data, dict) or "score_12m" not in data
             or "ledger_scores" not in data or "news_article_scores" not in data):
         logger.error("Model returned invalid structure: %s", str(data)[:300])
-        return _failure_result()
+        return _failure_result(payload)
 
     # --- Leave the 0-100 scale here and never return to it.
     score_12m = _from_100(data.get("score_12m"))
@@ -466,4 +510,8 @@ def country_llm_score(
         "model_id": ai_client.scoring_model(),
         "prompt_version": prompt_version,
         "policy_version": policy.POLICY_VERSION,
+        # Empty on every arm but the two elicitation ones. Reported, never read
+        # back into a score: `delta_vs_typical` is how the model reached its
+        # number, not a number anything here recomputes from.
+        "elicitation": {k: data[k] for k in _ELICITATION_FIELDS if k in data},
     }

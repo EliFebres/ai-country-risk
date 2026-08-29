@@ -165,13 +165,15 @@ def window_slug() -> str:
 METRICS: Tuple[str, ...] = ("llm_score", "score_3m", "friction", "order_uncertainty",
                             "information_capacity", "edge_vitality")
 
-# The prompt's own bands, from `ai_constants.AI_PROMPT_V3`. Lower bound
-# inclusive; the tails are open because the model may return 0-4 or 99-100 and a
-# score outside every band is not a band of its own.
-BANDS: Tuple[Tuple[str, float], ...] = (
-    ("Low", 0.0), ("Low-Moderate", 20.0), ("Moderate", 40.0),
-    ("High", 75.0), ("Extreme", 90.0),
-)
+# The prompt's own bands. Lower bound inclusive; the tails are open because the
+# model may return 0-4 or 99-100 and a score outside every band is not a band of
+# its own.
+#
+# Imported rather than restated. This tuple used to be a copy under a comment
+# saying it came from `AI_PROMPT_V3`, which was a claim no test checked and one
+# edit away from being false; the within-band prompt variant needs the same
+# names as a schema enum, which would have made it a third copy.
+BANDS: Tuple[Tuple[str, float], ...] = ai_constants.BAND_BOUNDS
 
 # What a candidate's own jitter is worth, measured against the only substantive
 # signal this project has put a number on.
@@ -321,6 +323,43 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
         "env": {"PAYLOAD_VARIANT": "p2"},
         "key_env": "OPENAI_API_KEY",
     },
+    # The elicitation arms. Same evidence as A-prime to the byte, same scorer;
+    # what moves is the question. Five interventions on what the model reads
+    # left US 2019 between seven and nine distinct values and pushed the
+    # round-number share from 69.2% to 90.4%, so these two move what it is asked
+    # to emit instead, and they do it through schema order rather than wording
+    # alone.
+    "within-band": {
+        "arm": "prompt",
+        "note": "name the band, place the score inside it, justify the placement",
+        "env": {"PROMPT_VARIANT": "within-band"},
+        "key_env": "OPENAI_API_KEY",
+    },
+    "vs-typical": {
+        "arm": "prompt",
+        "note": "describe this country's ordinary week, then score the departure",
+        "env": {"PROMPT_VARIANT": "vs-typical"},
+        "key_env": "OPENAI_API_KEY",
+    },
+    # The confirmation cell, and the only candidate that moves two axes on
+    # purpose. `gpt-4.1` on the base prompt already reaches 18 distinct values
+    # and a 5.8% round share on US 2019 -- the criterion five payload and prompt
+    # arms failed -- so the open question is no longer whether the instrument
+    # can discriminate but whether elicitation adds anything once the scorer
+    # does. Three cells answer it: scorer alone (`gpt-4.1`, already on disk),
+    # prompt alone (whichever variant above scores better), and both.
+    #
+    # A two-cause number is readable only because both single-cause corners
+    # exist, which is what `crosses` names and what the one-axis test checks.
+    # Fill in the second name once the single-axis arms have been read; leaving
+    # it as a guess would be choosing the answer before measuring it.
+    "gpt-4.1-x-elicitation": {
+        "arm": "crossed",
+        "crosses": ("gpt-4.1", None),
+        "note": "the better elicitation variant, re-scored under gpt-4.1",
+        "env": {"SCORING_MODEL": "gpt-4.1-2025-04-14", "PROMPT_VARIANT": None},
+        "key_env": "OPENAI_API_KEY",
+    },
 }
 
 # Every candidate is an OpenAI model, and that is the round-2 result rather than
@@ -347,6 +386,10 @@ class MissingKey(RuntimeError):
     """A candidate's vendor key is not in the environment. Nothing was spent."""
 
 
+class UnresolvedCandidate(RuntimeError):
+    """A candidate names a slot that a prior result was meant to fill."""
+
+
 @contextlib.contextmanager
 def candidate_env(name: str) -> Iterator[Dict[str, str]]:
     """Put one candidate's endpoint into the environment for the block.
@@ -361,6 +404,16 @@ def candidate_env(name: str) -> Iterator[Dict[str, str]]:
     """
     spec = CANDIDATES[name]
     env = dict(spec["env"])
+    # A crossed cell is registered before its sibling is known -- which variant
+    # it crosses with is a result, not a preference, and writing it in ahead of
+    # the measurement would be choosing the answer first. Until it is filled in
+    # the candidate must refuse to run rather than export `None` and score
+    # something nobody chose.
+    unresolved = sorted(k for k, v in env.items() if v is None)
+    if unresolved:
+        raise UnresolvedCandidate(
+            f"{name} has {', '.join(unresolved)} unset: it crosses an arm that "
+            f"has not been read yet. Fill it in from the single-axis results.")
     if spec.get("key_target"):
         key = os.getenv(spec["key_env"])
         if not key:
@@ -611,6 +664,32 @@ def series_shape(values: List[Optional[float]]) -> Dict[str, Any]:
                   and round(v * 100) % _ROUND_NUMBER_STEP == 0)
     return {"n": n, "distinct": len(set(vals)), "lag1_autocorr": autocorr,
             "longest_run": longest, "round_share": round(rounded / n, 3)}
+
+
+def first_move(values: List[Optional[float]], *,
+               baseline_n: int = 13, delta: float = 0.05) -> Optional[int]:
+    """Index of the first anchor standing `delta` above the opening baseline.
+
+    Criterion (d) of the payload A/B and of this attempt, and until now it had
+    never been code. Both previous attempts computed it by hand from the
+    committed arm files and only the verdicts survived, so the one number that
+    decides whether an intervention made the instrument *late* could not be
+    recomputed or tested. It is here now for the same reason `series_shape` is.
+
+    The baseline is the mean of the first `baseline_n` scored anchors -- a
+    quarter of weekly anchors -- rather than the first anchor alone. A single
+    opening week is one draw from a series whose own noise floor is a point or
+    two, and attempt 1 recorded both readings precisely because they disagreed
+    about which arm moved first.
+
+    Returns None when nothing ever clears the line, which is a real answer about
+    a flat series and not an error.
+    """
+    scored = [(i, v) for i, v in enumerate(values) if v is not None]
+    if len(scored) < baseline_n:
+        return None
+    baseline = statistics.fmean(v for _, v in scored[:baseline_n])
+    return next((i for i, v in scored if v - baseline >= delta), None)
 
 
 def compare_one(baseline_rows: List[Dict[str, Any]],
@@ -1125,6 +1204,14 @@ def score_anchors(name: str, budget_usd: float = BAKEOFF_BUDGET_USD,
                 "seconds": round(time.time() - started, 2),
                 "utc_hour": hour,
                 "articles": len(items),
+                # Empty except on the two elicitation arms, where it holds the
+                # decision the variant exists to force -- the band and its
+                # placement, or the baseline and the departure from it. Without
+                # it a variant that quietly ignored the instruction and a
+                # variant that followed it and gained nothing look identical in
+                # the result file, which is the distinction the whole arm is
+                # for.
+                "elicitation": out.get("elicitation") or {},
             })
             logger.info("[bakeoff] %s %s %s score=%s $%.4f (running $%.2f)",
                         name, as_of, status, out.get("score"),

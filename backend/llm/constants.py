@@ -46,6 +46,7 @@ Literal braces inside the JSON examples are escaped as ``{{ }}`` because these
 strings go through ``str.format()``.
 """
 
+import copy
 from typing import Dict
 
 # Stamped on every snapshot. Bump when AI_PROMPT_V3 or RISK_SCHEMA_V3 changes
@@ -154,6 +155,87 @@ the last year moved faster than the five-year average pace.
 fact about the reporting rather than about the country: quiet because nothing
 happened and quiet because nobody wrote it down are different, and this is the
 only place you can tell them apart.
+"""
+
+# ---------------------------------------------------------------------------
+# The elicitation variants. Neither adds a byte of evidence; both change what
+# the model is asked to decide, and in what order.
+#
+# Every payload intervention so far has failed the same way -- p3-context, the
+# vintage fix, the trend fields and the computed trend block all left US 2019
+# between seven and nine distinct values and pushed the round-number share up,
+# 69.2 -> 75.0 -> 76.9 -> 82.7 -> 90.4. On that window `gpt-4o` also puts all
+# fifty-two anchors in one band. So the number it emits is a band label with a
+# digit attached, and more evidence has never moved that.
+#
+# Both variants below attack the emission rather than the evidence, and both do
+# it through schema order rather than through wording alone. See
+# `_schema_with_leading`: with strict structured output the model generates
+# properties in the order the schema declares them, so a field placed before
+# `score_3m` is decided before either horizon exists. A field placed after would
+# be a rationalisation of a number already emitted, which is what
+# `bullet_summary` -- last in the schema, and therefore never once a cause of a
+# score -- has always been.
+# ---------------------------------------------------------------------------
+
+# The prompt as it stands when the model must place its score inside a band it
+# has already named.
+PROMPT_VERSION_WITHIN_BAND = "v4.3-within-band"
+
+# Two instructions, and the second is the one under test. Naming the band is
+# something the model already does implicitly -- the 52/52 Moderate result says
+# it does little else. Requiring the placement to be stated and justified is the
+# intervention: it makes the digit a second decision with its own reason rather
+# than a rounding of the first.
+WITHIN_BAND_RULE = """
+
+--- WITHIN-BAND PLACEMENT ---
+Decide the band first, then decide where inside it this week sits.
+
+Emit `band` as the band your assessment falls in. Then, in `band_placement`,
+say where within that band and why -- bottom, lower-middle, middle,
+upper-middle, or top -- naming the specific evidence that puts it there rather
+than somewhere else in the same band. Then emit the horizons.
+
+The bands are wide. `Moderate` spans 40 to 75, so two weeks that are both
+plainly Moderate can still be thirty points apart, and the placement is where
+that distance is recorded. A band label with the digit rounded to its middle
+throws away most of what you were asked to judge.
+
+Two weeks in the same band must differ unless the evidence is genuinely
+identical. Where it is, say so in `band_placement` and repeat the number; where
+it is not, the number must move even if the band does not.
+"""
+
+# The prompt as it stands when the score is asked for against the country's own
+# ordinary week rather than in the abstract.
+PROMPT_VERSION_VS_TYPICAL = "v4.4-vs-typical"
+
+# The reference point is built by the model out of evidence it already has, not
+# supplied in the payload -- which is what keeps this a prompt arm. The delta is
+# required to be emitted before the level so that the level is reached through
+# it; it is captured as a diagnostic and nothing downstream computes a score
+# from it. `score_12m` remains the model's own number, as in every other arm.
+VS_TYPICAL_RULE = """
+
+--- SCORE AGAINST THIS COUNTRY'S OWN BASELINE ---
+Before scoring the level, establish the reference.
+
+In `typical_week`, describe what an ordinary week looks like for this country on
+the evidence in front of you: the usual friction, the usual legibility, the
+level of incident that would not be remarkable here. Build it from the
+indicators, their trends, and the run of articles -- not from any outside
+knowledge of who this country is.
+
+Then, in `delta_vs_typical`, state how far this particular week departs from
+that baseline, signed, in score points: negative if conditions are calmer than
+this country's normal, positive if worse, zero if this is simply an ordinary
+week. Most weeks in most countries are ordinary, and a small non-zero number is
+a more common truth than a large one.
+
+Then emit the horizons, consistent with the baseline and the departure you just
+named. A week you called two points worse than typical and a week you called
+eleven points worse must not receive the same score.
 """
 
 # ---------------------------------------------------------------------------
@@ -404,6 +486,20 @@ _LEDGERS = [
 
 _CITED_LEDGERS = ["friction", "order_uncertainty", "information_capacity"]
 
+# The scoring bands, exactly as the prompt states them, lower bound inclusive.
+#
+# They live here rather than in the tool that measures against them.
+# `bakeoff.BANDS` used to carry its own copy under a comment saying it came from
+# `AI_PROMPT_V3`, which was true only for as long as nobody edited one of the
+# two; the within-band variant needs the names as a schema enum, which would
+# have made it three copies of one fact.
+BAND_BOUNDS = (
+    ("Low", 0.0), ("Low-Moderate", 20.0), ("Moderate", 40.0),
+    ("High", 75.0), ("Extreme", 90.0),
+)
+
+BAND_NAMES = [name for name, _ in BAND_BOUNDS]
+
 
 RISK_SCHEMA_V3: Dict = {
     "title": "CountryRiskAssessmentV3",
@@ -483,6 +579,71 @@ RISK_SCHEMA_V3: Dict = {
     ],
     "additionalProperties": False,
 }
+
+
+# ---------------------------------------------------------------------------
+# The elicitation schemas.
+#
+# Order is the intervention, not decoration. With strict structured output the
+# model generates properties in the order the schema declares them, so a field
+# inserted before `score_3m` is decided while no horizon exists yet, and the
+# horizons are then reached through it. The same field appended at the end would
+# be a rationalisation of a number already emitted -- which is exactly what
+# `bullet_summary` is, and why it was never going to serve as the trajectory
+# diagnostic attempt 2 pre-registered it as.
+#
+# Neither schema changes what `score_12m` means or where it comes from. The
+# added fields are elicitation scaffolding and diagnostics; nothing downstream
+# computes a score from them, and `langchain_llm` still returns the model's own
+# `score_12m` untouched. That is the line between these arms and the
+# components-then-composite arm that was proposed alongside them and not built:
+# a computed composite and a judged composite are not the same field, whatever
+# the column is called.
+# ---------------------------------------------------------------------------
+
+def _schema_with_leading(title: str, fields: Dict[str, Dict]) -> Dict:
+    """A copy of `RISK_SCHEMA_V3` with `fields` inserted before `score_3m`.
+
+    Deep-copied rather than assembled from parts: the variants differ from the
+    base in two properties and must not drift from it in the other eight, and a
+    shared mutable nested dict would let an edit to one arm silently rewrite the
+    prompt another arm already ran under.
+    """
+    schema = copy.deepcopy(RISK_SCHEMA_V3)
+    schema["title"] = title
+    rebuilt: Dict[str, Dict] = {}
+    for key, value in schema["properties"].items():
+        if key == "score_3m":
+            rebuilt.update(fields)
+        rebuilt[key] = value
+    assert set(fields) <= set(rebuilt), "fields were not inserted"
+    schema["properties"] = rebuilt
+    # Strict mode requires every property to be required, and the insertion
+    # point matters here too: `required` order is what the API reports back.
+    required = list(schema["required"])
+    required[required.index("score_3m"):required.index("score_3m")] = list(fields)
+    schema["required"] = required
+    return schema
+
+
+RISK_SCHEMA_V3_WITHIN_BAND: Dict = _schema_with_leading(
+    "CountryRiskAssessmentV3WithinBand",
+    {
+        "band": {"type": "string", "enum": list(BAND_NAMES)},
+        "band_placement": {"type": "string", "maxLength": 200},
+    },
+)
+
+RISK_SCHEMA_V3_VS_TYPICAL: Dict = _schema_with_leading(
+    "CountryRiskAssessmentV3VsTypical",
+    {
+        "typical_week": {"type": "string", "maxLength": 300},
+        # Signed, and bounded well inside the scale: an unbounded delta invites
+        # the model to restate the level here and call it a departure.
+        "delta_vs_typical": {"type": "integer", "minimum": -50, "maximum": 50},
+    },
+)
+
 
 
 
