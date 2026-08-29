@@ -1,0 +1,1948 @@
+{
+  "arm": "crossed",
+  "candidate": "gpt-4.1-x-elicitation",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.3-within-band",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4.1-2025-04-14",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "44b7d7989b65630c9014263559d21e4d1af183e4"
+  },
+  "cost": {
+    "cache_neutral_per_snapshot_usd": 0.03173815094339622,
+    "cache_share": 0.042,
+    "input_tokens_per_snapshot": 13002.7,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 716.6,
+    "per_snapshot_usd": 0.03058,
+    "snapshots": 53,
+    "spend_usd": 1.6207,
+    "utc_hours": [
+      23
+    ]
+  },
+  "country": "TR",
+  "endpoint": {
+    "PROMPT_VARIANT": "within-band",
+    "SCORING_MODEL": "gpt-4.1-2025-04-14"
+  },
+  "gates": {},
+  "note": "within-band, the better elicitation variant, re-scored under gpt-4.1",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2018-01-01",
+      "bullet_summary": "Investor risk is elevated by persistent emergency rule, a crackdown on opposition (a13), high political corruption, and moderate-to-severe friction (frictional_extraction 11.9, effectiveness weak). Order-uncertainty is high: rule of law and political stability are both negative, and recent articles confirm institutional repression and social strain from a refugee crisis (a12). Information capacity is impaired by weak statistical performance and press/judicial suppression (a6, a13). No sovereign stress or war, but the wedge is rising and compounding. Edge vitality is modest. The outlook is worsened by the persistence and breadth of institutional and social risks.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 11354,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.62,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 502,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.3,
+      "spend_usd": 0.026724,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-08",
+      "bullet_summary": "The country faces moderate investor risk, driven by persistent double-digit inflation, negative real policy rates, and weak rule of law. Political stability is low, with recent cabinet purges and ongoing corruption scandals involving high-level officials. Press freedom is constrained, as shown by high journalist imprisonment. Instruments are moderately reliable, but information drift risk is rising. No sovereign stress or emergency rule is present. Edge vitality is moderate, with some business formation and education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent moderate inflation (11.1%), rising, and negative real policy rates signal monetary instability. Political stability and rule of law are weak (z-scores -1.7 and -0.6), with a 1"
+      },
+      "error": null,
+      "input_tokens": 9999,
+      "ledger_scores": {
+        "edge_vitality": 0.36,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 446,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 4.58,
+      "spend_usd": 0.023566,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-15",
+      "bullet_summary": "The country faces high friction due to moderate tax extraction, rising interest costs, and weak government effectiveness. Order-uncertainty is elevated by deteriorating rule of law, political instability, and high inflation. Information capacity is impaired by declining statistical quality and severe press/judicial repression, as detailed in recent reporting on democratic backsliding and rights erosion. No sovereign stress or emergency rule is present, but persistent institutional decline and rights suppression raise medium-term risk. Edge vitality is modest, reflecting limited adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 11866,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.77,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 461,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.66,
+      "seconds": 4.39,
+      "spend_usd": 0.02742,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-22",
+      "bullet_summary": "The country has launched a major cross-border military operation, with persistent kinetic activity and international isolation (a4, a9, a10, a11). Domestic governance is undermined by high corruption, declining rule of law, and democratic backsliding (a18, Political corruption index, Rule of law). Inflation is high and rising, and frictional extraction is significant. Statistical capacity is moderate but weakened by political interference. No sovereign stress or emergency rule is observed, but the risk of escalation is high. Edge vitality is low, reflecting weak adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 11809,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 584,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.72,
+      "seconds": 5.35,
+      "spend_usd": 0.02829,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-29",
+      "bullet_summary": "The country is conducting sustained cross-border military operations, with direct kinetic activity, civilian displacement, and heightened regional tensions (a5, a6, a7, a16, a17). Inflation is high and rising, rule of law and political stability are weak, and corruption is entrenched. Statistical capacity is moderate, but democratic backsliding (a20) and persistent frictional extraction further elevate risk. No sovereign stress or emergency rule is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle; persistent, severe cross-border military operations (a5, a6, a7, a16, a17) with direct kinetic activity and displacement, plus high inflation and weak rule of law, push order_uncertainty"
+      },
+      "error": null,
+      "input_tokens": 13089,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 726,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.72,
+      "seconds": 5.54,
+      "spend_usd": 0.031986,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-05",
+      "bullet_summary": "The country is conducting a sustained cross-border military campaign, with repeated severe kinetic activity and civilian casualties (a5, a6, a7, a9, a13, a18, a19). This has persisted for over two weeks, with evidence of mass displacement and direct clashes with foreign-backed forces. Domestic crackdowns on dissent (a4, a10) further undermine order. Friction is moderate-high due to high extraction and weak conversion, but not extreme. Statistical capacity is middling, with some press and judicial interference. No sovereign stress or emergency rule is observed, but internal conflict is at the highest level due to ongoing military operations and repression.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "High",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12912,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.81
+      },
+      "lint": [],
+      "llm_score": 0.87,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 721,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.81,
+      "seconds": 5.53,
+      "spend_usd": 0.031592,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-12",
+      "bullet_summary": "The country is conducting a sustained cross-border military operation, with repeated severe kinetic activity and civilian displacement (articles a5, a6, a7, a9, a14, a18, a19). Domestic crackdowns on dissent and judicial interference (a4, a10, a12) further elevate order uncertainty. Friction is moderate, with middling government effectiveness and high corruption. Information capacity is somewhat impaired but not critical. No sovereign stress or emergency rule is observed. Persistent conflict and institutional strain place risk in the upper-middle of Moderate.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12916,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 696,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.44,
+      "spend_usd": 0.0314,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-19",
+      "bullet_summary": "The country is conducting a sustained cross-border military campaign, with repeated severe kinetic activity and civilian displacement (a6, a7, a8, a10, a19). Domestic crackdowns on dissent and press freedom (a5, a2) further raise order uncertainty. Friction is elevated by high corruption, modest government effectiveness, and a rising inflation trend. Information capacity is moderate, with some statistical reliability but clear evidence of institutional interference. No sovereign stress or emergency rule is present, but persistent conflict and institutional pressure keep risk in the upper-middle of Moderate.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13049,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 752,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.73,
+      "seconds": 5.6,
+      "spend_usd": 0.032114,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-26",
+      "bullet_summary": "The country faces persistent, severe kinetic activity in a border enclave, with civilian casualties and military losses (a6, a12), and repeated domestic crackdowns on dissent (a4, a2, a10, a7). High corruption and weak rule of law (Political corruption index, Rule of law z-score) undermine conversion of state resources. Inflation is elevated and rising. Information capacity is impaired by weak statistical performance and press/judicial interference. No sovereign stress or emergency rule is observed, but internal conflict level is B due to repeated attacks and displacement. Reconstruction needs are high, with donor support at risk of being siphoned by corruption (a19).",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle; persistent, severe kinetic activity in a border enclave (a6, a12) and repeated moderate-to-high domestic crackdowns (a4, a2) raise both friction and order-uncertainty. High corruption, a"
+      },
+      "error": null,
+      "input_tokens": 12122,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 823,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 6.38,
+      "spend_usd": 0.030828,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-03-05",
+      "bullet_summary": "Investor risk is elevated by ongoing cross-border military operations, persistent post-conflict instability, and entrenched rule-of-law and corruption issues. Friction is high due to weak conversion of extraction, high corruption, and moderate debt. Order-uncertainty is driven by authoritarian drift, weak rule of law, and repeated human rights violations. Information capacity is impaired by press crackdowns and only moderate statistical performance. No sovereign stress or emergency rule is present, but the risk of further instability remains high. Edge vitality is low, with weak new business formation. Coverage is strong, but some fiscal readings are stale.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle of Moderate: Multiple severe (85) and moderate (60) impacts persist across 30+ days, including cross-border military operations, post-conflict instability, and entrenched rule-of-law and,"
+      },
+      "error": null,
+      "input_tokens": 10661,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.58,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 733,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.72,
+      "seconds": 5.81,
+      "spend_usd": 0.027186,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-03-12",
+      "bullet_summary": "The country faces sustained military operations on and near its territory, including cross-border offensives and airstrikes, with persistent unrest and protests (a5, a11, a14, a18). Emergency rule and severe restrictions on media and civil liberties (a2, a6, a8) elevate order-uncertainty. Corruption is high, and frictional extraction is significant, with only moderate government effectiveness. Information capacity is impaired by media crackdowns and weak rule of law. No sovereign stress is observed, but the risk of compounding instability is high. Edge vitality is low. Persistent conflict and institutional erosion place risk in the upper-middle of Moderate.",
+      "cached_tokens": 3328,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 14284,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.78,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 844,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.73,
+      "seconds": 6.88,
+      "spend_usd": 0.027981,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-19",
+      "bullet_summary": "The country faces severe investor risk due to ongoing military operations in neighboring regions, mass displacement, and persistent internal conflict (internal_conflict_level: C). Emergency rule is evident from repeated media crackdowns and authoritarian measures. Friction is high, with moderate government effectiveness but high corruption and a significant wedge between extraction and conversion. Order-uncertainty is very high, driven by kinetic conflict, weak rule of law, and political instability. Information capacity is moderate, with some statistical reliability but compromised press and judiciary. Edge vitality is low. No sovereign stress is observed, but the risk of further escalation is substantial.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "High",
+        "band_placement": "lower-middle; the country is experiencing sustained, severe military operations on/near its territory (multiple 85-impact articles over weeks), mass displacement, and emergency rule (media crackdown, "
+      },
+      "error": null,
+      "input_tokens": 11607,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.62,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.81
+      },
+      "lint": [],
+      "llm_score": 0.86,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 692,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.81,
+      "seconds": 6.97,
+      "spend_usd": 0.02875,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-26",
+      "bullet_summary": "The country faces severe investor risk due to sustained military operations in a neighboring region, with repeated high-casualty events and mass displacement (a6, a10, a11, a16, a18). Emergency rule is in effect, with persistent crackdowns on media and civil liberties (a2, a7, a8, a1). Order-uncertainty is high, as rule of law and political stability are weak, and inflation is elevated. Information capacity is impaired by media suppression and only moderate statistical performance. Friction is high due to corruption and weak government effectiveness. Edge vitality is low. No sovereign stress is observed, but the risk of further escalation is significant.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "High",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 11605,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.62,
+        "information_capacity": 0.77,
+        "order_uncertainty": 0.81
+      },
+      "lint": [],
+      "llm_score": 0.86,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 620,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.81,
+      "seconds": 6.53,
+      "spend_usd": 0.02817,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-04-02",
+      "bullet_summary": "Investor risk is high due to ongoing, large-scale military operations in a neighboring region, mass displacement, and persistent emergency rule. The governing party has sharply curtailed media freedom and concentrated power, raising order-uncertainty. Friction is elevated by high corruption, weak government effectiveness, and moderate fiscal deficits. Information capacity is impaired by media crackdowns and only moderate statistical performance. Edge vitality is low. No sovereign stress is observed, but the risk of further escalation or institutional slippage is significant.",
+      "cached_tokens": 3456,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "High",
+        "band_placement": "lower-middle: The country is experiencing sustained, severe military operations on foreign territory with mass displacement (a6, a8, a9, a11, a16, a18), persistent emergency rule and authoritarianism,"
+      },
+      "error": null,
+      "input_tokens": 14897,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.62,
+        "information_capacity": 0.77,
+        "order_uncertainty": 0.81
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 837,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.81,
+      "seconds": 6.76,
+      "spend_usd": 0.029118,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-09",
+      "bullet_summary": "The country faces persistent, severe military operations in a neighboring territory, causing mass displacement and humanitarian crisis (a6, a7, a13, a20). Media capture (a1) and high corruption undermine information quality. Friction is moderate, with modest debt and tax burden but weak government effectiveness. Order-uncertainty is high due to conflict spillover, political instability, and double-digit inflation. Instruments are impaired by media consolidation and corruption. No sovereign stress or emergency rule, but internal conflict level is 'B' due to repeated severe events. Edge vitality is low. Risks are elevated and persistent.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle; persistent, severe military operations in a neighboring territory (a6, a7, a13, a20) with mass displacement and humanitarian crisis, plus media capture (a1) and high corruption, drive up"
+      },
+      "error": null,
+      "input_tokens": 12552,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 752,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.73,
+      "seconds": 6.1,
+      "spend_usd": 0.03112,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-16",
+      "bullet_summary": "The country faces moderate-to-high investor risk, driven by recent severe military operations in a neighboring region (a7, a11), persistent high political corruption, and a fresh blow to press freedom (a1). Friction is elevated by weak government effectiveness and high extraction, while order-uncertainty is raised by poor rule of law, low political stability, and double-digit inflation. Information capacity is impaired by media capture and only moderate statistical performance. No sovereign stress or emergency rule is observed. Edge vitality is modest, with some business formation and education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12092,
+      "ledger_scores": {
+        "edge_vitality": 0.32,
+        "friction": 0.54,
+        "information_capacity": 0.71,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 398,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 4.78,
+      "spend_usd": 0.027368,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-23",
+      "bullet_summary": "The country faces rising order-uncertainty due to imminent snap elections under a state of emergency, a shift to an executive presidency, and persistent political repression (a1, a4, a5). Friction is moderate: extraction is not excessive, but conversion is hampered by high corruption and only modest government effectiveness. Information capacity is weakened by political interference and a middling statistical system. No war or sovereign stress is present, but persistent regional tensions and domestic security incidents elevate risk. Edge vitality is low, reflecting weak business dynamism.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12090,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.67,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 738,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.61,
+      "seconds": 5.66,
+      "spend_usd": 0.030084,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-30",
+      "bullet_summary": "Investor risk is elevated by the country\u2019s snap elections under a state of emergency, a shift to an executive presidency, and persistent political repression (a1, a5, a6). Military tensions with neighbors and migration pressures (a2, a8, a11, a16) add to order-uncertainty. Friction is moderate: extraction is not excessive, but conversion is weak due to high corruption and middling government effectiveness. Information capacity is impaired by poor press freedom and only moderate statistical quality. No sovereign stress or war, but emergency rule is in effect. Edge vitality is low. Coverage is good, but some key indicators are stale.",
+      "cached_tokens": 3712,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 16138,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 855,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.62,
+      "seconds": 7.11,
+      "spend_usd": 0.031256,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-07",
+      "bullet_summary": "Investor risk is elevated by the snap elections under emergency rule, consolidation of executive power, and persistent crackdowns on dissent and the press. Political stability and rule of law scores are weak, with high corruption and moderate government effectiveness. Friction is moderate, with manageable debt but rising interest payments. Information capacity is impaired by press repression and only moderate statistical performance. Military tensions and refugee pressures add to uncertainty. No sovereign stress or war, but emergency rule persists. Edge vitality is low, reflecting weak new business formation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12454,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.66,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 719,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.59,
+      "seconds": 5.79,
+      "spend_usd": 0.03066,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-14",
+      "bullet_summary": "Investor risk is driven by the country\u2019s snap elections under a state of emergency, a shift to an executive presidency, and persistent media repression (a1, a6, a8). Political stability and rule of law are weak, with high corruption and moderate friction. Information capacity is impaired by media crackdowns and only moderate statistical performance. No war or sovereign stress, but emergency rule is in effect. Edge vitality is modest. The outlook is clouded by institutional uncertainty and weak checks on executive power.",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 16283,
+      "ledger_scores": {
+        "edge_vitality": 0.32,
+        "friction": 0.54,
+        "information_capacity": 0.68,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 761,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 6.48,
+      "spend_usd": 0.031,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-21",
+      "bullet_summary": "Investor risk is driven by persistent domestic protests, press repression, and weak rule of law, as seen in recent articles and moderate-to-high corruption. Military tensions with neighbors and high inflation add to order-uncertainty. Instruments are impaired by media crackdowns and politicized courts, but statistical performance is not catastrophic. No war, sovereign stress, or emergency rule is present. Edge vitality is moderate, with some business formation and education spending. Risk is mitigated by moderate debt and fiscal metrics, but the overall environment is unstable and trending worse.",
+      "cached_tokens": 3712,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent moderate-impact events (domestic protests, press repression, military tensions) and weak rule of law raise order-uncertainty, but absence of war, sovereign stress, or mass-cas"
+      },
+      "error": null,
+      "input_tokens": 17793,
+      "ledger_scores": {
+        "edge_vitality": 0.41,
+        "friction": 0.48,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 849,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.59,
+      "seconds": 7.53,
+      "spend_usd": 0.034548,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-05-28",
+      "bullet_summary": "The country faces sustained anti-government protests, heavy-handed repression of dissent, and persistent media crackdowns, raising both friction and order-uncertainty. The local currency is under acute pressure, with recent rate hikes failing to restore confidence. High inflation, weak rule of law, and a poor corruption score further undermine stability. Migration pressures and border strain add to institutional stress. Statistical capacity is moderate but press freedom is severely compromised. No war or sovereign stress is present, but the risk of further deterioration is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 14394,
+      "ledger_scores": {
+        "edge_vitality": 0.28,
+        "friction": 0.54,
+        "information_capacity": 0.72,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 713,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 7.3,
+      "spend_usd": 0.034492,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-04",
+      "bullet_summary": "Investor risk is elevated by persistent protests, press repression, and a plunging local currency, with the central bank forced to raise rates (a1, a4, a9, a10). Friction is moderate: tax extraction is not excessive, but conversion is weak due to corruption and low government effectiveness. Order-uncertainty is high, driven by political instability, rule-of-law concerns, and volatile inflation. Information capacity is impaired by media crackdowns and weak statistical performance. No sovereign stress or war is present. Edge vitality is modest. Risks are likely to persist or worsen over 12 months absent reform.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13833,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.68,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.66,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 505,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.59,
+      "seconds": 4.87,
+      "spend_usd": 0.031706,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-06-11",
+      "bullet_summary": "Investor risk is elevated by persistent anti-government protests, police brutality, and a crackdown on media (a5, a15, a9), with the governing party facing international criticism and EU accession at risk. The country faces currency pressure and high inflation (a1, a12, Inflation), and tense foreign relations, including military posturing and disputes over extradition (a16, a11, a17). Information quality is impaired by political interference and weak rule of law. Friction is moderate but rising, with high corruption and only modest government effectiveness. No war or sovereign stress is present, but order-uncertainty is high due to institutional instability and repeated shocks.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 14053,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.58,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 789,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.63,
+      "seconds": 7.82,
+      "spend_usd": 0.034418,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-18",
+      "bullet_summary": "The country faces persistent friction from moderate government effectiveness, high corruption, and rising interest burdens. Order-uncertainty is elevated by currency and inflation pressure, weak rule of law, and repeated moderate-to-severe foreign policy/security events, including a recent high-casualty conflict in a coastal enclave. Information capacity is moderate, with some press freedom concerns but generally functional statistics. No sovereign stress or emergency rule is present. Edge vitality is modest. Risks are higher over 12 months due to compounding uncertainty and weak institutional correction.",
+      "cached_tokens": 3840,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent currency and inflation pressure, moderate rule of law and political stability, and repeated moderate-to-severe foreign policy and security events (notably a recent high-casual"
+      },
+      "error": null,
+      "input_tokens": 16836,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.49,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.65,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 811,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.58,
+      "seconds": 6.94,
+      "spend_usd": 0.032109,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-25",
+      "bullet_summary": "The country faces elevated investor risk due to a persistent state of emergency, a highly contested election granting sweeping executive powers, and widespread suppression of dissent and media. Friction is moderate, with manageable debt but rising interest costs and weak government effectiveness. Order-uncertainty is high, driven by political instability, rule of law concerns, double-digit inflation, and currency depreciation. Information capacity is poor, as the press is muzzled and official statistics are less reliable. Edge vitality is low, with limited startup activity. No war or sovereign stress, but emergency rule is ongoing.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12191,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.72,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 730,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.44,
+      "spend_usd": 0.030222,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-02",
+      "bullet_summary": "The country has entered a new era of executive dominance after elections, with the leader consolidating power and weakening checks and balances (a4, a5). Emergency rule persists, and corruption is entrenched (a17). Friction is moderate, with rising inflation and currency pressure. Information capacity is impaired by government control of media and judiciary. No war or sovereign stress, but order-uncertainty is high due to institutional erosion. Edge vitality is modest. Risks are elevated and persistent, with little sign of near-term mitigation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle \u2014 The country faces a sharp rise in order-uncertainty and friction due to the consolidation of executive power, ongoing emergency rule, and persistent corruption. Multiple articles (a4, a"
+      },
+      "error": null,
+      "input_tokens": 11780,
+      "ledger_scores": {
+        "edge_vitality": 0.28,
+        "friction": 0.47,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 794,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.62,
+      "seconds": 6.16,
+      "spend_usd": 0.029912,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-09",
+      "bullet_summary": "The country has entered a new era of executive dominance after the leader\u2019s election victory and sweeping constitutional changes, consolidating power and weakening checks and balances. The state of emergency persists, with credible reports of curtailed judicial independence, media suppression, and high-profile corruption allegations. Friction is elevated by moderate tax extraction and weak conversion, while order-uncertainty is driven higher by the erosion of institutional constraints and political stability. Information capacity is impaired by compromised statistics and press freedom. No sovereign stress or war is present, but the risk of further institutional drift is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 11813,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.54,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.69,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 748,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.62,
+      "seconds": 5.96,
+      "spend_usd": 0.02961,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-16",
+      "bullet_summary": "The country has entered a new era of executive dominance after elections, with the leader consolidating power and weakening institutional checks. Inflation is high and rising, the currency is under pressure, and policy rates are elevated. Political corruption is severe, and rule of law is weak. While gross debt is moderate, friction is worsened by poor conversion and rising interest costs. Information quality is impaired by government control and intimidation of the press. No war or sovereign stress is present, but order-uncertainty is high and rising.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "Upper-middle of Moderate: The country faces a persistent, broad-based challenge to order and friction. The leader's consolidation of power, erosion of institutional checks, and high inflation (12% y/y"
+      },
+      "error": null,
+      "input_tokens": 11849,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 825,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.66,
+      "seconds": 6.43,
+      "spend_usd": 0.030298,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-23",
+      "bullet_summary": "The country faces sharply elevated investor risk due to the consolidation of executive power by the leader, erosion of institutional checks, and persistent emergency rule. High inflation (12%), a plunging currency, and rising policy rates signal macroeconomic instability. Corruption is high, rule of law is weak, and information quality is impaired by government control of media and judiciary. While debt levels are moderate, the risk of policy unpredictability and institutional decay is rising. No war or sovereign stress is present, but the risk trajectory is adverse.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 10803,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 755,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.74,
+      "spend_usd": 0.027646,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-30",
+      "bullet_summary": "Investor risk is elevated by a sharp rise in inflation (15.4% y/y, accelerating), a plunging currency, and a recent consolidation of power by the leader, who now wields sweeping executive authority. Multiple articles (a1, a4, a6, a11) confirm institutional erosion, persistent crackdowns, and weakened rule of law. Friction is moderate but rising, with high corruption and only modest government effectiveness. Information quality is impaired by state pressure on media and judiciary. No war or sovereign stress is present, but order-uncertainty is high due to institutional and macro instability. Edge vitality is modest, with some business formation and education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12836,
+      "ledger_scores": {
+        "edge_vitality": 0.32,
+        "friction": 0.58,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.7,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 768,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.63,
+      "seconds": 6.13,
+      "spend_usd": 0.031816,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-08-06",
+      "bullet_summary": "Investor risk is elevated by persistent institutional uncertainty: the country faces high inflation (15.4% y/y, rising), a plunging currency, and a sharply increased policy rate. Multiple articles confirm a slide toward autocracy, weakened rule of law, and a crackdown on dissent, with recent sanctions from a major ally. Friction is moderate but rising, with high corruption and only modest government effectiveness. Statistical capacity is fair but not robust. No war or sovereign stress is present, but the risk of further deterioration is high given the compounding political and economic pressures.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 11617,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.41,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 676,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.66,
+      "seconds": 5.21,
+      "spend_usd": 0.028642,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-13",
+      "bullet_summary": "The country faces a severe currency and inflation crisis, with the local currency down nearly a third in a year, inflation above 15%, and 10-year yields over 20%. Political interference in monetary policy, high corruption, and weak rule of law amplify order-uncertainty. Sanctions and diplomatic tensions with a major partner worsen the outlook. Statistical capacity is moderate, but information risk is rising. No war or emergency rule is present, but persistent financial and governance stress keeps risk in the upper-middle Moderate band.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 11864,
+      "ledger_scores": {
+        "edge_vitality": 0.32,
+        "friction": 0.62,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 706,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 6.09,
+      "spend_usd": 0.029376,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-20",
+      "bullet_summary": "The country faces a severe and persistent currency and inflation crisis, with the local currency down over 40% YTD and inflation above 15%. Political interference in monetary policy, high policy rates, and deteriorating foreign relations (notably sanctions) undermine confidence. Friction is elevated by weak government effectiveness and high corruption. Order-uncertainty is high due to currency instability and eroding rule of law. Information capacity is moderate, with statistical systems functional but not robust. No war, emergency rule, or capital controls yet, but sovereign stress risk is rising. Edge vitality is low, reflecting weak business formation.",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 15687,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 855,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.68,
+      "seconds": 6.57,
+      "spend_usd": 0.030566,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-27",
+      "bullet_summary": "The country faces a persistent financial crisis: inflation exceeds 15%, the local currency has lost over 40% of its value in a year, and the central bank is under political pressure not to raise rates. Articles confirm a multi-week, multi-channel crisis with high foreign debt exposure and eroding investor confidence. Friction is high due to weak policy conversion and corruption. Order-uncertainty is elevated by currency instability and political interference. Information risk is moderate, as statistical systems are functional but not robust. No war, emergency rule, or sovereign stress is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle; persistent, multi-week, and multi-faceted currency and financial crisis (a1, a7, a10, a12, a13, a14, a17, a18), with high inflation (15.8%), rapid currency depreciation, and clear state/"
+      },
+      "error": null,
+      "input_tokens": 12018,
+      "ledger_scores": {
+        "edge_vitality": 0.22,
+        "friction": 0.67,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 816,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.71,
+      "seconds": 5.78,
+      "spend_usd": 0.030564,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-03",
+      "bullet_summary": "The country faces a persistent, severe currency and inflation crisis, with the local currency down over 40% YTD and inflation above 15%. The central bank is pressured but constrained by political interference, undermining policy credibility. Friction is high due to weak conversion of extraction and rising corruption. Order-uncertainty is elevated by rapid FX moves, high policy rates, and eroding rule of law. Information capacity is moderate, with statistical systems functional but not robust. No war, emergency rule, or sovereign stress is observed, but risk is high for further deterioration.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "Upper-middle of Moderate: Persistent, severe currency crisis with high inflation, rapid depreciation, and clear evidence of government interference in monetary policy (a1, a6, a9, a11, a19, Inflation,"
+      },
+      "error": null,
+      "input_tokens": 12009,
+      "ledger_scores": {
+        "edge_vitality": 0.24,
+        "friction": 0.67,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.76,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 771,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.71,
+      "seconds": 5.64,
+      "spend_usd": 0.030186,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-10",
+      "bullet_summary": "The country faces a persistent currency and inflation crisis, with the local currency down 40% YTD, inflation above 15%, and policy credibility undermined by political interference in the central bank. Friction is high due to weak government effectiveness and rising corruption. Order-uncertainty is elevated by volatile inflation, a plunging currency, and weak rule of law. Information capacity is moderate, with some statistical reliability but clear political pressure. No war or emergency rule, but sovereign stress is likely if current trends persist. Edge vitality is low. Risks are highest over 12 months if policy inaction continues.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle. The country is experiencing a persistent, severe currency and inflation crisis (multiple articles, max impact 60, spanning 4+ weeks), with high friction (frictional_extraction 11.9, weak"
+      },
+      "error": null,
+      "input_tokens": 13250,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 800,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.84,
+      "spend_usd": 0.0329,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-17",
+      "bullet_summary": "The country faces acute investor risk from a currency crisis, surging inflation (nearly 18%), and a dramatic policy rate hike to 24%. Political interference in monetary policy, high corruption, and authoritarian drift undermine order and information quality. Regional conflict risks and external sanctions add to uncertainty. Friction is high due to weak conversion of extraction, despite moderate debt. Statistical capacity is middling. Edge vitality is low. No war or emergency rule, but persistent shocks and weak institutions keep risk in the upper-moderate band.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle; persistent, multi-topic moderate-severity shocks (currency crisis, inflation spike, regional conflict risk, authoritarian drift) and high frictional extraction outweigh modest debt and a"
+      },
+      "error": null,
+      "input_tokens": 12703,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.62,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 761,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.91,
+      "spend_usd": 0.031494,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-24",
+      "bullet_summary": "The country faces acute investor risk from a currency and inflation crisis, with the central bank forced to hike rates to 24% amid nearly 18% inflation and a 39% currency depreciation. Political interference in economic policy, high corruption, and weakening rule of law further undermine confidence. Regional conflict and refugee risks persist but have not yet spilled into direct war or emergency rule. Statistical capacity is moderate, but information drift is a concern. Friction is high due to poor conversion of extraction into capability. No sovereign stress or war on territory, but persistent instability and weak institutions keep risk in the upper-middle of Moderate.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12713,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 614,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.0,
+      "spend_usd": 0.030338,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-01",
+      "bullet_summary": "The country faces high friction due to weak conversion of state extraction, rising inflation (18%), a sharp policy rate hike (24%), and a plunging currency. Order-uncertainty is elevated by political interference in institutions, post-coup purges, clampdowns on media and civil society, and persistent rule-of-law concerns. Information capacity is impaired by compromised press and judiciary, though statistical performance is moderate. No war or sovereign stress is present, but persistent regional conflict and domestic repression keep risk in the upper-middle of Moderate.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12852,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.62,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 760,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.36,
+      "spend_usd": 0.031784,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-08",
+      "bullet_summary": "The country faces high friction due to weak government effectiveness, high corruption, and rising interest payments, despite moderate debt. Order-uncertainty is elevated by surging inflation (18%), a sharp policy rate hike (24%), currency volatility, and persistent rule-of-law and political stability concerns. Information capacity is impaired by only moderate statistical performance and evidence of media and civil society suppression. No war or emergency rule is present, but repeated clampdowns and post-coup purges raise medium-term risk. Edge vitality is modest. The risk outlook is upper-moderate, with compounding uncertainty and weak institutional correction mechanisms.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12703,
+      "ledger_scores": {
+        "edge_vitality": 0.32,
+        "friction": 0.58,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 823,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.66,
+      "seconds": 6.31,
+      "spend_usd": 0.03199,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-15",
+      "bullet_summary": "Investor risk is elevated by persistent post-coup purges, high-profile detentions, and a major diplomatic crisis over a journalist's disappearance (a1, a3, a12, a17). Friction is moderate: extraction is not extreme, but conversion is weak due to corruption and low government effectiveness. Order-uncertainty is high, with rule of law and political stability both weak, and inflation surging. Information capacity is impaired by state pressure on media and courts, though statistical performance is not catastrophic. No war or sovereign stress, but the system is brittle. Edge vitality is low, reflecting weak business formation and education outcomes.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "middle"
+      },
+      "error": null,
+      "input_tokens": 13099,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.58,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.66,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 751,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.61,
+      "seconds": 5.49,
+      "spend_usd": 0.032206,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-22",
+      "bullet_summary": "The country faces persistent moderate-to-high friction and order-uncertainty. Post-coup repression (mass detentions, media shutdowns, expropriations) and ongoing rule-of-law concerns are well documented. High inflation (17.9%), a sharply raised policy rate (24%), and a depreciating currency signal macro instability. Political stability and rule of law scores are weak. Information capacity is impaired by state pressure on media and judiciary, despite moderately functional statistics. No war or sovereign stress is present, but the risk of further institutional decay is elevated. Edge vitality is low, reflecting weak business formation and constrained adaptation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13234,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 773,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.62,
+      "seconds": 7.14,
+      "spend_usd": 0.032652,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-29",
+      "bullet_summary": "Investor risk is elevated by persistent, credible evidence of severe rule-of-law breaches: mass journalist detentions, media shutdowns, and unlawful refugee deportations. The country faces high inflation (24.5%), a sharply rising policy rate (24%), and a depreciating currency, compounding uncertainty. Political stability and rule of law scores are weak. Statistical capacity is middling, but high corruption and repression undermine trust in official data. No war or sovereign stress is present, but the risk of further institutional decay is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13991,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 793,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 6.13,
+      "spend_usd": 0.034326,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-05",
+      "bullet_summary": "Investor risk is elevated by persistent, credible reports of severe domestic repression (mass detentions, media shutdowns, and rule-of-law violations), compounded by a major international scandal involving the murder of a journalist on the country's soil. Inflation is surging (24.5% y/y), the currency is under pressure, and the policy rate is extremely high. Statistical capacity is moderate but undermined by weak rule of law and high corruption. No war or sovereign stress is present, but the wedge and order-uncertainty are both high and persistent.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13950,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 854,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.66,
+      "seconds": 6.53,
+      "spend_usd": 0.034732,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-12",
+      "bullet_summary": "Investor risk is elevated by persistent domestic repression (mass detentions, media shutdowns), high-profile rights abuses, and a sustained crackdown on journalists (a6, a1, a4). The country faces high inflation (24.5%), a sharply weakened currency, and a policy rate at 24%, indicating acute macro instability. Sanctions risk is present (a13), and rule of law and political stability scores are weak. Statistical capacity is middling, but press freedom is severely compromised. Edge vitality is low. No war or sovereign stress, but compounding risks and weak institutions place the country in the upper-middle of Moderate risk.",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 17556,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.58,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 690,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.66,
+      "seconds": 6.82,
+      "spend_usd": 0.032989,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-19",
+      "bullet_summary": "The country faces persistent moderate-to-high friction due to high political corruption, weak rule of law, and only modest government effectiveness. Order-uncertainty is elevated by surging inflation (24.5%), a sharply depreciating currency, high policy rates, and a large current account deficit. Information capacity is impaired by systematic repression of journalists and dissidents, with hundreds jailed and media outlets closed, undermining trust in official data. Recent broad foreign sanctions and diplomatic crises further raise risk. No war or sovereign stress is present, but the environment is volatile and deteriorating.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12431,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 700,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 6.64,
+      "spend_usd": 0.030462,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-26",
+      "bullet_summary": "The country faces persistent moderate investor risk. Friction is elevated by high political corruption, modest government effectiveness, and rising interest burdens, though gross debt is moderate. Order-uncertainty is high: inflation has surged to 25%, the policy rate is 24%, and the currency is under pressure. Major, persistent topic-groups include broadening foreign sanctions, a diplomatic crisis over a journalist's murder, and regional conflict threats. Press freedom is under sustained attack. Information capacity is impaired by weak statistical performance and repression of journalists. No war or sovereign stress is present, but the risk of compounding instability is significant.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12523,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 602,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.66,
+      "seconds": 5.89,
+      "spend_usd": 0.029862,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-03",
+      "bullet_summary": "Investor risk is elevated by high inflation (25% y/y), a sharp policy rate hike, and a weak currency, indicating macro instability. Political repression is severe, with mass detentions and life sentences for dissent, and the press and judiciary under pressure. Economic sanctions from a major foreign power and renewed territorial tensions further raise uncertainty. Statistical capacity is moderate but undermined by weak rule of law and government effectiveness. No war, emergency rule, or sovereign stress is observed. Edge vitality is low, with weak new business formation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12313,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.66,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 486,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.59,
+      "seconds": 4.67,
+      "spend_usd": 0.028514,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-10",
+      "bullet_summary": "The country faces persistent high inflation, a sharply raised policy rate, and a depreciating currency, signaling monetary instability. Political risk is elevated by evidence of authoritarian repression, high-profile imprisonments, and ongoing corruption investigations (a2, a19). Tensions over territorial disputes in the eastern Mediterranean (a20) add to uncertainty. Friction is moderate, with moderate debt and interest burdens but weak government effectiveness and high corruption. Statistical capacity is fair but not robust. No evidence of war, emergency rule, or sovereign stress. Edge vitality is modest, with low new business formation. Overall, risk is moderate and rising, with order-uncertainty the main driver.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent high inflation (25% y/y), a sharp policy rate hike, and a depreciating currency drive up order-uncertainty, while multiple articles (a2, a19, a20) show sustained political and"
+      },
+      "error": null,
+      "input_tokens": 11638,
+      "ledger_scores": {
+        "edge_vitality": 0.32,
+        "friction": 0.54,
+        "information_capacity": 0.41,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.66,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 776,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.59,
+      "seconds": 5.54,
+      "spend_usd": 0.029484,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-17",
+      "bullet_summary": "The country faces elevated investor risk due to imminent cross-border military operations (a2, a11), persistent political repression (a3), and high inflation (25% y/y). Friction is moderate: extraction is not extreme, but conversion is weak amid high corruption and only modest government effectiveness. Order-uncertainty is high, driven by kinetic risk at the border and weak rule of law. Information capacity is moderate, with statistical performance adequate but press freedom and judicial independence impaired. No sovereign stress or emergency rule is present, but the risk of escalation is material.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12844,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 491,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 4.89,
+      "spend_usd": 0.029616,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-24",
+      "bullet_summary": "The country faces high inflation (25% y/y), a sharply elevated policy rate (24%), and a depreciating currency, indicating acute macro instability. Political risk is heightened by credible threats of cross-border military action and persistent repression of dissent, as seen in the jailing of journalists and NGO closures. Statistical capacity is moderate, but press freedom is under pressure. No sovereign stress or war on territory is present, but order-uncertainty is high due to volatile macro and security environment. Edge vitality is low.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12898,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 711,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.67,
+      "seconds": 5.79,
+      "spend_usd": 0.031484,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-31",
+      "bullet_summary": "The country faces elevated friction and order-uncertainty due to persistent high inflation (16%), a sharp policy rate hike (24%), and a volatile currency. Military mobilization near its borders and repeated threats of cross-border operations (a3, a6, a8) sustain moderate-to-high risk. Political repression (a5), weak rule of law, and high corruption further undermine institutional trust. Statistical capacity is moderate, but information risk is raised by press suppression and politicized investigations (a1, a5). No sovereign stress or war on territory is observed. Edge vitality is modest, reflecting limited startup activity and human capital formation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 13292,
+      "ledger_scores": {
+        "edge_vitality": 0.38,
+        "friction": 0.62,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.75,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 823,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.71,
+      "seconds": 6.84,
+      "spend_usd": 0.033168,
+      "status": "complete",
+      "utc_hour": 23
+    }
+  ],
+  "since": "2018-01-01",
+  "until": "2018-12-31"
+}

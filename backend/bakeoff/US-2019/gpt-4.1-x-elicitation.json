@@ -1,0 +1,1912 @@
+{
+  "arm": "crossed",
+  "candidate": "gpt-4.1-x-elicitation",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.3-within-band",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4.1-2025-04-14",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "44b7d7989b65630c9014263559d21e4d1af183e4"
+  },
+  "cost": {
+    "cache_neutral_per_snapshot_usd": 0.03311369230769231,
+    "cache_share": 0.039,
+    "input_tokens_per_snapshot": 13744.2,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 703.2,
+    "per_snapshot_usd": 0.031961,
+    "snapshots": 52,
+    "spend_usd": 1.662,
+    "utc_hours": [
+      23
+    ]
+  },
+  "country": "US",
+  "endpoint": {
+    "PROMPT_VARIANT": "within-band",
+    "SCORING_MODEL": "gpt-4.1-2025-04-14"
+  },
+  "gates": {},
+  "note": "within-band, the better elicitation variant, re-scored under gpt-4.1",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2019-01-07",
+      "bullet_summary": "The country faces moderate friction, with high government effectiveness but a sizable debt burden and rising interest payments. Order-uncertainty is elevated by the defense secretary's high-profile resignation over foreign policy and the leader's militaristic rhetoric, though there is no kinetic conflict or emergency rule. Information capacity is strong, with reliable statistics and rule of law. Edge vitality is high, reflecting robust human capital and active labor organization. No sovereign stress or war is present. Coverage is broad, but some fiscal and external indicators are stale.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle; persistent moderate-impact events (defense secretary resignation, leader's military rhetoric) and some labor/social unrest raise order-uncertainty above the bottom of the band, but no on"
+      },
+      "error": null,
+      "input_tokens": 13133,
+      "ledger_scores": {
+        "edge_vitality": 0.68,
+        "friction": 0.32,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.37
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 714,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.39,
+      "seconds": 6.6,
+      "spend_usd": 0.031978,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-14",
+      "bullet_summary": "Investor risk is driven by persistent governance and rule-of-law concerns, including high-profile resignations and allegations of institutional decay (a11, a18). Friction is moderate, with high debt and rising interest payments, but government effectiveness remains strong. Order-uncertainty is elevated by political instability, trade tensions, and external threats, though no kinetic conflict is present. Information capacity is solid, with reliable statistics. Edge vitality is high, reflecting strong human capital and adaptive capacity. No sovereign stress or emergency rule is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces persistent governance and rule-of-law concerns (a11, a18), moderate friction from high debt and rising interest payments, and ongoing trade and political tensions, but,"
+      },
+      "error": null,
+      "input_tokens": 13544,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.56,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 698,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.4,
+      "spend_usd": 0.032672,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-21",
+      "bullet_summary": "The country exhibits moderate investor risk, driven by persistent political legitimacy concerns, trade and market uncertainty, and social unrest (notably in education and labor). Friction is moderate: high debt and rising interest payments are partly offset by strong government effectiveness and human capital. Order-uncertainty is elevated by governance crises and policy unpredictability, but the rule of law and statistical quality remain robust. No war, emergency rule, or sovereign stress is present. Edge vitality is high, reflecting adaptive capacity. Instruments are reliable, but stale fiscal data and ongoing institutional strain warrant caution.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces persistent moderate risks from political legitimacy crises (a17), market and trade policy uncertainty (a7, a10), and social unrest (a19, a11), but retains strong rule\u2011o"
+      },
+      "error": null,
+      "input_tokens": 12036,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 845,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.46,
+      "seconds": 5.89,
+      "spend_usd": 0.030832,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-01-28",
+      "bullet_summary": "Investor risk is driven by a major leadership crisis: foreign governments have recognized an alternative president, challenging the incumbent (a2), and markets are reacting to political conflict (a6). Friction is moderate: government effectiveness is strong, but tax revenue is low and debt is high. Order-uncertainty is elevated by the succession dispute, but there is no evidence of violence, emergency rule, or sovereign stress. Information capacity is strong, with reliable statistics. Edge vitality is high, reflecting strong human capital. No war, emergency, or default is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces a significant leadership crisis with multiple foreign recognitions of an alternative president (a2), but there is no evidence of violence, emergency rule, or sovereign/"
+      },
+      "error": null,
+      "input_tokens": 11260,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 404,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 4.47,
+      "spend_usd": 0.025752,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-04",
+      "bullet_summary": "Investor risk is driven by a contested leadership transition, international non-recognition of the incumbent, and a humanitarian crisis (a8, a9, a3). Friction is moderate: government effectiveness is high, but tax revenue is low and debt is elevated. Order-uncertainty is raised by political instability, faltering territorial control, and ongoing institutional disputes. Information capacity is strong, with reliable statistics. No war, emergency rule, or sovereign stress is present. Edge vitality is high, reflecting robust human capital and education outcomes. Persistent uncertainty and moderate friction keep risk in the lower-middle of Moderate.",
+      "cached_tokens": 3200,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate but persistent political and institutional uncertainty (leadership_crisis, border_asylum_policy), with some staleness in fiscal and macro data but no acute or "
+      },
+      "error": null,
+      "input_tokens": 15565,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 798,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.6,
+      "spend_usd": 0.030436,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-11",
+      "bullet_summary": "The country exhibits moderate investor risk, driven by a high government debt burden, low tax revenue, and rising interest payments, but mitigated by strong government effectiveness and rule of law. Order-uncertainty is elevated by a succession crisis, contentious border/asylum policies, and declining territorial control, though there is no emergency rule or sovereign stress. Information capacity is strong, with reliable statistics and institutions. Edge vitality is high, reflecting robust human capital and education outcomes. No war or emergency is present, but persistent political and social tensions raise medium-term risk.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate friction (high debt, low tax take, but strong effectiveness), moderate order-uncertainty (succession crisis, border/asylum policy turmoil, but no emergency or "
+      },
+      "error": null,
+      "input_tokens": 11804,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.38
+      },
+      "lint": [],
+      "llm_score": 0.48,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 764,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.41,
+      "seconds": 5.8,
+      "spend_usd": 0.02972,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-18",
+      "bullet_summary": "Investor risk is driven by a persistent succession crisis, with multiple countries recognizing an opposition leader and warnings of a 'significant response' to violence (a13, a14). Friction is moderate: high debt and low tax revenue are offset by strong government effectiveness. Order-uncertainty is elevated by political instability and human rights controversies (a10). Information capacity is strong, with reliable statistics. No sovereign stress or emergency rule is present. Edge vitality is high, reflecting robust human capital and political engagement. Coverage is broad, but some fiscal and macro indicators are stale.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate friction (high debt, low tax take, but strong effectiveness), and order-uncertainty is elevated by a persistent succession crisis (a13, a14) and human rights/\u201c"
+      },
+      "error": null,
+      "input_tokens": 12450,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.38
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 758,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 6.08,
+      "spend_usd": 0.030964,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-02-25",
+      "bullet_summary": "The country faces moderate investor risk, driven by persistent political and humanitarian crises in a neighboring state (a14, a15, a16), and domestic controversy over immigration policy (a11). Friction is moderate: government effectiveness is strong, but debt and interest burdens are high and tax revenue is low. Order-uncertainty is elevated by regional instability and moderate rule of law. Information capacity is strong, with reliable statistics. Edge vitality is high, reflecting robust human capital and education spending. No sovereign stress or emergency rule is present. Risks are mitigated by full monetary sovereignty and major reserve currency status.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12396,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 702,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.37,
+      "spend_usd": 0.030408,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-04",
+      "bullet_summary": "The country exhibits moderate investor risk. Friction is driven by high gross debt (105% of GDP), low tax revenue (11.5% of GDP), and rising interest payments, but is mitigated by strong government effectiveness. Order-uncertainty is raised by persistent concerns over election legitimacy, controversial immigration and asylum policies, and potential ISDS exposure in trade deals. Information risk is low, with high statistical performance and robust institutions. Edge vitality is strong, reflecting high human capital and education outcomes. No sovereign stress, emergency rule, or internal conflict is present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate friction due to high debt and low tax revenue, but strong government effectiveness and manageable interest payments. Order-uncertainty is elevated by recent, 3"
+      },
+      "error": null,
+      "input_tokens": 12376,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.48,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 525,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.41,
+      "seconds": 5.13,
+      "spend_usd": 0.028952,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-11",
+      "bullet_summary": "Investor risk is high due to a severe, nationwide blackout (a12) disrupting essential services and signaling critical infrastructure failure, compounded by political crisis, contested succession, and emergency effects. Friction is elevated by high debt, rising interest payments, and weak tax revenue. Order-uncertainty is driven higher by persistent threats to succession, rule of law, and credible reports of election fraud. Information capacity is moderate, with statistical systems still functional but under strain. Edge vitality remains robust, but does not offset acute systemic risks. Emergency rule and internal conflict (level B) are observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "High",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13334,
+      "ledger_scores": {
+        "edge_vitality": 0.68,
+        "friction": 0.81,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.87
+      },
+      "lint": [],
+      "llm_score": 0.88,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 489,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.85,
+      "seconds": 5.92,
+      "spend_usd": 0.03058,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-18",
+      "bullet_summary": "The country faces a significant infrastructure crisis, with a nationwide blackout (a13) indicating severe operational and governance failures, raising both friction and order-uncertainty. Political rhetoric from the leader (a14) and concerns over election integrity (a11) further elevate uncertainty. However, the country retains strong statistical capacity and high government effectiveness, moderating information risk. No evidence of war, sovereign stress, or emergency rule is present. Edge vitality is high, reflecting robust human capital. The risk outlook is Moderate, lower-middle, with the blackout and political instability as primary drivers.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12428,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 674,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.38,
+      "spend_usd": 0.030248,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-03-25",
+      "bullet_summary": "Investor risk is driven by a severe nationwide blackout (a13) disrupting essential services, moderate political instability (a14, a11), and a major opioid crisis lawsuit (a16). Friction is moderate: high government effectiveness is offset by a high debt burden and rising interest payments. Order-uncertainty is elevated by succession concerns and threats of violence, but not at crisis levels. Information capacity is strong, with reliable statistics. Edge vitality is high, reflecting strong human capital. No war, emergency rule, or sovereign stress is present. Risks are persistent but not acute, with moderate-to-high uncertainty over the next year.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13527,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.59,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 730,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.54,
+      "seconds": 6.81,
+      "spend_usd": 0.032894,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-01",
+      "bullet_summary": "The country faces a severe infrastructure crisis (nationwide blackout, a14) and persistent border and trade tensions (a15, a2), raising short-term risk. Friction is moderate: high debt and interest costs are offset by strong government effectiveness. Order-uncertainty is elevated by recent crises but not extreme, as succession and contracts remain intact. Information capacity is strong, with reliable statistics. No war, sovereign stress, or emergency rule is present. Edge vitality is high, reflecting strong human capital. Coverage is broad, but some fiscal and structural data are stale.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; severe but isolated infrastructure crisis (a14) and moderate, persistent border and trade tensions (a15, a2) raise risk above Low-Moderate, but absence of war, sovereign stress, or broad"
+      },
+      "error": null,
+      "input_tokens": 13471,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 730,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.92,
+      "spend_usd": 0.032782,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-08",
+      "bullet_summary": "The country faces persistent moderate risks: repeated threats to close a major border (a14, a12, a1), recession fears (a16), and trade tensions (a5) all raise uncertainty, though none have yet triggered emergency rule or sovereign stress. Friction is moderate: government effectiveness is high, but tax revenue is low and debt is elevated. Information capacity is strong, with reliable statistics. Edge vitality is high, reflecting strong human capital and education outcomes. No war, emergency rule, or sovereign stress is present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle; persistent moderate-impact topics (border closure threats, recession fears, trade war) and some public health and climate policy concerns elevate risk above the bottom of the band, but a"
+      },
+      "error": null,
+      "input_tokens": 13000,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.32,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 600,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.37,
+      "seconds": 5.3,
+      "spend_usd": 0.0308,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-15",
+      "bullet_summary": "The country faces persistent moderate risks from trade tensions, border threats, and foreign policy escalations, as reflected in multiple articles with 60+ impact. However, strong government effectiveness, robust rule of law, and high statistical performance mitigate information and friction risks. No evidence of war, emergency rule, or sovereign stress. Edge vitality is high, supporting adaptive capacity. Main risks are from policy unpredictability and external shocks, not institutional weakness.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent moderate-impact topic groups (trade war, border threats, foreign policy escalation, recession fears) raise order-uncertainty above low, but strong institutions and high data/\u201c"
+      },
+      "error": null,
+      "input_tokens": 14914,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.32,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.41
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 705,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 6.02,
+      "spend_usd": 0.035468,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-22",
+      "bullet_summary": "Investor risk is elevated by recent sanctions targeting the central bank, aggressive foreign policy moves, and threats of border closure, all raising order uncertainty. Friction is moderate: government effectiveness is strong, but high debt and rising interest payments are concerns. Information capacity is robust, with high statistical performance. No war, sovereign stress, or emergency rule is present. Edge vitality is high, reflecting strong human capital and adaptive capacity. Persistent, moderate-impact shocks keep risk in the upper Low-Moderate band.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle. The country faces a cluster of moderate-impact, persistent policy and institutional shocks (notably sanctions on the central bank, foreign terrorist designations, and threats of border/\u200b"
+      },
+      "error": null,
+      "input_tokens": 12543,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 720,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.39,
+      "seconds": 5.86,
+      "spend_usd": 0.030846,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-04-29",
+      "bullet_summary": "The country exhibits moderate investor risk, with high government debt and low tax revenue offset by strong government effectiveness. Order-uncertainty is raised by persistent executive-legislative standoffs, politicization of the judiciary, and repeated high-impact disputes over immigration and foreign policy. Information capacity is strong, with robust statistical systems. No sovereign stress or emergency rule is present. Edge vitality is high, reflecting strong human capital and education outcomes.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate friction (high debt, low tax take, but strong effectiveness), and order-uncertainty is elevated by persistent executive-legislative conflict, judiciary politic"
+      },
+      "error": null,
+      "input_tokens": 13601,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.48,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 737,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.43,
+      "seconds": 6.43,
+      "spend_usd": 0.033098,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-06",
+      "bullet_summary": "The country exhibits moderate investor risk: high government debt and low tax revenue raise friction, but strong government effectiveness and high human capital offset. Order-uncertainty is elevated by persistent executive-legislative conflict, judicial politicization, and episodes of censorship, though no emergency rule or sovereign stress is present. Information capacity is strong, with reliable statistics. No war or internal conflict is observed. Edge vitality is high, reflecting strong adaptive capacity. Risk is higher on the 12-month horizon due to persistent institutional strains.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate friction due to high debt and low tax revenue, but strong government effectiveness and high human capital mitigate. Order-uncertainty is elevated by persistent"
+      },
+      "error": null,
+      "input_tokens": 13896,
+      "ledger_scores": {
+        "edge_vitality": 0.78,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.4
+      },
+      "lint": [],
+      "llm_score": 0.51,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 593,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.43,
+      "seconds": 5.69,
+      "spend_usd": 0.032536,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-13",
+      "bullet_summary": "The country faces moderate investor risk, driven by escalating foreign policy crises (a5, a8, a10) and domestic political polarization (a6, a15, a20). Friction is moderate: high debt and rising interest payments are offset by strong government effectiveness and major reserve currency status. Order-uncertainty is elevated by persistent external tensions and internal institutional strain, but not at crisis levels. Information capacity is strong, with reliable statistics. No war, emergency rule, or sovereign stress is present. Edge vitality is high, reflecting robust human capital. Risk is higher on the 12-month horizon due to persistent, multi-topic strains.",
+      "cached_tokens": 3712,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 16575,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.13,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 724,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 7.57,
+      "spend_usd": 0.031154,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-20",
+      "bullet_summary": "The country faces persistent moderate risk from escalating military and diplomatic tensions with a foreign country, driven by hawkish advisers and policy reversals (a6, a11, a3, a14). Trade policy uncertainty is elevated due to tariff increases and ongoing trade disputes (a9, a7). However, there is no evidence of war on the country's territory, emergency rule, or sovereign stress. Statistical capacity remains strong, and friction is moderate given high government effectiveness and manageable extraction. Edge vitality is high, reflecting strong human capital and adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent, credible escalation risk with a foreign country (a6, a11, a3, a14) and trade policy uncertainty (a9, a7) raise order-uncertainty above low-moderate, but absence of kinetic or"
+      },
+      "error": null,
+      "input_tokens": 13457,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.27,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 706,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 6.46,
+      "spend_usd": 0.032562,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-05-27",
+      "bullet_summary": "The country faces persistent, credible escalation in foreign policy and trade tensions, with multiple articles (a11, a7, a4, a14, a16, a10) indicating rising risk of external conflict and economic disruption. However, there is no war on territory, emergency rule, or sovereign stress. Friction is moderate, with high government effectiveness but a significant wedge from debt and interest costs. Information capacity is strong, supported by robust statistical systems. Edge vitality is high, reflecting strong human capital. Overall, risk is Moderate, lower-middle band, with order-uncertainty the main driver.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent, credible escalation in foreign policy and trade tensions (a11, a7, a4, a14, a16, a10, a8, a3) raise order-uncertainty, but absence of kinetic conflict, strong statistical and"
+      },
+      "error": null,
+      "input_tokens": 13597,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.32,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.56,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 772,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.89,
+      "spend_usd": 0.03337,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-03",
+      "bullet_summary": "The country faces persistent moderate risk from escalating external tensions, especially with another country (a12, a10, a7, a15), and repeated trade and domestic political frictions (a16, a14, a17). No war or sovereign stress is present. Friction is moderate: high debt and interest burden, but strong government effectiveness and full monetary sovereignty mitigate. Order-uncertainty is elevated by sustained external and internal challenges. Information risk is low, with strong statistical capacity. Edge vitality is high, reflecting robust human capital and education outcomes. No emergency rule or internal conflict is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent, credible escalation risk with another country (a12, a10, a7, a15) and repeated moderate-impact domestic and trade tensions (a16, a14, a17), but no kinetic activity or binding"
+      },
+      "error": null,
+      "input_tokens": 13506,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.58,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 758,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.22,
+      "spend_usd": 0.033076,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-10",
+      "bullet_summary": "The country faces persistent moderate risks from a severe domestic drug war (a4), ongoing trade tensions (a6, a19), and military escalation rhetoric (a18, a15). Friction is moderate: high debt and rising interest payments are offset by strong government effectiveness. Order-uncertainty is contained by robust rule of law and low inflation, but repeated external shocks widen the risk distribution. Information capacity is strong, with high statistical performance. Edge vitality is high, reflecting strong human capital and education outcomes. No sovereign stress or emergency rule is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle; persistent moderate-to-high impact from the domestic drug war (a4, 85) and repeated trade/military escalation topics (a6, a18, a15, a19, a9, all 40-85) raise risk above the band midpoint"
+      },
+      "error": null,
+      "input_tokens": 14507,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.32,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 770,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.38,
+      "seconds": 6.07,
+      "spend_usd": 0.035174,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-17",
+      "bullet_summary": "The country exhibits moderate investor risk, with high gross debt (106% of GDP) and rising interest payments, but strong government effectiveness and rule of law. No emergency or sovereign stress is present. Major risks stem from persistent internal drug-related violence (a11), ongoing trade war impacts (a13), and moderate political and policy uncertainty. Statistical and institutional quality is strong, supporting information reliability. Edge vitality is high, reflecting robust human capital and adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate friction due to high gross debt and rising interest payments, but strong government effectiveness and rule of law mitigate. Order-uncertainty is contained by a"
+      },
+      "error": null,
+      "input_tokens": 14835,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.38,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 734,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.38,
+      "seconds": 6.24,
+      "spend_usd": 0.035542,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-06-24",
+      "bullet_summary": "The country faces moderate investor risk, driven by persistent trade tensions, recent near-escalation with a neighbouring country, and high-profile transnational crime. Friction is moderate: government effectiveness is strong, but tax revenue is low and debt is high. Order-uncertainty is elevated by repeated geopolitical confrontations and policy unpredictability, but the rule of law and political stability remain positive. Information capacity is strong, with reliable statistics. No evidence of war, emergency rule, or sovereign stress. Edge vitality is high, reflecting strong human capital and adaptive capacity.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; while there are several moderate-severity topic groups (trade war, escalation with a neighbouring country, transnational crime), none are directly disrupting essential services or the FX"
+      },
+      "error": null,
+      "input_tokens": 14985,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.37,
+        "information_capacity": 0.15,
+        "order_uncertainty": 0.38
+      },
+      "lint": [],
+      "llm_score": 0.48,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 743,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.41,
+      "seconds": 6.13,
+      "spend_usd": 0.035914,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-01",
+      "bullet_summary": "The country faces moderate investor risk, with friction held down by high government effectiveness but offset by a high debt burden and rising interest payments. Order-uncertainty is contained by strong rule of law and low inflation, but persistent trade and geopolitical tensions (notably with a neighbouring country) and supply chain shifts add risk. Information capacity is strong, with reliable statistics. No war or sovereign stress is present. Edge vitality is high, reflecting strong human capital and education outcomes. Main risks are external: trade disputes, regional instability, and spillover from organized crime.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 15111,
+      "ledger_scores": {
+        "edge_vitality": 0.78,
+        "friction": 0.37,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 770,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.37,
+      "seconds": 6.29,
+      "spend_usd": 0.036382,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-08",
+      "bullet_summary": "The country faces moderate investor risk, with friction held down by strong government effectiveness and low unemployment, but weighed by high gross debt and low tax revenue. Order-uncertainty is contained by robust rule of law and political stability, though persistent trade disputes and military tensions (a3, a4, a6, a10) add risk. Information capacity is strong, with high statistical performance. No war, emergency rule, or sovereign stress is present. Edge vitality is high, reflecting strong human capital. The main risks are external: trade conflict escalation and foreign policy volatility. Instruments are reliable, so measured problems are likely to remain contained.",
+      "cached_tokens": 3456,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 16813,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.37,
+        "information_capacity": 0.14,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 826,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.37,
+      "seconds": 7.14,
+      "spend_usd": 0.032771,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-15",
+      "bullet_summary": "The country exhibits moderate investor risk: high government debt and rising interest payments are offset by strong government effectiveness and a major reserve currency. Order-uncertainty is elevated by persistent trade disputes, erratic foreign policy, and a sharp contraction in refugee admissions, but there is no war or sovereign stress. Information capacity is strong, with reliable statistics and institutions. Edge vitality is high, reflecting robust human capital. Main risks are policy-driven, not structural or institutional.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate friction due to high debt and rising interest payments, but strong government effectiveness and a major reserve currency mitigate acute risk. Order-uncertainty"
+      },
+      "error": null,
+      "input_tokens": 13254,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.37
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 726,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 6.06,
+      "spend_usd": 0.032316,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-22",
+      "bullet_summary": "Investor risk is driven by moderate friction (high debt, low tax take, rising interest burden) but strong government effectiveness and rule of law. Order-uncertainty is contained, though regional military deployments and persistent trade tensions add risk. Information capacity is strong, with reliable statistics and press. No war or sovereign stress is present. Edge vitality is high, reflecting strong human capital. The main risk is policy unpredictability and regional spillover, but core institutions remain robust.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12556,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 692,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.47,
+      "spend_usd": 0.030648,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-07-29",
+      "bullet_summary": "The country faces persistent moderate risks: recent military deployments, foreign policy volatility, and high-profile corruption and organized crime cases raise order-uncertainty. Friction is moderate, with high debt and rising interest payments, but strong government effectiveness and a major reserve currency mitigate acute stress. Information capacity is strong, with reliable statistics. No war, emergency rule, or sovereign stress is present. Edge vitality is high, reflecting robust human capital and education outcomes.",
+      "cached_tokens": 3328,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle; persistent moderate-impact events (military deployment, foreign policy instability, high-profile corruption, organized crime crackdown) elevate order-uncertainty, but no direct war, mass"
+      },
+      "error": null,
+      "input_tokens": 16034,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 772,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.39,
+      "seconds": 6.63,
+      "spend_usd": 0.031114,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-05",
+      "bullet_summary": "The country faces persistent moderate friction: high gross debt (106% GDP), low tax revenue (11.5% GDP), and rising interest payments, but strong government effectiveness and a major reserve currency mitigate risk. Order-uncertainty is elevated by recent mass-casualty violence, divisive rhetoric, and moderate-impact foreign policy events (trade tariffs, sanctions, troop deployments). Information capacity is strong, with high statistical performance. No sovereign stress or emergency rule is present. Edge vitality is high, reflecting strong human capital and education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle; persistent moderate-impact events (trade, sanctions, troop deployment, mass shooting) and a recent mass-casualty attack (a17) raise order-uncertainty above the bottom of the band, but no"
+      },
+      "error": null,
+      "input_tokens": 10765,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.28
+      },
+      "lint": [],
+      "llm_score": 0.44,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 747,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.39,
+      "seconds": 5.6,
+      "spend_usd": 0.027506,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-12",
+      "bullet_summary": "The country faces moderate investor risk, driven by persistent trade and currency tensions (trade_currency_tensions, a6/a8/a5/a3), sanctions activity (a4/a7), and high government debt. Friction is moderate due to low tax revenue and rising interest payments, but strong government effectiveness and rule of law help conversion. Order-uncertainty is elevated by ongoing trade disputes and sanctions, but no emergency rule or sovereign stress is present. Information capacity is strong (statistical performance 87). Edge vitality is high, reflecting strong human capital. No war or internal conflict is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces persistent moderate friction (frictional_extraction=1.59, low tax revenue, high debt), but strong government effectiveness and rule of law mitigate. Order-uncertainty ("
+      },
+      "error": null,
+      "input_tokens": 11673,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.41
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 741,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 6.11,
+      "spend_usd": 0.029274,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-19",
+      "bullet_summary": "The country faces moderate friction from a high debt burden (106% of GDP), rising interest payments, and modest tax revenue, but strong government effectiveness and rule of law mitigate risk. Order-uncertainty is elevated by persistent trade and currency tensions, sanctions activity, and regional military deployments, though no direct conflict or sovereign stress is present. Information capacity is strong, with reliable statistics and institutions. Edge vitality is high, reflecting robust human capital. No emergency rule or war is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 11705,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 711,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.37,
+      "seconds": 5.51,
+      "spend_usd": 0.029098,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-08-26",
+      "bullet_summary": "The country faces persistent trade war shocks and political instability, with the central bank warning of limited capacity to offset global disruptions. Friction is moderate: government effectiveness is high, but tax revenue is low and debt is elevated. Order-uncertainty is raised by ongoing trade tensions, tariff escalations, and external military commitments, but there is no domestic unrest or sovereign stress. Information capacity is strong, with reliable statistics. Edge vitality is high, reflecting strong human capital. Overall, risk is in the upper-middle of Low-Moderate, driven by external shocks rather than internal disorder.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle; persistent, moderate-impact trade war and political shocks (a1, a3, a16, a18) elevate order-uncertainty, but no direct domestic disorder or sovereign stress. Friction is moderate due to "
+      },
+      "error": null,
+      "input_tokens": 13100,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 786,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.37,
+      "seconds": 6.61,
+      "spend_usd": 0.032488,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-02",
+      "bullet_summary": "The country faces moderate investor risk, driven by persistent trade war escalation (a1, a7, a9) impacting economic outlook and policy stability. Friction is elevated by high debt and rising interest payments, but government effectiveness and strong statistical capacity (Statistical performance 87) mitigate information risk. No war, emergency rule, or sovereign stress is present. Edge vitality is high, reflecting strong human capital and education outcomes. The main risk is from external shocks and policy uncertainty, not domestic disorder.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13084,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.38
+      },
+      "lint": [],
+      "llm_score": 0.46,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 662,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.41,
+      "seconds": 5.96,
+      "spend_usd": 0.031464,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-09",
+      "bullet_summary": "The country faces moderate investor risk, driven by persistent trade war escalation (a4, a10, a12) impacting growth and budget projections, and central bank warnings about limited capacity to offset political shocks. Friction is moderate: government effectiveness is strong, but debt and interest burdens are high and rising. Order-uncertainty is elevated by ongoing trade tensions, political pressure on the central bank (a6), and slowing growth, though rule of law and statistical quality remain solid. Instruments are reliable. Edge vitality is high, reflecting strong human capital and education outcomes. No war, emergency rule, or sovereign stress is present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13122,
+      "ledger_scores": {
+        "edge_vitality": 0.72,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 712,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 5.53,
+      "spend_usd": 0.03194,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-16",
+      "bullet_summary": "Investor risk is driven by persistent trade war escalation and central bank-leader tensions, raising order-uncertainty despite strong government effectiveness and high-quality statistics. Friction is moderate: tax extraction is low but conversion is strong. No sovereign stress, emergency rule, or war on territory. Edge vitality is high, reflecting strong human capital and education outcomes. The main risk is from external shocks and policy unpredictability, not from domestic instability or weak institutions.",
+      "cached_tokens": 3712,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent, moderate-severity trade war escalation (a11, a13, a15) and central bank-leader tension (a12, a1) raise order-uncertainty, but no sovereign stress or emergency rule. Friction,"
+      },
+      "error": null,
+      "input_tokens": 17024,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.41
+      },
+      "lint": [],
+      "llm_score": 0.51,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 774,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 6.97,
+      "spend_usd": 0.032399,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-23",
+      "bullet_summary": "The country exhibits moderate friction from high government debt (106% of GDP, though somewhat stale) and rising interest payments, but strong government effectiveness and a major reserve currency mitigate risk. Order-uncertainty is elevated by persistent trade tensions, sanctions, and policy unpredictability, but there is no war or emergency rule. Information capacity is strong, with high statistical performance. Edge vitality is robust, reflecting high human capital and education spending. No sovereign stress or internal conflict is present. Coverage is broad, but some fiscal data is stale.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle; the country faces persistent moderate friction due to high debt and rising interest payments, but strong government effectiveness and a major reserve currency mitigate risk. Order-uncert"
+      },
+      "error": null,
+      "input_tokens": 12551,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.13,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 711,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.37,
+      "seconds": 6.61,
+      "spend_usd": 0.03079,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-09-30",
+      "bullet_summary": "The country faces moderate friction due to high government debt and low tax revenue, but strong government effectiveness and low corruption mitigate risk. Order-uncertainty is contained despite persistent trade tensions and sanctions (notably with a major trading partner), as the country retains full monetary sovereignty and a major reserve currency. Information capacity is strong, with reliable statistics. No war, emergency rule, or sovereign stress is present. Edge vitality is high, reflecting robust human capital and education spending. Risks are elevated by ongoing trade disputes and sanctions, but the institutional framework remains resilient.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Low-Moderate",
+        "band_placement": "upper-middle"
+      },
+      "error": null,
+      "input_tokens": 12678,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.37,
+        "information_capacity": 0.15,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.41,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 664,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.37,
+      "seconds": 5.35,
+      "spend_usd": 0.030668,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-07",
+      "bullet_summary": "The country faces moderate investor risk, driven by credible allegations of complicity in war crimes (a3, a17), impeachment inquiries into the leader (a8), and new tariffs on foreign goods (a5). Fiscal friction is moderate: high debt and deficits are offset by strong government effectiveness and low inflation. Order-uncertainty is elevated by political scandals and foreign policy risks, but rule of law and statistical quality remain strong. Information capacity is robust, with high statistical performance and low measured corruption. Edge vitality is high, reflecting strong human capital. No war, emergency rule, or sovereign stress is present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13179,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.37
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 718,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.03,
+      "spend_usd": 0.032102,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-14",
+      "bullet_summary": "The country faces moderate investor risk, driven by credible allegations of complicity in war crimes (a9), controversial asylum and border policies (a4), and ongoing impeachment proceedings (a14, a2). Friction is moderate: tax extraction is low but government effectiveness is high, and interest payments are rising. Order-uncertainty is elevated by persistent governance and rule-of-law concerns, but inflation and currency stability are strong. Information capacity is robust, with high statistical performance. Edge vitality is high, reflecting strong human capital. No war, emergency rule, or sovereign stress is present. Risks are persistent but not acute, with strong institutions partially mitigating headline shocks.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 13059,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 691,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 6.51,
+      "spend_usd": 0.031646,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-21",
+      "bullet_summary": "Investor risk is driven by credible allegations of the country's complicity in war crimes (a12), controversial asylum policies with human rights concerns (a7), and a persistent impeachment inquiry (a16, a5). Friction is moderate: tax extraction is low for a high-income country, but conversion is strong. Order-uncertainty is elevated by legal and political challenges, but the rule of law and statistical systems remain robust. Information capacity is strong, with high statistical performance. Edge vitality is high, reflecting strong human capital. No war, emergency rule, or sovereign stress is present. Risk is mitigated by institutional resilience and monetary sovereignty.",
+      "cached_tokens": 3456,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 16563,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.48
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 756,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.11,
+      "spend_usd": 0.031957,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-10-28",
+      "bullet_summary": "The country faces moderate investor risk, driven by credible allegations of complicity in foreign war crimes (a14), persistent impeachment proceedings (a16, a7), and controversial asylum policies (a9). Friction is moderate: high debt and low tax revenue are offset by strong government effectiveness. Order-uncertainty is elevated by ongoing political and legal challenges, but core institutions remain functional. Information capacity is strong, with reliable statistics and robust press oversight. Edge vitality is high, reflecting strong human capital and education outcomes. No sovereign stress or emergency rule is present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; severe but externally-focused war crimes complicity (a14) and moderate domestic order challenges (a16, a9) are persistent but not disruptive to core state function. Friction is moderate,"
+      },
+      "error": null,
+      "input_tokens": 14081,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.54
+      },
+      "lint": [],
+      "llm_score": 0.61,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 748,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.54,
+      "seconds": 5.72,
+      "spend_usd": 0.034146,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-04",
+      "bullet_summary": "Investor risk is driven by severe wildfires and power blackouts disrupting essential services (a19), persistent moderate shocks from asylum policy (a13), and trade sanctions (a5). Friction is elevated by high debt, rising interest payments, and moderate fiscal deficits, but government effectiveness is strong. Order-uncertainty is raised by political instability (impeachment, a12/a17), border policy, and trade disputes. Information risk is low, with robust statistical systems and press. Edge vitality is high, reflecting strong human capital and education outcomes. No sovereign stress or emergency rule is present. Coverage is broad, but some indicators are stale.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 12618,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.13,
+        "order_uncertainty": 0.38
+      },
+      "lint": [],
+      "llm_score": 0.61,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 706,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.54,
+      "seconds": 6.44,
+      "spend_usd": 0.030884,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-11",
+      "bullet_summary": "The country faces severe regional disruption from wildfires and power outages, with millions affected and utility bankruptcy (a19), raising friction but not threatening national order. Fiscal friction is elevated by high debt, rising interest payments, and persistent deficits. Order-uncertainty is moderate: recent trade sanctions (a10) and political events (a17) add noise but not instability. Information capacity remains strong, with robust statistics and institutions. Edge vitality is high, reflecting strong human capital and education outcomes. No evidence of war, sovereign stress, or emergency rule.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the severe wildfires and power outages (a19) are highly disruptive but localized, not nationwide, and do not threaten the order or fiscal solvency. Friction is elevated by high debt and,"
+      },
+      "error": null,
+      "input_tokens": 12367,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 578,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.36,
+      "spend_usd": 0.029358,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-18",
+      "bullet_summary": "The country faces moderate investor risk, driven by high government debt (104% of GDP), rising interest payments, and a persistent fiscal deficit. Political order is challenged by ongoing trade bloc exit uncertainty, voter suppression concerns, impeachment proceedings, and recent severe wildfires causing mass power outages. However, strong government effectiveness, robust rule of law, and high-quality statistics mitigate information risk. Edge vitality is high, reflecting strong human capital and education outcomes. No sovereign stress or emergency rule is observed. Risk is higher over 12 months due to persistent institutional and political uncertainty.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; while the country faces significant friction from high debt and moderate conversion, and order-uncertainty is elevated by persistent political and institutional challenges (trade bloc, 3"
+      },
+      "error": null,
+      "input_tokens": 14448,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 570,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.56,
+      "spend_usd": 0.033456,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-11-25",
+      "bullet_summary": "Investor risk is driven by severe wildfires and power blackouts disrupting essential services, persistent political uncertainty from trade bloc exit risks, voter suppression concerns, and impeachment proceedings. Fiscal friction is moderate: high debt and low tax revenue are offset by strong government effectiveness and a major reserve currency. Information capacity is strong, with reliable statistics. No sovereign stress or emergency rule is present. Edge vitality is high, reflecting strong human capital. The outlook is moderately elevated due to compounding political and environmental risks, but mitigated by institutional strength.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 14527,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.54,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 705,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 5.8,
+      "spend_usd": 0.034694,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-02",
+      "bullet_summary": "The country faces persistent moderate risks: uncertainty from the process of leaving a major trade bloc (a5), credible concerns about voter suppression and democratic backsliding (a6), and a high-profile press freedom case (a19). Friction is moderate, with high debt but strong government effectiveness and a major reserve currency. Information capacity is strong, with robust statistics. No acute conflict or sovereign stress is present. Edge vitality is high, reflecting strong human capital and education outcomes.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent moderate risks from political process uncertainty (trade bloc exit, voter suppression, press freedom), but no acute crisis or sovereign stress. Friction is moderate for a high"
+      },
+      "error": null,
+      "input_tokens": 14030,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.37,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.53
+      },
+      "lint": [],
+      "llm_score": 0.56,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 411,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 4.43,
+      "spend_usd": 0.031348,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-09",
+      "bullet_summary": "Investor risk is driven by persistent political and institutional uncertainty: the trade bloc exit threatens fiscal and economic stability, while credible reports of voter suppression and press freedom risks (a9, a10, a19) raise order-uncertainty. Friction is moderate, with high debt and low tax revenue but strong government effectiveness. Information capacity is supported by robust statistical systems, though press freedom concerns are noted. No emergency, conflict, or sovereign stress is present. Edge vitality is high, reflecting strong human capital and education outcomes.",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces moderate but persistent order-uncertainty due to ongoing political and institutional challenges (trade bloc exit, voter suppression, press freedom risks), but retains a"
+      },
+      "error": null,
+      "input_tokens": 17746,
+      "ledger_scores": {
+        "edge_vitality": 0.77,
+        "friction": 0.41,
+        "information_capacity": 0.22,
+        "order_uncertainty": 0.54
+      },
+      "lint": [],
+      "llm_score": 0.56,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 823,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.48,
+      "seconds": 7.19,
+      "spend_usd": 0.034259,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-16",
+      "bullet_summary": "The country faces moderate investor risk, driven by persistent uncertainty over trade bloc exit (a12), threats to public healthcare from trade deals (a3), and press freedom concerns (a20). Fiscal friction is elevated by high debt (104% of GDP), a large deficit (-5.7% of GDP), and rising interest payments, but is partially offset by strong government effectiveness and rule of law. Statistical capacity is robust. No war, sovereign stress, or emergency rule is present. Edge vitality is high, reflecting strong human capital and education outcomes.",
+      "cached_tokens": 3584,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle"
+      },
+      "error": null,
+      "input_tokens": 17064,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.44
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 657,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.44,
+      "seconds": 6.78,
+      "spend_usd": 0.031778,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-23",
+      "bullet_summary": "Investor risk is driven by persistent healthcare system strain, high pollution-related mortality, and a rising interest burden. The country\u2019s government effectiveness is strong, but fiscal extraction is high and conversion into capability is mixed. Order is stable despite political turbulence (impeachment, leadership conduct), with no emergency rule or sovereign stress. Statistical and institutional instruments remain reliable. Edge vitality is high, reflecting strong human capital and adaptive capacity. No war, internal conflict, or capital controls are present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; persistent, moderate-to-high friction from a strained healthcare system (a2, a5, a20), high pollution-related mortality (a3), and rising interest burden, but order remains stable with no"
+      },
+      "error": null,
+      "input_tokens": 14056,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.48,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.32
+      },
+      "lint": [],
+      "llm_score": 0.52,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 743,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.46,
+      "seconds": 6.53,
+      "spend_usd": 0.034056,
+      "status": "complete",
+      "utc_hour": 23
+    },
+    {
+      "articles": 20,
+      "as_of": "2019-12-30",
+      "bullet_summary": "The country exhibits moderate friction due to high government debt (104% of GDP), low tax revenue (11.5% of GDP), and rising interest payments. Healthcare system strain and pollution-related deaths (a4, a5, a7) add to the wedge. Order-uncertainty is contained by strong rule of law and stable inflation, despite political turbulence (impeachment, trade disputes). Information capacity is strong, with reliable statistics. Edge vitality is high, reflecting robust human capital and learning outcomes. No sovereign stress or emergency rule is present.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {
+        "band": "Moderate",
+        "band_placement": "lower-middle; the country faces persistent moderate friction from high debt, low tax revenue, and rising interest payments, with additional pressure from healthcare and pollution crises (a4, a5, a7). "
+      },
+      "error": null,
+      "input_tokens": 14752,
+      "ledger_scores": {
+        "edge_vitality": 0.74,
+        "friction": 0.41,
+        "information_capacity": 0.18,
+        "order_uncertainty": 0.27
+      },
+      "lint": [],
+      "llm_score": 0.46,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 771,
+      "prompt_version": "v4.3-within-band",
+      "score_3m": 0.41,
+      "seconds": 6.59,
+      "spend_usd": 0.035672,
+      "status": "complete",
+      "utc_hour": 23
+    }
+  ],
+  "since": "2019-01-01",
+  "until": "2019-12-31"
+}
