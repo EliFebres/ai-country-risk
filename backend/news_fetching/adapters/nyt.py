@@ -244,7 +244,7 @@ def harvest_month(year: int, month: int, roster: List[str]) -> Dict[str, int]:
 
 
 def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> int:
-    """Harvest the archive from ``PILOT_START`` to today.
+    """Harvest the archive from ``HARVEST_FLOOR`` to today.
 
     Resumable per (country, month). A month is only fetched when at least one
     roster country still needs it, and each country is checkpointed separately,
@@ -258,7 +258,7 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
         Rows written this run.
     """
     roster = roster or config.PILOT_ROSTER
-    start = datetime.date.fromisoformat(since or config.PILOT_START)
+    start = datetime.date.fromisoformat(since or config.HARVEST_FLOOR)
     end = datetime.date.today()
 
     done = {iso2: store.completed_windows(SOURCE_SYSTEM, iso2) for iso2 in roster}

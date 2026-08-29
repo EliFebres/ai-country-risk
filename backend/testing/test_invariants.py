@@ -1204,3 +1204,76 @@ class TestTheContextCacheKeyTracksItsEvidence:
         base = llm_context.cache_key("PT", "2018Q2", ["a"])
         assert base != llm_context.cache_key("TR", "2018Q2", ["a"])
         assert base != llm_context.cache_key("PT", "2018Q3", ["a"])
+
+
+# ---------------------------------------------------------------------------
+# The harvest floor and the anchor floor are two different dates
+# ---------------------------------------------------------------------------
+
+class TestTheHarvestFloorDoesNotMoveTheAnchors:
+    """`HARVEST_FLOOR` and `PILOT_START` were one constant, and the harvest
+    reaching further back must not quietly buy the series extra anchors.
+
+    Every measured number in the project — the GATE2 baseline, the bake-off
+    windows, the ~522 anchors a country carries — is pinned to `PILOT_START`. If
+    moving the harvest floor moved anchor generation, extending the corpus would
+    silently re-date the series it feeds, and the pilot's own numbers would stop
+    describing the run that produced them.
+    """
+
+    def test_the_two_floors_are_distinct_and_ordered(self):
+        assert config.HARVEST_FLOOR < config.PILOT_START
+
+    def test_moving_the_harvest_floor_leaves_anchor_generation_alone(self, monkeypatch):
+        start = datetime.date.fromisoformat(config.PILOT_START)
+        end = datetime.date(2017, 1, 1)
+        before = score.anchors(start, end)
+
+        monkeypatch.setattr(config, "HARVEST_FLOOR", "2009-01-01")
+        assert score.anchors(start, end) == before
+
+    def test_the_anchor_default_still_reads_pilot_start(self, monkeypatch):
+        """The defaulting path, not just an explicitly-passed start.
+
+        `score.run` falls back to `PILOT_START` when no `--since` is given, and
+        that fallback is the one a careless edit would repoint at the harvest
+        floor — it is the line that looks most like the harvesters'.
+        """
+        monkeypatch.setattr(config, "HARVEST_FLOOR", "2009-01-01")
+        default = datetime.date.fromisoformat(config.PILOT_START)
+        assert score.anchors(default, default + datetime.timedelta(days=21))[0] \
+            >= default
+
+
+class TestTheFirstAnchorsHaveTrailingCorpusBeneathThem:
+    """Why the harvest floor is earlier at all.
+
+    `llm.context` reads the four completed quarters ending before
+    `as_of - SNAPSHOT_WINDOW_DAYS`, so an anchor in the first weeks after
+    `PILOT_START` reaches roughly fifteen months *below* it. Harvesting from
+    `PILOT_START` leaves that window partly unharvested, and the failure is
+    silent — a shorter paragraph, with nothing in the output saying it was built
+    from less.
+    """
+
+    def test_the_earliest_quarter_an_early_anchor_needs_is_above_the_harvest_floor(self):
+        anchor = datetime.date.fromisoformat(config.PILOT_START) + datetime.timedelta(days=7)
+        labels = llm_context.trailing_quarters(anchor)
+        assert len(labels) == llm_context.QUARTERS
+
+        oldest_start, _ = llm_context.quarter_bounds(labels[0])
+        floor = datetime.date.fromisoformat(config.HARVEST_FLOOR)
+        assert oldest_start.date() >= floor
+
+    def test_that_window_reaches_below_the_anchor_floor(self):
+        """The half that makes the test mean something.
+
+        If every quarter an early anchor needs already sat above `PILOT_START`,
+        the floors could be one constant and this whole split would be dead
+        weight. It does not — so assert the reach explicitly rather than leaving
+        it to be inferred from the test above passing.
+        """
+        anchor = datetime.date.fromisoformat(config.PILOT_START) + datetime.timedelta(days=7)
+        oldest_start, _ = llm_context.quarter_bounds(
+            llm_context.trailing_quarters(anchor)[0])
+        assert oldest_start.date() < datetime.date.fromisoformat(config.PILOT_START)

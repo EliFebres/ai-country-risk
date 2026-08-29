@@ -94,7 +94,7 @@ def backfill(roster: Optional[List[str]] = None,
     module docstring.
     """
     roster = roster or config.PILOT_ROSTER
-    start = datetime.date.fromisoformat(since or config.PILOT_START)
+    start = datetime.date.fromisoformat(since or config.HARVEST_FLOOR)
     today = datetime.date.today()
     lookback = today.year - start.year + 1
     # One extra year of months, so a partial first year is covered rather than

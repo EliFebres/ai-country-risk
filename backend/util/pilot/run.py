@@ -386,7 +386,7 @@ def main() -> None:
     sub.add_parser("weo")
 
     p = sub.add_parser("monthly")
-    p.add_argument("--since", help="ISO date overriding PILOT_START")
+    p.add_argument("--since", help="ISO date overriding HARVEST_FLOOR")
     p.add_argument("--country", action="append", dest="roster",
                    help="ISO2 code; repeatable. Defaults to PILOT_ROSTER.")
 

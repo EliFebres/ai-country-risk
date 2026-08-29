@@ -356,7 +356,7 @@ def harvest_window(iso2: str, country_name: str, start: datetime.date,
 
 def harvest(roster: Optional[List[str]] = None,
             since: Optional[str] = None) -> int:
-    """Harvest every pilot country from ``PILOT_START`` to today.
+    """Harvest every roster country from ``HARVEST_FLOOR`` to today.
 
     Resumable: a completed (country, year) is checkpointed and skipped on a
     re-run. Quota exhaustion checkpoints what finished, reports how many more
@@ -366,7 +366,7 @@ def harvest(roster: Optional[List[str]] = None,
         Rows written this run.
     """
     roster = roster or config.PILOT_ROSTER
-    start = datetime.date.fromisoformat(since or config.PILOT_START)
+    start = datetime.date.fromisoformat(since or config.HARVEST_FLOOR)
     end = datetime.date.today()
     windows = year_windows(start, end)
 

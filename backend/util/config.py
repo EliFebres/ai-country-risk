@@ -45,7 +45,29 @@ PILOT_ROSTER: list[str] = ["US", "TR", "PT", "KR"]
 
 # Ten years back. The Guardian and NYT archives reach further; where the blend
 # stops being honest is what the step-4 recovery curve is for.
+#
+# **This is the anchor floor, not the harvest floor.** It pins every measured
+# number in the project — the ~522 weekly anchors per country, the GATE2
+# baseline, the bake-off windows — so it does not move. What the harvest reaches
+# back to is `HARVEST_FLOOR` below, and the two were one constant until the
+# distinction was needed.
 PILOT_START: str = "2016-08-03"
+
+# How far back the *article* harvest reaches. Deliberately earlier than
+# `PILOT_START`, and nothing about anchor generation reads it.
+#
+# The reason is the trailing-context block: `llm.context` builds the four
+# completed quarters ending before `as_of - SNAPSHOT_WINDOW_DAYS`
+# (`context.QUARTERS`), so an anchor in the first year after `PILOT_START` wants
+# roughly fifteen months of corpus *below* `PILOT_START` or its trailing window
+# is silently short — not an error, just a thinner paragraph nothing flags.
+#
+# The p3-context variant that reads that block was measured and **rejected**
+# (more evidence made the instrument coarser), so today this floor buys
+# optionality rather than fixing a live gap. It is still worth having now:
+# corpus is cheap to harvest while the harvester is already running the roster,
+# and expensive to go back for once the archive quota has moved on.
+HARVEST_FLOOR: str = "2015-01-01"
 
 # The GDELT DOC 2.0 API's own article floor. Dormant: the pilot is Guardian and
 # NYT only, because the DOC endpoint answers roughly one call per multi-minute
