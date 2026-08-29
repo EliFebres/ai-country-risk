@@ -23,7 +23,7 @@ import psycopg2
 import pytest
 
 from backend.util import config, provenance
-from backend.data_upsert import schema, store
+from backend.data_upsert import data_push, schema, store
 from backend.news_fetching import snapshot_select
 from backend.util.pilot import reports
 from backend.news_fetching import core
@@ -636,6 +636,55 @@ class TestArticleRow:
 
 
 # ---------------------------------------------------------------------------
+class TestTheDatabaseTargetIsSaidOutLoud:
+    """There is no bare name to reach for, and no default to fall back to.
+
+    `DATABASE_URL` was both. Every tool that wanted "the database" took it
+    without deciding anything, and the thing it took was production -- which is
+    how a migration ran against the harvest store while the scored reference
+    sat in the other project, and why establishing which was which cost a
+    session of inspection.
+    """
+
+    def test_an_unset_target_refuses_rather_than_guessing(self, monkeypatch):
+        monkeypatch.delenv("RISK_DB_TARGET", raising=False)
+        monkeypatch.setenv("PROD_DATABASE_URL", "postgresql://u:p@h/prod")
+        with pytest.raises(RuntimeError, match="RISK_DB_TARGET"):
+            data_push._require_db_url()
+
+    def test_a_target_with_no_url_names_the_variable_it_wants(self, monkeypatch):
+        monkeypatch.setenv("RISK_DB_TARGET", "prod")
+        monkeypatch.delenv("PROD_DATABASE_URL", raising=False)
+        with pytest.raises(RuntimeError, match="PROD_DATABASE_URL"):
+            data_push._require_db_url()
+
+    def test_the_old_bare_name_is_not_a_fallback(self, monkeypatch):
+        """The whole point. A leftover `DATABASE_URL` must not quietly work."""
+        monkeypatch.setenv("RISK_DB_TARGET", "prod")
+        monkeypatch.delenv("PROD_DATABASE_URL", raising=False)
+        monkeypatch.setenv("DATABASE_URL", "postgresql://u:p@h/prod")
+        with pytest.raises(RuntimeError, match="PROD_DATABASE_URL"):
+            data_push._require_db_url()
+
+    def test_each_target_resolves_its_own_database(self, monkeypatch):
+        monkeypatch.setenv("PROD_DATABASE_URL", "postgresql://u:p@h/prod")
+        monkeypatch.setenv("DEV_DATABASE_URL", "postgresql://u:p@h/dev")
+        monkeypatch.setenv("RISK_DB_TARGET", "dev")
+        assert data_push._require_db_url().endswith("/dev")
+        monkeypatch.setenv("RISK_DB_TARGET", "prod")
+        assert data_push._require_db_url().endswith("/prod")
+
+    def test_the_origin_stamp_carries_no_credentials(self, monkeypatch):
+        """It lands in a JSONB column that gets printed and pasted into
+        write-ups, so it is assembled from parts rather than redacted."""
+        monkeypatch.setenv("RISK_DB_TARGET", "prod")
+        monkeypatch.setenv("PROD_DATABASE_URL",
+                           "postgresql://someuser:hunter2@db.example.com/neondb")
+        origin = data_push.write_origin()
+        assert origin["database"] == "db.example.com/neondb"
+        assert "hunter2" not in str(origin) and "someuser" not in str(origin)
+
+
 # Against a real Postgres — opt in with HISTORY_TEST_DATABASE_URL
 # ---------------------------------------------------------------------------
 
@@ -646,7 +695,8 @@ needs_db = pytest.mark.skipif(not TEST_DB, reason="set HISTORY_TEST_DATABASE_URL
 @pytest.fixture()
 def db(monkeypatch):
     """Point the store at the test database and start from an empty table."""
-    monkeypatch.setenv("DATABASE_URL", TEST_DB)
+    monkeypatch.setenv("RISK_DB_TARGET", "dev")
+    monkeypatch.setenv("DEV_DATABASE_URL", TEST_DB)
     with store._transaction() as cur:
         schema.create_all(cur)
         for table in ("article", "run_ledger", "llm_artifact", "snapshot_diagnostic"):

@@ -1,7 +1,7 @@
 """Two Neon projects, one accessor each, roles fixed by the function name.
 
-    prod_readonly()  ->  DATABASE_URL      production, READ-ONLY, enforced
-    dev()            ->  DEV_DATABASE_URL  scratch project, read-write
+    prod_readonly()  ->  PROD_DATABASE_URL  production, READ-ONLY, enforced
+    dev()            ->  DEV_DATABASE_URL   dev project, read-write
 
 The split exists so that "let me just look at prod" cannot become "I just
 wrote to prod". ``prod_readonly`` opens every transaction as ``BEGIN READ
@@ -14,11 +14,18 @@ project is yours to break.
 This module is for humans — notebooks, one-off queries, exploration. The daily
 pipeline does not import it. Production writes still go through
 :mod:`backend.data_upsert.data_push`, which owns the real write layer and is
-the only thing that should ever write to ``DATABASE_URL``.
+the only thing that should ever write to production.
 
-``DATABASE_URL`` keeps its name because it is a deployment contract, not just
-a local one: ``frontend/app/lib/risk-server.ts`` reads it, and it is set in
-the frontend's hosting environment. Renaming it here would rename it there.
+``DATABASE_URL`` used to be the production name, and it is gone. The argument
+for keeping it was that renaming here would rename it in the frontend, which
+reads ``DATABASE_URL`` in ``frontend/app/lib/risk-server.ts`` — but that is a
+different process reading a different ``frontend/.env`` with its own
+deployment environment, so the two names were never the same variable. What
+the shared name did buy was a default: every tool that wanted "the database"
+reached for the bare name without deciding anything, and what it reached was
+production. A session went into establishing which of these two projects held
+the scores and which held the corpus, because that choice had never been
+written down anywhere. ``RISK_DB_TARGET`` now has to be said out loud.
 
 Usage::
 
@@ -77,7 +84,7 @@ def _cursor(url: str, readonly: bool) -> Iterator["psycopg2.extensions.cursor"]:
 def prod_readonly() -> Iterator["psycopg2.extensions.cursor"]:
     """Cursor on PRODUCTION that Postgres will not let you write through."""
     url = _require(
-        "DATABASE_URL",
+        "PROD_DATABASE_URL",
         "It is the production Neon project; see backend/.env.example.",
     )
     with _cursor(url, readonly=True) as cur:
@@ -91,9 +98,9 @@ def dev() -> Iterator["psycopg2.extensions.cursor"]:
         "DEV_DATABASE_URL",
         "Paste the second Neon project's string into backend/.env.",
     )
-    if url == os.getenv("DATABASE_URL"):
+    if url == os.getenv("PROD_DATABASE_URL"):
         raise RuntimeError(
-            "DEV_DATABASE_URL is the same database as DATABASE_URL. This "
+            "DEV_DATABASE_URL is the same database as PROD_DATABASE_URL. This "
             "handle is read-write — point it at the scratch project, not "
             "production."
         )

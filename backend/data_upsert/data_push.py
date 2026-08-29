@@ -57,11 +57,42 @@ def write_origin() -> Dict[str, str]:
     return {"host": socket.gethostname(), "database": database}
 
 
+# The two databases, and the variable that chooses between them. There is
+# deliberately no default: `DATABASE_URL` was a bare name that every tool
+# reached for without deciding anything, and the thing it reached was
+# production. A session was spent proving which project held which half of this
+# project because that choice had never been made explicitly anywhere.
+_TARGETS = {"prod": "PROD_DATABASE_URL", "dev": "DEV_DATABASE_URL"}
+_TARGET_VAR = "RISK_DB_TARGET"
+_resolved_once: Dict[str, str] = {}
+
+
+def resolve_target() -> str:
+    """Which database this process writes to. Explicit or it raises."""
+    target = (os.getenv(_TARGET_VAR) or "").strip().lower()
+    if target not in _TARGETS:
+        raise RuntimeError(
+            f"{_TARGET_VAR} must be one of {sorted(_TARGETS)}; got {target or '(unset)'}. "
+            f"There is no default on purpose -- the old bare DATABASE_URL was one, "
+            f"and it pointed at production.")
+    return target
+
+
 def _require_db_url() -> str:
-    """Read DATABASE_URL at call time (never cached at import)."""
-    db_url = os.getenv("DATABASE_URL")
+    """The DSN for the chosen target, read at call time (never cached at import).
+
+    Logged the first time each target resolves, so a run's output says which
+    database it wrote to rather than leaving it to be inferred afterwards from
+    the rows -- which, before `written_by`, was not possible at all.
+    """
+    target = resolve_target()
+    var = _TARGETS[target]
+    db_url = os.getenv(var)
     if not db_url:
-        raise RuntimeError("DATABASE_URL is not set in the environment")
+        raise RuntimeError(f"{_TARGET_VAR}={target} but {var} is not set.")
+    if target not in _resolved_once:
+        _resolved_once[target] = var
+        logger.info("database: %s -> %s", target, write_origin()["database"])
     return db_url
 
 

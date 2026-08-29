@@ -193,8 +193,10 @@ def main() -> None:
         _usage()
         sys.exit(2)
 
-    if not os.getenv("DATABASE_URL"):
-        logger.error("DATABASE_URL is not set; every job writes, so there is nothing to do.")
+    try:
+        data_push._require_db_url()
+    except RuntimeError as exc:
+        logger.error("%s Every job writes, so there is nothing to do.", exc)
         sys.exit(1)
 
     daemon = prices.PricesDaemon()

@@ -141,9 +141,9 @@ def connect() -> Iterator["psycopg2.extensions.connection"]:
     verification fail with "SSL connection has been closed unexpectedly" while
     the data it was meant to check sat in the database.
     """
-    url = os.getenv("DATABASE_URL")
+    url = data_push._require_db_url() if os.getenv("RISK_DB_TARGET") else None
     if not url:
-        raise CheckFailed("DATABASE_URL is not set; cannot run the live check.")
+        raise CheckFailed("RISK_DB_TARGET is not set; cannot run the live check.")
     conn = psycopg2.connect(url)
     try:
         conn.autocommit = False

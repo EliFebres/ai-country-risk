@@ -41,11 +41,11 @@ def pytest_configure(config):
     test_db = os.getenv("HISTORY_TEST_DATABASE_URL")
     if not test_db:
         return
-    live_db = os.getenv("DATABASE_URL")
+    live_db = os.getenv("PROD_DATABASE_URL") or os.getenv("DEV_DATABASE_URL")
     if live_db and test_db.strip() == live_db.strip():
         raise SystemExit(
-            "HISTORY_TEST_DATABASE_URL is set to the same database as "
-            "DATABASE_URL. The db fixture truncates article, run_ledger, "
+            "HISTORY_TEST_DATABASE_URL is set to the same database as a real "
+            "one. The db fixture truncates article, run_ledger, "
             "llm_artifact and snapshot_diagnostic before every test. Point it "
             "at a scratch database, or unset it to skip the database tests."
         )
