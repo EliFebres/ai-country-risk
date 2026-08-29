@@ -198,6 +198,14 @@ NYT_MAX_PER_COUNTRY_MONTH: int = 150
 # re-templated, and later edits start showing up as if they were original.
 WAYBACK_WINDOW_DAYS: int = 180
 
+# **A choice, paced against how the archive actually fills.** How long a
+# `no-capture` article waits before the drain asks the Wayback Machine again.
+# Thirty days because a URL uncaptured a month after publication rarely gains
+# one within a week, and the drain now runs four times a day: without a backoff
+# every run would re-walk the entire uncapturable set forever and read as
+# progress.
+WAYBACK_RECHECK_DAYS: int = 30
+
 
 # --- The run plan -----------------------------------------------------------
 # What the pilot scores, and what it may spend doing it.

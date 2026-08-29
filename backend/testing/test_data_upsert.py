@@ -22,7 +22,7 @@ from datetime import date
 import psycopg2
 import pytest
 
-from backend.util import provenance
+from backend.util import config, provenance
 from backend.data_upsert import schema, store
 from backend.news_fetching import snapshot_select
 from backend.util.pilot import reports
@@ -626,8 +626,12 @@ class TestArticleRow:
         # The upsert's rank comparison reads this order out of a Postgres array
         # literal; if the two ever disagree a harvester could downgrade a
         # recovered body back to pending and buy a second billable scan.
+        #
+        # `failed` used to sit second. It is now two states — `transient` for a
+        # fault that may not recur and `no-capture` for an archive that has
+        # nothing yet — because only one of them is worth re-asking soon.
         assert store.BODY_STATUSES == (
-            "pending", "failed", "degraded-title-only", "recovered")
+            "pending", "transient", "no-capture", "degraded-title-only", "recovered")
         assert "'" + "','".join(store.BODY_STATUSES) + "'" in store._STATUS_RANK
 
 
@@ -678,12 +682,33 @@ class TestBodyStatusTransitions:
         body, status, _, _, sha = one()
         assert body is None and status == "degraded-title-only" and sha is None
 
-    def test_a_failure_is_recorded_and_leaves_the_queue(self, db):
+    def test_a_transient_failure_is_recorded_and_stays_in_the_queue(self, db):
+        """The inversion of what this test used to assert.
+
+        It read `mark_body(..., 'failed')` then `read_pending() == []` and
+        called that correct — a failure leaving the queue was the *point*. It is
+        the bug: `read_pending` returned only 'pending', so an unattended drain
+        foreclosed every article it could not capture that day. A fault that may
+        not recur has to come back.
+        """
         db.upsert_articles([store.article_row(
             item(text=""), country_iso2="PT", source_system="gdelt",
             body_status="pending")])
-        db.mark_body(URL, body=None, body_status="failed")
+        db.mark_body(URL, body=None, body_status="transient")
+        assert [r["url"] for r in db.read_pending()] == [URL]
+
+    def test_a_missing_capture_leaves_the_queue_only_for_the_backoff(self, db):
+        db.upsert_articles([store.article_row(
+            item(text=""), country_iso2="PT", source_system="gdelt",
+            body_status="pending")])
+        db.mark_body(URL, body=None, body_status="no-capture")
         assert db.read_pending() == []
+
+        with store._transaction() as cur:
+            cur.execute("UPDATE article SET body_last_attempt_at = "
+                        "now() - make_interval(days => %s) WHERE url = %s",
+                        (config.WAYBACK_RECHECK_DAYS + 1, URL))
+        assert [r["url"] for r in db.read_pending()] == [URL]
 
 
 @needs_db

@@ -1277,3 +1277,120 @@ class TestTheFirstAnchorsHaveTrailingCorpusBeneathThem:
         oldest_start, _ = llm_context.quarter_bounds(
             llm_context.trailing_quarters(anchor)[0])
         assert oldest_start.date() < datetime.date.fromisoformat(config.PILOT_START)
+
+
+# ---------------------------------------------------------------------------
+# The recovery queue must not have one-way doors
+# ---------------------------------------------------------------------------
+
+class TestTheQueueHasNoOneWayDoors:
+    """Every failure state has to be reachable again through `read_pending`.
+
+    This is the invariant the retryable states exist for. `read_pending` used to
+    return `body_status = 'pending'` alone while the recovery stage wrote
+    `failed` for anything it could not capture, so an unattended `--no-scan`
+    drain permanently foreclosed those articles — four times a day, with nobody
+    watching, and nothing in the output saying so.
+
+    Scoped deliberately. `recovered` and `degraded-title-only` *are* terminal and
+    must stay that way: the second is NYT's abstract-only tier, not a failure,
+    and forcing it back into the queue would re-attempt a body that was never
+    going to exist. So the assertion is that the vocabulary partitions cleanly,
+    not that nothing is terminal.
+    """
+
+    def test_every_status_is_either_retryable_or_deliberately_terminal(self):
+        assert (set(store.RETRYABLE_BODY_STATUSES) | set(store.TERMINAL_BODY_STATUSES)
+                == set(schema.BODY_STATUSES))
+
+    def test_nothing_is_both(self):
+        assert not (set(store.RETRYABLE_BODY_STATUSES)
+                    & set(store.TERMINAL_BODY_STATUSES))
+
+    def test_the_two_terminal_states_are_the_expected_ones(self):
+        """Named explicitly so widening the terminal set is a deliberate edit.
+
+        The partition test above passes just as well if somebody moves a failure
+        state into `TERMINAL_BODY_STATUSES` — which is the exact regression, with
+        the invariant still green.
+        """
+        assert set(store.TERMINAL_BODY_STATUSES) == {"recovered", "degraded-title-only"}
+
+    def test_the_recovery_stage_writes_only_states_the_queue_returns(self):
+        """The consumer side of it: what `wayback` can actually produce.
+
+        Reads the statuses `recover_one` and `drain` pass to `mark_body` out of
+        the source rather than restating them, so a fourth outcome added later
+        is caught here instead of at 3am on a cron.
+        """
+        import inspect
+        import re
+
+        from backend.news_fetching import wayback as wb
+
+        written = set()
+        for func in (wb.recover_one, wb.drain):
+            for match in re.finditer(r'body_status="([a-z-]+)"',
+                                     inspect.getsource(func)):
+                written.add(match.group(1))
+
+        assert written, "no mark_body calls found — the regex has gone stale"
+        for status in written:
+            assert status in schema.BODY_STATUSES
+            if status not in store.TERMINAL_BODY_STATUSES:
+                assert status in store.RETRYABLE_BODY_STATUSES, (
+                    f"{status!r} is written by the recovery stage but "
+                    f"read_pending will never return it")
+
+
+@needs_db
+class TestTheBackoffIsAppliedByTheQueue:
+    """A retryable state `read_pending` does not actually return is the same
+    one-way door wearing a friendlier name — and a `no-capture` it returns every
+    six hours is the opposite failure, a drain that spins on 30,000 rows forever
+    while the log shows steady work."""
+
+    def _write(self, status, last_attempt=None):
+        store.upsert_articles([article_row(body_status="pending")])
+        with store._transaction() as cur:
+            cur.execute("UPDATE article SET body_status = %s, "
+                        "body_last_attempt_at = %s WHERE url = %s",
+                        (status, last_attempt, URL))
+
+    def test_a_transient_failure_comes_back_on_the_next_call(self, db):
+        self._write("transient", datetime.datetime.now(datetime.timezone.utc))
+        assert [r["url"] for r in store.read_pending()] == [URL]
+
+    def test_a_no_capture_is_withheld_until_the_interval_has_passed(self, db):
+        self._write("no-capture", datetime.datetime.now(datetime.timezone.utc))
+        assert store.read_pending() == []
+
+    def test_and_is_offered_again_once_it_has(self, db):
+        stale = (datetime.datetime.now(datetime.timezone.utc)
+                 - datetime.timedelta(days=config.WAYBACK_RECHECK_DAYS + 1))
+        self._write("no-capture", stale)
+        assert [r["url"] for r in store.read_pending()] == [URL]
+
+    def test_a_terminal_state_is_never_offered(self, db):
+        for status in store.TERMINAL_BODY_STATUSES:
+            self._write(status, None)
+            assert store.read_pending() == [], status
+
+    def test_attempts_increment_across_calls_and_do_not_reset(self, db):
+        store.upsert_articles([article_row(body_status="pending")])
+        for expected in (1, 2, 3):
+            store.mark_body(URL, body=None, body_status="transient",
+                            body_vintage=None)
+            with store._transaction() as cur:
+                cur.execute("SELECT body_attempts FROM article WHERE url = %s", (URL,))
+                assert cur.fetchone()[0] == expected
+
+    def test_the_queue_reports_the_attempt_count_it_ordered_on(self, db):
+        """`drain` reads `body_attempts` to say how much of its queue is a retry.
+
+        A count the store keeps and nobody selects is the write-only pattern
+        again, one layer down.
+        """
+        store.upsert_articles([article_row(body_status="pending")])
+        store.mark_body(URL, body=None, body_status="transient", body_vintage=None)
+        assert store.read_pending()[0]["body_attempts"] == 1

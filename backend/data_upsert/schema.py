@@ -33,8 +33,30 @@ from typing import Dict, List, Tuple
 # The body-status ladder, worst to best. Lives here because the CHECK below is
 # its definition; `store` imports it so the Python and the constraint cannot
 # disagree about what a valid status is.
+# Where a body can be in its recovery. Three of these are retryable and two are
+# terminal, and which is which is load-bearing now that the drain runs
+# unattended four times a day.
+#
+#   pending             never attempted
+#   transient           the attempt failed for a reason that may not recur —
+#                       network, timeout, an empty live fetch. Retry next run.
+#   no-capture          the archive holds no capture inside the window. Retry,
+#                       but slowly: Wayback keeps crawling, so one may appear
+#                       later, and re-asking every six hours only spins.
+#   degraded-title-only terminal *by design* — NYT's abstract-only tier, and a
+#                       live body the leakage scan flagged. Not a failure.
+#   recovered           terminal, succeeded.
+#
+# `failed` used to sit where `transient` and `no-capture` now do, and it was a
+# one-way door: `read_pending` returns only retryable states, so an unattended
+# drain permanently foreclosed every article it could not capture that day.
 BODY_STATUSES: Tuple[str, ...] = (
-    "pending", "failed", "degraded-title-only", "recovered")
+    "pending", "transient", "no-capture", "degraded-title-only", "recovered")
+
+# The two that mean "stop asking". Everything else in BODY_STATUSES must be
+# reachable through `store.read_pending` or it is a one-way door again; the
+# invariant test asserts exactly that partition.
+TERMINAL_BODY_STATUSES: Tuple[str, ...] = ("recovered", "degraded-title-only")
 
 _STATUSES_SQL = "'" + "','".join(BODY_STATUSES) + "'"
 
@@ -74,6 +96,13 @@ CREATE TABLE IF NOT EXISTS article (
     -- years of hindsight and must not reach a 2018 snapshot.
     body_vintage    TEXT,
     body_status     TEXT NOT NULL CHECK (body_status IN ({_STATUSES_SQL})),
+    -- How many recovery attempts this row has cost, and when the last one ran.
+    -- The backoff in `store.read_pending` is a function of both: without them a
+    -- retryable state is indistinguishable from an infinite loop, and a drain
+    -- that re-asks the same 30,000 rows every six hours looks exactly like one
+    -- that is converging.
+    body_attempts   INT NOT NULL DEFAULT 0,
+    body_last_attempt_at TIMESTAMPTZ,
     wayback_url     TEXT,
     content_sha256  TEXT,
     themes          TEXT[],
@@ -328,9 +357,13 @@ INDEXES: Tuple[str, ...] = (
     # The snapshot window: every historical score reads one country over 30 days.
     "CREATE INDEX IF NOT EXISTS article_country_published_idx "
     "  ON article (country_iso2, published_at DESC)",
-    # Body recovery walks everything still owed a body.
+    # Body recovery walks everything still owed a body. The partial predicate
+    # has to match what `read_pending` asks for or the index quietly stops
+    # being used: it now selects three retryable states, not one, and orders by
+    # publication.
     "CREATE INDEX IF NOT EXISTS article_pending_idx "
-    "  ON article (body_status) WHERE body_status = 'pending'",
+    "  ON article (body_status, body_last_attempt_at, published_at) "
+    "  WHERE body_status IN ('pending', 'transient', 'no-capture')",
     # The digest cache's second chance is a hash lookup across snapshots.
     "CREATE INDEX IF NOT EXISTS llm_artifact_kind_idx "
     "  ON llm_artifact (kind, mode)",
@@ -375,6 +408,23 @@ MIGRATIONS: Tuple[str, ...] = (
     "ALTER TABLE llm_artifact DROP CONSTRAINT IF EXISTS llm_artifact_kind_check",
     "ALTER TABLE llm_artifact ADD CONSTRAINT llm_artifact_kind_check "
     "  CHECK (kind IN ('digest', 'rewrite', 'context'))",
+    # 2026-08-28 — retryable body-recovery states, so an unattended drain stops
+    # foreclosing articles it merely could not capture today. Order matters
+    # within this group: widen the constraint, move the rows off the retired
+    # value, then narrow onto the new vocabulary. Re-running is a no-op at every
+    # step.
+    "ALTER TABLE article DROP CONSTRAINT IF EXISTS article_body_status_check",
+    "ALTER TABLE article ADD COLUMN IF NOT EXISTS body_attempts INT NOT NULL DEFAULT 0",
+    "ALTER TABLE article ADD COLUMN IF NOT EXISTS body_last_attempt_at TIMESTAMPTZ",
+    "UPDATE article SET body_status = 'transient' WHERE body_status = 'failed'",
+    f"ALTER TABLE article ADD CONSTRAINT article_body_status_check "
+    f"  CHECK (body_status IN ({_STATUSES_SQL}))",
+    # `CREATE INDEX IF NOT EXISTS` will not replace an index whose predicate
+    # changed — it sees the name, matches, and does nothing — so the old
+    # single-status partial index would have survived the widening and quietly
+    # stopped covering the query it exists for. Dropped here; INDEXES rebuilds
+    # it from the definition that lives there, one statement later.
+    "DROP INDEX IF EXISTS article_pending_idx",
 )
 
 
@@ -392,11 +442,16 @@ def create_all(cur) -> List[str]:
         cur.execute(ddl)
         if not existed:
             created.append(name)
-    for statement in INDEXES:
-        cur.execute(statement)
-    # After the tables exist, and after the indexes, because a migration may
-    # depend on either. See MIGRATIONS' header for why these live here at all.
+    # Migrations run *between* tables and indexes, and the order is load-bearing
+    # in one direction: an index may depend on a column a migration adds, and
+    # `article_pending_idx` now does. The reverse has never been true — no
+    # migration here reads an index — so this ordering is strictly the safer of
+    # the two. It was the other way round, and the first migration to add a
+    # column broke `create_all` against every existing database while passing
+    # cleanly against a fresh one.
     for statement in MIGRATIONS:
+        cur.execute(statement)
+    for statement in INDEXES:
         cur.execute(statement)
     return created
 

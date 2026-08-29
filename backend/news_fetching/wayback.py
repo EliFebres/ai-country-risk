@@ -256,13 +256,23 @@ def recover_one(row: Dict, api_key: Optional[str], spent: List[float]) -> str:
             return "recovered"
 
     if api_key is None:
-        store.mark_body(url, body=None, body_status="failed", body_vintage=None)
-        return "failed"
+        # No capture, and no scan approved to justify a live refetch. That is
+        # "not today", not "not ever": the archive keeps crawling, so this row
+        # comes back after `WAYBACK_RECHECK_DAYS` rather than being foreclosed.
+        # It used to be written `failed`, which `read_pending` never returned —
+        # so an unattended `--no-scan` drain permanently burned every article it
+        # could not capture, four times a day, with nobody watching.
+        store.mark_body(url, body=None, body_status="no-capture", body_vintage=None)
+        return "no-capture"
 
     body = fetch_live(url)
     if not body:
-        store.mark_body(url, body=None, body_status="failed", body_vintage=None)
-        return "failed"
+        # The publisher refused, timed out, or served nothing. Unlike a missing
+        # capture this says nothing about the archive, and it is the kind of
+        # thing that works on the next attempt — so it retries immediately
+        # rather than waiting out the recheck interval.
+        store.mark_body(url, body=None, body_status="transient", body_vintage=None)
+        return "transient"
 
     cost = scan_cost_usd([body])
     if spent[0] + cost > config.LEAKAGE_SCAN_BUDGET_USD:
@@ -285,21 +295,30 @@ def drain(limit: Optional[int] = None, api_key: Optional[str] = None) -> Dict[st
     """Work the pending queue until it is empty or the budget stops it.
 
     Every article is marked before the next one starts, so an interruption at
-    any point loses at most one in-flight fetch. A permanent failure is recorded
-    as ``failed`` and never retried in a loop — the snapshot layer simply sees
-    fewer articles that week, which is an honest thin week rather than an
-    invented one.
+    any point loses at most one in-flight fetch. Nothing is foreclosed: an
+    article the archive has no capture for waits out
+    :data:`config.WAYBACK_RECHECK_DAYS` and is offered again, and a transient
+    failure comes back on the next run.
 
     Returns:
-        Counts by outcome.
+        Counts by outcome, always carrying the same four keys so a caller
+        reading them into a log banner never has to guess whether a missing key
+        means zero or means the run died. Over a multi-week unattended drain
+        those four numbers are the only way to tell converging from spinning.
     """
     pending = store.read_pending(limit=limit)
-    logger.info("[wayback] %d pending article(s); ~%d minutes at %.1fs each",
-                len(pending),
+    retried = sum(1 for row in pending if (row.get("body_attempts") or 0) > 0)
+    logger.info("[wayback] %d article(s) in the queue (%d first attempt, %d "
+                "retried); ~%d minutes at %.1fs each",
+                len(pending), len(pending) - retried, retried,
                 round(len(pending) * 2 * config.REQUEST_INTERVAL_SECONDS / 60),
                 config.REQUEST_INTERVAL_SECONDS)
 
-    outcomes: Dict[str, int] = {}
+    # Seeded rather than accumulated, so an outcome that did not happen reads as
+    # zero instead of as a missing key. `attempted` is counted rather than taken
+    # from `len(pending)` because a budget stop ends the loop early.
+    outcomes: Dict[str, int] = {"attempted": 0, "recovered": 0,
+                                "no-capture": 0, "transient": 0}
     spent = [0.0]
     for i, row in enumerate(pending, start=1):
         time.sleep(config.REQUEST_INTERVAL_SECONDS)
@@ -310,9 +329,13 @@ def drain(limit: Optional[int] = None, api_key: Optional[str] = None) -> Dict[st
                            exc, i - 1, len(pending))
             break
         except Exception:  # noqa: BLE001 - one bad URL must not end an hours-long drain
+            # `transient`, not a terminal state: an exception here is a bug or a
+            # network fault, and neither is evidence about the article.
             logger.exception("[wayback] %s failed", row["url"])
-            store.mark_body(row["url"], body=None, body_status="failed", body_vintage=None)
-            result = "failed"
+            store.mark_body(row["url"], body=None, body_status="transient",
+                            body_vintage=None)
+            result = "transient"
+        outcomes["attempted"] += 1
         outcomes[result] = outcomes.get(result, 0) + 1
         if i % 100 == 0:
             logger.info("[wayback] %d/%d — %s (scan spend $%.2f)",

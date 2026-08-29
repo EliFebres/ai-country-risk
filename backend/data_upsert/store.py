@@ -26,13 +26,14 @@ schema was defined in twenty places and a fresh clone could not build itself.
 """
 
 import datetime
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import psycopg2.extras as extras
 
 from backend.util import provenance
 from backend.data_upsert import data_push
-from backend.data_upsert.schema import BODY_STATUSES  # noqa: F401  (re-exported)
+from backend.data_upsert.schema import (  # noqa: F401  (re-exported)
+    BODY_STATUSES, TERMINAL_BODY_STATUSES)
 from backend.util import config
 from backend.news_fetching import core
 
@@ -49,6 +50,15 @@ _transaction = data_push._transaction
 # downward.
 _STATUS_RANK = ("array_position(ARRAY['"
                 + "','".join(BODY_STATUSES) + "'], %s)")
+
+# What `read_pending` offers back, split by how soon. These drive the query
+# rather than describing it: a state added to `BODY_STATUSES` and to neither of
+# these is one `read_pending` will never return, which is the one-way door the
+# retryable states exist to close — and `TestTheQueueHasNoOneWayDoors` fails on
+# exactly that.
+RETRY_IMMEDIATELY: Tuple[str, ...] = ("pending", "transient")
+BACKED_OFF: str = "no-capture"
+RETRYABLE_BODY_STATUSES: Tuple[str, ...] = RETRY_IMMEDIATELY + (BACKED_OFF,)
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +251,13 @@ def mark_body(
                    body_status    = %s,
                    body_vintage   = %s,
                    wayback_url    = COALESCE(%s, wayback_url),
-                   content_sha256 = %s
+                   content_sha256 = %s,
+                   -- Counted here rather than by the caller because this is the
+                   -- only writer, and a count the drain maintained would reset
+                   -- every time the process restarted — which, on a six-hourly
+                   -- cron, is the normal case rather than the exception.
+                   body_attempts  = article.body_attempts + 1,
+                   body_last_attempt_at = now()
              WHERE url = %s
             """,
             (body, body_status, body_vintage, wayback_url,
@@ -256,13 +272,31 @@ def read_pending(limit: Optional[int] = None,
     Ordered by publication so an interrupted drain resumes in the same place
     and the recovery curve fills in from the far end of history forward, which
     is where the interesting failures are.
+
+    **Three states qualify, not one.** ``pending`` has never been tried and
+    ``transient`` failed for a reason that may not recur, so both come back
+    immediately. ``no-capture`` comes back only after
+    :data:`config.WAYBACK_RECHECK_DAYS`, because the archive may gain a capture
+    later but will not gain one within six hours — and returning it every run
+    would spend an unattended drain re-walking the same uncapturable set forever
+    while the log showed steady activity.
+
+    This is the whole reason the retryable states exist. The queue used to be
+    ``body_status = 'pending'`` alone, against a recovery stage that wrote
+    ``failed`` for anything it could not capture: a one-way door, executed four
+    times a day with nobody watching.
     """
-    where = ["body_status = 'pending'"]
-    params: List[Any] = []
+    immediate = "', '".join(RETRY_IMMEDIATELY)
+    where = [f"(body_status IN ('{immediate}')"
+             f"  OR (body_status IN ('{BACKED_OFF}')"
+             f"      AND (body_last_attempt_at IS NULL"
+             f"           OR body_last_attempt_at < now() - %s::interval)))"]
+    params: List[Any] = [f"{config.WAYBACK_RECHECK_DAYS} days"]
     if source_system:
         where.append("source_system = %s")
         params.append(source_system)
-    sql = (f"SELECT url, country_iso2, source_system, published_at, title "
+    sql = (f"SELECT url, country_iso2, source_system, published_at, title, "
+           f"       body_status, body_attempts "
            f"FROM article WHERE {' AND '.join(where)} "
            f"ORDER BY published_at, url")
     if limit:
