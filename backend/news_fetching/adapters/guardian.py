@@ -186,22 +186,70 @@ def year_windows(start: datetime.date, end: datetime.date
 # The API
 # ---------------------------------------------------------------------------
 
-@http.retry_transient(frozenset({429, 500, 502, 503, 504}))
-def _get(params: Dict[str, object]) -> requests.Response:
-    """One Content API call, retrying transient errors and 429s."""
-    resp = requests.get(_ENDPOINT, params=params,
-                        headers={"User-Agent": http.PROJECT_UA}, timeout=30)
-    if resp.status_code in (429, 500, 502, 503, 504):
-        resp.raise_for_status()
-    return resp
-
-
 def _int_or_none(value: Optional[str]) -> Optional[int]:
     """Parse a rate-limit header, tolerating an absent or malformed one."""
     try:
         return int(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return None
+
+
+def _read_quota_headers(resp: requests.Response) -> Tuple[Optional[int], Optional[int]]:
+    """Fold one response's rate-limit headers into ``_QUOTA``.
+
+    Read from *every* response, refusals included. Headers used to be folded in
+    only on success, which blinded the one moment they matter most: `Retry-After`
+    is sent precisely when the API refuses, so the value that says when the
+    quota resets never reached the log line whose job is to report it.
+
+    Returns the ``(limit, remaining)`` this response stated, which is what the
+    429 branch below has to decide on — the module-level values are the last
+    thing *any* response said, and that is a different question.
+    """
+    limit = _int_or_none(resp.headers.get(_LIMIT_HEADER))
+    remaining = _int_or_none(resp.headers.get(_QUOTA_HEADER))
+    _QUOTA.update(
+        limit=limit if limit is not None else _QUOTA["limit"],
+        remaining=remaining if remaining is not None else _QUOTA["remaining"],
+        reset_seconds=_int_or_none(resp.headers.get(_RESET_HEADER))
+        or _QUOTA["reset_seconds"],
+        observed_calls=(_QUOTA["observed_calls"] or 0) + 1,
+    )
+    return limit, remaining
+
+
+@http.retry_transient(frozenset({429, 500, 502, 503, 504}))
+def _get(params: Dict[str, object]) -> requests.Response:
+    """One Content API call, retrying transient errors and burst 429s.
+
+    **A 429 is two different events wearing one status code**, and they want
+    opposite handling. The daily wall means stop for the day; a per-second burst
+    throttle means wait a moment and carry on. The response says which: the wall
+    reports ``X-RateLimit-Remaining-Day: 0``.
+
+    The wall raises `QuotaExhausted` from inside the retry decorator, which is
+    the point — `QuotaExhausted` is not a `RequestException`, so
+    `http._is_retryable_exc` refuses it and tenacity reraises on the first
+    attempt instead of spending five and sleeping between them. Nothing was
+    parked for hours before this (nothing in the path honours `Retry-After`), so
+    the saving is ~4 calls and a few tens of seconds per run — but those calls
+    are spent against the very budget that just ran out.
+
+    Anything else 429 — including a 429 carrying **no** header at all — takes the
+    transient path and is retried. A missing header is not evidence of a wall,
+    and treating it as one would let a single unlabelled throttle end a day's
+    harvesting to save a minute.
+    """
+    resp = requests.get(_ENDPOINT, params=params,
+                        headers={"User-Agent": http.PROJECT_UA}, timeout=30)
+    if resp.status_code == 429:
+        limit, remaining = _read_quota_headers(resp)
+        if remaining is not None and remaining <= 0:
+            raise QuotaExhausted(
+                f"daily Guardian call budget spent (limit {limit})", limit)
+    if resp.status_code in (429, 500, 502, 503, 504):
+        resp.raise_for_status()
+    return resp
 
 
 def _page(query: str, start: datetime.date, end: datetime.date, page: int) -> Dict:
@@ -223,32 +271,23 @@ def _page(query: str, start: datetime.date, end: datetime.date, page: int) -> Di
             "api-key": _api_key(),
         })
     except requests.HTTPError as exc:
-        # A 429 that outlives the retry budget is the quota wall, and it has to
-        # arrive as `QuotaExhausted` or the driver cannot tell "come back
-        # tomorrow" from "this country-year is broken".
+        # The backstop, not the main path. `_get` now recognises the wall from
+        # the 429's own `Remaining-Day: 0` and raises `QuotaExhausted` on the
+        # first attempt, so what reaches here is a 429 that claimed budget was
+        # left — or carried no header — and still failed five times running.
         #
-        # Without this it could not. `429` is retryable, so `retry_transient`
-        # spends five attempts on it and then re-raises the `HTTPError`, which
-        # sails past the `remaining <= 0` check below — that check only ever sees
-        # a *successful* response — and lands in the driver's catch-all, which
-        # writes `note='request error'` and moves on to the next country-year.
-        # On 2026-08-15 that turned one wall into 46 identical failed checkpoints
-        # across four countries in fifteen minutes, each a single call, and the
-        # harvest reported them as request errors rather than as a quota it should
-        # wait out. The whole point of `QuotaExhausted` is the branch it takes.
+        # That is treated as a wall anyway, and deliberately. The alternative is
+        # the driver's catch-all, which writes `note='request error'` and moves
+        # to the next country-year: on 2026-08-15 that turned one wall into 46
+        # identical failed checkpoints across four countries in fifteen minutes,
+        # each costing a call, and reported a rate limit as a broken harvest.
+        # An API refusing five spaced attempts is telling us to stop either way,
+        # and stopping is resumable where 46 false failures are not.
         if getattr(exc.response, "status_code", None) == 429:
             raise QuotaExhausted("Guardian returned 429 after backoff",
                                  _QUOTA["limit"]) from exc
         raise
-    limit = _int_or_none(resp.headers.get(_LIMIT_HEADER))
-    remaining = _int_or_none(resp.headers.get(_QUOTA_HEADER))
-    _QUOTA.update(
-        limit=limit if limit is not None else _QUOTA["limit"],
-        remaining=remaining if remaining is not None else _QUOTA["remaining"],
-        reset_seconds=_int_or_none(resp.headers.get(_RESET_HEADER))
-        or _QUOTA["reset_seconds"],
-        observed_calls=(_QUOTA["observed_calls"] or 0) + 1,
-    )
+    limit, remaining = _read_quota_headers(resp)
     if remaining is not None and remaining <= 0:
         raise QuotaExhausted(f"daily Guardian call budget spent (limit {limit})", limit)
     # No 429 check here: `_get` raises on 429 before it can return one, so the
@@ -398,6 +437,17 @@ def harvest(roster: Optional[List[str]] = None,
             n = harvest_window(iso2, name, window_start, window_end, calls)
         except QuotaExhausted as exc:
             left = len(todo) - done
+            # The wall gets a row of its own. Nothing was written here before —
+            # the window simply stayed unattempted, which resumes correctly but
+            # leaves the ledger silent about *why* a multi-week harvest stopped
+            # where it did. `failed` rather than a new status because only
+            # `done` is skipped on resume, so this window is retried next run;
+            # the note is what separates "the budget ran out" from "this
+            # country-year is broken" when reading the ledger back weeks later.
+            store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
+                                   status="failed", note="quota exhausted",
+                                   seconds=time.monotonic() - started,
+                                   calls=calls[0] - before)
             # Priced off what this run measured, falling back to the theme count
             # only when nothing has completed yet. `len(THEME_QUERIES)` is the
             # no-subdivision floor — six calls a country-year — and the US

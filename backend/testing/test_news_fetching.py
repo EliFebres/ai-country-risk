@@ -563,3 +563,157 @@ class TestTheQuotaWallIsNamed:
         with pytest.raises(requests.HTTPError):
             guardian._page("q", datetime.date(2019, 1, 1),
                            datetime.date(2019, 12, 31), 1)
+
+
+# ---------------------------------------------------------------------------
+# A 429 is two events wearing one status code
+# ---------------------------------------------------------------------------
+
+class TestTheWallAndTheThrottleTakeDifferentBranches:
+    """The daily wall must cost one attempt; a burst throttle must still retry.
+
+    `_get` used to treat every 429 the same — retryable — so the wall spent five
+    attempts and slept between them before anything recognised it, and those
+    attempts are billed against the budget that had just run out. Telling the
+    two apart needs the response's own `X-RateLimit-Remaining-Day`, which is why
+    headers are now folded in on refusals and not only on success.
+    """
+
+    @staticmethod
+    def _respond(monkeypatch, status, headers, attempts):
+        """Make the wire return one canned response, counting attempts."""
+        import requests
+
+        def fake_get(_url, **kwargs):
+            attempts.append(kwargs.get("params"))
+            resp = requests.Response()
+            resp.status_code = status
+            resp.headers.update(headers)
+            return resp
+
+        monkeypatch.setattr(guardian.requests, "get", fake_get)
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+        # A real backoff would make the throttle case take ~15s of wall clock.
+        monkeypatch.setattr(guardian.time, "sleep", lambda *_a: None)
+
+    def test_a_429_reporting_no_budget_left_is_the_wall_and_costs_one_attempt(
+            self, monkeypatch):
+        attempts = []
+        self._respond(monkeypatch, 429,
+                      {"X-RateLimit-Remaining-Day": "0",
+                       "X-RateLimit-Limit-Day": "500"}, attempts)
+
+        with pytest.raises(guardian.QuotaExhausted):
+            guardian._get({"q": "x"})
+
+        assert len(attempts) == 1, "the wall must not burn the retry budget"
+
+    def test_a_429_with_budget_left_is_a_throttle_and_is_retried(self, monkeypatch):
+        import requests
+
+        attempts = []
+        self._respond(monkeypatch, 429,
+                      {"X-RateLimit-Remaining-Day": "412",
+                       "X-RateLimit-Limit-Day": "500"}, attempts)
+
+        # Not QuotaExhausted: budget remains, so this is a burst limit and
+        # ending the day's harvest over it would cost hours to save seconds.
+        with pytest.raises(requests.HTTPError):
+            guardian._get({"q": "x"})
+
+        assert len(attempts) == 5, "a throttle should exhaust the retry budget"
+
+    def test_a_429_with_no_header_at_all_takes_the_throttle_branch(self, monkeypatch):
+        """The case that must not be guessed.
+
+        A missing header is not evidence of a wall. Reading it as one would let
+        a single unlabelled throttle — or an API that stopped sending headers —
+        end a day's harvesting on no evidence.
+        """
+        import requests
+
+        attempts = []
+        self._respond(monkeypatch, 429, {}, attempts)
+
+        with pytest.raises(requests.HTTPError):
+            guardian._get({"q": "x"})
+
+        assert len(attempts) == 5
+
+    def test_the_wall_reports_the_limit_the_response_stated(self, monkeypatch):
+        attempts = []
+        self._respond(monkeypatch, 429,
+                      {"X-RateLimit-Remaining-Day": "0",
+                       "X-RateLimit-Limit-Day": "328"}, attempts)
+
+        with pytest.raises(guardian.QuotaExhausted) as caught:
+            guardian._get({"q": "x"})
+
+        assert caught.value.daily_limit == 328
+
+    def test_retry_after_is_read_off_the_refusal(self, monkeypatch):
+        """`Retry-After` arrives *with* the 429 and nowhere else.
+
+        Folding headers in only on success meant the one value that says when
+        the quota resets was never seen, and the harvest's "resets in ..." line
+        reported "an unreported time" on every wall.
+        """
+        monkeypatch.setattr(guardian, "_QUOTA",
+                            {"limit": None, "remaining": None,
+                             "reset_seconds": None, "observed_calls": 0})
+        attempts = []
+        self._respond(monkeypatch, 429,
+                      {"X-RateLimit-Remaining-Day": "0", "Retry-After": "29340"},
+                      attempts)
+
+        with pytest.raises(guardian.QuotaExhausted):
+            guardian._get({"q": "x"})
+
+        assert guardian._QUOTA["reset_seconds"] == 29340
+
+
+class TestTheLedgerSaysWhyTheHarvestStopped:
+    """A ledger row nobody can read back is the point of writing one.
+
+    The wall wrote no row at all: the window stayed unattempted, which resumes
+    correctly but leaves a multi-week harvest unable to say whether it stopped
+    on a budget or on a fault.
+    """
+
+    def test_the_wall_writes_a_row_noting_the_quota(self, monkeypatch):
+        rows = []
+        monkeypatch.setattr(guardian.store, "completed_windows",
+                            lambda *_a, **_k: set())
+        monkeypatch.setattr(guardian.store, "write_checkpoint",
+                            lambda *a, **k: rows.append(k))
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+
+        def wall(*_a, **_k):
+            raise guardian.QuotaExhausted("spent", 500)
+
+        monkeypatch.setattr(guardian, "harvest_window", wall)
+        guardian.harvest(roster=["PT", "TR"], since="2017-01-01")
+
+        assert len(rows) == 1, "one row for the window that hit the wall, no more"
+        assert rows[0]["note"] == "quota exhausted"
+
+    def test_that_row_does_not_count_as_harvested(self, monkeypatch):
+        """The row must never make the window look done.
+
+        `completed_windows` skips `status='done'`, so stamping the wall as done
+        would silently drop a country-year from the corpus and nothing
+        downstream would ever ask for it again.
+        """
+        rows = []
+        monkeypatch.setattr(guardian.store, "completed_windows",
+                            lambda *_a, **_k: set())
+        monkeypatch.setattr(guardian.store, "write_checkpoint",
+                            lambda *a, **k: rows.append(k))
+        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
+        monkeypatch.setattr(guardian, "harvest_window",
+                            lambda *_a, **_k: (_ for _ in ()).throw(
+                                guardian.QuotaExhausted("spent", 500)))
+
+        guardian.harvest(roster=["PT"], since="2017-01-01")
+
+        assert rows[0]["status"] == "failed"
