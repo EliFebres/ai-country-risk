@@ -311,137 +311,114 @@ does not tell you the stored series was wrong, and it cannot repair anything
 already written. Its value is that the next claim made about reproducibility is
 made knowingly. That is worth having and it is not worth over-building.
 
-## 11. The `gpt-4o` migration is priced: ~$747, and it is a re-score
+## 11. The scorer choice, reopened on an axis that was never weighed
 
-**Decision taken 2026-08-27: stay on `gpt-4o-2024-08-06`.** No cheaper model was
-adopted. This item exists so the *next* decision — the one deprecation forces —
-is made from a measurement rather than under time pressure.
+**The 2026-08-27 decision was to stay on `gpt-4o-2024-08-06`, and on the axes it
+weighed it was right.** Migration cost ~$747, rank agreement 0.708, no constant
+offset to remove. Nothing below overturns any of those numbers.
 
-`gpt-4o` is a 2024 model and this series is meant to run for years, so the move
-is not optional, only unscheduled. `gpt-4.1` is the stated successor: $2/$8
-against $2.50/$10, better instruction-following, 1M context.
+**What changed on 2026-08-29 is that a third axis got measured.** The scorer
+bake-off compared candidates on determinism, rank correlation and price. It never
+compared them on *discrimination* — how many distinct values the instrument can
+produce on a window where the evidence does not decide — because at the time
+nobody had a reason to think the scorer was what limited it. Four experiments
+then spent $25.72 looking for that limit in the payload and the prompt, and the
+answer was in `backend/bakeoff/US-2019/gpt-4.1.json` the whole time.
 
-**What it costs, measured over 52 US-2019 anchors** (`docs/scorer-bakeoff.md`):
+`docs/elicitation-ab.md` has the full arc. The one comparison, on byte-identical
+payload, prompt, digest model, gazetteer, sweep, seed and `git_sha`:
 
-| | |
-|---|---|
-| Repeat-stability | **±1 point**, flat across Low, Moderate and Extreme — 20% of a typical week's move. Good enough to be an instrument. |
-| Level offset | **−0.008 signed** — essentially none |
-| Week ordering | **ρ = 0.377, τ = 0.297** composite; `edge_vitality` **−0.100** |
-| Per-week disagreement | **0.089** absolute, against a 0.050 median weekly move |
-| Re-score cost | **~$747** for 25,104 snapshots at $0.0298 each (~$62 for the 2,092-snapshot pilot) |
-| Running cost after | **31% cheaper** than the incumbent |
+| US 2019 | distinct | round share | bands occupied | longest run |
+|---|---|---|---|---|
+| `gpt-4o` (A′) | 8 | 76.9% | `Moderate` **52 of 52** | 4 |
+| `gpt-4.1` | **18** | **5.8%** | LowMod 6 · Mod 43 · High 3 | 2 |
 
-**It is not a recalibrate-and-go migration, and that is the load-bearing part.**
-A constant level offset would be survivable — move the prompt's calibration
-anchors and the series shifts with them. `gpt-4.1` instead moves individual weeks
-in both directions and cancels to −0.008 on average. There is no constant to
-remove, so **switching means re-scoring the history rather than adjusting it.**
+This is a fork, not a recommendation. Both sides, stated as fairly as the
+evidence allows:
 
-Two consequences for whoever picks this up:
+**For moving.** Eighteen distinct values against eight, and thirteen against nine
+on TR. A round-number share of 5.8% against 76.9%, on a prompt that instructs
+against rounding. Three bands used against one — the incumbent has never, in any
+arm, put a single US 2019 anchor outside `Moderate`. And it is **~22% cheaper per
+snapshot on tokens sent** ($0.0309 against $0.0397, cache-neutral). Six
+interventions on payload and prompt could not buy any of that; one model swap
+bought all of it at no prompt cost.
 
-- Budget the **$747 and the wall-clock**, not just the price difference. The
-  articles and digests are already stored, so a re-score is scorer-only.
-- A series assembled half on `gpt-4o` and half on `gpt-4.1` is two instruments
-  wearing one name. `score.FROZEN_FIELDS` refuses that resume, which is correct
-  and will look like an obstacle on the day. It is not; it is the guard working.
+**Against moving.** Repeat-stability of ±1 point where `gpt-4o` is exactly 0. A
+re-score of ~$747 rather than a recalibration, because there is no constant
+offset to remove — `score.FROZEN_FIELDS` will refuse the resume, correctly. And
+the one that actually decides it:
 
-**The ρ figure is window-dependent — use 0.708, not 0.377.** US 2019 is an
-ordinary year for a stable country, where models scatter because the right answer
-is underdetermined; the same comparison on TR 2018 gives **ρ = 0.708, τ-b 0.602,
-`score_3m` 0.865**, with per-week disagreement of 0.046 sd against 0.108. So
-`gpt-4.1` largely tracks the incumbent where the evidence is determinate. The
-migration is still a re-score rather than a recalibration — there is no constant
-offset to remove on either window — but the series it produces is recognisably
-the same series. See `docs/scorer-bakeoff.md`.
+**No evidence yet that the finer output is the more correct output.** On TR 2018,
+which contains a large unambiguous crisis, every `gpt-4o` cell rises into
+August–September (+0.078, +0.051, +0.047) and both `gpt-4.1` cells drift *down*
+through it (−0.019, −0.014). `gpt-4.1` opens the year above where the incumbent
+peaks and never distinguishes the lira collapse from January. Its five largest
+weekly moves land in January, April and late December; the incumbent's largest
+lands on the week of 2018-08-13.
 
-**Related:** item 10, the determinism canary. `gpt-4o`'s determinism appears to
-be a property of how it is served, so it can move without notice — which would
-turn this from an elective migration into an urgent one. The canary is what would
-tell us.
+That check is weak — one country, one crisis, article count as a crude proxy for
+evidence movement, and near-zero |Δscore| correlations for *both* models, which
+may indict the proxy. It is not a reason to reject `gpt-4.1`. **It is the reason
+not to spend $747 before item 29 is done.** Resolution and correctness are
+different properties, and only one of them has been measured. A model that
+spreads noise across thirty buckets scores better on discrimination than one that
+is coarse and right.
 
-## 12. HIGH — within-band discrimination, now with three more failures behind it
+**Sequencing, which this changes.** The scorer choice must now settle **before**
+the local-model screen. Payload and prompt were already required to be final
+first, so that a candidate is measured against a fixed instrument; the scorer is
+now on that list, because whichever model is chosen defines the bar, and the two
+candidates set it ten distinct values apart on US 2019.
 
-**Strengthened 2026-08-29.** When this item was written it rested on one
-result: p3-context made the instrument coarser. It now rests on four payloads
-and a second, independent instruction showing the same shape.
+**Related:** item 10, the determinism canary — `gpt-4o`'s determinism appears to
+be a property of how it is served, so it can move without notice and turn this
+from elective into urgent. Item 29, the event study that unblocks the fork.
 
-US 2019, round-number share, in the order the payloads were run:
+## 12. Closed — within-band discrimination was run, and the elicitation was not the constraint
 
-| payload | distinct | round share |
-|---|---|---|
-| p2 | 9 | 69.2% |
-| p3-context | 7 | 75.0% |
-| A′ — ten indicators restored by the vintage fix | 8 | 76.9% |
-| C — told `trend_1y`/`trend_5y` exist | 8 | 82.7% |
-| B — every direction stated in words | **7** | **90.4%** |
+**Run 2026-08-29, both variants rejected.** Kept as a pointer because this item
+drove four sessions of work and the conclusion is the opposite of what it argued.
 
-Monotone. The payload that does the arithmetic for the model and hands it
-conclusions snaps hardest of all.
+`docs/elicitation-ab.md` is the write-up; `docs/payload-ab.md` attempt 3 has the
+pre-registered criteria and the verdicts.
 
-And on TR 2018, the determinate window, the *same* arms help: C reaches 12
-distinct values, the highest this project has measured anywhere, and B reaches
-10, against p2's perpetual nine.
+The test this item specified was run almost exactly as written — an explicit
+within-band instruction, same two windows, same criteria, pre-registration
+written cold. It failed, and *how* it failed is the finding:
 
-So the diagnosis in this item is now much better supported, and sharper than it
-was written. It is not merely that the prompt rather than the payload is the
-remaining suspect. It is that **an instruction is followed where the evidence is
-determinate and ignored where it is not** — measured twice, on two independently
-written instructions, the "never round to multiples of 5" rule at 18.9% vs 69%
-compliance and now the trend rule at 9→12 vs no effect.
+**The model obeyed.** It named a band and placed its score inside it on all 105
+anchors, coherently: measured as position within the band it itself named,
+`lower-middle` averages 0.38, `middle` 0.57 and `upper-middle` 0.88 of the way
+through. Only 2 of 52 US rows fall outside the band they named.
 
-Nothing about the evidence moves that line. Three payloads carrying
-progressively more trajectory information could not.
+**And the instrument did not resolve.** Distinct values stayed at 8, and all 52
+US anchors stayed in `Moderate` — because across fifty-two weeks the model used
+three placement buckets inside one band. Asked to split one coarse judgement into
+two decisions, it made two coarse decisions. This item's hypothesis was that
+"nothing in the prompt asks the model to separate two weeks inside one band";
+something now does, and the separation is not there to be asked for.
 
-The test shape is unchanged from below, and the pre-registration must be
-**written cold**: it changes the prompt's scoring mechanics rather than its
-inputs, and appending it to the session that motivated it would be the third
-instrument change in one sitting. Reuse the harness — `PROMPT_VARIANT` now
-exists alongside `PAYLOAD_VARIANT`, the `series_shape` meters are unchanged, and
-arm A′ is the free stored reference.
+The round-number share did fall, 76.9% → 67.3%, the first drop in six
+interventions. So the instruction reached the *snapping* without reaching the
+*resolution* underneath it, and cost a month of lag on TR doing it.
 
-### The original item
+**The diagnosis in this item needs one correction.** It states as a general
+finding that "an instruction is followed where the evidence is determinate and
+ignored where it is not", measured twice. Both measurements are real and both are
+`gpt-4o`'s. Across six scorers on the identical prompt, only the incumbent shows
+a large window-dependent gap in round-number share (50.3 points); `gpt-4.1-nano`
+and `gpt-4.1-mini` show it *reversed*, and `gpt-4.1` barely rounds on either
+window. It is a property of this model, not a law about models under ambiguity,
+and the difference matters because the second reading points at the scorer while
+the first points at the task.
 
+**What it argued for instead.** This item also proposed the cheaper answer —
+*report the series with an uncertainty band and stop claiming resolution the
+instrument does not have.* That is now the live option, and it is item 30.
 
-
-The pre-registered fallback from the payload A/B (`docs/payload-ab.md`), proposed
-and deliberately not run.
-
-**What the A/B established.** Trailing quarterly context was added to fix
-coarseness — nine distinct scores across fifty-two weeks, a third of them exactly
-0.50 — and it made coarseness *worse*: seven distinct values, round-number share
-up from 69% to 75%, and not one of fifty-two anchors changing band. The model was
-handed a year of history in the form it asked for and became less discriminating,
-not more. More evidence is not the lever.
-
-**Why the prompt is the remaining suspect**, on evidence already collected:
-
-- It says *"use precise values (37, 62, 81) — never round to multiples of 5"* and
-  is disobeyed on **69–75%** of US 2019 anchors against a 20% chance floor. An
-  instruction that is ignored three times in four is not an instruction.
-- Its five calibration anchors (12/38/58/85/95) sit near band centres, so the
-  worked examples pull toward exactly the values the series over-produces.
-- **Nothing in it asks the model to separate two weeks inside one band.** Every
-  US 2019 anchor is "Moderate", and the prompt gives no vocabulary for
-  "Moderate, and worse than last week".
-- Compliance is evidence-dependent, not fixed: the same model on the same prompt
-  rounds on 69% of anchors where the evidence is ambiguous and 19% where it is
-  determinate. The instruction holds exactly where it is least needed.
-
-**The shape of the test.** A prompt variant against the same two windows and the
-same criteria, changed in one place: an explicit within-band instruction, e.g.
-*"Two weeks in the same band must differ unless the evidence is genuinely
-identical; the second decimal is where that difference goes."* Reuse the p3
-harness — `PROMPT_VARIANT` alongside `PAYLOAD_VARIANT`, the same `series_shape`
-meters, the same pre-registered thresholds, arm A free from stored rows.
-
-**Why not yet.** The scorer question is settled and the payload question is now
-settled; a prompt change moves `PROMPT_VERSION`, which is frozen, so it is a
-third instrument change and belongs in its own session with its own
-pre-registration rather than appended to this one. It should also be weighed
-against the cheaper answer: **report the series with an uncertainty band and stop
-claiming resolution the instrument does not have.** That costs nothing and may be
-the honest fix.
+The two variants stay in the tree behind `PROMPT_VARIANT`, unset. See item 11 for
+where the discrimination question actually went.
 
 ## 13. A real migration mechanism, once there is a pattern
 
@@ -841,8 +818,133 @@ writer. Recorded here rather than quietly dropped, because a session spent
 building `payload_health` to catch exactly this shape and then committing the
 mirror image of it is the most useful kind of example.
 
-`bullet_summary` is now captured on every arm row (`git show c788470`), which
-fixes the next attempt and not that one. The durable lesson is narrower than
+`bullet_summary` is now captured on every arm row *scored after that commit*
+(`git show c788470`) -- which turned out to be one of the three arms it was
+added for, because A-prime and C had already run. See item 33. The durable lesson is narrower than
 "add a test": **a pre-registered criterion should be computed once against a
 dry-run or a stored row before the arms are paid for.** A criterion that cannot
 be evaluated is indistinguishable, at write time, from one that can.
+
+## 29. HIGH — the event study, which is the only thing that unblocks the scorer choice
+
+**Raised 2026-08-29.** Item 11 is a fork with one blocker: no evidence that a
+finer instrument is a more correct one. Every measurement this project has on
+discrimination — distinct values, round-number share, bands occupied, run
+lengths — answers *does the instrument resolve*. None answers *does it resolve
+onto anything real*, and a model spreading noise across thirty buckets beats a
+coarse-and-right one on all four.
+
+The indicative check in `docs/elicitation-ab.md` points the wrong way for
+`gpt-4.1` and is too weak to act on:
+
+| TR 2018 | Jan–Feb | Aug–Sep | move into the crisis |
+|---|---|---|---|
+| A′ (`gpt-4o`) | 0.712 | 0.790 | **+0.078** |
+| V1 (`gpt-4o`) | 0.736 | 0.786 | +0.051 |
+| `gpt-4.1` | 0.811 | 0.792 | **−0.019** |
+| `gpt-4.1` × V1 | 0.747 | 0.732 | **−0.014** |
+
+Every `gpt-4o` cell rises into the lira crisis; both `gpt-4.1` cells drift down
+through it. Also: neither model's |Δscore| correlates with |Δarticle count|
+(−0.068, −0.114), and for both, weeks where a condition flag flipped moved *less*
+than weeks where none did. And every cell peaks in Q1, which no reading of 2018
+explains and which nobody has looked into.
+
+**Why it is not conclusive.** One country, one crisis, one year. Article count is
+a crude proxy and condition flags are the model's own output, so the near-zero
+correlations may indict the proxy rather than the models. The Q1 peak is
+unexplained and could be a payload artifact that swamps everything else.
+
+**The shape of the test.** A dated event list for two or three countries with
+real crises in the harvested range, built from a source independent of the
+scoring payload, and a check of whether score moves cluster near events more than
+chance — per scorer, on the same anchors. It is Phase E work in sequence but item
+11 cannot close without it, and item 11 now gates the local-model screen.
+
+**Cheap first step, before any of that:** find out what the Q1 peak is. It shows
+up in all five TR cells, and if it is an artifact of the evidence rather than the
+scorers, it contaminates every crisis-response number above.
+
+## 30. Report the series with an uncertainty band, and stop claiming resolution
+
+**Raised 2026-08-29**, promoted out of the old item 12, where it was the
+"cheaper answer" that four sessions of instrument work kept deferring. It is now
+the only option on the table that costs nothing and is certainly correct.
+
+Whatever the scorer choice, the stored series has less information than its row
+count suggests. On US 2019, `gpt-4o` produces nine distinct values across
+fifty-two weeks, a third of weeks are identical to their neighbour, and every
+anchor sits in one band. That is not fifty-two independent observations.
+
+Two things follow, and neither needs the fork resolved first:
+
+- **Publish a band, not a point.** The instrument's own repeat noise (±1 point
+  for `gpt-4.1`, 0 for `gpt-4o`) is the wrong width; the right one is closer to
+  the granularity it actually uses, which on the ambiguous window is nearer five
+  points than one.
+- **Say which weeks are indistinguishable.** A run of identical scores is
+  information — it means the instrument could not separate those weeks — and
+  presenting it as a flat line implies a stability nobody measured.
+
+**Related:** item 31, which is the modelling consequence.
+
+## 31. Phase C inherits a sample-size question, not a modelling one
+
+**Raised 2026-08-29.** Recorded so it is not rediscovered as a modelling failure.
+
+A series with ~9 distinct values across 52 weeks, a third of weeks unchanged, and
+every anchor in one band has an effective sample size far below its row count.
+Fitting a level model to it will produce fit statistics computed against a
+quantised target, and they will look better than the instrument deserves.
+
+This argues for **predicting rating changes rather than levels** — a change of
+zero is a real observation, and the coarseness that ruins a level model is much
+less damaging to a direction model.
+
+**It is deliberately not decided here.** It should be decided against whichever
+scorer item 11 settles on, because the candidates differ by roughly a factor of
+two in exactly the quantity that decides it: 8 distinct values against 18 on the
+same window.
+
+## 32. Criterion (e) was measuring the provider's prompt cache
+
+**Found 2026-08-29, fixed, and three published verdicts are corrected.**
+
+`cost_summary` reports realised spend, which is the right number for a budget and
+the wrong one for a comparison: realised spend depends on the prompt cache, and
+the cache depends on which arm ran immediately before on the same anchors.
+
+V2 made it unmissable — it ran straight after V1, hit a **90.8% cache share
+against A′'s 3.9%**, and reported −36% per snapshot while sending *more* tokens
+than A′ in both directions. On tokens it is +2%.
+
+`bakeoff.cache_neutral_per_snapshot` now prices the tokens each arm sent, at
+list, so run order cannot move the number. Repriced:
+
+| arm | published | cache-neutral |
+|---|---|---|
+| B — trend block, TR | +17.0%, recorded as **(e) FAIL** | **+14.9%**, inside the line |
+| C — trend-prompt, TR | −10.2% (cheaper) | **+1.5%** (dearer) |
+| p3-context, TR | −3.9% (cheaper) | **+37.1%** (dearer — 3.53 calls/snapshot against 1.15) |
+
+No rejection reverses; all three were rejected on (a). But arm B's recorded
+reason for failing (e) was wrong, and two arms were described as cheaper than the
+baseline when they were dearer.
+
+**The durable lesson**, and it is the same shape as §28: a criterion should be
+computed against a stored row *and* checked for what else could move it. (e) was
+computable from day one, which is why the §28 dry-run rule did not catch this —
+it returned a real number every time, and the number was measuring something
+nobody named.
+
+## 33. `bullet_summary` is captured on one arm of the three it was added for
+
+**Recorded 2026-08-29**, the tail of §28.
+
+The §28 fix — capturing `bullet_summary` on bake-off arm rows — landed with arm
+B. A′ and C had already been scored, so the field exists on `p4-trend.json`
+(52/52 US, 53/53 TR) and on neither of the other two. Any future criterion
+reading it can baseline against B only.
+
+Not worth a re-score on its own. Worth knowing before someone pre-registers
+against it a second time and discovers it after paying.

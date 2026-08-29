@@ -788,7 +788,15 @@ for and became *less* discriminating.
 
 So the remaining suspect is the prompt, which forbids rounding and is disobeyed
 three times in four, and which never asks the model to separate two weeks inside
-one band. That test is filed, and deliberately not run, as `docs/deferred.md` §12.
+one band. That test is filed as `docs/deferred.md` §12.
+
+**Run 2026-08-29, and the suspect was wrong.** Two prompt variants that ask for
+exactly that separation both failed; the model complied with the instruction and
+the instrument did not resolve. What did resolve it was changing the scorer --
+the axis this document measured on determinism, rank correlation and price, and
+never on discrimination. `gpt-4.1` on this same prompt reaches 18 distinct values
+and a 5.8% round share against `gpt-4o`'s 8 and 76.9%. See
+`docs/elicitation-ab.md`, and item 11, which that reopened.
 
 ### What this costs the ratings
 

@@ -249,6 +249,15 @@ deliberately not run here: it changes the prompt's scoring mechanics rather than
 its inputs, and it deserves a pre-registration written cold rather than appended
 to the session that motivated it.
 
+**Run 2026-08-29 and rejected** (`docs/elicitation-ab.md`). Two corrections to
+the paragraph above. The instruction was *followed* — the model named a band and
+placed its score inside it on all 105 anchors, coherently — and the instrument
+still produced eight distinct values, because it had three placement buckets
+inside one band. And "a fact about the model under ambiguity" is narrower than it
+reads: across six scorers on this prompt, only `gpt-4o` shows the large
+window-dependent gap in round-number share, and two of the six show it reversed.
+It is a fact about this model.
+
 ## 3d. Criterion (d) could not be measured, and that is the same pattern
 
 The A/B pre-registered (d) as *"share of `bullet_summary` outputs referencing
