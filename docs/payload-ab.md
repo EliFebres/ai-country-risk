@@ -496,3 +496,171 @@ this argues for, and it is deliberately **not** run here. It changes the
 prompt's scoring mechanics rather than its inputs, and it deserves a
 pre-registration written cold rather than appended to the session that motivated
 it.
+
+---
+
+# Attempt 3: the elicitation, and a measurement that came first
+
+**Written 2026-08-29, before any arm of this attempt was run.** Nothing below
+was chosen with a result in view, and the two figures that *were* known before
+writing — both computed from rows already on disk, at no cost — are stated here
+rather than discovered later, so that they cannot be presented afterwards as
+predictions.
+
+This is §12, the fallback attempt 1 pre-registered and three sessions declined
+to run. It changes neither the evidence nor what the model is told about the
+evidence. It changes what the model is asked to decide.
+
+## The dry run, which §28 bought and which changed the experiment
+
+§28's lesson was narrow and specific: *a pre-registered criterion should be
+computed once against a stored row before the arms are paid for.* Attempt 2's
+(d) was written against `bullet_summary`, a field bake-off arm rows did not
+carry, and that was discovered only after all three arms had been paid for.
+
+Every criterion below was computed against A′'s stored rows before any arm was
+run. All six return a real number. The exercise also reproduced every figure in
+the tables above exactly, which is the strongest available evidence that the
+harness and the write-ups still agree.
+
+It found three things worth recording, and two of them changed the design.
+
+**1. `bullet_summary` is on `p4-trend` rows only** (52/52 US, 53/53 TR). The
+§28 fix landed with arm B, and A′ and C had already been scored, so the field
+exists on exactly one of the three arms it was meant to serve. Criterion (d)
+here is the lag criterion and does not read it — but the gap is real and is
+recorded in `docs/deferred.md` rather than rediscovered by attempt 4.
+
+**2. The coarseness tracks the scorer, not the payload and not the prompt.**
+`backend/bakeoff/*/gpt-4.1.json` was captured under `PAYLOAD_VERSION=p2`,
+`PROMPT_VERSION=v4.0-masked-production`, the same digest model, gazetteer,
+sweep, seed and `git_sha` as the incumbent. One variable differs.
+
+| US 2019 | distinct | round share | bands occupied | longest run | $/snapshot |
+|---|---|---|---|---|---|
+| A′ (`gpt-4o`) | 8 | 76.9% | Moderate **52 of 52** | 4 | $0.0376 |
+| C / B (`gpt-4o`) | 8 / 7 | 82.7% / 90.4% | Moderate **52 of 52** | 3 / 3 | $0.0387 / $0.0427 |
+| **`gpt-4.1`**, same prompt and payload | **18** | **5.8%** | LowMod 6 · Mod 43 · High 3 | 2 | **$0.0298** |
+
+`gpt-4.1` clears criterion (a) — the line five payload and prompt arms failed —
+with the elicitation untouched, and on TR 2018 it reaches 13 distinct values at
+a 3.8% round share. So the coarseness is not a property of the elicitation
+format, and it is also not intrinsic to the task. It is a property of `gpt-4o`.
+
+That is recorded here, before the arms run, because it changes what a pass or a
+failure below can mean. The question is no longer *can this instrument
+discriminate on an ambiguous window* — something already does. It is **whether
+the elicitation can buy `gpt-4o` that resolution**, which is worth $8 to learn
+because `docs/deferred.md` §11 declined the `gpt-4.1` migration at ~$747.
+
+**3. Components-then-composite is answerable from stored rows, and fails.** The
+third variant §12 proposed — have the model emit only the four ledgers and let
+the pipeline compute the composite — needs no arm, because every arm row already
+carries the four ledgers. On A′:
+
+| A′ composite, computed from the ledgers | distinct | round share | ρ vs A′'s judged score, TR 2018 |
+|---|---|---|---|
+| mean of four | 17 | 1.9% | **0.533** |
+| mean, `edge_vitality` inverted | 16 | 1.9% | **0.511** |
+| mean of the three risk-bearing ledgers | 16 | 5.8% | **0.527** |
+
+It fails (c) under every plausible definition of the composite, and its apparent
+pass on (a) is mechanical exactly as feared: the individual US ledgers are
+*coarser* than the composite they would replace — 2, 4, 3 and 8 distinct values,
+three of them on a multiple of five at 100% of anchors. Averaging four coarse
+grids that sit at different offsets manufactures intermediate values; it does
+not add judgement. **It is not run.** Building it would also require inventing a
+ledger weighting this project has deliberately never defined, and relaxing the
+tripwire that keeps `score_12m` the only assignment to a score.
+
+## The arms
+
+Payload byte-identical to p2 in all of them, asserted by
+`test_a_prompt_arm_carries_no_evidence_the_others_lack` rather than assumed.
+
+- **A′** — the stored reference, both windows. **$0.**
+- **V1 `within-band`** — name the band, state where inside it and why, then emit
+  the number. The reasoning: on US 2019 `gpt-4o` puts 52 of 52 anchors in
+  `Moderate`, so the band is the decision it is actually making and the digit is
+  an afterthought. Forcing the placement to be a second decision with its own
+  stated reason may recover resolution. ~$3.90.
+- **V2 `vs-typical`** — describe this country's ordinary week from the evidence
+  already in the payload, then score this week's departure from it. The
+  elicitation used where absolute magnitude judgements are unreliable, and the
+  closest of the three to a reading that says improving or decaying rather than
+  restating a level. ~$3.95.
+- **The crossed cell** — whichever of V1/V2 scores better, re-run under
+  `gpt-4.1`. ~$3.10. Three cells and one comparison: **scorer alone** (free, on
+  disk), **prompt alone**, **both**. It is the only candidate in the harness
+  that moves two axes, and it is readable only because the other two corners
+  exist, which the one-axis test now requires it to name.
+
+In both variants `score_12m` remains the model's own number. The added fields
+are elicitation scaffolding and diagnostics; nothing computes a score from
+`delta_vs_typical`.
+
+## Criteria
+
+Baselined on **A′**, both windows.
+
+| # | Criterion | The line |
+|---|---|---|
+| **(a)** | **Discrimination**, US 2019 | distinct composite values **≥ 15** (A′: 8) **and** round-number share **≤ 44%** (A′: 76.9%) |
+| **(b)** | **Determinate window not damaged** | TR 2018 distinct values **≥ 9** (A′: 9; arm C reached 12) |
+| **(c)** | **Not a rewrite** | Spearman ρ against A′ on TR 2018 **≥ 0.65** |
+| **(d)** | **No lag** | on TR 2018, first move **≥ 0.05** above the Q1 baseline **no later** than A′ (2018-02-05) |
+| **(e)** | **Cost** | per-snapshot delta **≤ ~15%** against A′ |
+| **(f)** | **Report only** | lag-1 autocorrelation, run-length distribution, band distribution, every arm both windows. No threshold |
+
+**Decision rule: adopt a variant iff (a), (b), (c) and (d) all hold. If more
+than one qualifies, prefer the simplest.**
+
+- **The letters are not comparable across attempts.** Attempt 2's (b) was the
+  lag test and its (d) was the `bullet_summary` diagnostic; here (b) is the
+  determinate window and (d) is the lag. Same instrument, renumbered, and saying
+  so is cheaper than a reader assuming a continuity that is not there.
+- **(a) is unchanged since attempt 1**, thresholds and derivation included —
+  ≥15 against nine, and 44% as the midpoint of the 69.2 → 18.9 gap between what
+  this model does on an ambiguous window and what it does on a determinate one.
+  This is the third attempt at the same test and the line has never moved.
+- **(b) is new, and it is the lesson of arm C.** C bought twelve distinct values
+  on TR while making US worse. A variant that buys ambiguous-window resolution
+  by wrecking the determinate window is not an improvement, and attempt 2 had no
+  criterion that would have caught it.
+- **(d) had never existed as code** until this attempt. Both previous attempts
+  computed it by hand from the committed arm files and kept only the verdict. It
+  is now `bakeoff.first_move`, and it reproduces all four published TR 2018
+  readings.
+- **(e) will move against these arms, and that is expected.** V1 and V2 both add
+  output tokens by construction. 15% is the same line as before.
+
+### Stated before the run, so that it cannot be claimed afterwards
+
+**`gpt-4.1` on the base prompt already passes (a), (b) and (c), and fails (d) by
+one week** — first move 2018-02-12 against A′'s 2018-02-05. That failure is an
+artifact of the criterion rather than a finding about the model: `gpt-4.1`'s Q1
+baseline is 0.829 against A′'s 0.740, which makes a +0.05 move a longer reach
+from a higher floor, and its longest identical run is 2 against A′'s 5 — the
+opposite of a sticky series. It is reported as a criterion artifact. It is not
+waived, and the criterion is not rewritten now that its behaviour on a known
+result is visible.
+
+## What is deliberately not a criterion
+
+**Absolute score level.** V2 in particular may shift the whole series, because a
+score reached through a stated departure from a baseline need not sit where an
+abstract judgement sat. That is recalibratable; reordering is not, which is why
+(c) is a rank correlation and there is no level test.
+
+**Agreement with A′ on US 2019.** If the elicitation works, the arms *should*
+disagree there — that window is the one A′ is least informative about. Demanding
+agreement on the window the change exists to fix would be a criterion only a
+no-op could pass.
+
+**Whether the finer output is the more correct output.** It is the question that
+decides everything downstream, and nothing here answers it. Distinct values and
+round-number share measure whether an instrument *resolves*, never whether it
+resolves onto anything real, and a model spreading noise across thirty buckets
+would score better on (a) than one that is coarse and right. This attempt
+reports an indicative check on TR 2018 and nothing stronger; the event study
+that would settle it is Phase E work and is recorded as such.
