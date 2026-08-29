@@ -360,7 +360,49 @@ be a property of how it is served, so it can move without notice — which would
 turn this from an elective migration into an urgent one. The canary is what would
 tell us.
 
-## 12. Within-band discrimination is a prompt problem, not a payload one
+## 12. HIGH — within-band discrimination, now with three more failures behind it
+
+**Strengthened 2026-08-29.** When this item was written it rested on one
+result: p3-context made the instrument coarser. It now rests on four payloads
+and a second, independent instruction showing the same shape.
+
+US 2019, round-number share, in the order the payloads were run:
+
+| payload | distinct | round share |
+|---|---|---|
+| p2 | 9 | 69.2% |
+| p3-context | 7 | 75.0% |
+| A′ — ten indicators restored by the vintage fix | 8 | 76.9% |
+| C — told `trend_1y`/`trend_5y` exist | 8 | 82.7% |
+| B — every direction stated in words | **7** | **90.4%** |
+
+Monotone. The payload that does the arithmetic for the model and hands it
+conclusions snaps hardest of all.
+
+And on TR 2018, the determinate window, the *same* arms help: C reaches 12
+distinct values, the highest this project has measured anywhere, and B reaches
+10, against p2's perpetual nine.
+
+So the diagnosis in this item is now much better supported, and sharper than it
+was written. It is not merely that the prompt rather than the payload is the
+remaining suspect. It is that **an instruction is followed where the evidence is
+determinate and ignored where it is not** — measured twice, on two independently
+written instructions, the "never round to multiples of 5" rule at 18.9% vs 69%
+compliance and now the trend rule at 9→12 vs no effect.
+
+Nothing about the evidence moves that line. Three payloads carrying
+progressively more trajectory information could not.
+
+The test shape is unchanged from below, and the pre-registration must be
+**written cold**: it changes the prompt's scoring mechanics rather than its
+inputs, and appending it to the session that motivated it would be the third
+instrument change in one sitting. Reuse the harness — `PROMPT_VARIANT` now
+exists alongside `PAYLOAD_VARIANT`, the `series_shape` meters are unchanged, and
+arm A′ is the free stored reference.
+
+### The original item
+
+
 
 The pre-registered fallback from the payload A/B (`docs/payload-ab.md`), proposed
 and deliberately not run.
@@ -780,3 +822,27 @@ difference is the bug fix rather than a regression.
 The durable fix is the one now in place: `input_manifest.payload_health` records
 how many indicators each run actually resolved, so a future baseline states its
 own evidence depth instead of leaving it to be inferred from a version tuple.
+
+## 28. A criterion pre-registered against a field nothing writes
+
+Attempt 2 of the payload A/B pre-registered criterion (d) as *"share of
+`bullet_summary` outputs referencing direction"* — the diagnostic p3 lacked, and
+the one meant to tell an *ignored* block apart from a *diluting* one.
+
+Bake-off arm rows carry every number a run produced and none of its prose. So
+the field the criterion reads does not exist on the arm it was written for, and
+(d) went unmeasured on the run it existed to serve. It was noticed only when the
+verdicts were computed — after both arms had been paid for.
+
+The thirteenth instance of the write-a-thing-nobody-reads pattern, and the first
+that this project caused in its own instrumentation rather than found in its
+code: not a writer without a consumer, but a *consumer* specified without a
+writer. Recorded here rather than quietly dropped, because a session spent
+building `payload_health` to catch exactly this shape and then committing the
+mirror image of it is the most useful kind of example.
+
+`bullet_summary` is now captured on every arm row (`git show c788470`), which
+fixes the next attempt and not that one. The durable lesson is narrower than
+"add a test": **a pre-registered criterion should be computed once against a
+dry-run or a stored row before the arms are paid for.** A criterion that cannot
+be evaluated is indistinguishable, at write time, from one that can.

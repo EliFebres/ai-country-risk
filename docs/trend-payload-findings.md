@@ -1,18 +1,33 @@
-# Two ledgers were empty, and more evidence did not help
+# Two findings: an empty instrument, and an instruction that stops working
 
 Written 2026-08-29. Read this if you are trying to understand why the
 backfilled scores look the way they do, or why `docs/payload-ab.md` has two
 attempts in it.
 
-Three findings, in the order they matter:
+There are two findings here and they are of equal weight. The first is a bug
+and its cost. The second is not about this codebase at all.
 
-1. **A dating bug made ten indicators invisible to every historical anchor.**
-   Two of the four ledgers resolved *nothing* — not thin, empty — for the whole
-   pilot. Fixed, measured, migrated.
-2. **Fixing it did not improve discrimination.** The instrument produced fewer
-   distinct scores and more round numbers with the evidence restored.
-3. **That is now the second independent evidence addition to fail the same
-   way.** The first was `p3-context`. Different mechanisms, same direction.
+**One — two of the four ledgers were empty.** A dating bug made ten indicators
+invisible to every historical anchor. The information and edge ledgers resolved
+*nothing* — not thin, empty — for the entire pilot, and every backfilled score
+ever produced was made that way. Fixed, measured, migrated to both databases.
+
+**Two — instruction-following degrades under ambiguity, and that is the
+interesting result.** Three separate attempts to improve discrimination by
+changing what the payload carries all failed, and one of them succeeded
+spectacularly on exactly one window. Arm C — a single paragraph of instruction
+carrying no new data — moved TR 2018 from **9 to 12 distinct values**, the best
+figure any arm has produced anywhere, at unchanged round-number share and 10%
+*lower* cost. On US 2019 the same paragraph changed nothing and made round-number
+snapping worse.
+
+That is the same signature the scorer bake-off already found in the prompt's own
+*"never round to multiples of 5"* rule: obeyed where the evidence is
+determinate, ignored where it is not. **Two independent instructions now show
+it.** The instruction holds exactly where it is least needed, which is a fact
+about how this model behaves under ambiguity rather than a fact about the
+payload — and it is more useful than the three payload rejections that surround
+it.
 
 ---
 
@@ -165,46 +180,96 @@ downstream of how much evidence the payload carries.
 
 ---
 
-## 3b. And telling the model about the evidence did not help either
+## 3b. Four payloads, and the instrument snapped harder at every step
 
-Arm C is one paragraph naming `trend_1y` and `trend_5y` — fields every indicator
-has carried since p1, serialized into every prompt, mentioned nowhere. No new
-evidence: the payload is byte-identical with the variant set and unset, and a
-test asserts it.
+Three interventions were run against the corrected payload, ordered by how much
+they tell the model about trajectory: **A′** restored ten indicators, **C** added
+one paragraph naming `trend_1y`/`trend_5y` and no new data at all, and **B**
+added a computed block stating every direction in words so that no inference is
+required.
 
-| US 2019 | distinct | round share |
+**US 2019 — the ambiguous window**
+
+| arm | distinct | round share |
 |---|---|---|
 | p2, as it stood | 9 | 69.2% |
 | p3-context | 7 | 75.0% |
 | A′ — ten indicators restored | 8 | 76.9% |
-| C — told the fields exist | 8 | **82.7%** |
+| C — told the fields exist | 8 | 82.7% |
+| B — directions stated in words | **7** | **90.4%** |
 
-Rejected on criterion (a), like the two before it. Full verdicts in
-`docs/payload-ab.md`.
+**Round-number share rises monotonically with every intervention.** The most
+explicit payload — the one that does the arithmetic for the model and hands it
+conclusions — produces the worst snapping of all, at 90.4%, and the fewest
+distinct values.
 
-**Round-number share rose on all three.** Three interventions, three mechanisms
-— prose summaries, real indicators, pure instruction — and the same direction
-every time.
+**TR 2018 — the determinate window**
 
-### Except on the determinate window
+| arm | distinct | round share |
+|---|---|---|
+| p2, as it stood | 9 | 18.9% |
+| A′ | 9 | 26.4% |
+| C | **12** | 26.4% |
+| B | 10 | 24.5% |
 
-On TR 2018, arm C moved **distinct values 9 → 12** — the best discrimination
-figure any arm has produced on either window — at an unchanged round-number
-share and 10% *lower* cost, and it turned **earlier** than A′ rather than later.
+The same interventions, the same prompts, the same model, the same corpus — and
+here they *work*. C reaches twelve distinct values, the highest figure anywhere
+in this project, and B ten, both above the nine that p2 has produced on every
+window it has ever been run on.
 
-So the instruction is read and it works, on the window where the evidence
-already resolves. On the ambiguous window it changed nothing and the snapping
-got worse.
+All three arms passed (b) and (c): none of them lagged, and none rewrote the
+determinate window. B additionally failed (e) at +17.0% on TR — the block costs
+~2,500 extra input tokens, the one price p3 avoided by producing shorter output.
 
-That is precisely the signature the bake-off already found in the prompt's own
-"never round to multiples of 5" rule: obeyed 81% of the time where evidence is
-determinate, ignored 69% of the time where it is not. Two independent
-instructions now show it. **The instruction holds exactly where it is least
-needed** — which points at how this model converts ambiguous evidence into a
-number, and not at what it is told to do with clear evidence.
+## 3c. What separates the two windows is not the payload
 
-`docs/deferred.md` §12, the within-band discrimination test, is the successor
-this argues for. It remains proposed and not run.
+Same instructions, opposite outcomes, and the only thing that differs is whether
+the underlying evidence resolves.
+
+This is the second time this project has measured that shape. The scorer
+bake-off found the prompt's own *"never round to multiples of 5"* rule obeyed on
+**18.9%** of TR 2018 anchors — within a point of the 20% you would get by
+chance — and violated on **69%** of US 2019 anchors. Monotone in determinacy,
+same model, same instruction.
+
+Now a second, independently written instruction shows it: pointing at the trend
+fields moves TR from nine distinct values to twelve, and does nothing on US
+except make the snapping worse.
+
+**An instruction is followed where the evidence is determinate and ignored where
+it is not, and adding evidence does not move that line.** Three payloads that
+carried progressively more trajectory information failed to move it; the one
+that carried the most made it worst. Whatever converts an ambiguous week into
+0.50 is downstream of neither the evidence nor the explanation of it.
+
+That is the finding worth carrying forward, and it is a fact about the model
+under ambiguity rather than about this payload. `docs/deferred.md` §12 — an
+explicit within-band discrimination instruction — is what it argues for. It is
+deliberately not run here: it changes the prompt's scoring mechanics rather than
+its inputs, and it deserves a pre-registration written cold rather than appended
+to the session that motivated it.
+
+## 3d. Criterion (d) could not be measured, and that is the same pattern
+
+The A/B pre-registered (d) as *"share of `bullet_summary` outputs referencing
+direction"* — the diagnostic p3 lacked, meant to tell an *ignored* block apart
+from a *diluting* one, which is exactly the distinction §3b turns on.
+
+Bake-off arm rows carry every number a run produces and none of its prose. The
+field the criterion reads does not exist on the arm it was written for, and this
+was noticed when the verdicts were computed, after all three arms had been paid
+for.
+
+The thirteenth instance of the write-a-thing-nobody-reads pattern, and the first
+this project caused in its own instrumentation rather than found in its code:
+not a writer without a consumer but a **consumer specified without a writer**. A
+session spent building `payload_health` to catch that shape, committing its
+mirror image, is the most useful kind of example. `bullet_summary` is now
+captured on every arm row — which fixes the next attempt and not this one.
+
+The narrow lesson, in `docs/deferred.md` §28: **compute a pre-registered
+criterion once against a stored row before paying for the arms.** At write time,
+a criterion that cannot be evaluated looks exactly like one that can.
 
 ## 4. What was built to make this visible next time
 

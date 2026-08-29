@@ -423,3 +423,76 @@ number rather than at what the prompt tells it to do with clear evidence.
 
 `docs/deferred.md` §12 — the within-band discrimination test — is the successor
 this argues for, and it is still proposed and not run.
+
+---
+
+## Arm B: the computed trend block
+
+105/105 scored, every row stamped `v4.2-trend-block`, article counts identical
+to A′ on every anchor.
+
+| # | Criterion | Line | Measured | Verdict |
+|---|---|---|---|---|
+| **(a)** | distinct, US 2019 | ≥ 15 | **7** (from 8) | **FAIL** |
+| | round share, US 2019 | ≤ 44% | **90.4%** (from 76.9%) | **FAIL** |
+| **(b)** | first ≥0.05 move, TR | no later than A′ | **earlier** — 01-22 vs 02-05 | **PASS** |
+| **(c)** | ρ vs A′, TR 2018 | ≥ 0.65 | **0.788** | **PASS** |
+| **(d)** | direction-mention share | report only | not measured — see above | — |
+| **(e)** | cost delta | ≤ +15% | +13.6% US, **+17.0% TR** | **FAIL on TR** |
+| **(f)** | autocorrelation / run | report only | 0.433→0.243 US, 0.642→0.556 TR; runs 4→3, 5→5 | — |
+
+**Adopt iff (a), (b) and (c). (a) fails. Arm B is rejected**, and (e) fails on
+TR as well — the block adds ~2,500 input tokens per snapshot, which is the one
+cost the p3 arm avoided by producing shorter output.
+
+## All four arms, on one page
+
+**US 2019 — the ambiguous window**
+
+| arm | distinct | round share | lag-1 | longest run | ρ vs A′ | $/snapshot |
+|---|---|---|---|---|---|---|
+| p2, as it stood | 9 | 69.2% | 0.299 | 5 | 0.582 | $0.0402 |
+| A′ — ten indicators restored | 8 | 76.9% | 0.433 | 4 | ref | $0.0376 |
+| C — told the fields exist | 8 | 82.7% | 0.235 | 3 | 0.790 | $0.0387 |
+| B — computed trend block | **7** | **90.4%** | 0.243 | 3 | 0.618 | $0.0427 |
+
+**TR 2018 — the determinate window**
+
+| arm | distinct | round share | lag-1 | longest run | ρ vs A′ | $/snapshot |
+|---|---|---|---|---|---|---|
+| p2, as it stood | 9 | 18.9% | 0.564 | 7 | 0.808 | $0.0382 |
+| A′ | 9 | 26.4% | 0.642 | 5 | ref | $0.0352 |
+| C | **12** | 26.4% | 0.670 | 6 | 0.833 | $0.0316 |
+| B | 10 | 24.5% | 0.556 | 5 | 0.788 | $0.0412 |
+
+### The result
+
+On the **ambiguous** window, round-number share rises monotonically with every
+intervention — **69.2 → 76.9 → 82.7 → 90.4** — and distinct values fall to
+seven. Four payloads, ordered from least to most evidence about trajectory, and
+the instrument snaps harder at each step. The most explicit version, which
+states directions in words so no inference is required, is the worst of all.
+
+On the **determinate** window the same interventions help: C reaches twelve
+distinct values, the highest figure in this table, and B ten, both above p2's
+nine, at a round-number share that stays near chance.
+
+Same prompts, same model, same corpus, opposite directions. **What separates
+them is whether the evidence resolves**, and neither more evidence nor a clearer
+explanation of it changes that.
+
+## The decision
+
+**The pilot runs on p2.** No variant is adopted. `p3-context`, `p4-trend` and
+the `trend` prompt variant all stay in the tree behind their flags, unset by
+default, because the measurement is worth reproducing and the next prompt
+experiment can be tested against the same blocks rather than rebuilding them.
+
+Three payload rejections cost **$12.36**, and the finding that came out of them
+is not about payloads: an instruction is followed where the evidence is
+determinate and ignored where it is not, and adding evidence does not move that
+line. `docs/deferred.md` §12 — the within-band discrimination test — is what
+this argues for, and it is deliberately **not** run here. It changes the
+prompt's scoring mechanics rather than its inputs, and it deserves a
+pre-registration written cold rather than appended to the session that motivated
+it.
