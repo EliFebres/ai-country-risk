@@ -308,11 +308,9 @@ def drain(limit: Optional[int] = None, api_key: Optional[str] = None) -> Dict[st
     """
     pending = store.read_pending(limit=limit)
     retried = sum(1 for row in pending if (row.get("body_attempts") or 0) > 0)
-    logger.info("[wayback] %d article(s) in the queue (%d first attempt, %d "
-                "retried); ~%d minutes at %.1fs each",
+    logger.info("[wayback] %d queued (%d first attempt, %d retried), ~%d min",
                 len(pending), len(pending) - retried, retried,
-                round(len(pending) * 2 * config.REQUEST_INTERVAL_SECONDS / 60),
-                config.REQUEST_INTERVAL_SECONDS)
+                round(len(pending) * 2 * config.REQUEST_INTERVAL_SECONDS / 60))
 
     # Seeded rather than accumulated, so an outcome that did not happen reads as
     # zero instead of as a missing key. `attempted` is counted rather than taken
@@ -325,21 +323,25 @@ def drain(limit: Optional[int] = None, api_key: Optional[str] = None) -> Dict[st
         try:
             result = recover_one(row, api_key, spent)
         except BudgetExhausted as exc:
-            logger.warning("[wayback] %s; stopping after %d of %d. Re-run to resume.",
-                           exc, i - 1, len(pending))
+            logger.warning("[wayback] %s", exc)
+            logger.warning("[wayback] stopped at %d/%d. Re-run to resume.",
+                           i - 1, len(pending))
             break
         except Exception:  # noqa: BLE001 - one bad URL must not end an hours-long drain
             # `transient`, not a terminal state: an exception here is a bug or a
             # network fault, and neither is evidence about the article.
-            logger.exception("[wayback] %s failed", row["url"])
+            logger.exception("[wayback] %d/%d failed: %s",
+                             i, len(pending), row["url"])
             store.mark_body(row["url"], body=None, body_status="transient",
                             body_vintage=None)
             result = "transient"
         outcomes["attempted"] += 1
         outcomes[result] = outcomes.get(result, 0) + 1
         if i % 100 == 0:
-            logger.info("[wayback] %d/%d — %s (scan spend $%.2f)",
-                        i, len(pending), outcomes, spent[0])
+            logger.info("[wayback] %d/%d: %s, scan $%.2f", i, len(pending),
+                        " ".join(f"{k}={v}" for k, v in sorted(outcomes.items())),
+                        spent[0])
 
-    logger.info("[wayback] done: %s, leakage scan spent $%.2f", outcomes, spent[0])
+    logger.info("[wayback] done: %s, scan $%.2f",
+                " ".join(f"{k}={v}" for k, v in sorted(outcomes.items())), spent[0])
     return outcomes

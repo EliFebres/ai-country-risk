@@ -135,12 +135,12 @@ def _docs(year: int, month: int) -> List[Dict]:
     """
     resp = _get(year, month)
     if resp.status_code != 200:
-        logger.warning("[nyt] %04d-%02d returned %s", year, month, resp.status_code)
+        logger.warning("[nyt] %04d-%02d: HTTP %s, skipped", year, month, resp.status_code)
         return []
     try:
         return (resp.json().get("response") or {}).get("docs") or []
     except ValueError:
-        logger.warning("[nyt] %04d-%02d returned non-JSON (%d bytes)",
+        logger.warning("[nyt] %04d-%02d: non-JSON body (%d bytes), skipped",
                        year, month, len(resp.content))
         return []
 
@@ -224,7 +224,7 @@ def harvest_month(year: int, month: int, roster: List[str]) -> Dict[str, int]:
         # silently would read afterwards as a complete harvest.
         kept = core.by_relevance(items)[:config.NYT_MAX_PER_COUNTRY_MONTH]
         if len(items) > len(kept):
-            logger.info("[nyt] %04d-%02d %s: kept %d of %d matches (cap %d)",
+            logger.info("  %04d-%02d %s: kept %d of %d (cap %d)",
                         year, month, iso2, len(kept), len(items),
                         config.NYT_MAX_PER_COUNTRY_MONTH)
 
@@ -278,20 +278,19 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
                     end.isoformat(), len(roster))
         return 0
 
-    logger.info("[nyt] %d month(s) to fetch, ~%d minutes at %.0fs each. One call "
-                "covers every country in the roster.",
+    logger.info("[nyt] %d month(s) to fetch, ~%d min",
                 len(todo),
-                round(len(todo) * config.NYT_REQUEST_INTERVAL_SECONDS / 60),
-                config.NYT_REQUEST_INTERVAL_SECONDS)
+                round(len(todo) * config.NYT_REQUEST_INTERVAL_SECONDS / 60))
 
     written = failed = 0
-    for year, month, first, last, wanted in todo:
+    for i, (year, month, first, last, wanted) in enumerate(todo, start=1):
         time.sleep(config.NYT_REQUEST_INTERVAL_SECONDS)
         started = time.monotonic()
         try:
             counts = harvest_month(year, month, wanted)
         except Exception:  # noqa: BLE001
-            logger.exception("[nyt] %04d-%02d failed; continuing", year, month)
+            logger.exception("[nyt] %d/%d %04d-%02d failed, continuing",
+                             i, len(todo), year, month)
             for iso2 in wanted:
                 store.write_checkpoint(SOURCE_SYSTEM, iso2, first, last,
                                        status="failed", note="request error",
@@ -309,9 +308,9 @@ def harvest(roster: Optional[List[str]] = None, since: Optional[str] = None) -> 
                                    seconds=elapsed / len(counts),
                                    calls=1 / len(counts))
             written += n
-        logger.info("[nyt] %04d-%02d: %s", year, month,
-                    ", ".join(f"{k}={v}" for k, v in sorted(counts.items())))
+        logger.info("[nyt] %d/%d %04d-%02d: %s", i, len(todo), year, month,
+                    " ".join(f"{k}={v}" for k, v in sorted(counts.items())))
 
-    logger.info("[nyt] done: %d rows (abstract-only tier), %d month(s) failed",
+    logger.info("[nyt] done: %d rows (abstract-only), %d month(s) failed",
                 written, failed)
     return written

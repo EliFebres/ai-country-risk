@@ -34,6 +34,8 @@ import os
 import pathlib
 import sys
 
+import pandas as pd
+
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[3]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -57,8 +59,15 @@ logger = logging.getLogger("history")
 def _report() -> None:
     """Print every deliverable the harvest steps owe."""
     print("\n=== articles by source x country x year ===")
-    for row in store.counts_by_year():
-        print(f"  {row['source_system']:<9} {row['country_iso2']}  {row['year']}  {row['n']:>6}")
+    counts = pd.DataFrame(store.counts_by_year())
+    if counts.empty:
+        print("  Nothing harvested yet.")
+        return
+    grid = counts.pivot_table(index=["source_system", "country_iso2"],
+                              columns="year", values="n",
+                              aggfunc="sum", fill_value=0)
+    grid["total"] = grid.sum(axis=1)
+    print(grid.to_string())
 
     print("\n=== evenness check: months with no articles ===")
     months = store.counts_by_month()
@@ -97,15 +106,15 @@ def _report() -> None:
             buckets["live"] += row["n"] if row["body_vintage"] == "live-refetch" else 0
         elif str(row["body_status"]).startswith("degraded"):
             buckets["flagged"] += row["n"]
-    for (source, year), b in sorted(totals.items()):
-        # Percentages against the articles that could have had a body, so a
-        # source with none does not dilute the number that matters.
-        full = b["n"] - b["abstract"]
-        rates = (f"recovered={100*b['recovered']/full:5.1f}%  "
-                 f"live-refetch={100*b['live']/full:5.1f}%  "
-                 f"flagged={100*b['flagged']/full:5.1f}%" if full
-                 else "abstract-only, no bodies to recover")
-        print(f"  {source:<9} {year}  n={b['n']:<6} {rates}")
+    # Percentages against the articles that could have had a body, so a source
+    # with none does not dilute the number that matters.
+    curve = [{"source": source, "year": year, "n": b["n"],
+              **({"recovered": f"{100*b['recovered']/full:.1f}%",
+                  "live-refetch": f"{100*b['live']/full:.1f}%",
+                  "flagged": f"{100*b['flagged']/full:.1f}%"} if (full := b["n"] - b["abstract"])
+                 else {"recovered": "-", "live-refetch": "-", "flagged": "-"})}
+             for (source, year), b in sorted(totals.items())]
+    print(pd.DataFrame(curve).to_string(index=False))
 
 
 def _wayback(args) -> None:

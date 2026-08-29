@@ -325,9 +325,8 @@ def _window_items(query: str, theme: str, start: datetime.date,
                   end: datetime.date, calls: List[int]) -> Iterator[Dict]:
     """Every article in one window, subdividing rather than truncating.
 
-    ``calls`` is a one-element list used as a counter, so the driver can report
-    real call spend against its own pre-flight estimate instead of the estimate
-    twice.
+    ``calls`` is a one-element list used as a counter, so the driver reports
+    the call spend it actually made rather than the one it planned.
     """
     time.sleep(config.REQUEST_INTERVAL_SECONDS)
     calls[0] += 1
@@ -337,14 +336,16 @@ def _window_items(query: str, theme: str, start: datetime.date,
     if pages > config.GUARDIAN_SUBDIVIDE_ABOVE_PAGES:
         children = subdivide(start, end)
         if children:
-            logger.info("  %s %s..%s: %s pages, splitting into %d",
-                        theme, start, end, pages, len(children))
+            # "4 quarters" says what the next lines will be; "splitting into 4"
+            # left the reader counting months to find out.
+            unit = "months" if _span_months(*children[0]) <= 1 else "quarters"
+            logger.info("  %s %s: %s pages, split into %d %s",
+                        theme, start.strftime("%Y-%m"), pages, len(children), unit)
             for child_start, child_end in children:
                 yield from _window_items(query, theme, child_start, child_end, calls)
             return
-        logger.warning("  %s %s..%s: %d pages and already one month wide — "
-                       "taking the first %d pages, %d left behind",
-                       theme, start, end, pages,
+        logger.warning("  %s %s: %d pages, capped at %d, %d lost",
+                       theme, start.strftime("%Y-%m"), pages,
                        config.GUARDIAN_SUBDIVIDE_ABOVE_PAGES,
                        pages - config.GUARDIAN_SUBDIVIDE_ABOVE_PAGES)
         pages = config.GUARDIAN_SUBDIVIDE_ABOVE_PAGES
@@ -417,7 +418,6 @@ def harvest(roster: Optional[List[str]] = None,
     done = {iso2: store.completed_windows(SOURCE_SYSTEM, iso2) for iso2 in roster}
     todo = [(iso2, w) for iso2 in roster for w in windows
             if w[0] not in done[iso2]]
-    estimate = len(todo) * len(core.THEME_QUERIES)
     # The convergence signal. This harvest is a *finite* job — once the roster is
     # banked from the floor to today, every run should read the checkpoints and
     # do nothing — and a finite job running unattended for weeks has to be able
@@ -431,15 +431,14 @@ def harvest(roster: Optional[List[str]] = None,
         return 0
 
     budget = quota()
-    logger.info("[guardian] %d country-years x %d themes = ~%d calls before any "
-                "subdivision (%d country-years already done). Daily budget %s "
-                "(%s) — subdivision multiplied this by ~30x on the US, so read "
-                "the floor as a floor.",
-                len(todo), len(core.THEME_QUERIES), estimate,
-                len(roster) * len(windows) - len(todo),
+    # No call estimate here on purpose: the only one available before the first
+    # request is the no-subdivision floor, and printing a floor as an estimate is
+    # what the QuotaExhausted branch below spells out. "assumed" is load-bearing
+    # — no response has been read yet, so the budget is the constant.
+    logger.info("[guardian] %d country-years to go, %d done, %s calls/day (%s)",
+                len(todo), len(roster) * len(windows) - len(todo),
                 budget["limit"],
-                "reported by the API" if budget["limit_is_measured"]
-                else "assumed; no response read yet")
+                "measured" if budget["limit_is_measured"] else "assumed")
 
     calls = [0]
     written = 0
@@ -451,6 +450,11 @@ def harvest(roster: Optional[List[str]] = None,
     for done, (iso2, (window_start, window_end)) in enumerate(todo):
         name = config.country_name(iso2)
         started, before = time.monotonic(), calls[0]
+        # Announced before it runs, not only after. A subdivided country-year is
+        # minutes of one-per-second calls, and the subdivision lines underneath
+        # it have no country of their own to name.
+        logger.info("[guardian] %d/%d %s %s starting",
+                    done + 1, len(todo), iso2, window_start.year)
         try:
             n = harvest_window(iso2, name, window_start, window_end, calls)
         except QuotaExhausted as exc:
@@ -473,24 +477,21 @@ def harvest(roster: Optional[List[str]] = None,
             # three-day harvest gets announced as one more day.
             per_year = round(sum(cost) / len(cost)) if cost else len(core.THEME_QUERIES)
             per_day = exc.daily_limit or _QUOTA["observed_calls"] or calls[0] or 1
-            logger.warning(
-                "[guardian] %s; stopping cleanly after %d calls (%d billed by the "
-                "API). %d of %d country-years left at ~%d calls each = ~%d calls "
-                "— roughly %d more day(s) at %d/day. Resets in %s. Re-run to "
-                "resume where this stopped.",
-                exc, calls[0], _QUOTA["observed_calls"] or 0, left, len(todo),
-                per_year, left * per_year,
-                -(-left * per_year // per_day), per_day,
-                f"{(_QUOTA['reset_seconds'] or 0) / 3600:.1f}h"
-                if _QUOTA["reset_seconds"] else "an unreported time")
+            logger.warning("[guardian] daily quota spent after %d calls; "
+                           "resets in %s", calls[0],
+                           f"{(_QUOTA['reset_seconds'] or 0) / 3600:.1f}h"
+                           if _QUOTA["reset_seconds"] else "an unreported time")
+            logger.warning("[guardian] %d/%d country-years left, ~%d more day(s). "
+                           "Re-run to resume.",
+                           left, len(todo), -(-left * per_year // per_day))
             return written
         except Exception:  # noqa: BLE001
             # Checkpointed as failed rather than left unwritten, so the next run
             # retries it — only 'done' windows are skipped. A single 503 on the
             # eighth of twelve windows must not throw away the seven behind it,
             # which is exactly what an uncaught one did on 2026-08-03.
-            logger.exception("[guardian] %s %s failed; continuing",
-                             iso2, window_start.year)
+            logger.exception("[guardian] %d/%d %s %s failed, continuing",
+                             done + 1, len(todo), iso2, window_start.year)
             store.write_checkpoint(SOURCE_SYSTEM, iso2, window_start, window_end,
                                    status="failed", note="request error",
                                    seconds=time.monotonic() - started,
@@ -502,8 +503,8 @@ def harvest(roster: Optional[List[str]] = None,
                                items_written=n, seconds=time.monotonic() - started,
                                calls=spent)
         written += n
-        logger.info("[guardian] %s %s: %d rows in %d calls (%d total, %s left today)",
-                    iso2, window_start.year, n, spent, calls[0],
+        logger.info("[guardian] %d/%d %s %s: %d rows, %d calls, %s left today",
+                    done + 1, len(todo), iso2, window_start.year, n, spent,
                     _QUOTA["remaining"] if _QUOTA["remaining"] is not None else "?")
 
     # `todo` was the outstanding set when the run started and `cost` counts what
@@ -511,8 +512,7 @@ def harvest(roster: Optional[List[str]] = None,
     # off the run rather than re-queried, because a second `completed_windows`
     # call would be a different question asked at a different time.
     outstanding = len(todo) - len(cost)
-    logger.info("[guardian] done: %d rows in %d calls, ~%d per country-year. "
-                "%s",
+    logger.info("[guardian] done: %d rows, %d calls, ~%d per country-year. %s",
                 written, calls[0],
                 round(sum(cost) / len(cost)) if cost else 0,
                 f"{outstanding} country-year(s) still outstanding"
