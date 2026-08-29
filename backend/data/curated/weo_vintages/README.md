@@ -22,21 +22,20 @@ damage.
 WEO publishes twice a year, in **April** and **October**. For the pilot window
 that is:
 
-    2016-10  2017-04  2017-10  2018-04  2018-10  2019-04  2019-10
+    2016-04  2016-10  2017-04  2017-10  2018-04  2018-10  2019-04  2019-10
     2020-04  2020-10  2021-04  2021-10  2022-04  2022-10  2023-04  2023-10
     2024-04  2024-10  2025-04  2025-10  2026-04
 
-Nineteen of those are present, through `2025-04`. **`2025-10` and `2026-04` are
-missing**: the WEO database moved to data.imf.org in October 2025 and the legacy
-path was never backfilled, so the fetch script cannot reach them. The effect is
-confined to the tail — an anchor after October 2025 reads the `2025-04` vintage,
-at most ten months stale — and it is post-cutoff, so it does not touch the
-2023-10 cutoff comparison.
+**All twenty-one are present**, and all twenty-one are loaded. The last two
+(`2025-10`, `2026-04`) had to be fetched by hand: the WEO database moved to
+data.imf.org in October 2025 and the legacy path the fetch script uses was never
+backfilled, so `fetch_editions.py` still cannot reach them. If a future edition
+is likewise unreachable, download it from the site and drop it here under the
+naming rule above — the loader neither knows nor cares how the file arrived.
 
-Editions before `2016-10` are not needed: the pilot starts 2016-08-03 and the
-rule is "newest vintage not after the anchor", so `2016-10` covers the first
-weeks via the edition before it only if you also drop `2016-04`. Adding it is
-one more file and makes the first two months honest — worth doing.
+`2016-04` is here because the pilot starts 2016-08-03 and the rule is "newest
+vintage not after the anchor": without it the first two months of the window
+would have no macro vintage at all.
 
 ## Where to download
 
@@ -84,6 +83,11 @@ loading editions at all.
   `2019-10` debt figure rather than losing it.
 - **`2020-10` onward are UTF-16LE without a BOM** and around 19–20 MB. The
   loader handles them; do not "fix" the encoding.
+- **A few rows carry the edition's own year as history.** `2025-04` states 2025
+  actuals for Singapore, and `2020-10` for India and Egypt, because their fiscal
+  years close before the edition goes to press. That is the file's own per-row
+  `Estimates Start After` talking, not a projection leaking in, and the loader
+  is right to keep it.
 
 Only **historical** columns: years up to and including the edition's own year.
 The WEO's forward columns are projections, and a 2018 edition's guess at 2020 is

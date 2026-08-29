@@ -172,7 +172,7 @@ a projected cost, waits for an explicit yes, and aborts at
 Three commands rebuild the macro side so an anchor reads what was published by
 then, not what is published now:
 
-- `weo` — load the 19 IMF WEO editions from `backend/data/curated/weo_vintages/`,
+- `weo` — load the 21 IMF WEO editions from `backend/data/curated/weo_vintages/`,
   each stamped with its own edition date.
 - `monthly` — back-date IMF/BIS monthly prints by publication lag.
 - `restamp` — migrate already-stored rows from fetch date to publication date. It

@@ -89,7 +89,7 @@ current in another.
 |---|---|---|---|
 | **World Bank** | none | `data_fetching/country_data_fetch.py`, `wb_series_fetch.py` | the annual macro panel plus the extra WDI/WGI/SPI/HCI registry codes |
 | **IMF SDMX 2.1** | none | `data_fetching/imf_macro_fetch.py` | monthly/quarterly prints, so a fast-moving economy is not stuck on a year-old annual |
-| **IMF WEO** | files on disk | `data_fetching/vintage/weo.py` | 19 per-edition vintages of inflation, growth, debt, net lending, current account |
+| **IMF WEO** | files on disk | `data_fetching/vintage/weo.py` | 21 per-edition vintages of inflation, growth, debt, net lending, current account |
 | **BIS bulk** | none | `data_fetching/bis_bulk_fetch.py` | policy rates (`WS_CBPOL`) and USD exchange rates (`WS_XRU`) |
 | **Our World in Data / V-Dem** | none | `data_fetching/political_corruption_fetch.py` | the political-corruption index |
 | **Financial Modeling Prep** | `FMP_API_KEY` | `fmp_calendar_fetch.py`, `fmp_prices_fetch.py` | the ~14-day economic calendar, live quotes, treasury yields |
