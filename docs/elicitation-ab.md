@@ -426,9 +426,12 @@ rejected on cost and rank agreement without discrimination ever being weighed.
 
 ## What follows
 
-**For the scorer choice** — `deferred.md` §11, rewritten. It is now a genuine
-fork rather than a closed decision, and the blocker is not cost. It is that no
-evidence yet shows the finer output is the more correct output.
+**For the scorer choice** — *closed 2026-08-29, `deferred.md` §11.* Production
+stays on `gpt-4o`; **`gpt-4.1` is named the benchmark incumbent**, the reference
+a candidate's discrimination and prompt compliance are measured against, which
+is a different decision from what production runs. The fork this section
+described lasted a day: the evidence said to hold it open, and the evidence had
+an undetected crisis in its baseline period.
 
 **For the modelling phase** — Phase C inherits a measurement problem this
 document does not solve. A series with nine distinct values across fifty-two
@@ -443,8 +446,14 @@ an uncertainty band wide enough to admit what the instrument cannot resolve.
 decided against whichever scorer is chosen, because the two candidates differ by
 a factor of two in exactly the quantity that decides it.
 
-**For sequencing** — the scorer choice now has to settle *before* the local-model
-screen. Payload and prompt were already required to be final first, for the
-obvious reason that a candidate must be measured against a fixed instrument. The
-scorer is now on that list too: whichever model is chosen defines the bar, and
-`gpt-4o` and `gpt-4.1` set that bar 10 distinct values apart.
+**For sequencing** — *withdrawn 2026-08-29.* This section argued that the scorer
+choice had to settle before the local-model screen, because whichever model was
+chosen would define the bar. That followed only from using one model name for
+two jobs. Naming the benchmark incumbent separately from the production scorer
+removes the dependency entirely: the bar is `gpt-4.1`'s 18 distinct values
+whether or not production ever migrates, and a local candidate can be screened
+today. `docs/scorer-acceptance.md` is that bar, written before any local
+candidate existed.
+
+Payload and prompt are still required to be final first, for the reason that has
+not changed: a candidate must be measured against a fixed instrument.
