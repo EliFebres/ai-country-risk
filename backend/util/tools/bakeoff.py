@@ -985,6 +985,65 @@ def load(name: str) -> Optional[Dict[str, Any]]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _hold_captured_under(path: pathlib.Path,
+                         payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Carry an existing `captured_under` forward verbatim. Never restamp it.
+
+    `captured_under` records the versions that produced the *rows*. A later
+    write that touches anything else has, by definition, not re-scored them, so
+    it has nothing to say about what did.
+
+    `b128aad` said otherwise. It added the re-derived `gates` block to
+    `gpt-4.1.json` and `gpt-4o.json` -- 481 insertions, the 52 and 53 anchor rows
+    untouched -- and carried `captured_under.git_sha` from `d063fc4`/`30e07ef`,
+    the trees that scored those rows on 08-27, to `b47b2b2`, the tree that added
+    the gates on 08-29. In between, on 08-29 morning, the vintage fix put nine
+    more indicators into every payload. So the two files that
+    `docs/scorer-acceptance.md` names as the reference came to claim a post-fix
+    tree for pre-fix rows, and the one field that could have shown it was the
+    field the write destroyed. See `docs/pipeline-audit.md` section 3.
+
+    New keys are allowed through: later work may record something alongside the
+    stamp. Existing keys are held, and a divergence is logged rather than raised
+    -- re-smoking a candidate after any commit moves `git_sha` legitimately, and
+    a guard that aborts a paid gate run because the tree moved is a guard that
+    gets deleted.
+    """
+    if not path.exists():
+        return payload
+    stored = (json.loads(path.read_text(encoding="utf-8"))
+              .get("captured_under") or {})
+    incoming = payload.get("captured_under") or {}
+    if not stored:
+        return payload
+
+    held = {**incoming, **{k: v for k, v in stored.items() if v}}
+    for field, was in stored.items():
+        now = incoming.get(field)
+        if was and now is not None and now != was:
+            logger.warning(
+                "[bakeoff] %s: %s is %r on the rows already stored; this write "
+                "carries no rows of its own, so %r is not recorded",
+                path.stem, field, was, now)
+    return {**payload, "captured_under": held}
+
+
+def _write(path: pathlib.Path, payload: Dict[str, Any]) -> pathlib.Path:
+    """The one place an arm file is written.
+
+    Three writers used to reach the disk independently -- `save`, `save_gates`,
+    and the `smoke` branch of `main` -- and only the first had any guard on it.
+    The stamp that `b128aad` overwrote went through the third. One chokepoint,
+    for the same reason `upsert_indicator_series` re-dates at one instead of
+    asking each fetcher to behave.
+    """
+    payload = _hold_captured_under(path, payload)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, default=str, sort_keys=True),
+                    encoding="utf-8")
+    return path
+
+
 def save(name: str, payload: Dict[str, Any]) -> pathlib.Path:
     """Write one candidate's file, never losing a gate result it already had.
 
@@ -1001,16 +1060,13 @@ def save(name: str, payload: Dict[str, Any]) -> pathlib.Path:
     is distinguishable from the absent key that a rebuilt payload carries.
     """
     path = result_path(name)
-    path.parent.mkdir(parents=True, exist_ok=True)
     if not payload.get("gates") and path.exists():
         previous = (load(name) or {}).get("gates")
         if previous and payload.get("gates") is not None:
             payload = {**payload, "gates": previous}
             logger.info("[bakeoff] %s: carried forward the gates already on disk",
                         name)
-    path.write_text(json.dumps(payload, indent=2, default=str, sort_keys=True),
-                    encoding="utf-8")
-    return path
+    return _write(path, payload)
 
 
 def save_gates(name: str, gates: Dict[str, Any]) -> List[pathlib.Path]:
@@ -1032,10 +1088,7 @@ def save_gates(name: str, gates: Dict[str, Any]) -> List[pathlib.Path]:
         else:
             payload = _wrap(name, CANDIDATES.get(name, {}).get("arm", "scoring"), [])
         payload["gates"] = gates
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(payload, indent=2, default=str, sort_keys=True),
-                        encoding="utf-8")
-        written.append(path)
+        written.append(_write(path, payload))
     return written
 
 
@@ -2026,10 +2079,12 @@ def main() -> None:
             payload = json.loads(path.read_text(encoding="utf-8"))
             payload["endpoint"] = (result.get("endpoint")
                                    or payload.get("endpoint") or {})
+            # Right for a file this run creates, and refused by `_write` for one
+            # that already carries a stamp — this branch is the writer that
+            # restamped the two reference arms in `b128aad`.
             if result.get("captured_under"):
                 payload["captured_under"] = result["captured_under"]
-            path.write_text(json.dumps(payload, indent=2, default=str,
-                                       sort_keys=True), encoding="utf-8")
+            _write(path, payload)
         print(json.dumps(result, indent=2, default=str)[:4000])
         print("\nwrote " + ", ".join(str(p) for p in paths))
         return

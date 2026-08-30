@@ -1660,6 +1660,92 @@ class TestAGateResultIsPersisted:
         assert stored["gates"]["cost"]["priced"] is False
 
 
+class TestCapturedUnderIsWrittenOnce:
+    """The stamp records what produced the rows, so only a run that produced
+    rows may write it.
+
+    `b128aad` added a gates block to `gpt-4.1.json` and `gpt-4o.json` without
+    re-scoring a single anchor, and carried `git_sha` from the 08-27 trees that
+    did score them to the 08-29 tree that did not. The vintage fix landed in
+    between, so both files came to claim a post-fix tree for pre-fix rows — and
+    the field that would have exposed that was the field the write destroyed.
+    """
+
+    @pytest.fixture
+    def results_dir(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(bakeoff, "RESULTS_DIR", tmp_path)
+        return tmp_path
+
+    def test_a_second_write_cannot_alter_an_existing_value(self, results_dir):
+        bakeoff.save("cand", {"candidate": "cand", "rows": [1],
+                              "captured_under": {"git_sha": "aaa",
+                                                 "PAYLOAD_VERSION": "p2"}})
+        bakeoff.save("cand", {"candidate": "cand", "rows": [1],
+                              "captured_under": {"git_sha": "bbb",
+                                                 "PAYLOAD_VERSION": "p9"}})
+        stored = bakeoff.load("cand")["captured_under"]
+        assert stored["git_sha"] == "aaa", "the scoring tree was overwritten"
+        assert stored["PAYLOAD_VERSION"] == "p2"
+
+    def test_a_new_field_may_still_be_added_alongside_it(self, results_dir):
+        bakeoff.save("cand", {"candidate": "cand", "rows": [1],
+                              "captured_under": {"git_sha": "aaa"}})
+        bakeoff.save("cand", {"candidate": "cand", "rows": [1],
+                              "captured_under": {"git_sha": "bbb",
+                                                 "PAYLOAD_FINGERPRINT": "f00d"}})
+        stored = bakeoff.load("cand")["captured_under"]
+        assert stored["git_sha"] == "aaa"
+        assert stored["PAYLOAD_FINGERPRINT"] == "f00d", "a new key was dropped"
+
+    def test_the_first_write_stamps_freely(self, results_dir):
+        bakeoff.save("cand", {"candidate": "cand", "rows": [],
+                              "captured_under": {"git_sha": "aaa"}})
+        assert bakeoff.load("cand")["captured_under"]["git_sha"] == "aaa"
+
+    def test_the_gates_writer_cannot_restamp_either(self, results_dir,
+                                                    monkeypatch):
+        """`save_gates` and the smoke branch of `main` both bypassed `save`.
+
+        The one that overwrote the reference arms was the third writer, so a
+        guard on `save` alone would have left the defect exactly where it was.
+        """
+        for window in ("US-2019", "TR-2018"):
+            (results_dir / window).mkdir()
+            (results_dir / window / "cand.json").write_text(
+                json.dumps({"candidate": "cand", "gates": {}, "rows": [1],
+                            "captured_under": {"git_sha": "aaa"}}),
+                encoding="utf-8")
+        monkeypatch.setattr(bakeoff, "COUNTRY", "US")
+        monkeypatch.setattr(bakeoff, "SINCE", _dt.date(2019, 1, 1))
+
+        bakeoff.save_gates("cand", {"schema": {"passed": True}})
+
+        for window in ("US-2019", "TR-2018"):
+            got = json.loads((results_dir / window / "cand.json").read_text("utf-8"))
+            assert got["gates"]["schema"]["passed"] is True, window
+            assert got["captured_under"]["git_sha"] == "aaa", window
+
+    def test_the_committed_reference_arms_name_the_tree_that_scored_them(self):
+        """The four files, corrected, against the SHAs recovered from git.
+
+        Not a round-trip through the guard — the guard cannot undo a write that
+        already happened. This asserts the correction itself, so a future
+        restamp of these particular files fails here.
+        """
+        expected = {("US-2019", "gpt-4.1"): "d063fc4fc9a57bf79ae4ba89a288d1e6df06a1ee",
+                    ("US-2019", "gpt-4o"): "d063fc4fc9a57bf79ae4ba89a288d1e6df06a1ee",
+                    ("TR-2018", "gpt-4.1"): "30e07ef90801536a3659c5c99226f773354f1db0",
+                    ("TR-2018", "gpt-4o"): "30e07ef90801536a3659c5c99226f773354f1db0"}
+        for (window, name), sha in expected.items():
+            path = bakeoff.RESULTS_DIR / window / f"{name}.json"
+            if not path.exists():   # a checkout without the committed arms
+                continue
+            arm = json.loads(path.read_text(encoding="utf-8"))
+            assert arm["captured_under"]["git_sha"] == sha, f"{window}/{name}"
+            assert arm.get("captured_under_note"), (
+                f"{window}/{name} was corrected and does not say so")
+
+
 class TestWhatAGrammarWillNotEnforce:
     """The one risk the loopback stub cannot discover, checked statically.
 

@@ -11,8 +11,9 @@
     "SCORING_MODEL": "gpt-4o-2024-08-06",
     "SEED": "42",
     "SWEEP_VERSION": "9f4aee55",
-    "git_sha": "b47b2b2b4341cfcbec5d1323bbc7949b4e01d14a"
+    "git_sha": "30e07ef90801536a3659c5c99226f773354f1db0"
   },
+  "captured_under_note": "captured_under.git_sha was restored on 2026-08-30 from `git show b128aad^:backend/bakeoff/TR-2018/gpt-4o.json`. b128aad added the re-derived `gates` block to this file and carried the stamp with it, from 30e07ef90801536a3659c5c99226f773354f1db0 -- the tree that scored these rows -- to b47b2b2b4341cfcbec5d1323bbc7949b4e01d14a, the tree that added the gates two days later. No anchor row was re-scored by that commit. The vintage fix (f8db7d7, d4a1017, fd3fa8d, 2026-08-29 10:31-11:18) landed in between and put nine more indicators into every payload, so the overwritten stamp made these rows claim a payload they were never scored on. The rows here are the pre-fix reference and are kept as the record of it. See docs/pipeline-audit.md section 3.",
   "cost": {
     "cache_share": null,
     "input_tokens_per_snapshot": 0.0,
