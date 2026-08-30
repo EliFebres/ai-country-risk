@@ -378,6 +378,7 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
     "local-template": {
         "arm": "scoring",
         "note": "not a candidate — the shape a locally served model takes",
+        "template": True,
         "env": {"SCORING_MODEL": "REPLACE-ME",
                 "SCORING_BASE_URL": "http://127.0.0.1:1/v1"},
         # A local server needs *a* key because the OpenAI client insists on one;
@@ -1802,8 +1803,12 @@ def compare_all() -> Dict[str, Any]:
             f"`python -m backend.util.tools.bakeoff capture-baseline`.")
 
     out: Dict[str, Any] = {"baseline": baseline, "candidates": {}, "missing": []}
-    for name in CANDIDATES:
-        if name == "gpt-4o":
+    for name, spec in CANDIDATES.items():
+        # `local-template` is the shape a local candidate takes, not one anybody
+        # screens. Listing it under "not run" every time trains the reader to
+        # skip that line, which is the line that says a real candidate is
+        # missing.
+        if name == "gpt-4o" or spec.get("template"):
             continue
         found = load(name)
         if found is None:
