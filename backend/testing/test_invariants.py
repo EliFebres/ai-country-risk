@@ -25,7 +25,9 @@ bottom (`HISTORY_TEST_DATABASE_URL`), which is skipped by a bare `pytest` run.
 """
 
 import datetime
+import json
 import os
+import pathlib
 
 import pytest
 
@@ -33,7 +35,7 @@ from backend.llm import digest_engine, payload
 from backend.news_fetching import snapshot_select as sel
 from backend.llm import usage
 from backend.util.pilot import score
-from backend.util import config
+from backend.util import config, constants, provenance as prov
 from backend.data_upsert import schema, store
 from backend.data_fetching.vintage import lags, restamp
 from backend.llm import context as llm_context
@@ -673,6 +675,13 @@ def frozen(monkeypatch):
     monkeypatch.setattr(score.store, "read_frozen_versions", lambda: cell[0])
     monkeypatch.setattr(score.store, "write_frozen_versions",
                         lambda versions: cell.__setitem__(0, dict(versions)))
+    # `freeze` fingerprints a probe anchor before it pins anything, and that is
+    # a database read. These tests are about the guard's behaviour, so the probe
+    # is stubbed rather than stood up — checking that a version string moved
+    # does not need Postgres. `TestThePayloadFingerprintSeesTheVintageFix` is
+    # where the fingerprint itself is checked, against real stored rows.
+    monkeypatch.setattr(score.provenance, "_payload_fingerprint", "seedfeed00000000")
+    monkeypatch.setattr(score, "_seed_payload_fingerprint", lambda: "seedfeed00000000")
     return cell
 
 
@@ -801,6 +810,106 @@ class TestTheVersionFreeze:
 # ---------------------------------------------------------------------------
 # Resume — completed work is skipped, failed work is not
 # ---------------------------------------------------------------------------
+
+class TestThePayloadFingerprintSeesTheVintageFix:
+    """The freeze's tenth field, checked against the change that walked past
+    the other nine.
+
+    Verified rather than asserted, which is the whole point. The fixture is
+    PT's real `indicator_series` carrying both `as_of` values — today's, and the
+    one the restamp moved it from, recovered from
+    `backend/data/backups/indicator_series_20260829T102920.csv`. That backup is
+    gitignored, so the rows it proves this with are carried here instead.
+
+    Rebuilding the PT 2019-06-03 payload on both sides reproduces
+    `docs/pipeline-audit.md` section 3 exactly: 14 of 38 indicators before,
+    22 after, with the information and edge ledgers going from nothing to
+    something. `PAYLOAD_VERSION` is `p2` on both sides and always was.
+    """
+
+    FIXTURE = (pathlib.Path(__file__).parent / "fixtures"
+               / "pt_series_across_the_vintage_fix.json")
+
+    @pytest.fixture
+    def blob(self):
+        return json.loads(self.FIXTURE.read_text(encoding="utf-8"))
+
+    @staticmethod
+    def _series(blob, *, pre_restamp):
+        """PT's rows, dated as they were before the fix or as they are now."""
+        out = {}
+        for code, rows in blob["series"].items():
+            out[code] = [
+                {**{k: v for k, v in row.items() if k != "as_of_pre_restamp"},
+                 "as_of": datetime.date.fromisoformat(
+                     row["as_of_pre_restamp"]
+                     if pre_restamp and row.get("as_of_pre_restamp")
+                     else row["as_of"])}
+                for row in rows
+            ]
+        return out
+
+    def _health(self, blob, *, pre_restamp):
+        anchor = datetime.date.fromisoformat(blob["anchor"])
+        series = self._series(blob, pre_restamp=pre_restamp)
+        evidence = payload.build_evidence_payload(
+            blob["iso2"], as_of=anchor, series=series,
+            fx_regimes=constants.FX_REGIMES, elections=constants.ELECTIONS,
+            vintage_as_of=anchor)
+        return payload.payload_health(evidence, series, anchor)["indicators"]
+
+    def test_the_fixture_reproduces_the_measured_evidence_depth(self, blob):
+        before = self._health(blob, pre_restamp=True)
+        after = self._health(blob, pre_restamp=False)
+        assert (before["resolved"], after["resolved"]) == (14, 22)
+        assert before["by_ledger"]["information"]["resolved"] == 0
+        assert before["by_ledger"]["edge"]["resolved"] == 0
+        assert after["by_ledger"]["information"]["resolved"] == 1
+        assert after["by_ledger"]["edge"]["resolved"] == 3
+        assert set(before["empty_ledgers"]) == {"information", "edge"}
+
+    def test_the_fingerprint_moves_across_the_fix(self, blob):
+        """The assertion this field exists for."""
+        before = self._health(blob, pre_restamp=True)["fingerprint"]
+        after = self._health(blob, pre_restamp=False)["fingerprint"]
+        assert before != after, (
+            "the fingerprint did not move across a change that added eight "
+            "indicators to the payload — it cannot do the job it was added for")
+
+    def test_the_contract_version_does_not_move_and_that_is_the_point(self):
+        """Both sides of the fix declared `p2`, and still would.
+
+        If this ever fails because `PAYLOAD_VERSION` gained a content component,
+        the fingerprint is redundant and can go. Until then it is the only field
+        that can tell those two runs apart.
+        """
+        assert prov.PAYLOAD_VERSION == "p2"
+        assert "PAYLOAD_VERSION" in score.FROZEN_FIELDS
+        assert "PAYLOAD_FINGERPRINT" in score.FROZEN_FIELDS
+
+    def test_drift_reports_it(self, blob):
+        """End to end: the same two payloads, through the guard that resumes."""
+        before = self._health(blob, pre_restamp=True)["fingerprint"]
+        after = self._health(blob, pre_restamp=False)["fingerprint"]
+        frozen = {**score.versions(), "PAYLOAD_FINGERPRINT": before}
+        current = {**frozen, "PAYLOAD_FINGERPRINT": after}
+        moved = score.drift(frozen, current)
+        assert moved == {"PAYLOAD_FINGERPRINT": (before, after)}
+
+    def test_a_run_that_cannot_fingerprint_its_payload_refuses_to_freeze(
+            self, frozen, monkeypatch):
+        """An unreachable store must not be pinned as if it were an answer.
+
+        `unresolved` compares equal to itself forever, so freezing against it
+        would put the blindness in the frozen set permanently — the failure
+        `git_sha` had before anything set it.
+        """
+        monkeypatch.setattr(score.provenance, "_payload_fingerprint",
+                            prov.UNRESOLVED_FINGERPRINT)
+        monkeypatch.setattr(score, "_seed_payload_fingerprint", lambda: None)
+        with pytest.raises(score.VersionDrift, match="unresolved"):
+            score.freeze()
+
 
 class TestResume:
     def test_a_completed_anchor_is_skipped(self, ledger, scored, monkeypatch):

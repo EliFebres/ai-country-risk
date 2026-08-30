@@ -751,6 +751,7 @@ def compare_one(baseline_rows: List[Dict[str, Any]],
         "n_candidate": len(candidate_rows),
         "only_baseline": only_baseline,
         "only_candidate": only_candidate,
+        "comparable": payload_comparability(baseline_rows, candidate_rows),
         "metrics": metrics,
         "shape": shape,
         "band_matrix": band_matrix(_series(baseline_rows, "llm_score"),
@@ -760,6 +761,50 @@ def compare_one(baseline_rows: List[Dict[str, Any]],
             {r["as_of"]: r.get("condition_flags") or {} for r in candidate_rows}),
         "lint": _lint_rates(baseline_rows, candidate_rows),
         "cost": cost_summary(candidate_rows),
+    }
+
+
+def _fingerprints(rows: List[Dict[str, Any]]) -> List[str]:
+    """The distinct payload fingerprints across one arm's scored rows."""
+    return sorted({r["payload_fingerprint"] for r in rows
+                   if r.get("payload_fingerprint")})
+
+
+def payload_comparability(baseline_rows: List[Dict[str, Any]],
+                          candidate_rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Whether these two arms were scored on the same evidence.
+
+    The check that did not exist. `gpt-4.1.json` and `p2-rebaseline.json` both
+    declare `PAYLOAD_VERSION: p2`; the first was scored on 08-27 with the
+    information and edge ledgers resolving zero indicators, the second on 08-29
+    after the vintage fix put nine more per country into every payload. Every
+    number `compare_one` produced across that pair was the fix plus the
+    candidate, and there was no field to notice it by.
+
+    Reported rather than raised, and per pair rather than globally, because both
+    answers are legitimate: a *payload* arm is supposed to move the fingerprint
+    — that is the whole axis — while a *scoring* arm that moves it has changed
+    two things at once. The renderer is where the distinction gets made; this
+    function's job is to make the fact available at all.
+
+    An arm with no fingerprints at all is `unknown`, not `comparable`. Every row
+    committed before this field existed is in that state, which is the honest
+    answer for them: nothing recorded what they saw.
+    """
+    base, cand = _fingerprints(baseline_rows), _fingerprints(candidate_rows)
+    if not base or not cand:
+        return {"verdict": "unknown", "baseline": base, "candidate": cand,
+                "note": "one or both arms predate the payload fingerprint; "
+                        "what they were scored on is not recorded"}
+    if base == cand:
+        return {"verdict": "same", "baseline": base, "candidate": cand}
+    return {
+        "verdict": "different",
+        "baseline": base,
+        "candidate": cand,
+        "note": "these arms were scored on different evidence. Any difference "
+                "below is that plus the candidate, and the two cannot be "
+                "separated from these files.",
     }
 
 
@@ -950,12 +995,17 @@ def rho_gate(baseline_rows: List[Dict[str, Any]], candidate_rows: List[Dict[str,
             excluded[name] = {"spearman": rho, "distinct": n}
     failures = {k: v for k, v in gated.items() if v is not None and v < floor}
     measured = [v for v in gated.values() if v is not None]
+    comparable = payload_comparability(baseline_rows, candidate_rows)
     return {
         "passed": not failures,
         "floor": floor,
         "failures": failures,
         "worst_gated": min(measured) if measured else None,
         "gated": gated,
+        # A ρ against a baseline scored on different evidence is a number about
+        # two things. Carried on the gate result rather than left to the caller,
+        # because this gate's verdict is quoted directly into a decision.
+        "comparable": comparable,
         # Reported rather than dropped: a ledger too coarse to rank is itself a
         # finding about the instrument, not a gap in the comparison.
         "excluded_as_too_coarse": excluded,
@@ -1793,6 +1843,14 @@ def score_anchors(name: str, budget_usd: float = BAKEOFF_BUDGET_USD,
                 # the harness does not store is the same class of mistake as
                 # writing a value nothing reads.
                 "bullet_summary": out.get("bullet_summary"),
+                # What the anchor was actually scored on, as opposed to which
+                # contract named it. Two arms whose rows carry different
+                # fingerprints saw different evidence, and `compare_one` refuses
+                # to put them in the same table. Without this the reference and
+                # the candidate both said `PAYLOAD_VERSION: p2` across the
+                # vintage fix and nothing could tell them apart.
+                "payload_fingerprint": ((manifest.get("payload_health") or {})
+                                        .get("indicators") or {}).get("fingerprint"),
                 "ledger_scores": out.get("ledger_scores") or {},
                 "condition_flags": out.get("condition_flags") or {},
                 "lint": manifest.get("lint") or [],

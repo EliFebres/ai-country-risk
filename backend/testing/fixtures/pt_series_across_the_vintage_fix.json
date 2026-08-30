@@ -1,0 +1,4324 @@
+{
+  "_note": "PT's indicator_series as it stands, with the pre-restamp as_of recovered from backend/data/backups/indicator_series_20260829T102920.csv (gitignored, so it is carried here). Rows with `as_of_pre_restamp` are the ones the vintage fix re-dated. Periods after 2019 are dropped: this exists to rebuild the PT 2019-06-03 payload on both sides of the fix.",
+  "anchor": "2019-06-03",
+  "iso2": "PT",
+  "series": {
+    "BIS.FX.USD": [
+      {
+        "as_of": "2016-09-30",
+        "freq": "M",
+        "period": "2016-09",
+        "source": "BIS XRU",
+        "value": 0.895977,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-10-31",
+        "freq": "M",
+        "period": "2016-10",
+        "source": "BIS XRU",
+        "value": 0.913576,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-11-30",
+        "freq": "M",
+        "period": "2016-11",
+        "source": "BIS XRU",
+        "value": 0.940291,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "M",
+        "period": "2016-12",
+        "source": "BIS XRU",
+        "value": 0.948677,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-01-31",
+        "freq": "M",
+        "period": "2017-01",
+        "source": "BIS XRU",
+        "value": 0.9298,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-02-28",
+        "freq": "M",
+        "period": "2017-02",
+        "source": "BIS XRU",
+        "value": 0.943663,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-03-31",
+        "freq": "M",
+        "period": "2017-03",
+        "source": "BIS XRU",
+        "value": 0.935366,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-04-30",
+        "freq": "M",
+        "period": "2017-04",
+        "source": "BIS XRU",
+        "value": 0.914913,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-05-31",
+        "freq": "M",
+        "period": "2017-05",
+        "source": "BIS XRU",
+        "value": 0.891186,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-06-30",
+        "freq": "M",
+        "period": "2017-06",
+        "source": "BIS XRU",
+        "value": 0.876271,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-07-31",
+        "freq": "M",
+        "period": "2017-07",
+        "source": "BIS XRU",
+        "value": 0.852733,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-08-31",
+        "freq": "M",
+        "period": "2017-08",
+        "source": "BIS XRU",
+        "value": 0.845666,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-09-30",
+        "freq": "M",
+        "period": "2017-09",
+        "source": "BIS XRU",
+        "value": 0.847027,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-10-31",
+        "freq": "M",
+        "period": "2017-10",
+        "source": "BIS XRU",
+        "value": 0.859254,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-11-30",
+        "freq": "M",
+        "period": "2017-11",
+        "source": "BIS XRU",
+        "value": 0.843953,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "M",
+        "period": "2017-12",
+        "source": "BIS XRU",
+        "value": 0.83382,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-01-31",
+        "freq": "M",
+        "period": "2018-01",
+        "source": "BIS XRU",
+        "value": 0.802761,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-02-28",
+        "freq": "M",
+        "period": "2018-02",
+        "source": "BIS XRU",
+        "value": 0.818733,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-03-31",
+        "freq": "M",
+        "period": "2018-03",
+        "source": "BIS XRU",
+        "value": 0.811622,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-04-30",
+        "freq": "M",
+        "period": "2018-04",
+        "source": "BIS XRU",
+        "value": 0.827883,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-05-31",
+        "freq": "M",
+        "period": "2018-05",
+        "source": "BIS XRU",
+        "value": 0.854774,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-06-30",
+        "freq": "M",
+        "period": "2018-06",
+        "source": "BIS XRU",
+        "value": 0.85778,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-07-31",
+        "freq": "M",
+        "period": "2018-07",
+        "source": "BIS XRU",
+        "value": 0.852079,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-08-31",
+        "freq": "M",
+        "period": "2018-08",
+        "source": "BIS XRU",
+        "value": 0.858295,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-09-30",
+        "freq": "M",
+        "period": "2018-09",
+        "source": "BIS XRU",
+        "value": 0.863856,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-10-31",
+        "freq": "M",
+        "period": "2018-10",
+        "source": "BIS XRU",
+        "value": 0.883548,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-11-30",
+        "freq": "M",
+        "period": "2018-11",
+        "source": "BIS XRU",
+        "value": 0.880359,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "M",
+        "period": "2018-12",
+        "source": "BIS XRU",
+        "value": 0.873362,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-01-31",
+        "freq": "M",
+        "period": "2019-01",
+        "source": "BIS XRU",
+        "value": 0.870474,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-02-28",
+        "freq": "M",
+        "period": "2019-02",
+        "source": "BIS XRU",
+        "value": 0.875964,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-03-31",
+        "freq": "M",
+        "period": "2019-03",
+        "source": "BIS XRU",
+        "value": 0.890076,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-04-30",
+        "freq": "M",
+        "period": "2019-04",
+        "source": "BIS XRU",
+        "value": 0.891424,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-05-31",
+        "freq": "M",
+        "period": "2019-05",
+        "source": "BIS XRU",
+        "value": 0.896781,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-06-30",
+        "freq": "M",
+        "period": "2019-06",
+        "source": "BIS XRU",
+        "value": 0.878735,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-07-31",
+        "freq": "M",
+        "period": "2019-07",
+        "source": "BIS XRU",
+        "value": 0.896781,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-08-31",
+        "freq": "M",
+        "period": "2019-08",
+        "source": "BIS XRU",
+        "value": 0.906125,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-09-30",
+        "freq": "M",
+        "period": "2019-09",
+        "source": "BIS XRU",
+        "value": 0.918358,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-10-31",
+        "freq": "M",
+        "period": "2019-10",
+        "source": "BIS XRU",
+        "value": 0.896539,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-11-30",
+        "freq": "M",
+        "period": "2019-11",
+        "source": "BIS XRU",
+        "value": 0.910581,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "M",
+        "period": "2019-12",
+        "source": "BIS XRU",
+        "value": 0.890155,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "BX.KLT.DINV.WD.GD.ZS": [
+      {
+        "as_of": "1980-12-31",
+        "freq": "A",
+        "period": "1980",
+        "source": "World Bank panel",
+        "value": 0.477104383867876,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1981-12-31",
+        "freq": "A",
+        "period": "1981",
+        "source": "World Bank panel",
+        "value": 0.545658052239058,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1982-12-31",
+        "freq": "A",
+        "period": "1982",
+        "source": "World Bank panel",
+        "value": 0.471810169311415,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1983-12-31",
+        "freq": "A",
+        "period": "1983",
+        "source": "World Bank panel",
+        "value": 0.539059396254523,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1984-12-31",
+        "freq": "A",
+        "period": "1984",
+        "source": "World Bank panel",
+        "value": 0.786032725358159,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1985-12-31",
+        "freq": "A",
+        "period": "1985",
+        "source": "World Bank panel",
+        "value": 1.01061383736377,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1986-12-31",
+        "freq": "A",
+        "period": "1986",
+        "source": "World Bank panel",
+        "value": 0.614648795347915,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1987-12-31",
+        "freq": "A",
+        "period": "1987",
+        "source": "World Bank panel",
+        "value": 0.966875348980073,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1988-12-31",
+        "freq": "A",
+        "period": "1988",
+        "source": "World Bank panel",
+        "value": 1.635542856077,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1989-12-31",
+        "freq": "A",
+        "period": "1989",
+        "source": "World Bank panel",
+        "value": 2.86643686551845,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1990-12-31",
+        "freq": "A",
+        "period": "1990",
+        "source": "World Bank panel",
+        "value": 3.31579014605628,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1991-12-31",
+        "freq": "A",
+        "period": "1991",
+        "source": "World Bank panel",
+        "value": 2.74387019076576,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1992-12-31",
+        "freq": "A",
+        "period": "1992",
+        "source": "World Bank panel",
+        "value": 1.74123247233614,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1993-12-31",
+        "freq": "A",
+        "period": "1993",
+        "source": "World Bank panel",
+        "value": 1.6144453804152,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1994-12-31",
+        "freq": "A",
+        "period": "1994",
+        "source": "World Bank panel",
+        "value": 1.27368069158282,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1995-12-31",
+        "freq": "A",
+        "period": "1995",
+        "source": "World Bank panel",
+        "value": 0.579546715045669,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1996-12-31",
+        "freq": "A",
+        "period": "1996",
+        "source": "World Bank panel",
+        "value": 1.28145373512428,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1997-12-31",
+        "freq": "A",
+        "period": "1997",
+        "source": "World Bank panel",
+        "value": 2.31647209170026,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1998-12-31",
+        "freq": "A",
+        "period": "1998",
+        "source": "World Bank panel",
+        "value": 4.89835270210409,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1999-12-31",
+        "freq": "A",
+        "period": "1999",
+        "source": "World Bank panel",
+        "value": 0.581077558591109,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2000-12-31",
+        "freq": "A",
+        "period": "2000",
+        "source": "World Bank panel",
+        "value": 6.14861920837231,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2001-12-31",
+        "freq": "A",
+        "period": "2001",
+        "source": "World Bank panel",
+        "value": 5.02761444190448,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2002-12-31",
+        "freq": "A",
+        "period": "2002",
+        "source": "World Bank panel",
+        "value": 0.436137292252839,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": 6.26697257909762,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 1.312247289237,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 1.70741232717781,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 6.41633004151996,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 2.50093088549298,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 2.96892594201258,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": 2.35133912553896,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 3.77376819569615,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": 4.23648756430888,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": 7.21535195239496,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": 6.43654323197598,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 5.43851031792652,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 0.63522205292535,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 3.56282992803299,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 5.02041551787587,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 3.46584287446499,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 4.5038935303436,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "CPI.YOY": [
+      {
+        "as_of": "2017-06-25",
+        "freq": "M",
+        "period": "2017-05",
+        "source": "IMF CPI",
+        "value": 1.4507,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-07-25",
+        "freq": "M",
+        "period": "2017-06",
+        "source": "IMF CPI",
+        "value": 0.9086,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-08-25",
+        "freq": "M",
+        "period": "2017-07",
+        "source": "IMF CPI",
+        "value": 0.9018,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-09-25",
+        "freq": "M",
+        "period": "2017-08",
+        "source": "IMF CPI",
+        "value": 1.1357,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-10-25",
+        "freq": "M",
+        "period": "2017-09",
+        "source": "IMF CPI",
+        "value": 1.3896,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-11-25",
+        "freq": "M",
+        "period": "2017-10",
+        "source": "IMF CPI",
+        "value": 1.3917,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-12-25",
+        "freq": "M",
+        "period": "2017-11",
+        "source": "IMF CPI",
+        "value": 1.5496,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-01-25",
+        "freq": "M",
+        "period": "2017-12",
+        "source": "IMF CPI",
+        "value": 1.4662,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2019-10",
+        "value": 1.168,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-04",
+        "value": 1.168,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 0.993715683468233,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-10",
+        "value": 1.168,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2019-04",
+        "value": 1.168,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-02-25",
+        "freq": "M",
+        "period": "2018-01",
+        "source": "IMF CPI",
+        "value": 1.0319,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-03-25",
+        "freq": "M",
+        "period": "2018-02",
+        "source": "IMF CPI",
+        "value": 0.5772,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-04-25",
+        "freq": "M",
+        "period": "2018-03",
+        "source": "IMF CPI",
+        "value": 0.6884,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-05-25",
+        "freq": "M",
+        "period": "2018-04",
+        "source": "IMF CPI",
+        "value": 0.3965,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-06-25",
+        "freq": "M",
+        "period": "2018-05",
+        "source": "IMF CPI",
+        "value": 1.0432,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-07-25",
+        "freq": "M",
+        "period": "2018-06",
+        "source": "IMF CPI",
+        "value": 1.5165,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-08-25",
+        "freq": "M",
+        "period": "2018-07",
+        "source": "IMF CPI",
+        "value": 1.5757,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-09-25",
+        "freq": "M",
+        "period": "2018-08",
+        "source": "IMF CPI",
+        "value": 1.217,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-10-25",
+        "freq": "M",
+        "period": "2018-09",
+        "source": "IMF CPI",
+        "value": 1.3977,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-11-25",
+        "freq": "M",
+        "period": "2018-10",
+        "source": "IMF CPI",
+        "value": 0.9586,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-25",
+        "freq": "M",
+        "period": "2018-11",
+        "source": "IMF CPI",
+        "value": 0.8581,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-01-25",
+        "freq": "M",
+        "period": "2018-12",
+        "source": "IMF CPI",
+        "value": 0.6642,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-04",
+        "value": 0.3,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-10",
+        "value": 0.3,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 0.338178410046124,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-02-25",
+        "freq": "M",
+        "period": "2019-01",
+        "source": "IMF CPI",
+        "value": 0.4758,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-03-25",
+        "freq": "M",
+        "period": "2019-02",
+        "source": "IMF CPI",
+        "value": 0.9394,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-04-25",
+        "freq": "M",
+        "period": "2019-03",
+        "source": "IMF CPI",
+        "value": 0.8466,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-05-25",
+        "freq": "M",
+        "period": "2019-04",
+        "source": "IMF CPI",
+        "value": 0.7707,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-06-25",
+        "freq": "M",
+        "period": "2019-05",
+        "source": "IMF CPI",
+        "value": 0.4212,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-07-25",
+        "freq": "M",
+        "period": "2019-06",
+        "source": "IMF CPI",
+        "value": 0.3874,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-08-25",
+        "freq": "M",
+        "period": "2019-07",
+        "source": "IMF CPI",
+        "value": -0.3155,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-09-25",
+        "freq": "M",
+        "period": "2019-08",
+        "source": "IMF CPI",
+        "value": -0.0852,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-10-25",
+        "freq": "M",
+        "period": "2019-09",
+        "source": "IMF CPI",
+        "value": -0.112,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-11-25",
+        "freq": "M",
+        "period": "2019-10",
+        "source": "IMF CPI",
+        "value": 0.0153,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-25",
+        "freq": "M",
+        "period": "2019-11",
+        "source": "IMF CPI",
+        "value": 0.3166,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-01-25",
+        "freq": "M",
+        "period": "2019-12",
+        "source": "IMF CPI",
+        "value": 0.4196,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "GC.TAX.TOTL.GD.ZS": [
+      {
+        "as_of": "2015-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank WDI",
+        "value": 22.8746795754976,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank WDI",
+        "value": 23.078466918073,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank WDI",
+        "value": 22.6170386298855,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank WDI",
+        "value": 22.6364061063622,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank WDI",
+        "value": 22.8445730542681,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank WDI",
+        "value": 22.4472570141358,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "GC.XPN.INTP.RV.ZS": [
+      {
+        "as_of": "1975-12-31",
+        "freq": "A",
+        "period": "1975",
+        "source": "World Bank panel",
+        "value": 3.13479623824452,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1976-12-31",
+        "freq": "A",
+        "period": "1976",
+        "source": "World Bank panel",
+        "value": 4.55259026687598,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1978-12-31",
+        "freq": "A",
+        "period": "1978",
+        "source": "World Bank panel",
+        "value": 9.88960441582331,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1979-12-31",
+        "freq": "A",
+        "period": "1979",
+        "source": "World Bank panel",
+        "value": 10.6715063520871,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1980-12-31",
+        "freq": "A",
+        "period": "1980",
+        "source": "World Bank panel",
+        "value": 10.1433882103027,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1981-12-31",
+        "freq": "A",
+        "period": "1981",
+        "source": "World Bank panel",
+        "value": 16.3248043983929,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1982-12-31",
+        "freq": "A",
+        "period": "1982",
+        "source": "World Bank panel",
+        "value": 17.1467299220603,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1983-12-31",
+        "freq": "A",
+        "period": "1983",
+        "source": "World Bank panel",
+        "value": 18.1772908366534,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1984-12-31",
+        "freq": "A",
+        "period": "1984",
+        "source": "World Bank panel",
+        "value": 21.3374116654362,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1985-12-31",
+        "freq": "A",
+        "period": "1985",
+        "source": "World Bank panel",
+        "value": 23.2660836436055,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1986-12-31",
+        "freq": "A",
+        "period": "1986",
+        "source": "World Bank panel",
+        "value": 25.0749625187407,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1987-12-31",
+        "freq": "A",
+        "period": "1987",
+        "source": "World Bank panel",
+        "value": 23.2597524978787,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1988-12-31",
+        "freq": "A",
+        "period": "1988",
+        "source": "World Bank panel",
+        "value": 21.5171866702871,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1989-12-31",
+        "freq": "A",
+        "period": "1989",
+        "source": "World Bank panel",
+        "value": 17.7973228677553,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1990-12-31",
+        "freq": "A",
+        "period": "1990",
+        "source": "World Bank panel",
+        "value": 20.4381948986265,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1995-12-31",
+        "freq": "A",
+        "period": "1995",
+        "source": "World Bank panel",
+        "value": 16.5670714297711,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1996-12-31",
+        "freq": "A",
+        "period": "1996",
+        "source": "World Bank panel",
+        "value": 14.0597246891652,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1997-12-31",
+        "freq": "A",
+        "period": "1997",
+        "source": "World Bank panel",
+        "value": 11.1173789430931,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1998-12-31",
+        "freq": "A",
+        "period": "1998",
+        "source": "World Bank panel",
+        "value": 9.20656247047833,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1999-12-31",
+        "freq": "A",
+        "period": "1999",
+        "source": "World Bank panel",
+        "value": 8.36746746485588,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2000-12-31",
+        "freq": "A",
+        "period": "2000",
+        "source": "World Bank panel",
+        "value": 8.47483045707669,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2001-12-31",
+        "freq": "A",
+        "period": "2001",
+        "source": "World Bank panel",
+        "value": 8.4579805053787,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2002-12-31",
+        "freq": "A",
+        "period": "2002",
+        "source": "World Bank panel",
+        "value": 7.78002853843552,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": 7.67245891444122,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 7.37216658365298,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 7.26159291048935,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 7.74829127994909,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 7.97014262670987,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 8.43382721230771,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": 8.5363397121414,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 8.58737071311922,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": 11.7553159081216,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": 12.9592706378282,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": 12.1571826390256,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 12.4091457493453,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 11.7393779597517,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 10.8238920089983,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 9.95102015391345,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 8.74828300000384,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 7.74414163184949,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "GOV_WGI_GE.EST": [
+      {
+        "as_of": "2015-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank WGI",
+        "value": 0.93359,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank WGI",
+        "value": 1.1121757,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank WGI",
+        "value": 1.0935326,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank WGI",
+        "value": 1.2300446,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank WGI",
+        "value": 1.0601732,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank WGI",
+        "value": 1.0136875,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "GOV_WGI_PV.EST": [
+      {
+        "as_of": "1996-12-31",
+        "freq": "A",
+        "period": "1996",
+        "source": "World Bank panel",
+        "value": 1.3381336,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1998-12-31",
+        "freq": "A",
+        "period": "1998",
+        "source": "World Bank panel",
+        "value": 1.4263366,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2000-12-31",
+        "freq": "A",
+        "period": "2000",
+        "source": "World Bank panel",
+        "value": 1.3809911,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2002-12-31",
+        "freq": "A",
+        "period": "2002",
+        "source": "World Bank panel",
+        "value": 1.4436178,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": 1.3478882,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 0.9237518,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 1.0744066,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 0.9679647,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 0.874565,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 0.992239,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": 0.8872701,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 0.773195,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": 0.7839002,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": 0.8412014,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": 0.7633997,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 0.9403714,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 1.0004341,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 0.9588082,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 1.054818,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 1.0917404,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 0.9941251,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "GOV_WGI_RL.EST": [
+      {
+        "as_of": "1996-12-31",
+        "freq": "A",
+        "period": "1996",
+        "source": "World Bank panel",
+        "value": 1.2571558,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1998-12-31",
+        "freq": "A",
+        "period": "1998",
+        "source": "World Bank panel",
+        "value": 1.1350206,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2000-12-31",
+        "freq": "A",
+        "period": "2000",
+        "source": "World Bank panel",
+        "value": 1.094653,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2002-12-31",
+        "freq": "A",
+        "period": "2002",
+        "source": "World Bank panel",
+        "value": 1.2371068,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": 1.2560475,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 1.1874611,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 1.1461719,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 1.0368617,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 1.1553392,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 1.0970707,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": 1.0277189,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 0.881024,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": 0.8670733,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": 0.8880919,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": 0.9006196,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 1.0181872,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 1.1272881,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 1.1156915,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 1.1722683,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 1.13034,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 1.1165505,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "HD.HCI.OVRL": [
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank Human Capital Project",
+        "value": 0.776,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank Human Capital Project",
+        "value": 0.783440172672272,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "IC.BUS.NDNS.ZS": [
+      {
+        "as_of": "2015-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank WDI",
+        "value": 4.68871481090837,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank WDI",
+        "value": 5.05788476353722,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank WDI",
+        "value": 5.02238064514107,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank WDI",
+        "value": 5.64565183679406,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank WDI",
+        "value": 6.5150094248072,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank WDI",
+        "value": 7.11247804469968,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "IQ.SPI.OVRL": [
+      {
+        "as_of": "2017-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank SPI",
+        "value": 85.675,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank SPI",
+        "value": 86.14375,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank SPI",
+        "value": 85.9591666666667,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank SPI",
+        "value": 86.2591666666667,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "NY.GDP.PCAP.KD.ZG": [
+      {
+        "as_of": "1980-12-31",
+        "freq": "A",
+        "period": "1980",
+        "source": "World Bank panel",
+        "value": 3.46437141035155,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1981-12-31",
+        "freq": "A",
+        "period": "1981",
+        "source": "World Bank panel",
+        "value": 0.740801365102755,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1982-12-31",
+        "freq": "A",
+        "period": "1982",
+        "source": "World Bank panel",
+        "value": 1.51289308675764,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1983-12-31",
+        "freq": "A",
+        "period": "1983",
+        "source": "World Bank panel",
+        "value": -0.635201606910073,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1984-12-31",
+        "freq": "A",
+        "period": "1984",
+        "source": "World Bank panel",
+        "value": -2.25657884652966,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1985-12-31",
+        "freq": "A",
+        "period": "1985",
+        "source": "World Bank panel",
+        "value": 2.5266056975684,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1986-12-31",
+        "freq": "A",
+        "period": "1986",
+        "source": "World Bank panel",
+        "value": 4.04627903442302,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1987-12-31",
+        "freq": "A",
+        "period": "1987",
+        "source": "World Bank panel",
+        "value": 6.41006270883734,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1988-12-31",
+        "freq": "A",
+        "period": "1988",
+        "source": "World Bank panel",
+        "value": 7.60090253128074,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1989-12-31",
+        "freq": "A",
+        "period": "1989",
+        "source": "World Bank panel",
+        "value": 6.59607162191102,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1990-12-31",
+        "freq": "A",
+        "period": "1990",
+        "source": "World Bank panel",
+        "value": 4.17732882710808,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1991-12-31",
+        "freq": "A",
+        "period": "1991",
+        "source": "World Bank panel",
+        "value": 4.60903326381703,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1992-12-31",
+        "freq": "A",
+        "period": "1992",
+        "source": "World Bank panel",
+        "value": 1.1681037872908,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1993-12-31",
+        "freq": "A",
+        "period": "1993",
+        "source": "World Bank panel",
+        "value": -2.16302137348492,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1994-12-31",
+        "freq": "A",
+        "period": "1994",
+        "source": "World Bank panel",
+        "value": 0.693517750119014,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1995-12-31",
+        "freq": "A",
+        "period": "1995",
+        "source": "World Bank panel",
+        "value": 3.92237331178322,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1996-12-31",
+        "freq": "A",
+        "period": "1996",
+        "source": "World Bank panel",
+        "value": 3.11580522976421,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1997-12-31",
+        "freq": "A",
+        "period": "1997",
+        "source": "World Bank panel",
+        "value": 3.93579786843061,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1998-12-31",
+        "freq": "A",
+        "period": "1998",
+        "source": "World Bank panel",
+        "value": 4.27961126929266,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1999-12-31",
+        "freq": "A",
+        "period": "1999",
+        "source": "World Bank panel",
+        "value": 3.3205096130955,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2000-12-31",
+        "freq": "A",
+        "period": "2000",
+        "source": "World Bank panel",
+        "value": 3.08905313202446,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2001-12-31",
+        "freq": "A",
+        "period": "2001",
+        "source": "World Bank panel",
+        "value": 1.22726326221765,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2002-12-31",
+        "freq": "A",
+        "period": "2002",
+        "source": "World Bank panel",
+        "value": 0.220543241020806,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": -1.30174193891358,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 1.54561995012715,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 0.595038072485551,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 1.44193756415369,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 2.30555184529184,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 0.174699975144293,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": -3.21438882343172,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 1.69092747575826,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": -1.56885655182528,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": -3.66111452137058,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": -0.439198387971658,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 1.28604644379557,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 2.01139554784055,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 2.32643063621838,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 3.56700126187077,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 3.11123658697107,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 2.72130207848775,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "POL_CORRUPTION": [
+      {
+        "as_of": "1980-12-31",
+        "freq": "A",
+        "period": "1980",
+        "source": "World Bank panel",
+        "value": 0.107,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1981-12-31",
+        "freq": "A",
+        "period": "1981",
+        "source": "World Bank panel",
+        "value": 0.107,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1982-12-31",
+        "freq": "A",
+        "period": "1982",
+        "source": "World Bank panel",
+        "value": 0.107,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1983-12-31",
+        "freq": "A",
+        "period": "1983",
+        "source": "World Bank panel",
+        "value": 0.107,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1984-12-31",
+        "freq": "A",
+        "period": "1984",
+        "source": "World Bank panel",
+        "value": 0.107,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1985-12-31",
+        "freq": "A",
+        "period": "1985",
+        "source": "World Bank panel",
+        "value": 0.107,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1986-12-31",
+        "freq": "A",
+        "period": "1986",
+        "source": "World Bank panel",
+        "value": 0.105,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1987-12-31",
+        "freq": "A",
+        "period": "1987",
+        "source": "World Bank panel",
+        "value": 0.105,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1988-12-31",
+        "freq": "A",
+        "period": "1988",
+        "source": "World Bank panel",
+        "value": 0.105,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1989-12-31",
+        "freq": "A",
+        "period": "1989",
+        "source": "World Bank panel",
+        "value": 0.105,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1990-12-31",
+        "freq": "A",
+        "period": "1990",
+        "source": "World Bank panel",
+        "value": 0.105,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1991-12-31",
+        "freq": "A",
+        "period": "1991",
+        "source": "World Bank panel",
+        "value": 0.105,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1992-12-31",
+        "freq": "A",
+        "period": "1992",
+        "source": "World Bank panel",
+        "value": 0.1,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1993-12-31",
+        "freq": "A",
+        "period": "1993",
+        "source": "World Bank panel",
+        "value": 0.1,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1994-12-31",
+        "freq": "A",
+        "period": "1994",
+        "source": "World Bank panel",
+        "value": 0.1,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1995-12-31",
+        "freq": "A",
+        "period": "1995",
+        "source": "World Bank panel",
+        "value": 0.1,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1996-12-31",
+        "freq": "A",
+        "period": "1996",
+        "source": "World Bank panel",
+        "value": 0.092,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1997-12-31",
+        "freq": "A",
+        "period": "1997",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1998-12-31",
+        "freq": "A",
+        "period": "1998",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1999-12-31",
+        "freq": "A",
+        "period": "1999",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2000-12-31",
+        "freq": "A",
+        "period": "2000",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2001-12-31",
+        "freq": "A",
+        "period": "2001",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2002-12-31",
+        "freq": "A",
+        "period": "2002",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 0.088,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": 0.087,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 0.091,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 0.093,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 0.104,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 0.094,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 0.1,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 0.105,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "SE.XPD.TOTL.GD.ZS": [
+      {
+        "as_of": "2015-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank WDI",
+        "value": 5.12005996704102,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank WDI",
+        "value": 4.89425992965698,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank WDI",
+        "value": 5.02685022354126,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank WDI",
+        "value": 4.6793999671936,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank WDI",
+        "value": 4.6275200843811,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "SI.POV.GINI": [
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": 38.8,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 38.9,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 38.5,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 38.1,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 36.8,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 36.6,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": 34.9,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 35.8,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": 36.3,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": 36.0,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": 36.2,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 35.6,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 35.5,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 35.2,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 33.8,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 33.5,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 32.8,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "SL.TLF.CACT.ZS": [
+      {
+        "as_of": "2015-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank WDI",
+        "value": 58.777,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank WDI",
+        "value": 58.555,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank WDI",
+        "value": 58.414,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank WDI",
+        "value": 58.881,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank WDI",
+        "value": 58.953,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank WDI",
+        "value": 58.976,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "SL.UEM.TOTL.ZS": [
+      {
+        "as_of": "1991-12-31",
+        "freq": "A",
+        "period": "1991",
+        "source": "World Bank panel",
+        "value": 3.919,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1992-12-31",
+        "freq": "A",
+        "period": "1992",
+        "source": "World Bank panel",
+        "value": 3.985,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1993-12-31",
+        "freq": "A",
+        "period": "1993",
+        "source": "World Bank panel",
+        "value": 5.301,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1994-12-31",
+        "freq": "A",
+        "period": "1994",
+        "source": "World Bank panel",
+        "value": 6.709,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1995-12-31",
+        "freq": "A",
+        "period": "1995",
+        "source": "World Bank panel",
+        "value": 7.064,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1996-12-31",
+        "freq": "A",
+        "period": "1996",
+        "source": "World Bank panel",
+        "value": 7.298,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1997-12-31",
+        "freq": "A",
+        "period": "1997",
+        "source": "World Bank panel",
+        "value": 6.571,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1998-12-31",
+        "freq": "A",
+        "period": "1998",
+        "source": "World Bank panel",
+        "value": 4.64,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "1999-12-31",
+        "freq": "A",
+        "period": "1999",
+        "source": "World Bank panel",
+        "value": 4.579,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2000-12-31",
+        "freq": "A",
+        "period": "2000",
+        "source": "World Bank panel",
+        "value": 3.806,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2001-12-31",
+        "freq": "A",
+        "period": "2001",
+        "source": "World Bank panel",
+        "value": 3.829,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2002-12-31",
+        "freq": "A",
+        "period": "2002",
+        "source": "World Bank panel",
+        "value": 4.497,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2003-12-31",
+        "freq": "A",
+        "period": "2003",
+        "source": "World Bank panel",
+        "value": 6.132,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2004-12-31",
+        "freq": "A",
+        "period": "2004",
+        "source": "World Bank panel",
+        "value": 6.319,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2005-12-31",
+        "freq": "A",
+        "period": "2005",
+        "source": "World Bank panel",
+        "value": 7.582,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2006-12-31",
+        "freq": "A",
+        "period": "2006",
+        "source": "World Bank panel",
+        "value": 7.649,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2007-12-31",
+        "freq": "A",
+        "period": "2007",
+        "source": "World Bank panel",
+        "value": 7.965,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2008-12-31",
+        "freq": "A",
+        "period": "2008",
+        "source": "World Bank panel",
+        "value": 7.553,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2009-12-31",
+        "freq": "A",
+        "period": "2009",
+        "source": "World Bank panel",
+        "value": 9.432,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2010-12-31",
+        "freq": "A",
+        "period": "2010",
+        "source": "World Bank panel",
+        "value": 10.771,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2011-12-31",
+        "freq": "A",
+        "period": "2011",
+        "source": "World Bank panel",
+        "value": 12.715,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2012-12-31",
+        "freq": "A",
+        "period": "2012",
+        "source": "World Bank panel",
+        "value": 15.509,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2013-12-31",
+        "freq": "A",
+        "period": "2013",
+        "source": "World Bank panel",
+        "value": 16.237,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2014-12-31",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank panel",
+        "value": 13.88,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2015-12-31",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank panel",
+        "value": 12.405,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2016-12-31",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank panel",
+        "value": 11.058,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2017-12-31",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank panel",
+        "value": 8.878,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2018-12-31",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank panel",
+        "value": 6.966,
+        "vintage_scheme": "as-published-latest"
+      },
+      {
+        "as_of": "2019-12-31",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank panel",
+        "value": 6.422,
+        "vintage_scheme": "as-published-latest"
+      }
+    ],
+    "SP.POP.DPND.OL": [
+      {
+        "as_of": "2015-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2014",
+        "source": "World Bank WDI",
+        "value": 30.7883442611588,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2016-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2015",
+        "source": "World Bank WDI",
+        "value": 31.5909819634228,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2017-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2016",
+        "source": "World Bank WDI",
+        "value": 32.4039593391788,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2018-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2017",
+        "source": "World Bank WDI",
+        "value": 33.2592921619942,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2019-12-31",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2018",
+        "source": "World Bank WDI",
+        "value": 34.082955832304,
+        "vintage_scheme": "publication-lag-estimate"
+      },
+      {
+        "as_of": "2020-12-30",
+        "as_of_pre_restamp": "2026-08-28",
+        "freq": "A",
+        "period": "2019",
+        "source": "World Bank WDI",
+        "value": 34.9418993381056,
+        "vintage_scheme": "publication-lag-estimate"
+      }
+    ],
+    "WEO.BCA_NGDPD": [
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2017-10",
+        "value": 1.579,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-04",
+        "value": 0.122,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-10",
+        "value": 0.081,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-10",
+        "value": 0.111,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-04",
+        "value": 0.081,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-10",
+        "value": 0.063,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2020-10",
+        "value": 0.157,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2020-04",
+        "value": 0.157,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-04",
+        "value": 0.081,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-10",
+        "value": 0.081,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-04",
+        "value": 0.061,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2020-10",
+        "value": 0.23,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-04",
+        "value": 0.116,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-04",
+        "value": 0.116,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-10",
+        "value": 0.116,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-10",
+        "value": 0.116,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-04",
+        "value": 0.069,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2016-04",
+        "value": 0.453,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-10",
+        "value": 0.124,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2016-10",
+        "value": 0.421,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2020-04",
+        "value": 0.23,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-04",
+        "value": 0.594,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-10",
+        "value": 0.59,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2020-04",
+        "value": 1.172,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-04",
+        "value": 0.59,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-10",
+        "value": 0.594,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2020-10",
+        "value": 1.172,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2017-04",
+        "value": 0.841,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2017-10",
+        "value": 0.714,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2020-10",
+        "value": 1.302,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-04",
+        "value": 0.452,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2020-04",
+        "value": 1.302,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2018-10",
+        "value": 0.455,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2018-04",
+        "value": 0.455,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-10",
+        "value": 0.449,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-10",
+        "value": 0.389,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2019-10",
+        "value": -0.604,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-04",
+        "value": 0.389,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-04",
+        "value": -0.085,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-10",
+        "value": -0.085,
+        "vintage_scheme": "as-published-edition"
+      }
+    ],
+    "WEO.GGXCNL_NGDP": [
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2018-04",
+        "value": -4.842,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2016-10",
+        "value": -4.842,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2018-10",
+        "value": -4.842,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2019-04",
+        "value": -4.842,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2016-04",
+        "value": -4.842,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2020-10",
+        "value": -7.309,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-10",
+        "value": -7.12,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-04",
+        "value": -7.166,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-04",
+        "value": -7.176,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-04",
+        "value": -7.166,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-10",
+        "value": -7.166,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-10",
+        "value": -7.176,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-04",
+        "value": -7.119,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2020-04",
+        "value": -7.12,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-10",
+        "value": -7.119,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2020-10",
+        "value": -4.346,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-04",
+        "value": -4.356,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-04",
+        "value": -4.301,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-10",
+        "value": -4.301,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-04",
+        "value": -4.403,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-10",
+        "value": -4.303,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2020-04",
+        "value": -4.303,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-10",
+        "value": -4.36,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-10",
+        "value": -1.976,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-04",
+        "value": -1.976,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-04",
+        "value": -1.97,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2020-10",
+        "value": -1.935,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2020-04",
+        "value": -1.97,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2017-10",
+        "value": -2.013,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-10",
+        "value": -1.97,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2020-10",
+        "value": -2.956,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-04",
+        "value": -2.961,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2018-10",
+        "value": -2.957,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-10",
+        "value": -2.943,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2020-04",
+        "value": -2.96,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-10",
+        "value": -0.442,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-04",
+        "value": -0.446,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2019-10",
+        "value": -0.448,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-04",
+        "value": 0.19,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-10",
+        "value": 0.19,
+        "vintage_scheme": "as-published-edition"
+      }
+    ],
+    "WEO.GGXWDG_NGDP": [
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2012",
+        "source": "IMF WEO 2017-10",
+        "value": 126.222,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2012",
+        "source": "IMF WEO 2019-04",
+        "value": 126.222,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2018-10",
+        "value": 129.039,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2016-04",
+        "value": 129.001,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2017-10",
+        "value": 129.04,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2017-04",
+        "value": 129.04,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2019-04",
+        "value": 129.04,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2018-04",
+        "value": 129.04,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2020-10",
+        "value": 131.43,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2016-10",
+        "value": 129.001,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2019-10",
+        "value": 128.871,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2020-10",
+        "value": 132.941,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-10",
+        "value": 130.165,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-04",
+        "value": 130.593,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-04",
+        "value": 130.165,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-10",
+        "value": 130.594,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-10",
+        "value": 130.612,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-04",
+        "value": 130.603,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-04",
+        "value": 130.593,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-10",
+        "value": 130.593,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-10",
+        "value": 128.989,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-04",
+        "value": 128.988,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-04",
+        "value": 128.77,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-04",
+        "value": 128.77,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-10",
+        "value": 128.77,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2020-10",
+        "value": 131.179,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-10",
+        "value": 128.839,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-04",
+        "value": 129.901,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2020-10",
+        "value": 131.506,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-04",
+        "value": 129.214,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-10",
+        "value": 129.901,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-10",
+        "value": 129.207,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2017-10",
+        "value": 130.35,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2020-10",
+        "value": 126.143,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-10",
+        "value": 123.914,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2018-10",
+        "value": 125.682,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-04",
+        "value": 124.762,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-10",
+        "value": 122.004,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2019-10",
+        "value": 120.125,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-10",
+        "value": 117.737,
+        "vintage_scheme": "as-published-edition"
+      }
+    ],
+    "WEO.NGDP_RPCH": [
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2013",
+        "source": "IMF WEO 2016-10",
+        "value": -1.13,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2020-04",
+        "value": 0.792,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-04",
+        "value": 0.893,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-10",
+        "value": 0.792,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2020-10",
+        "value": 0.792,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2018-10",
+        "value": 0.893,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-10",
+        "value": 0.893,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-10",
+        "value": 0.906,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2019-04",
+        "value": 0.893,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2017-04",
+        "value": 0.893,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2014",
+        "source": "IMF WEO 2016-04",
+        "value": 0.906,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-10",
+        "value": 1.594,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2020-04",
+        "value": 1.792,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-04",
+        "value": 1.822,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2020-10",
+        "value": 1.792,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2016-10",
+        "value": 1.45,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-10",
+        "value": 1.822,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2018-04",
+        "value": 1.822,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2016-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2016-04",
+        "value": 1.472,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2019-10",
+        "value": 1.792,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2015",
+        "source": "IMF WEO 2017-04",
+        "value": 1.596,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2017-04",
+        "value": 1.432,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-10",
+        "value": 2.019,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2019-04",
+        "value": 1.926,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-04",
+        "value": 1.619,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2020-10",
+        "value": 2.019,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2020-04",
+        "value": 2.019,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2018-10",
+        "value": 1.619,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2017-10-01",
+        "freq": "A",
+        "period": "2016",
+        "source": "IMF WEO 2017-10",
+        "value": 1.399,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-10",
+        "value": 3.506,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2019-04",
+        "value": 2.795,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2020-10",
+        "value": 3.506,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-10-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2018-10",
+        "value": 2.68,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2018-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2018-04",
+        "value": 2.674,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2017",
+        "source": "IMF WEO 2020-04",
+        "value": 3.506,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2019-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2019-10",
+        "value": 2.441,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-04",
+        "value": 2.637,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2018",
+        "source": "IMF WEO 2020-10",
+        "value": 2.637,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-10-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-10",
+        "value": 2.165,
+        "vintage_scheme": "as-published-edition"
+      },
+      {
+        "as_of": "2020-04-01",
+        "freq": "A",
+        "period": "2019",
+        "source": "IMF WEO 2020-04",
+        "value": 2.157,
+        "vintage_scheme": "as-published-edition"
+      }
+    ]
+  }
+}

@@ -67,6 +67,36 @@ def payload_variant() -> str:
     return variant
 
 
+# What `payload_fingerprint` says before any payload has been built. A real
+# value or this — never a plausible-looking empty string, which would compare
+# equal to itself forever and drop out of the freeze the way `git_sha` did
+# before anything set it.
+UNRESOLVED_FINGERPRINT = "unresolved"
+
+_payload_fingerprint: str = UNRESOLVED_FINGERPRINT
+
+
+def record_payload_fingerprint(value: Optional[str]) -> None:
+    """Remember the content fingerprint of the payload just built.
+
+    Written by `llm.payload.payload_health`, which is the one place that knows
+    which indicators actually reached the model. Process state, deliberately:
+    `score.versions()` must not read a database (its own test asserts every
+    frozen field is populated with no fixture), and the fingerprint is a fact
+    about data rather than about code, so there is nowhere static to read it
+    from. The seam is narrow — one setter, one getter, and a run that has built
+    no payload reports that it has not.
+    """
+    global _payload_fingerprint
+    if value:
+        _payload_fingerprint = value
+
+
+def payload_fingerprint() -> str:
+    """The content fingerprint of the last payload this process built."""
+    return _payload_fingerprint
+
+
 def payload_version() -> str:
     """The version stamped on a row, environment override included.
 

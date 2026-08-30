@@ -74,9 +74,17 @@ logger = logging.getLogger(__name__)
 # `SEED` rides with them because it is part of the same claim. A run at a
 # different seed is not comparable with a stored one and says so in
 # `client.SEED`'s own comment; it simply had nowhere to be checked.
+#
+# `PAYLOAD_FINGERPRINT` is the tenth and it is the only one about *data*. The
+# other nine name code, and the vintage fix of 2026-08-29 walked past all of
+# them: it moved nine indicators per country into every payload, inside `p2`,
+# and `drift()` returned an empty dict. A contract version cannot see its own
+# contents. Where the two disagree about whether a run is comparable with a
+# stored one, the fingerprint is the one that knows.
 FROZEN_FIELDS: Tuple[str, ...] = (
     "SWEEP_VERSION", "REWRITE_VERSION", "GAZETTEER_VERSION",
     "MASK_MAP_VERSION", "PROMPT_VERSION", "PAYLOAD_VERSION",
+    "PAYLOAD_FINGERPRINT",
     "SCORING_MODEL", "DIGEST_MODEL", "SEED",
 )
 
@@ -131,6 +139,11 @@ def versions() -> Dict[str, str]:
         "SCORING_MODEL": ai_client.scoring_model(),
         "DIGEST_MODEL": ai_client.digest_model(),
         "SEED": str(ai_client.SEED),
+        # The contents, not the contract. Reported by `provenance` from the last
+        # payload this process built, so this function stays free of a database
+        # read; `freeze` seeds it before pinning anything. Until a payload has
+        # been built it reads `unresolved`, which `freeze` refuses to pin.
+        "PAYLOAD_FINGERPRINT": provenance.payload_fingerprint(),
         "git_sha": git_sha() or "",
     }
 
@@ -152,6 +165,50 @@ def drift(frozen: Dict[str, str], current: Dict[str, str]) -> Dict[str, tuple]:
             if frozen.get(field) != current.get(field)}
 
 
+# The anchor whose payload is fingerprinted to seed the freeze. Any country and
+# any date would do -- the fingerprint is over the *delivered indicator set*,
+# which is a property of the store and the registry rather than of this
+# country's week -- so it is pinned rather than chosen per run, because a probe
+# that moved would make the fingerprint move for reasons that are not about the
+# data. PT because it is in `PILOT_ROSTER` and is the window `GATE2_BASELINE`
+# was captured on; the date because it is inside that window.
+_FINGERPRINT_PROBE: Tuple[str, datetime.date] = ("PT", datetime.date(2019, 6, 3))
+
+
+def _seed_payload_fingerprint() -> Optional[str]:
+    """Build the probe anchor's payload so `versions()` has a fingerprint.
+
+    Separated so the freeze tests can replace it: they assert the guard's
+    behaviour and have no database, and standing up one to check that a version
+    string moved would be testing Postgres.
+
+    Returns None when the probe resolves nothing, which is what an unreachable
+    or empty store looks like. That is deliberately *not* folded into "the
+    fingerprint of an empty payload": an empty resolve hashes to a perfectly
+    stable value, and pinning it would freeze the run against a store it never
+    read.
+    """
+    from backend.data_upsert import data_push
+    from backend.llm import payload as llm_payload
+    from backend.util import constants
+
+    iso2, as_of = _FINGERPRINT_PROBE
+    try:
+        series = data_push.read_indicator_series(iso2)
+        evidence = llm_payload.build_evidence_payload(
+            iso2, as_of=as_of, series=series,
+            fx_regimes=constants.FX_REGIMES, elections=constants.ELECTIONS,
+            vintage_as_of=as_of)
+        health = llm_payload.payload_health(evidence, series, as_of)
+    except Exception as exc:  # noqa: BLE001 — an unreadable store is "unresolved"
+        logger.warning("[freeze] could not fingerprint the probe payload: %s", exc)
+        return None
+    if not health["indicators"]["resolved"]:
+        logger.warning("[freeze] the probe payload resolved no indicators")
+        return None
+    return health["indicators"]["fingerprint"]
+
+
 def freeze(override: bool = False) -> Dict[str, Any]:
     """Pin the version set on the first run; guard every resume after it.
 
@@ -163,9 +220,25 @@ def freeze(override: bool = False) -> Dict[str, Any]:
         ``{versions, first, moved, sha_moved}``.
 
     Raises:
-        VersionDrift: a frozen field moved and ``override`` is False.
+        VersionDrift: a frozen field moved and ``override`` is False, or the
+            payload fingerprint could not be resolved at all. The second is a
+            drift in the only direction that matters: a run that cannot say what
+            evidence it is about to score on cannot be compared with one that
+            can, and pinning `unresolved` would put that blindness in the
+            frozen set permanently.
     """
+    if provenance.payload_fingerprint() == provenance.UNRESOLVED_FINGERPRINT:
+        _seed_payload_fingerprint()
     current = versions()
+    if current["PAYLOAD_FINGERPRINT"] == provenance.UNRESOLVED_FINGERPRINT:
+        raise VersionDrift(
+            "the payload fingerprint is unresolved — no payload has been built "
+            "and the probe anchor "
+            f"({_FINGERPRINT_PROBE[0]} {_FINGERPRINT_PROBE[1]}) resolved no "
+            "indicators. That is the store being unreachable or empty, not a "
+            "payload with nothing in it, and freezing against it would pin a "
+            "value that can never move."
+        )
     frozen = store.read_frozen_versions()
     if not frozen:
         store.write_frozen_versions(current)

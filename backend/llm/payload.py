@@ -24,6 +24,7 @@ report a null ``latest`` for the slower half of the set.
 
 import calendar
 import collections
+import hashlib
 import json
 import logging
 import re
@@ -495,6 +496,51 @@ def _values(observations: List[_Observation], freq: Optional[str] = None) -> Lis
 
 _LEDGERS = ("friction", "uncertainty", "information", "edge")
 
+def content_fingerprint(resolved: Dict[str, dict]) -> str:
+    """Sixteen hex over what the payload actually delivered. Pure.
+
+    ``PAYLOAD_VERSION`` names the evidence *contract* — which blocks exist — and
+    it cannot see the contents. On 2026-08-29 the vintage fix moved nine
+    indicators per country from "published after the anchor" to "published
+    before it", and every one of them appeared inside `p2`. Nine of the nine
+    frozen fields were identical on both sides, so `score.drift()` returned an
+    empty dict, a resume was allowed, and the two arms
+    `docs/scorer-acceptance.md` names as the reference went on being compared
+    against candidates that see a different payload. See
+    `docs/pipeline-audit.md` section 3.
+
+    So: a hash of the delivered set rather than of the contract naming it. Each
+    indicator contributes its code, the period it resolved to, the ``as_of``
+    that period was published on, and the source that published it — which is
+    exactly the tuple the vintage fix changed, and exactly the tuple that
+    changes when a loader is rewired, a source is added, or a curated file is
+    finally filled.
+
+    Deliberately *not* the values. A World Bank revision to an already-published
+    figure is a different fact from a different set of figures reaching the
+    model, and only the second makes two runs incomparable. Hashing the values
+    would refuse a comparison every time an upstream revised a decimal place,
+    which is the shape of a guard that gets turned off.
+
+    Args:
+        resolved: ``{indicator_code: entry}`` for every indicator that reached
+            the payload, as :func:`payload_health` assembles it.
+
+    Returns:
+        Sixteen lowercase hex characters. Stable across processes and machines:
+        the input is sorted, and every component is stringified rather than
+        repr'd.
+    """
+    parts = [
+        "|".join((code,
+                  str((entry or {}).get("period") or ""),
+                  str((entry or {}).get("as_of") or ""),
+                  str((entry or {}).get("source") or "")))
+        for code, entry in sorted((resolved or {}).items())
+    ]
+    return hashlib.sha256("\n".join(parts).encode("utf-8")).hexdigest()[:16]
+
+
 def payload_health(evidence: Dict[str, Any],
                    series: Dict[str, List[dict]],
                    as_of: date,
@@ -557,10 +603,22 @@ def payload_health(evidence: Dict[str, Any],
     empty = [led for led in _LEDGERS
              if by_ledger[led]["expected"] and not by_ledger[led]["resolved"]]
 
+    # Recorded as well as returned. `score.versions()` has to stay free of a
+    # database read -- `test_every_frozen_field_is_actually_populated` is
+    # parametrised over `FROZEN_FIELDS` with no fixture -- so the freeze reads
+    # the fingerprint of the last payload this process built rather than
+    # building one itself.
+    fingerprint = content_fingerprint(resolved)
+    provenance.record_payload_fingerprint(fingerprint)
+
     health: Dict[str, Any] = {
         "indicators": {
             "expected": len(constants.INDICATOR_REGISTRY),
             "resolved": len(resolved),
+            # What the contract cannot say. Two rows with the same
+            # `PAYLOAD_VERSION` and different fingerprints were scored on
+            # different evidence, and are not comparable.
+            "fingerprint": fingerprint,
             "by_ledger": by_ledger,
             "empty_ledgers": empty,
             "dropped": dict(sorted(dropped.items())),
