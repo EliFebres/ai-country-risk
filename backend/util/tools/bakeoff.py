@@ -366,6 +366,27 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
                 "PROMPT_VARIANT": "within-band"},
         "key_env": "OPENAI_API_KEY",
     },
+    # The template a local model fills in. Deliberately present and deliberately
+    # not runnable by accident: `SCORING_BASE_URL` here points at a port nothing
+    # listens on, so a stray `smoke local` fails to connect in a second rather
+    # than reaching a real endpoint and spending. `docs/scorer-acceptance.md`
+    # has the worked example, including what to change and what not to.
+    #
+    # The rule the unrun-groq-candidate test enforces still applies: this is not
+    # a candidate anybody screens. It is the shape one takes, kept next to the
+    # others because a template in a document drifts from the dict it describes.
+    "local-template": {
+        "arm": "scoring",
+        "note": "not a candidate — the shape a locally served model takes",
+        "env": {"SCORING_MODEL": "REPLACE-ME",
+                "SCORING_BASE_URL": "http://127.0.0.1:1/v1"},
+        # A local server needs *a* key because the OpenAI client insists on one;
+        # it needs no *real* key. Pointing `key_env` at the OpenAI variable
+        # would make a local run fail when the vendor key is absent, which is
+        # exactly backwards.
+        "key_env": "SCORING_LOCAL_KEY",
+        "key_target": "SCORING_API_KEY",
+    },
 }
 
 # Every candidate is an OpenAI model, and that is the round-2 result rather than
@@ -763,6 +784,17 @@ def _lint_rates(baseline_rows: List[Dict[str, Any]],
             for rule in sorted(set(base) | set(cand))}
 
 
+def _model_of(rows: List[Dict[str, Any]]) -> str:
+    """The model id these rows were produced by, or '' if none of them says.
+
+    An empty answer means "we do not know which model this was", which
+    `usage.is_priced` correctly treats as unpriced: a cost figure derived from a
+    model nobody can name is the same fabrication as one derived from a model
+    with no price.
+    """
+    return next((r["model_id"] for r in rows if r.get("model_id")), "")
+
+
 def cost_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Per-snapshot cost, realised tokens, and the cache share that was measured.
 
@@ -774,6 +806,15 @@ def cost_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     done = [r for r in rows if r.get("status") == "complete"]
     if not done:
         return {"snapshots": 0}
+    # A model with no list price is billed at the fallback rate by `usage.price`,
+    # which is correct for a governor and a fabrication in a report. Tokens and
+    # wall-clock are still real; the dollars are not, so they are withheld
+    # rather than printed with a caveat nobody reads.
+    #
+    # The first row that *names* a model, not simply the first row: an early
+    # anchor whose model id came back empty would otherwise withhold the cost of
+    # a run that is perfectly well priced.
+    priced = usage.is_priced(_model_of(done))
     spend = sum(r.get("spend_usd") or 0.0 for r in done)
     inputs = sum(r.get("input_tokens") or 0 for r in done)
     outputs = sum(r.get("output_tokens") or 0 for r in done)
@@ -782,8 +823,14 @@ def cost_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     offpeak = [r["offpeak_usd"] for r in done if r.get("offpeak_usd") is not None]
     return {
         "snapshots": len(done),
-        "spend_usd": round(spend, 4),
-        "per_snapshot_usd": round(spend / len(done), 6),
+        "priced": priced,
+        "spend_usd": round(spend, 4) if priced else None,
+        "per_snapshot_usd": round(spend / len(done), 6) if priced else None,
+        "seconds_per_snapshot": (round(sum(r["seconds"] for r in done
+                                           if r.get("seconds") is not None)
+                                       / len(done), 2)
+                                 if any(r.get("seconds") is not None for r in done)
+                                 else None),
         # The comparable one. See `cache_neutral_per_snapshot`: realised spend
         # depends on what ran before it, so criterion (e) reads this instead.
         "cache_neutral_per_snapshot_usd": cache_neutral_per_snapshot(done),
@@ -826,8 +873,16 @@ def cache_neutral_per_snapshot(rows: List[Dict[str, Any]]) -> Optional[float]:
     scored = [r for r in rows if r.get("calls")]
     if not scored:
         return None
+    model_id = _model_of(scored)
+    if not usage.is_priced(model_id):
+        # A locally served model has no list price, and `usage.price` would
+        # return gpt-4o's. None here rather than a number, for the same reason
+        # `cache_share` is None when no row reported cache detail: "not priced"
+        # and "priced at zero" are opposite facts, and only one of them belongs
+        # in a comparison. The tokens are still reported by `cost_summary`.
+        return None
     return usage.price(
-        scored[0].get("model_id") or "",
+        model_id,
         sum(r["input_tokens"] for r in scored),
         sum(r["output_tokens"] for r in scored),
         0,
@@ -863,11 +918,57 @@ def load(name: str) -> Optional[Dict[str, Any]]:
 
 
 def save(name: str, payload: Dict[str, Any]) -> pathlib.Path:
-    result_path(name).parent.mkdir(parents=True, exist_ok=True)
+    """Write one candidate's file, never losing a gate result it already had.
+
+    The carry-forward is here rather than in the caller because it used to be in
+    the caller, and that is exactly how 24 of 26 committed files ended up with
+    an empty `gates` block. `main()` protected the CLI's `score` path; every
+    other writer -- the notebook, a test, a future tool -- built a fresh payload
+    through `_wrap`, whose `gates` defaults to `{}`, and overwrote a measurement
+    that cost real money with a dict that cost nothing. One guard where all
+    callers route through, for the same reason `upsert_indicator_series` re-dates
+    at the chokepoint instead of asking each fetcher to behave.
+
+    A caller that genuinely means to clear the gates passes `gates: None`, which
+    is distinguishable from the absent key that a rebuilt payload carries.
+    """
     path = result_path(name)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not payload.get("gates") and path.exists():
+        previous = (load(name) or {}).get("gates")
+        if previous and payload.get("gates") is not None:
+            payload = {**payload, "gates": previous}
+            logger.info("[bakeoff] %s: carried forward the gates already on disk",
+                        name)
     path.write_text(json.dumps(payload, indent=2, default=str, sort_keys=True),
                     encoding="utf-8")
     return path
+
+
+def save_gates(name: str, gates: Dict[str, Any]) -> List[pathlib.Path]:
+    """Record one candidate's gate result in every window it has a file in.
+
+    The gates are a property of the *candidate*, not of the window: `smoke` runs
+    against `_SMOKE_EVIDENCE`, a canned payload with no country and no anchor in
+    it. Storing them in a window-scoped file therefore made them look
+    window-scoped, and smoking a candidate under `US-2019` left the `TR-2018`
+    file saying the gate had never been run -- indistinguishable, on disk, from
+    a candidate that had never been smoked at all.
+    """
+    written = []
+    for window in sorted({p.parent.name for p in RESULTS_DIR.glob(f"*/{name}.json")}
+                         | {window_slug()}):
+        path = RESULTS_DIR / window / f"{name}.json"
+        if path.exists():
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        else:
+            payload = _wrap(name, CANDIDATES.get(name, {}).get("arm", "scoring"), [])
+        payload["gates"] = gates
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload, indent=2, default=str, sort_keys=True),
+                        encoding="utf-8")
+        written.append(path)
+    return written
 
 
 # --- the hard gates ---------------------------------------------------------
@@ -906,21 +1007,96 @@ _SMOKE_ARTICLES = [
 ]
 
 
-def smoke_prompt() -> str:
+# The other two bands. A noise floor measured on one Moderate payload is a noise
+# floor for Moderate, and the models do not behave the same across the range:
+# `gpt-4.1-nano` swings 20 points on a calm payload and 5 on a stressed one, so
+# smoking only the middle would have reported it four times steadier than it is.
+#
+# Three payloads rather than three real anchors, for the same reason
+# `_SMOKE_EVIDENCE` exists: an anchor costs a database, a harvest and a digest
+# pass, and none of that is what the gate measures. What matters is that the
+# three land in different bands, which `BAND_BOUNDS` decides.
+_SMOKE_BANDS: Dict[str, Tuple[Dict[str, Any], List[Dict[str, Any]]]] = {}
+
+_CALM_EVIDENCE = {
+    "structural": {"gdp_growth_pct": 2.4, "cpi_inflation_pct": 1.4,
+                   "unemployment_pct": 3.8, "gov_debt_pct_gdp": 41.2},
+    "vintages": {"weo_edition": "2019-04"},
+}
+_CALM_ARTICLES = [
+    {"id": "a1", "source": "a national daily", "published_at": "2019-06-03",
+     "title": "Budget surplus widens on stronger receipts",
+     "digest": {"what_happened": "The finance ministry reported a wider budget "
+                                 "surplus after receipts beat forecasts.",
+                "actors": "the finance ministry, the audit office",
+                "numbers": "1.2% of GDP, third consecutive quarter",
+                "transmission": "fiscal space, issuance plans",
+                "directly_about_country": True, "stage1_severity": 10}},
+    {"id": "a2", "source": "a news agency", "published_at": "2019-06-05",
+     "title": "Regulator approves cross-border rail concession",
+     "digest": {"what_happened": "The transport regulator approved a rail "
+                                 "concession after a routine consultation.",
+                "actors": "the transport regulator, two bidding consortia",
+                "numbers": "30-year term, four bidders",
+                "transmission": "infrastructure investment",
+                "directly_about_country": True, "stage1_severity": 8}},
+]
+
+_STRESSED_EVIDENCE = {
+    "structural": {"gdp_growth_pct": -4.8, "cpi_inflation_pct": 61.3,
+                   "unemployment_pct": 14.9, "gov_debt_pct_gdp": 152.6},
+    "vintages": {"weo_edition": "2019-04"},
+}
+_STRESSED_ARTICLES = [
+    {"id": "a1", "source": "a national daily", "published_at": "2019-06-03",
+     "title": "Currency falls a further fifth as reserves are drawn down",
+     "digest": {"what_happened": "The currency fell sharply for a second week "
+                                 "while the central bank sold reserves to slow "
+                                 "the decline.",
+                "actors": "the central bank, foreign creditors",
+                "numbers": "-21% in two weeks, reserves down 34%",
+                "transmission": "import costs, external debt service",
+                "directly_about_country": True, "stage1_severity": 88}},
+    {"id": "a2", "source": "a news agency", "published_at": "2019-06-05",
+     "title": "Emergency powers extended as protests spread to third city",
+     "digest": {"what_happened": "The government extended emergency powers by "
+                                 "decree after protests spread and several "
+                                 "journalists were detained.",
+                "actors": "the government, the interior ministry, protest "
+                          "organisers",
+                "numbers": "90-day extension, 11 detained, 3 cities",
+                "transmission": "rule of law, press freedom, investment climate",
+                "directly_about_country": True, "stage1_severity": 92}},
+]
+
+_SMOKE_BANDS = {
+    "calm": (_CALM_EVIDENCE, _CALM_ARTICLES),
+    "moderate": (_SMOKE_EVIDENCE, _SMOKE_ARTICLES),
+    "stressed": (_STRESSED_EVIDENCE, _STRESSED_ARTICLES),
+}
+
+
+def smoke_prompt(band: str = "moderate") -> str:
     """The real prompt, on canned evidence. Not a toy schema and not a toy prompt.
 
     A candidate that satisfies a three-field schema says nothing about one that
     has to satisfy `RISK_SCHEMA_V3` — ten required fields, two nested arrays and
     `additionalProperties: false` at every level. So the gate runs the thing
     that will actually be sent.
+
+    Args:
+        band: which of `_SMOKE_BANDS` to render. `moderate` is the original
+            single payload, kept as the default so every caller that predates
+            the other two keeps its meaning.
     """
     from backend.llm import langchain_llm
 
+    evidence, articles = _SMOKE_BANDS[band]
     prompt = ai_constants.AI_PROMPT_V3.format(
         country="the country",
         as_of_date="2019-06-03",
-        evidence_json=json.dumps(_SMOKE_EVIDENCE, ensure_ascii=False),
-        articles_json=json.dumps(_SMOKE_ARTICLES, ensure_ascii=False),
+        evidence_json=json.dumps(evidence, ensure_ascii=False),
+        articles_json=json.dumps(articles, ensure_ascii=False),
         full_text_block="(no full-text articles supplied)",
     )
     # Including the rule blocks the variant appends, resolved by the same
@@ -928,7 +1104,7 @@ def smoke_prompt() -> str:
     # template under a prompt variant and reported that the candidate could hold
     # a schema the run would never send it -- harmless while a variant only
     # added a paragraph, and actively wrong once one changes the schema.
-    rules, _ = langchain_llm._prompt_rules_and_version(_SMOKE_EVIDENCE)
+    rules, _ = langchain_llm._prompt_rules_and_version(evidence)
     return prompt + rules
 
 
@@ -994,19 +1170,140 @@ def smoke_schema() -> Dict[str, Any]:
         provenance.prompt_variant(), ai_constants.RISK_SCHEMA_V3)
 
 
-def smoke(name: str, repeats: int = 3) -> Dict[str, Any]:
-    """Strict schema, then determinism. Four calls, cents, no database.
+# --- what a grammar backend will not enforce --------------------------------
+
+# Constraints a JSON-Schema-to-grammar compiler cannot express. A context-free
+# grammar decides the *shape* of the token stream; it cannot count, compare or
+# range-check, so every keyword below is silently dropped by llama.cpp's GBNF
+# converter and by the guided-decoding backends vLLM ships (outlines, xgrammar).
+# The request succeeds, the output parses, and the constraint was never applied.
+#
+# This is not a hypothesis about grammars in general. It is the reason
+# `_validate_locally` runs on the `json_object` route *and* would need to run on
+# a `guided_json` one: "the endpoint constrained the output" and "the output
+# satisfies the schema" are different claims, and only the second is the
+# contract. OpenAI's strict mode has the same hole -- it rejects a schema
+# carrying some of these rather than enforcing them -- which is why the
+# production wrapper is not evidence either.
+_UNENFORCEABLE_BY_GRAMMAR = (
+    "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf",
+    "minLength", "maxLength", "pattern",
+    "minItems", "maxItems", "uniqueItems",
+    "minProperties", "maxProperties",
+)
+
+
+def grammar_risks(schema: Dict[str, Any], path: str = "$") -> List[str]:
+    """Every constraint in `schema` a grammar-constrained endpoint will ignore.
+
+    Read it before pointing the harness at a local model, and read the result as
+    a list of things something *other than the endpoint* has to be responsible
+    for -- not as a reason to change the schema.
+
+    Two things are already true and are worth not rediscovering. First, this is
+    not a local-model problem: LangChain forwards `minimum`, `maximum` and
+    `maxLength` to OpenAI verbatim under `strict: true`, and they are not part
+    of the enforced subset, so **production has the same hole**. Second, the run
+    is already defended against it -- every score reaches storage through
+    `langchain_llm._from_100`, which clamps to 0-1 and whose docstring says
+    exactly why. So a candidate emitting `score_12m: 250` produces a stored 1.0
+    rather than a 2.5.
+
+    The gate is therefore *stricter* than the run: `_validate_locally` rejects
+    what `_from_100` would quietly clamp. That is the right direction -- a model
+    that answers 250 has misunderstood the scale, and a bake-off should say so
+    rather than clamp it into looking fine -- but it is a difference, and a
+    candidate failing the schema gate on a bound alone deserves the distinction
+    noted rather than being read as "cannot hold the schema".
+
+    The union types are reported separately and are a different worry. Rewriting
+    the four `["integer", "null"]` nodes as `anyOf` -- mechanically equivalent
+    JSON Schema -- destroyed determinism on `gpt-4o` (50x9 became 52x7, 50x2).
+    So how a backend chooses to compile a union is not a detail, and two
+    backends compiling it differently is a reason to re-measure determinism
+    rather than to assume it transfers.
+    """
+    found: List[str] = []
+    if not isinstance(schema, dict):
+        return found
+    for key in _UNENFORCEABLE_BY_GRAMMAR:
+        if key in schema:
+            found.append(f"{path}: {key}={schema[key]!r} is not enforced by a grammar")
+    if isinstance(schema.get("type"), list):
+        found.append(f"{path}: union type {schema['type']} compiles differently "
+                     f"per backend; re-measure determinism, do not assume it")
+    for name, child in (schema.get("properties") or {}).items():
+        found.extend(grammar_risks(child, f"{path}.{name}"))
+    if isinstance(schema.get("items"), dict):
+        found.extend(grammar_risks(schema["items"], f"{path}[]"))
+    for keyword in ("anyOf", "oneOf", "allOf"):
+        for i, child in enumerate(schema.get(keyword) or []):
+            found.extend(grammar_risks(child, f"{path}.{keyword}[{i}]"))
+    return found
+
+
+def _validate_locally(payload: Dict[str, Any], schema: Dict[str, Any]) -> None:
+    """Raise if `payload` does not satisfy `schema`. The non-strict route's gate.
+
+    An endpoint that cannot compile our schema into a grammar can still be asked
+    for JSON and checked here. That is a *different instrument* -- nothing
+    stopped the model emitting an invalid answer, we merely noticed -- so the
+    verdict it produces is recorded under a different name.
+    """
+    import jsonschema
+
+    jsonschema.validate(payload, schema)
+
+
+def _answer_via_json_object(chat, prompt, schema) -> Dict[str, Any]:
+    """One answer from an endpoint with no strict mode, validated here instead.
+
+    `json_object` is the widest-supported structured-output mode: llama.cpp,
+    vLLM and every third-party OpenAI-compatible server serve some form of it,
+    and none of them serves OpenAI's `strict` flag. Round 2 measured DeepSeek
+    and MiniMax exactly this way and the code was never committed, so the next
+    endpoint without strict mode had to have it written again.
+    """
+    from langchain_core.messages import SystemMessage
+
+    text = chat.invoke([SystemMessage(content=prompt)]).content
+    if isinstance(text, list):  # some servers return content parts
+        text = "".join(part.get("text", "") for part in text
+                       if isinstance(part, dict))
+    start, end = text.find("{"), text.rfind("}")
+    if start < 0 or end < start:
+        raise ValueError(f"no JSON object in the response: {text[:200]!r}")
+    payload = json.loads(text[start:end + 1])
+    _validate_locally(payload, schema)
+    return payload
+
+
+def smoke(name: str, repeats: int = 3,
+          bands: Optional[Tuple[str, ...]] = None) -> Dict[str, Any]:
+    """Schema, then determinism across three bands. No database.
+
+    Args:
+        repeats: samples per band. 3 is enough to see a drifter; 10 is what the
+            published noise-floor matrix used.
+        bands: which of `_SMOKE_BANDS` to run. Defaults to all three, because a
+            noise floor measured on one payload is a noise floor for that band
+            and the candidates do not behave alike across the range.
 
     Returns:
         ``{schema, determinism, cost}``. ``schema.passed`` False means the
-        candidate is out — reported, not worked around.
+        candidate is out — reported, not worked around. ``schema.route`` says
+        *how* it held: `strict` is the production contract, `json_object` means
+        the endpoint has no strict mode and the schema was enforced here
+        instead, which is a weaker fact wearing the same word.
     """
     from langchain_core.messages import SystemMessage
 
     spec = CANDIDATES[name]
-    prompt = smoke_prompt()
+    bands = bands or tuple(_SMOKE_BANDS)
+    schema = None
     out: Dict[str, Any] = {"candidate": name, "arm": spec["arm"],
                            "note": spec.get("note", "")}
+    by_band: Dict[str, Dict[str, Any]] = {}
 
     with candidate_env(name) as env:
         from backend.util.pilot import score as pilot_score
@@ -1018,55 +1315,135 @@ def smoke(name: str, repeats: int = 3) -> Dict[str, Any]:
         # `PROMPT_VERSION: v4.0-masked-production` while every row inside it says
         # v4.1-trailing-context.
         out["captured_under"] = pilot_score.versions()
+        schema = smoke_schema()
         api_key = os.getenv("OPENAI_API_KEY") or ""
-        answers: List[str] = []
-        with usage.meter(budget_usd=BAKEOFF_BUDGET_USD) as meter:
-            try:
-                chat = ai_client.build_chat(api_key).with_structured_output(
-                    schema=smoke_schema(), strict=True)
-                for _ in range(repeats):
-                    result = chat.invoke([SystemMessage(content=prompt)])
-                    answers.append(json.dumps(result, sort_keys=True, default=str))
-                out["schema"] = {"passed": True, "error": None,
-                                 "sample": json.loads(answers[0])}
-            except Exception as exc:  # noqa: BLE001
-                # Deliberately broad. Every way this can fail — a 400 from a
-                # provider that does not serve strict json_schema, a validation
-                # error from one that serves it badly, a transport error — is
-                # the same verdict: this candidate cannot hold the schema on the
-                # endpoint we would ship. Which one it was goes in `error`.
-                out["schema"] = {"passed": False, "error": f"{type(exc).__name__}: {exc}",
-                                 "sample": None}
+        route, error, sample = None, None, None
+        started = time.time()
 
+        with usage.meter(budget_usd=BAKEOFF_BUDGET_USD) as meter:
+            for band in bands:
+                prompt = smoke_prompt(band)
+                answers: List[str] = []
+                try:
+                    if route in (None, "strict"):
+                        chat = ai_client.build_chat(api_key).with_structured_output(
+                            schema=schema, strict=True)
+                        for _ in range(repeats):
+                            result = chat.invoke([SystemMessage(content=prompt)])
+                            answers.append(json.dumps(result, sort_keys=True,
+                                                      default=str))
+                        route = "strict"
+                    else:
+                        raise RuntimeError("strict mode already ruled out")
+                except Exception as strict_exc:  # noqa: BLE001
+                    # An endpoint without strict mode is not the same verdict as
+                    # a model that cannot hold the schema, and the original gate
+                    # could not tell them apart: both arrived as one broad
+                    # `except` and both read FAIL. Try the wider route once, and
+                    # say which one answered.
+                    answers = []
+                    try:
+                        chat = ai_client.build_chat(api_key).bind(
+                            response_format={"type": "json_object"})
+                        for _ in range(repeats):
+                            answers.append(json.dumps(
+                                _answer_via_json_object(chat, prompt, schema),
+                                sort_keys=True, default=str))
+                        route = "json_object"
+                        if error is None:
+                            error = (f"strict mode unavailable, fell back: "
+                                     f"{type(strict_exc).__name__}: {strict_exc}")
+                    except Exception as loose_exc:  # noqa: BLE001
+                        # Both routes gone. Every way this can fail — a 400 from
+                        # a provider that serves neither mode, a validation error
+                        # from one that serves it badly, a transport error — is
+                        # the same verdict: this candidate cannot hold the schema
+                        # on the endpoint we would ship.
+                        route = route or "none"
+                        error = (f"{type(strict_exc).__name__}: {strict_exc} "
+                                 f"| json_object: {type(loose_exc).__name__}: "
+                                 f"{loose_exc}")
+                        by_band[band] = _band_result([])
+                        break
+                if sample is None and answers:
+                    sample = json.loads(answers[0])
+                by_band[band] = _band_result(answers)
+
+        out["schema"] = {"passed": bool(sample) and route in ("strict", "json_object"),
+                         "route": route, "error": error, "sample": sample}
         out["cost"] = {"calls": meter.calls, "spend_usd": round(meter.spend_usd, 6),
                        "input_tokens": meter.input_tokens,
                        "output_tokens": meter.output_tokens,
-                       "cached_tokens": meter.cached_tokens}
+                       "cached_tokens": meter.cached_tokens,
+                       "seconds": round(time.time() - started, 2),
+                       # A model with no entry in `usage.PRICES_USD_PER_1M` is
+                       # billed at the fallback rate, which is a real number
+                       # standing in for one nobody measured. Say so here rather
+                       # than let a local endpoint report a dollar figure.
+                       "priced": usage.is_priced(ai_client.scoring_model())}
 
+    out["determinism"] = _roll_up_bands(by_band)
+    return out
+
+
+def _band_result(answers: List[str]) -> Dict[str, Any]:
+    """One band's repeats, with the per-sample scores kept.
+
+    The scores are stored rather than summarised because §10 asks a canary to
+    record *what* moved, and `score_spread` cannot answer it. The published
+    three-anchor matrix reported a worst spread of 20 points for `gpt-4.1-nano`
+    and the draw behind it — 30, 35, 38, 38, 40, 30, 50, 40, 30, 40 — survived
+    only as a sentence in a document.
+    """
     if len(answers) < 2:
-        out["determinism"] = {"repeats": len(answers), "exact_match_rate": None,
-                              "scored_match_rate": None, "score_spread": None,
-                              "note": "not measured: the schema gate failed first"}
-        return out
-
+        return {"repeats": len(answers), "exact_match_rate": None,
+                "scored_match_rate": None, "score_spread": None, "scores": [],
+                "note": "not measured: the schema gate failed first"}
     parsed = [json.loads(a) for a in answers]
     identical = sum(1 for a in answers[1:] if a == answers[0])
     scored = [_scored_only(p) for p in parsed]
     scored_identical = sum(1 for s in scored[1:] if s == scored[0])
     scores = [p.get("score_12m") for p in parsed]
     numeric = [s for s in scores if isinstance(s, (int, float))]
-    out["determinism"] = {
+    return {
         "repeats": len(answers),
         "exact_match_rate": round(identical / (len(answers) - 1), 3),
-        # The rate that decides it. See `_PROSE_FIELDS`.
+        # The rate that decides it. See `_UNGATED_FIELDS`.
         "scored_match_rate": round(scored_identical / (len(answers) - 1), 3),
         "scores": scores,
+        "distinct_scored": len(set(scored)),
         # The number that survives a model reformatting its prose. Two runs can
         # differ in `bullet_summary` and agree perfectly on every score, which is
         # a far weaker failure than two runs that disagree about the risk.
         "score_spread": round(max(numeric) - min(numeric), 4) if numeric else None,
     }
-    return out
+
+
+def _roll_up_bands(by_band: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+    """The three bands as one verdict, worst-band-wins, with the bands kept.
+
+    Worst rather than mean: a candidate steady on two payloads and wild on the
+    third is wild, and averaging it to "mostly fine" is how `gpt-4.1-nano`'s
+    20-point calm-payload swing would disappear behind two 5-point ones.
+    """
+    if not by_band:
+        return {"repeats": 0, "exact_match_rate": None, "scored_match_rate": None,
+                "score_spread": None, "scores": [], "by_band": {},
+                "note": "not measured: the schema gate failed first"}
+    measured = [b for b in by_band.values() if b.get("scored_match_rate") is not None]
+    if not measured:
+        worst = next(iter(by_band.values()))
+        return {**worst, "by_band": by_band}
+    spreads = [b["score_spread"] for b in measured if b["score_spread"] is not None]
+    return {
+        "repeats": max(b["repeats"] for b in measured),
+        "bands": len(measured),
+        "exact_match_rate": min(b["exact_match_rate"] for b in measured),
+        "scored_match_rate": min(b["scored_match_rate"] for b in measured),
+        "score_spread": max(spreads) if spreads else None,
+        "scores": [s for b in measured for s in b["scores"]],
+        "by_band": by_band,
+    }
 
 
 # --- capturing the incumbent ------------------------------------------------
@@ -1375,13 +1752,25 @@ def render(result: Optional[Dict[str, Any]] = None) -> None:
         print("  1. gates  (a failure here ends it; the numbers below are context)")
         schema = (gates.get("schema") or {})
         determinism = (gates.get("determinism") or {})
+        route = schema.get("route")
         print(f"     strict schema  {_verdict(schema.get('passed'))}"
+              f"  via {route or '—'}"
               f"{'  ' + str(schema.get('error'))[:70] if schema.get('error') else ''}")
+        if route == "json_object":
+            # Said out loud rather than left in a field: this candidate did not
+            # hold the production contract. It produced valid JSON and we
+            # checked it here, which is a different instrument.
+            print("                    (no strict mode on this endpoint; the "
+                  "schema was enforced locally)")
         rate = determinism.get("scored_match_rate")
         print(f"     determinism    {_verdict(rate == 1.0 if rate is not None else None)}"
               f"  scored-match={fmt(rate)}  whole-payload="
-              f"{fmt(determinism.get('exact_match_rate'))}  score spread="
-              f"{fmt(determinism.get('score_spread'))}")
+              f"{fmt(determinism.get('exact_match_rate'))}  worst spread="
+              f"{fmt(determinism.get('score_spread'))}"
+              f"  over {determinism.get('bands') or 0} band(s)")
+        for band, result in (determinism.get("by_band") or {}).items():
+            print(f"       {band:<10} spread={fmt(result.get('score_spread'))}"
+                  f"  scores={result.get('scores')}")
 
         print("  2. rank correlation  (the meter: reordering cannot be recalibrated)")
         print(f"     {'metric':<22} {'n':>4} {'spearman':>9} {'kendall':>9} "
@@ -1480,7 +1869,13 @@ def main() -> None:
     p = sub.add_parser("smoke", help="the two hard gates, before any real spend")
     p.add_argument("candidate", choices=sorted(CANDIDATES))
     p.add_argument("--repeats", type=int, default=3,
-                   help="determinism repeats; 3 is enough to see a drifter")
+                   help="determinism repeats per band; 3 is enough to see a "
+                        "drifter, 10 is what the published noise floor used")
+    p.add_argument("--bands", default=",".join(_SMOKE_BANDS),
+                   help="comma-separated subset of calm,moderate,stressed. All "
+                        "three by default -- a noise floor measured on one "
+                        "payload is a noise floor for that band. Total calls is "
+                        "repeats x bands, so the default is 9")
 
     sub.add_parser("capture-baseline",
                    help="read gate 2's gpt-4o rows out of risk_snapshot")
@@ -1511,18 +1906,32 @@ def main() -> None:
                 window_slug(), SINCE, UNTIL, RESULTS_DIR / window_slug())
 
     if args.command == "smoke":
-        result = smoke(args.candidate, repeats=args.repeats)
+        bands = tuple(b.strip() for b in args.bands.split(",") if b.strip())
+        unknown = [b for b in bands if b not in _SMOKE_BANDS]
+        if unknown:
+            parser.error(f"unknown band(s) {unknown}; "
+                         f"choose from {sorted(_SMOKE_BANDS)}")
+        result = smoke(args.candidate, repeats=args.repeats, bands=bands)
         # Merged into the candidate's file rather than printed and lost. The
         # notebook reads the gates from there, and a gate result that lives only
         # in a terminal is the failure this repo has already made twice.
-        existing = load(args.candidate) or _wrap(
-            args.candidate, CANDIDATES[args.candidate]["arm"], [])
-        existing["gates"] = {k: result[k] for k in ("schema", "determinism", "cost")}
-        existing["endpoint"] = result.get("endpoint") or existing.get("endpoint") or {}
-        if result.get("captured_under"):
-            existing["captured_under"] = result["captured_under"]
+        #
+        # Into *every* window the candidate has a file in, not just the current
+        # one: the gate is measured on a canned payload with no country in it, so
+        # filing it under one window was what left 24 of 26 files claiming the
+        # gate had never been run.
+        gates = {k: result[k] for k in ("schema", "determinism", "cost")}
+        paths = save_gates(args.candidate, gates)
+        for path in paths:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            payload["endpoint"] = (result.get("endpoint")
+                                   or payload.get("endpoint") or {})
+            if result.get("captured_under"):
+                payload["captured_under"] = result["captured_under"]
+            path.write_text(json.dumps(payload, indent=2, default=str,
+                                       sort_keys=True), encoding="utf-8")
         print(json.dumps(result, indent=2, default=str)[:4000])
-        print(f"\nwrote {save(args.candidate, existing)}")
+        print("\nwrote " + ", ".join(str(p) for p in paths))
         return
 
     if args.command == "capture-baseline":
@@ -1538,12 +1947,10 @@ def main() -> None:
     if args.command == "score":
         payload = score_anchors(args.candidate, budget_usd=args.budget,
                                 limit=args.limit)
-        # Keep any gates already measured for this candidate: the smoke run and
-        # the scoring run are two commands writing one file, and losing the
-        # gates on the second would leave a cost table with nothing above it.
-        existing = load(args.candidate) or {}
-        if existing.get("gates"):
-            payload["gates"] = existing["gates"]
+        # The gates already measured for this candidate survive because `save`
+        # carries them forward, not because this branch remembers to. That used
+        # to live here, which is why every writer that was not this branch lost
+        # them.
         print(f"wrote {save(args.candidate, payload)}")
         render()
         return

@@ -120,6 +120,24 @@ class BudgetExhausted(RuntimeError):
     """Cumulative spend has passed the pilot's cap. Stops the run, keeps the work."""
 
 
+def is_priced(model_id: str) -> bool:
+    """Whether `model_id` has a real rate, or is being charged the fallback.
+
+    `price` is deliberately silent about the difference -- it returns the
+    expensive rate for an unknown id so the governor stops early, which is the
+    right behaviour for a *budget*. It is the wrong behaviour for a
+    *comparison*: a locally served model has no price at all, and billing it at
+    gpt-4o's $2.50/$10.00 produces a dollar figure that looks measured, flows
+    into `cache_neutral_per_snapshot`, and would decide a cost criterion on a
+    number nobody observed. Same shape as the criterion that was measuring the
+    prompt cache (`docs/deferred.md` §32): a real number answering a question
+    nobody asked.
+
+    Callers that report money should report tokens instead when this is False.
+    """
+    return model_id in PRICES_USD_PER_1M
+
+
 def price(model_id: str, input_tokens: int, output_tokens: int,
           cached_tokens: int = 0) -> float:
     """What one call cost, in dollars.

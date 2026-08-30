@@ -28,6 +28,7 @@ from backend.llm import payload as dr
 from backend.util import market_hours
 from backend.util import lint, metrics
 from backend.llm import usage
+from backend.llm import constants as ai_constants
 from backend.util.tools import bakeoff
 
 AS_OF = _dt.date(2026, 7, 27)
@@ -833,6 +834,7 @@ class TestTheCostSummary:
 
     def test_empty_and_failed_anchors_do_not_dilute_the_per_snapshot_cost(self):
         rows = [{"as_of": "2019-01-07", "status": "complete", "spend_usd": 0.02,
+                 "model_id": "gpt-4o-2024-08-06",
                  "input_tokens": 100, "output_tokens": 10, "cached_tokens": 0,
                  "utc_hour": 12},
                 {"as_of": "2019-01-14", "status": "empty", "llm_score": None},
@@ -840,6 +842,22 @@ class TestTheCostSummary:
         got = bakeoff.cost_summary(rows)
         assert got["snapshots"] == 1
         assert got["per_snapshot_usd"] == pytest.approx(0.02)
+
+    def test_a_run_whose_model_cannot_be_named_reports_no_dollars(self):
+        """The complement of the test above, and the reason it needed a model.
+
+        A cost figure derived from a model nobody can name is the same
+        fabrication as one derived from a model with no price -- both come out
+        of `usage._FALLBACK_PRICE`, which exists to stop a run rather than to
+        describe one.
+        """
+        rows = [{"as_of": "2019-01-07", "status": "complete", "spend_usd": 0.02,
+                 "input_tokens": 100, "output_tokens": 10, "cached_tokens": 0,
+                 "utc_hour": 12}]
+        got = bakeoff.cost_summary(rows)
+        assert got["priced"] is False
+        assert got["per_snapshot_usd"] is None
+        assert got["input_tokens_per_snapshot"] == 100
 
     def test_a_projection_says_nothing_when_nothing_was_measured(self):
         assert bakeoff.projection(None) == {"pilot_usd": None, "backfill_usd": None}
@@ -1127,7 +1145,12 @@ class TestTheCostSummaryCarriesTheBillingWindow:
 
     @staticmethod
     def _rows(hours, model="deepseek-v4-pro"):
+        # `model_id` is on the row because production rows carry it and because
+        # `cost_summary` now withholds dollars for a model it cannot price. The
+        # parameter existed here and was never written into the row, so this
+        # fixture was quietly testing an unpriceable run.
         return [{"as_of": f"2019-01-{7 + i:02d}", "status": "complete",
+                 "model_id": model,
                  "spend_usd": 0.02, "offpeak_usd": 0.01, "input_tokens": 1000,
                  "output_tokens": 100, "cached_tokens": 0, "utc_hour": h}
                 for i, h in enumerate(hours)]
@@ -1330,3 +1353,363 @@ class TestTheSeriesShapeMeters:
         us = bakeoff.series_shape([0.45, 0.55, 0.52, 0.70, 0.62, 0.50, 0.52, 0.42])
         assert us["distinct"] == 7
         assert us["round_share"] == pytest.approx(0.5)
+
+
+# --- a locally served scorer, and the three things that break first ---------
+#
+# `CANDIDATES` dispatches on environment variables, so adding a local model is a
+# dict entry and that part was never in doubt. What breaks is downstream of it:
+# the schema gate assumes a strict mode the endpoint does not have, and the cost
+# table prices a model that has no price. Both are exercised here against a stub
+# that behaves the way llama.cpp and vLLM behave -- refusing `json_schema`,
+# serving `json_object`, and reporting token usage with no billing attached.
+#
+# Loopback only. No vendor is contacted and no key is read.
+
+_VALID_ANSWER = {
+    "condition_flags": {"war_on_territory": False, "internal_conflict_level": "none",
+                        "emergency_rule": False, "sovereign_stress": False},
+    "ledger_scores": {"friction": 40, "order_uncertainty": 35,
+                      "information_capacity": 60, "edge_vitality": None},
+    "subscore_evidence": {"friction": ["a1"], "order_uncertainty": ["a2"],
+                          "information_capacity": ["structural"]},
+    "news_article_scores": [{"id": "a1", "impact": 20, "topic_group": "monetary"},
+                            {"id": "a2", "impact": 45, "topic_group": "politics"}],
+    "score_3m": 41, "score_12m": 43, "evidence_coverage": 70,
+    "bullet_summary": "A stub answer, shaped like the real one.",
+}
+
+
+class _LocalEndpoint:
+    """An OpenAI-compatible server with no strict mode. Threaded, loopback, stdlib.
+
+    Records every request body so a test can assert on what the harness actually
+    sent rather than on what `client.py` looks like it sends.
+    """
+
+    def __init__(self, *, answer=None, serve_strict=False):
+        import http.server
+        import threading
+
+        self.requests = []
+        self.answer = _VALID_ANSWER if answer is None else answer
+        outer = self
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def log_message(self, *_args):  # silence the default stderr spew
+                pass
+
+            def do_POST(self):
+                body = json.loads(self.rfile.read(
+                    int(self.headers["Content-Length"])).decode("utf-8"))
+                outer.requests.append(body)
+                fmt = (body.get("response_format") or {}).get("type")
+                if fmt == "json_schema" and not serve_strict:
+                    # What llama.cpp's server and most OpenAI-compatible servers
+                    # do with OpenAI's strict `json_schema` block.
+                    return self._send(400, {"error": {
+                        "message": "response_format.type json_schema is not supported",
+                        "type": "invalid_request_error"}})
+                content = (json.dumps(outer.answer) if isinstance(outer.answer, dict)
+                           else outer.answer)
+                self._send(200, {
+                    "id": "stub", "object": "chat.completion", "model": "local-stub",
+                    "choices": [{"index": 0, "finish_reason": "stop",
+                                 "message": {"role": "assistant", "content": content}}],
+                    # Tokens, and no price anywhere. That is the whole point.
+                    "usage": {"prompt_tokens": 1200, "completion_tokens": 180,
+                              "total_tokens": 1380},
+                })
+
+            def _send(self, code, payload):
+                raw = json.dumps(payload).encode("utf-8")
+                self.send_response(code)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(raw)))
+                self.end_headers()
+                self.wfile.write(raw)
+
+        self._server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+        self._thread = threading.Thread(target=self._server.serve_forever, daemon=True)
+        self._thread.start()
+
+    @property
+    def base_url(self):
+        return "http://127.0.0.1:%d/v1" % self._server.server_address[1]
+
+    def close(self):
+        self._server.shutdown()
+        self._server.server_close()
+
+
+@pytest.fixture
+def local_endpoint():
+    server = _LocalEndpoint()
+    try:
+        yield server
+    finally:
+        server.close()
+
+
+@pytest.fixture
+def local_candidate(monkeypatch, local_endpoint):
+    """`local-template` pointed at the stub, registered the way a real one would be."""
+    monkeypatch.setenv("SCORING_LOCAL_KEY", "not-a-real-key")
+    monkeypatch.setitem(bakeoff.CANDIDATES, "local-stub", {
+        "arm": "scoring",
+        "note": "the stub",
+        "env": {"SCORING_MODEL": "local-stub",
+                "SCORING_BASE_URL": local_endpoint.base_url},
+        "key_env": "SCORING_LOCAL_KEY",
+        "key_target": "SCORING_API_KEY",
+    })
+    return local_endpoint
+
+
+class TestALocalEndpointIsJustACandidateEntry:
+
+    def test_the_template_carries_an_unreachable_url_on_purpose(self):
+        """A template that resolves is a template somebody runs by accident."""
+        spec = bakeoff.CANDIDATES["local-template"]
+        assert spec["env"]["SCORING_BASE_URL"] == "http://127.0.0.1:1/v1"
+        assert spec["env"]["SCORING_MODEL"] == "REPLACE-ME"
+        # It must not borrow the vendor key: a local run has to work when
+        # OPENAI_API_KEY is absent, which is the whole situation it is for.
+        assert spec["key_env"] != "OPENAI_API_KEY"
+        assert spec["key_target"] == "SCORING_API_KEY"
+
+    def test_the_endpoint_and_its_dummy_key_both_resolve(self, local_candidate):
+        with bakeoff.candidate_env("local-stub") as env:
+            assert env["SCORING_BASE_URL"] == local_candidate.base_url
+            assert os.environ["SCORING_API_KEY"] == "not-a-real-key"
+            assert os.environ["SCORING_MODEL"] == "local-stub"
+        assert "SCORING_BASE_URL" not in os.environ
+        assert "SCORING_API_KEY" not in os.environ
+
+
+class TestTheSchemaGateAgainstAnEndpointWithNoStrictMode:
+    """The gate hard-coded `strict=True`, so every local model failed it.
+
+    Round 2 measured DeepSeek and MiniMax through `json_object` with local
+    validation and that code was never committed, so the next endpoint without
+    strict mode would have had it written a third time.
+    """
+
+    def test_it_falls_back_and_says_which_route_answered(self, local_candidate):
+        got = bakeoff.smoke("local-stub", repeats=2, bands=("moderate",))
+        assert got["schema"]["passed"] is True
+        assert got["schema"]["route"] == "json_object"
+        # A pass through the wider route is not the production contract, and the
+        # verdict has to carry that or the two read alike.
+        assert "strict mode unavailable" in got["schema"]["error"]
+        assert any(r.get("response_format", {}).get("type") == "json_schema"
+                   for r in local_candidate.requests), "strict was never attempted"
+        assert any(r.get("response_format", {}).get("type") == "json_object"
+                   for r in local_candidate.requests)
+
+    def test_an_answer_the_grammar_would_accept_and_the_schema_does_not(
+            self, local_candidate):
+        """The reason local validation runs even under guided decoding.
+
+        No grammar backend enforces `minimum`/`maximum` -- a context-free grammar
+        cannot express a numeric range -- so a guided-JSON endpoint will happily
+        emit `score_12m: 250` and call it schema-compliant.
+        """
+        local_candidate.answer = dict(_VALID_ANSWER, score_12m=250)
+        got = bakeoff.smoke("local-stub", repeats=2, bands=("moderate",))
+        assert got["schema"]["passed"] is False
+        assert "250" in got["schema"]["error"] or "maximum" in got["schema"]["error"]
+
+    def test_a_missing_required_field_is_caught(self, local_candidate):
+        local_candidate.answer = {k: v for k, v in _VALID_ANSWER.items()
+                                  if k != "ledger_scores"}
+        got = bakeoff.smoke("local-stub", repeats=2, bands=("moderate",))
+        assert got["schema"]["passed"] is False
+        assert got["determinism"]["scored_match_rate"] is None
+
+    def test_seed_and_temperature_reach_the_endpoint_unchanged(self, local_candidate):
+        bakeoff.smoke("local-stub", repeats=2, bands=("moderate",))
+        sent = local_candidate.requests[-1]
+        assert sent["temperature"] == 0.0
+        assert sent["seed"] == 42
+        assert sent["model"] == "local-stub"
+
+    def test_all_three_bands_run_and_are_kept_separately(self, local_candidate):
+        got = bakeoff.smoke("local-stub", repeats=2)
+        assert set(got["determinism"]["by_band"]) == set(bakeoff._SMOKE_BANDS)
+        assert got["determinism"]["bands"] == 3
+        # Per-repeat scores, not just a spread. A canary has to say what moved.
+        for band in got["determinism"]["by_band"].values():
+            assert band["scores"] == [43, 43]
+
+    def test_the_three_payloads_are_different_evidence(self):
+        """Three payloads that scored alike would measure one band three times."""
+        rendered = {b: bakeoff.smoke_prompt(b) for b in bakeoff._SMOKE_BANDS}
+        assert len(set(rendered.values())) == 3
+        assert "61.3" in rendered["stressed"]      # the stressed inflation print
+        assert "41.2" in rendered["calm"]          # the calm debt ratio
+
+
+class TestAnUnpricedModelReportsTokensAndNotDollars:
+    """`usage.price` bills an unknown id at gpt-4o's rate, by design.
+
+    Right for a governor -- an unknown model should stop the run early rather
+    than spend freely. Wrong for a comparison: it turns "nobody knows what this
+    costs" into a confident dollar figure, which is the shape of the criterion
+    that was measuring the prompt cache.
+    """
+
+    def test_is_priced_separates_a_real_rate_from_the_fallback(self):
+        assert usage.is_priced("gpt-4o-2024-08-06") is True
+        assert usage.is_priced("local-stub") is False
+        assert usage.is_priced("") is False
+
+    def test_the_fallback_rate_still_applies_to_the_budget(self):
+        """The governor must keep stopping early. Only the reporting changes."""
+        assert usage.price("local-stub", 1_000_000, 0) == pytest.approx(2.50)
+
+    def test_cost_summary_withholds_dollars_and_keeps_tokens(self):
+        rows = [{"status": "complete", "model_id": "local-stub", "calls": 1,
+                 "spend_usd": 0.031, "input_tokens": 1200, "output_tokens": 180,
+                 "cached_tokens": 0, "seconds": 4.5, "utc_hour": 3}]
+        got = bakeoff.cost_summary(rows)
+        assert got["priced"] is False
+        assert got["spend_usd"] is None
+        assert got["per_snapshot_usd"] is None
+        assert got["cache_neutral_per_snapshot_usd"] is None
+        # What is real is still reported.
+        assert got["input_tokens_per_snapshot"] == 1200
+        assert got["output_tokens_per_snapshot"] == 180
+        assert got["seconds_per_snapshot"] == 4.5
+
+    def test_a_priced_model_is_unaffected(self):
+        rows = [{"status": "complete", "model_id": "gpt-4o-2024-08-06", "calls": 1,
+                 "spend_usd": 0.031, "input_tokens": 1200, "output_tokens": 180,
+                 "cached_tokens": 0, "seconds": 4.5, "utc_hour": 3}]
+        got = bakeoff.cost_summary(rows)
+        assert got["priced"] is True
+        assert got["spend_usd"] == 0.031
+        assert got["cache_neutral_per_snapshot_usd"] > 0
+
+
+class TestAGateResultIsPersisted:
+    """The consumer-side test for the writer that failed silently.
+
+    24 of the 26 committed bake-off files carry `gates: {}`. The gate is a
+    property of the candidate -- `smoke` runs on a canned payload with no
+    country in it -- but it was written into a window-scoped file by one branch
+    of the CLI, so smoking under one window left the other window's file saying
+    the gate had never run, and any writer that was not that branch overwrote it
+    with the empty default from `_wrap`.
+    """
+
+    @pytest.fixture
+    def results_dir(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(bakeoff, "RESULTS_DIR", tmp_path)
+        return tmp_path
+
+    def test_save_carries_forward_gates_the_payload_does_not_have(self, results_dir):
+        bakeoff.save("cand", {"candidate": "cand", "gates": {"schema": {"passed": True}},
+                              "rows": []})
+        # A fresh payload from `_wrap`, exactly what `score_anchors` produces.
+        bakeoff.save("cand", {"candidate": "cand", "gates": {}, "rows": [1, 2]})
+        got = bakeoff.load("cand")
+        assert got["gates"] == {"schema": {"passed": True}}, "the gate was dropped"
+        assert got["rows"] == [1, 2], "the new rows were lost"
+
+    def test_a_caller_that_means_to_clear_them_still_can(self, results_dir):
+        bakeoff.save("cand", {"candidate": "cand", "gates": {"schema": {}},
+                              "rows": []})
+        bakeoff.save("cand", {"candidate": "cand", "gates": None, "rows": []})
+        assert bakeoff.load("cand")["gates"] is None
+
+    def test_gates_land_in_every_window_the_candidate_has_a_file_in(
+            self, results_dir, monkeypatch):
+        for window in ("US-2019", "TR-2018"):
+            (results_dir / window).mkdir()
+            (results_dir / window / "cand.json").write_text(
+                json.dumps({"candidate": "cand", "gates": {}, "rows": []}),
+                encoding="utf-8")
+        monkeypatch.setattr(bakeoff, "COUNTRY", "US")
+        monkeypatch.setattr(bakeoff, "SINCE", _dt.date(2019, 1, 1))
+
+        bakeoff.save_gates("cand", {"schema": {"passed": True, "route": "strict"}})
+
+        for window in ("US-2019", "TR-2018"):
+            got = json.loads((results_dir / window / "cand.json").read_text("utf-8"))
+            assert got["gates"]["schema"]["passed"] is True, window
+
+    def test_a_smoke_run_writes_a_non_empty_gates_block(self, results_dir,
+                                                        local_candidate, monkeypatch):
+        """End to end: run the gate, and assert it is on disk afterwards.
+
+        This is the test whose absence let the defect stay invisible. It asserts
+        the thing a reader of the committed files actually depends on.
+        """
+        monkeypatch.setattr(bakeoff, "COUNTRY", "LOCAL")
+        monkeypatch.setattr(bakeoff, "SINCE", _dt.date(2019, 1, 1))
+        result = bakeoff.smoke("local-stub", repeats=2, bands=("moderate",))
+        bakeoff.save_gates("local-stub",
+                           {k: result[k] for k in ("schema", "determinism", "cost")})
+
+        stored = json.loads(
+            (results_dir / "LOCAL-2019" / "local-stub.json").read_text("utf-8"))
+        assert stored["gates"], "a smoke run left an empty gates block"
+        assert stored["gates"]["schema"]["route"] == "json_object"
+        assert stored["gates"]["determinism"]["scores"] == [43, 43]
+        assert stored["gates"]["cost"]["priced"] is False
+
+
+class TestWhatAGrammarWillNotEnforce:
+    """The one risk the loopback stub cannot discover, checked statically.
+
+    A stub can prove the harness handles an endpoint with no strict mode. It
+    cannot prove anything about how a real `guided_json` / GBNF backend compiles
+    `RISK_SCHEMA_V3`, because it does not compile it. This reads the schema
+    instead and names what no context-free grammar can express.
+    """
+
+    def test_the_bounds_the_scores_depend_on_are_all_flagged(self):
+        risks = bakeoff.grammar_risks(ai_constants.RISK_SCHEMA_V3)
+        joined = "\n".join(risks)
+        for field in ("score_12m", "score_3m", "evidence_coverage"):
+            assert f"$.{field}: minimum=0" in joined
+            assert f"$.{field}: maximum=100" in joined
+        assert "$.news_article_scores[].impact: maximum=100" in joined
+        assert "$.bullet_summary: maxLength=800" in joined
+
+    def test_the_four_union_types_are_reported_as_a_determinism_risk(self):
+        """Rewriting them as `anyOf` made gpt-4o non-deterministic on demand.
+
+        Same meaning, different grammar, 50x9 became 52x7 + 50x2. So how a
+        backend compiles a union is load-bearing, and a local candidate cannot
+        inherit the incumbent's determinism result across a different compiler.
+        """
+        risks = [r for r in bakeoff.grammar_risks(ai_constants.RISK_SCHEMA_V3)
+                 if "union type" in r]
+        assert len(risks) == 4
+        assert all(r.startswith("$.ledger_scores.") for r in risks)
+
+    def test_a_schema_with_nothing_a_grammar_misses_reports_nothing(self):
+        """It must not simply always complain, or it says nothing."""
+        assert bakeoff.grammar_risks({
+            "type": "object",
+            "properties": {"a": {"type": "string"},
+                           "b": {"type": "array", "items": {"type": "boolean"}}},
+            "required": ["a", "b"], "additionalProperties": False,
+        }) == []
+
+    def test_production_forwards_the_bounds_openai_does_not_enforce(self):
+        """Named here because it is easy to assume strict mode covers them.
+
+        LangChain passes `minimum`/`maximum` through verbatim under
+        `strict: true`. They are not in OpenAI's enforced subset, so the
+        production call has the same hole a local grammar would -- which is why
+        `langchain_llm._from_100` clamps, and why that clamp is load-bearing
+        rather than defensive decoration.
+        """
+        from backend.llm import langchain_llm
+
+        assert langchain_llm._from_100(250) == 1.0
+        assert langchain_llm._from_100(-40) == 0.0
+        assert langchain_llm._from_100(None) is None
