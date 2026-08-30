@@ -1767,6 +1767,29 @@ class TestAGateResultIsPersisted:
             got = json.loads((results_dir / window / "cand.json").read_text("utf-8"))
             assert got["gates"]["schema"]["passed"] is True, window
 
+    def test_the_payload_block_reaches_disk(self, results_dir, local_candidate,
+                                            monkeypatch):
+        """The consumer-side test for the size record, which needed one.
+
+        `smoke` built the payload report and the CLI carried three keys into the
+        file, so the block saying how big the gate's own request was never
+        reached disk -- the write-a-thing-nobody-reads pattern, committed inside
+        the change that added an instrument to catch it. A gate result on disk
+        that cannot say what size it ran at is the state this whole branch is
+        about.
+        """
+        monkeypatch.setattr(bakeoff, "COUNTRY", "LOCAL")
+        monkeypatch.setattr(bakeoff, "SINCE", _dt.date(2019, 1, 1))
+        result = bakeoff.smoke("local-stub", repeats=1, bands=("moderate",))
+        assert "payload" in result, "smoke stopped reporting its own size"
+        bakeoff.save_gates("local-stub",
+                           {k: result[k] for k in
+                            ("schema", "determinism", "cost", "payload")})
+        stored = json.loads(
+            (results_dir / "LOCAL-2019" / "local-stub.json").read_text("utf-8"))
+        assert stored["gates"]["payload"], "the size record was dropped on the way to disk"
+        assert stored["gates"]["payload"]["moderate"]["prompt_tokens"] > 0
+
     def test_a_smoke_run_writes_a_non_empty_gates_block(self, results_dir,
                                                         local_candidate, monkeypatch):
         """End to end: run the gate, and assert it is on disk afterwards.

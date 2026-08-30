@@ -1,0 +1,4066 @@
+{
+  "arm": "scoring",
+  "candidate": "gpt-4.1-postfix",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_FINGERPRINT": "f821fc03038b99a0",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.5-no-publisher",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4.1-2025-04-14",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "8052049cd70d6e8110a05e612deb6f0e97832dc2"
+  },
+  "cost": {
+    "cache_neutral_per_snapshot_usd": 0.03176445283018868,
+    "cache_share": 0.0,
+    "input_tokens_per_snapshot": 12910.2,
+    "offpeak_per_snapshot_usd": null,
+    "output_tokens_per_snapshot": 743.0,
+    "per_snapshot_usd": 0.029921,
+    "priced": true,
+    "seconds_per_snapshot": 6.46,
+    "snapshots": 53,
+    "spend_usd": 1.5858,
+    "utc_hours": [
+      18
+    ]
+  },
+  "country": "TR",
+  "endpoint": {
+    "SCORING_MODEL": "gpt-4.1-2025-04-14"
+  },
+  "gates": {
+    "cost": {
+      "cached_tokens": 311168,
+      "calls": 30,
+      "input_tokens": 378330,
+      "output_tokens": 16295,
+      "priced": true,
+      "seconds": 104.64,
+      "spend_usd": 0.420268
+    },
+    "determinism": {
+      "bands": 3,
+      "by_band": {
+        "calm": {
+          "distinct_scored": 9,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "evidence_coverage": [
+              81,
+              82,
+              82,
+              82,
+              82,
+              82,
+              81,
+              81,
+              81,
+              82
+            ],
+            "ledger_scores.edge_vitality": [
+              61,
+              67
+            ],
+            "ledger_scores.friction": [
+              32,
+              37
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_hate_and_division"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_election_aftermath"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "fan_behaviour_regional_tournament"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_election_aftermath"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_election_aftermath"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division_and_hate"
+                }
+              ],
+              [
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "foreign_abortion_laws"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_green_surge"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_and_trade_bloc"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_hate_and_division"
+                }
+              ]
+            ],
+            "score_12m": [
+              33,
+              32,
+              33,
+              33,
+              32,
+              32,
+              36,
+              32,
+              32,
+              32
+            ],
+            "score_3m": [
+              29,
+              27,
+              29,
+              29,
+              27,
+              27,
+              32,
+              27,
+              27,
+              27
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 4,
+          "scored_match_rate": 0.0,
+          "scores": [
+            33,
+            32,
+            33,
+            33,
+            32,
+            32,
+            36,
+            32,
+            32,
+            32
+          ]
+        },
+        "moderate": {
+          "distinct_scored": 10,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "condition_flags.internal_conflict_level": [
+              "B",
+              "C"
+            ],
+            "evidence_coverage": [
+              82,
+              82,
+              87,
+              87,
+              82,
+              82,
+              82,
+              82,
+              87,
+              87
+            ],
+            "ledger_scores.edge_vitality": [
+              68,
+              72,
+              74
+            ],
+            "ledger_scores.friction": [
+              58,
+              62
+            ],
+            "ledger_scores.information_capacity": [
+              22,
+              32,
+              38
+            ],
+            "ledger_scores.order_uncertainty": [
+              75,
+              78,
+              81,
+              85
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy_risk"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_threat_rhetoric"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "generational_political_divide"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_rhetoric"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "youth_political_engagement"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_threat_rhetoric"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "generational_political_divide"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_threat_rhetoric"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migrant_child_plight"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_threat_rhetoric"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migrant_child_welfare"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_threat_rhetoric"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migrant_children_plight"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_threat_rhetoric"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_threat_rhetoric"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_nuclear_threat_rhetoric"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy_risk"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migrant_child_crisis"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "nationwide_blackout_crisis"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democratic_norms_erosion"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_threat_rhetoric"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "isds_trade_policy"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence_public_services"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migrant_child_crisis"
+                }
+              ]
+            ],
+            "score_12m": [
+              81,
+              90,
+              81,
+              86,
+              85,
+              85,
+              90,
+              90,
+              85,
+              85
+            ],
+            "score_3m": [
+              85,
+              85,
+              85,
+              81,
+              81,
+              81,
+              85,
+              85,
+              81,
+              81
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 9,
+          "scored_match_rate": 0.0,
+          "scores": [
+            81,
+            90,
+            81,
+            86,
+            85,
+            85,
+            90,
+            90,
+            85,
+            85
+          ]
+        },
+        "stressed": {
+          "distinct_scored": 10,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "evidence_coverage": [
+              85,
+              87,
+              87,
+              87,
+              85,
+              85,
+              87,
+              87,
+              87,
+              85
+            ],
+            "ledger_scores.edge_vitality": [
+              27,
+              32
+            ],
+            "ledger_scores.friction": [
+              58,
+              62
+            ],
+            "ledger_scores.information_capacity": [
+              38,
+              48
+            ],
+            "ledger_scores.order_uncertainty": [
+              75,
+              77,
+              78
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_rule_of_law"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_rule_of_law"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_human_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 60,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "foreign_relations_rhetoric"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_democracy"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "pastor_detention_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "post_emergency_crackdown"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_criticism"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 60,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_democracy"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_democracy"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "post_coup_crackdown"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_democratic_backsliding"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_criticism"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_rhetoric"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "post_coup_crackdown"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_democratic_backsliding"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_criticism"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 60,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_rule_of_law"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_rule_of_law"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "post_coup_crackdown"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "post_coup_crackdown"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 60,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 60,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_rule_of_law"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_rule_of_law"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "post_coup_crackdown"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_democratic_backsliding"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_criticism"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_rhetoric"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "post_coup_crackdown"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_democratic_backsliding"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_crisis_sanctions"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_austerity"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_criticism"
+                }
+              ]
+            ],
+            "score_3m": [
+              75,
+              77,
+              77,
+              77,
+              77,
+              75,
+              74,
+              77,
+              74,
+              75
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 0,
+          "scored_match_rate": 0.0,
+          "scores": [
+            81,
+            81,
+            81,
+            81,
+            81,
+            81,
+            81,
+            81,
+            81,
+            81
+          ]
+        }
+      },
+      "exact_match_rate": 0.0,
+      "repeats": 10,
+      "score_spread": 9,
+      "scored_match_rate": 0.0,
+      "scores": [
+        33,
+        32,
+        33,
+        33,
+        32,
+        32,
+        36,
+        32,
+        32,
+        32,
+        81,
+        90,
+        81,
+        86,
+        85,
+        85,
+        90,
+        90,
+        85,
+        85,
+        81,
+        81,
+        81,
+        81,
+        81,
+        81,
+        81,
+        81,
+        81,
+        81
+      ]
+    },
+    "payload": {
+      "calm": {
+        "anchor": "PT 2019-06-03",
+        "articles": 20,
+        "counted_by": "tiktoken",
+        "fulltext_ids": [
+          "a18",
+          "a7",
+          "a10"
+        ],
+        "indicators_resolved": 22,
+        "payload_fingerprint": "92e50cfa850b95d9",
+        "prompt_chars": 51790,
+        "prompt_tokens": 13038,
+        "why": "0.35, Low-Moderate; the calmest evidence the pilot has scored"
+      },
+      "moderate": {
+        "anchor": "US 2019-03-11",
+        "articles": 20,
+        "counted_by": "tiktoken",
+        "fulltext_ids": [
+          "a12",
+          "a8",
+          "a13"
+        ],
+        "indicators_resolved": 23,
+        "payload_fingerprint": "453779934da552f7",
+        "prompt_chars": 50807,
+        "prompt_tokens": 12570,
+        "why": "0.70, Moderate; the flat-band year's own maximum"
+      },
+      "stressed": {
+        "anchor": "TR 2018-08-13",
+        "articles": 20,
+        "counted_by": "tiktoken",
+        "fulltext_ids": [
+          "a1",
+          "a2",
+          "a8"
+        ],
+        "indicators_resolved": 24,
+        "payload_fingerprint": "f415f5809a758c3f",
+        "prompt_chars": 44037,
+        "prompt_tokens": 11142,
+        "why": "0.82, High; the peak of the currency crisis"
+      }
+    },
+    "schema": {
+      "error": null,
+      "passed": true,
+      "route": "strict",
+      "sample": {
+        "bullet_summary": "The country exhibits moderate friction due to high gross debt (124% of GDP, though slightly declining), but strong government effectiveness and low interest payments as a share of revenue mitigate risk. Order-uncertainty is low, supported by high rule of law, political stability, and subdued inflation. Information capacity is strong, with robust statistical performance. No evidence of war, emergency rule, or sovereign stress. Edge vitality is high, reflecting healthy business formation and human capital. Recent news highlights regional political shifts and social debates but no direct destabilizing events. Most economic and institutional indicators are somewhat stale, slightly lowering coverage confidence.",
+        "condition_flags": {
+          "emergency_rule": false,
+          "internal_conflict_level": "none",
+          "sovereign_stress": false,
+          "war_on_territory": false
+        },
+        "evidence_coverage": 81,
+        "ledger_scores": {
+          "edge_vitality": 61,
+          "friction": 37,
+          "information_capacity": 14,
+          "order_uncertainty": 22
+        },
+        "news_article_scores": [
+          {
+            "id": "a7",
+            "impact": 25,
+            "topic_group": "regional_green_surge"
+          },
+          {
+            "id": "a10",
+            "impact": 25,
+            "topic_group": "foreign_abortion_laws"
+          },
+          {
+            "id": "a11",
+            "impact": 25,
+            "topic_group": "regional_green_surge"
+          },
+          {
+            "id": "a16",
+            "impact": 0,
+            "topic_group": "sports_injury"
+          },
+          {
+            "id": "a17",
+            "impact": 25,
+            "topic_group": "citizenship_and_trade_bloc"
+          },
+          {
+            "id": "a20",
+            "impact": 25,
+            "topic_group": "sports_fan_behavior"
+          },
+          {
+            "id": "a18",
+            "impact": 40,
+            "topic_group": "football_division_and_hate"
+          }
+        ],
+        "score_12m": 33,
+        "score_3m": 29,
+        "subscore_evidence": {
+          "friction": [
+            "frictional_extraction",
+            "Government effectiveness (z-score)",
+            "Tax revenue (% GDP)",
+            "Interest payments (% revenue)",
+            "Government gross debt (% GDP)",
+            "Government net lending/borrowing (% GDP)"
+          ],
+          "information_capacity": [
+            "Statistical performance (0\u2013100)",
+            "Rule of law (z-score)",
+            "Government effectiveness (z-score)"
+          ],
+          "order_uncertainty": [
+            "Rule of law (z-score)",
+            "Political stability (z-score)",
+            "Inflation (% y/y)",
+            "Current account balance (% GDP)",
+            "Exchange rate vs another country"
+          ]
+        }
+      }
+    }
+  },
+  "note": "the benchmark incumbent, re-captured on the fixed payload and v4.5 prompt",
+  "rows": [
+    {
+      "articles": 20,
+      "as_of": "2018-01-01",
+      "bullet_summary": "The country faces high friction due to weak government effectiveness, high corruption, and moderate tax extraction with poor conversion. Order-uncertainty is elevated by a state of emergency, mass opposition detentions, and persistent rule-of-law and political stability deficits. Information capacity is impaired by weak statistical performance and press/judicial suppression. Multiple moderate-severity events\u2014sanctions evasion, a severe refugee crisis, and systematic opposition crackdowns\u2014persist, raising risk. Edge vitality is low, with limited business formation. No sovereign stress or war, but emergency rule and internal conflict are present.",
+      "cached_tokens": 0,
+      "calls": 3,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12770,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 717,
+      "payload_fingerprint": "6053291f0ed09e08",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.73,
+      "seconds": 9.14,
+      "spend_usd": 0.026155,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-08",
+      "bullet_summary": "Investor risk is elevated by persistent high inflation, weak rule of law, and low political stability. Corruption is entrenched, with recent events linking the government to sanction-evasion schemes and ongoing purges in the governing party. Press freedom is constrained, as shown by high numbers of jailed journalists. Statistical capacity is moderate, but information risk is increased by institutional interference. No war, emergency rule, or sovereign stress is present. The country retains moderate fiscal space and manageable debt, but order-uncertainty and information risk are rising.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 9638,
+      "ledger_scores": {
+        "edge_vitality": 0.32,
+        "friction": 0.47,
+        "information_capacity": 0.41,
+        "order_uncertainty": 0.54
+      },
+      "lint": [],
+      "llm_score": 0.59,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 454,
+      "payload_fingerprint": "6053291f0ed09e08",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.54,
+      "seconds": 4.22,
+      "spend_usd": 0.022908,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-15",
+      "bullet_summary": "The country faces moderate-to-high investor risk, driven by rapid democratic backsliding, weakened rule of law, and high-profile purges (a14, a2). Inflation is elevated and rising, with a negative real policy rate. Political stability is low, and the governing party is consolidating power. Information quality is impaired by media crackdowns and academic purges. No war, sovereign stress, or emergency rule is present. Edge vitality is modest. The evidence is broad and recent, but some fiscal data is stale.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11505,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.47,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 466,
+      "payload_fingerprint": "6053291f0ed09e08",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.61,
+      "seconds": 4.48,
+      "spend_usd": 0.026738,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-22",
+      "bullet_summary": "The country has launched a major cross-border military operation, with persistent hostilities and international isolation (a4, a9, a10, a11), sharply raising near-term risk. Friction is moderate, with high corruption and middling government effectiveness. Order-uncertainty is high due to kinetic activity, political instability, and rule-of-law concerns. Information capacity is weakened by only moderate statistical performance and evidence of democratic decline (a18). No sovereign stress or emergency rule is observed, but the risk of escalation is significant.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11448,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.49,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 541,
+      "payload_fingerprint": "6053291f0ed09e08",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.81,
+      "seconds": 5.01,
+      "spend_usd": 0.027224,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-01-29",
+      "bullet_summary": "The country is conducting a sustained cross-border military campaign, with persistent kinetic activity and high regional tensions (articles a5, a6, a7, a16, a17). This elevates order-uncertainty, especially as the campaign persists over multiple weeks. Friction is moderate-high due to high corruption, rising interest payments, and only modest government effectiveness. Information capacity is moderate, with decent statistical performance but weak rule of law and press freedom. No sovereign stress or emergency rule is observed. Edge vitality is low, reflecting weak new business formation. Risks are high and rising, especially if the conflict escalates or persists.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12728,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.81,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 720,
+      "payload_fingerprint": "b6ff2d4daa62d8f9",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.74,
+      "seconds": 5.72,
+      "spend_usd": 0.031216,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-05",
+      "bullet_summary": "The country is conducting a sustained cross-border military operation, with repeated severe kinetic activity and civilian casualties, raising order uncertainty and risk of escalation. Domestic crackdowns on dissent and high political corruption further undermine institutional trust. Inflation is high and rising, and unemployment is elevated. Statistical capacity is moderate, but recent events suggest growing information risk. No sovereign stress or emergency rule is observed, but persistent conflict and weak rule of law drive high short- and medium-term investor risk.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12551,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.77
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 651,
+      "payload_fingerprint": "eaf7d38c7db94abe",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.81,
+      "seconds": 5.23,
+      "spend_usd": 0.03031,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-12",
+      "bullet_summary": "The country is conducting a sustained cross-border military campaign, with repeated severe kinetic events and civilian casualties, raising order-uncertainty and risk of escalation. Domestic crackdowns on dissent further undermine rule of law. Friction is moderate-high, with high corruption and only modest government effectiveness. Information capacity is moderate, with statistical systems functional but not robust. No sovereign stress or emergency rule is observed, but persistent conflict and institutional strain drive high investor risk over both horizons.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12555,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.77
+      },
+      "lint": [],
+      "llm_score": 0.87,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 682,
+      "payload_fingerprint": "eaf7d38c7db94abe",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.81,
+      "seconds": 5.18,
+      "spend_usd": 0.030566,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-19",
+      "bullet_summary": "The country is conducting a sustained cross-border military campaign, with repeated severe kinetic activity and civilian displacement (a6, a7, a8, a10, a19). Domestic crackdowns on dissent and press freedom are ongoing (a5, a2, a15, a13). Friction is moderate-high due to corruption, weak government effectiveness, and rising interest burdens. Order-uncertainty is high, driven by persistent conflict and weak rule of law. Information capacity is moderate, with some statistical reliability but compromised by political interference. No sovereign stress or emergency rule is observed, but internal conflict is at level B due to repeated violence and disruption.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12688,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.41,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.86,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 763,
+      "payload_fingerprint": "eaf7d38c7db94abe",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.81,
+      "seconds": 5.69,
+      "spend_usd": 0.03148,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-02-26",
+      "bullet_summary": "The country faces high investor risk due to ongoing military operations in a neighboring enclave, with civilian casualties and regional escalation (a6, a12, a13). Domestic crackdowns on dissent and press freedom (a4, a10) further raise friction and order-uncertainty. Corruption is severe, and information quality is impaired by judicial interference and weak rule of law. Reconstruction needs are vast post-conflict (a19). Mitigants include moderate debt and some economic growth, but persistent instability and weak institutions dominate the outlook.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11761,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.81,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 684,
+      "payload_fingerprint": "99b1adfdb68bcb8b",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.74,
+      "seconds": 5.81,
+      "spend_usd": 0.028994,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-03-05",
+      "bullet_summary": "The country faces high investor risk due to ongoing cross-border military operations, persistent internal conflict, and a recent history of war with a violent extremist group. Emergency rule is in effect, with evidence of authoritarian consolidation and severe corruption. Friction is elevated by weak conversion of extraction and high corruption. Order-uncertainty is high, driven by instability, rule of law concerns, and repeated kinetic events. Information capacity is impaired by attacks on the press and judiciary. Edge vitality is low, with weak business formation. No sovereign stress is observed, but the risk of further escalation and institutional decay is significant.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 10312,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.58,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 850,
+      "payload_fingerprint": "a2f2dd843c7d303b",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.81,
+      "seconds": 9.53,
+      "spend_usd": 0.027424,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-03-12",
+      "bullet_summary": "The country faces sustained interstate military operations on its territory and in neighboring regions, with repeated airstrikes and offensives (a5, a11, a1). Emergency rule is evident, with ongoing crackdowns on media and civil society (a2, a6, a8), high corruption, and weak rule of law. Friction is elevated by moderate tax extraction but poor conversion due to corruption and weak government effectiveness. Order-uncertainty is high, driven by conflict, protests, and institutional repression. Information capacity is impaired by media suppression and only moderate statistical performance. Edge vitality is low, with weak new business formation. No sovereign stress is observed, but the risk of compounding instability is high.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "B",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 13929,
+      "ledger_scores": {
+        "edge_vitality": 0.24,
+        "friction": 0.62,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.86,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 791,
+      "payload_fingerprint": "a2f2dd843c7d303b",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.81,
+      "seconds": 6.92,
+      "spend_usd": 0.027119,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-19",
+      "bullet_summary": "The country faces severe investor risk due to sustained interstate military operations on its territory, mass displacement, and emergency rule (a4, a8, a9, a11, a16). The governing party has sharply curtailed media freedom and rule of law (a2, a5, a6), compounding order uncertainty. Friction is high, with moderate tax extraction but poor conversion and high corruption. Statistical capacity is moderate but impaired by political interference. Edge vitality is low. No sovereign stress is observed, but the risk of further escalation is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11246,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.67,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.81
+      },
+      "lint": [],
+      "llm_score": 0.88,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 744,
+      "payload_fingerprint": "a2f2dd843c7d303b",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.85,
+      "seconds": 7.35,
+      "spend_usd": 0.028444,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-03-26",
+      "bullet_summary": "The country faces severe investor risk due to sustained interstate military operations on its territory, large-scale displacement, and persistent internal conflict (military_operation_kurdish_region, a6/a10/a11/a16/a18). Emergency rule is evident, with repeated crackdowns on media and civil liberties (media_crackdown, a2/a7/a8/a1). Friction is high, with moderate tax extraction but weak conversion and high corruption. Order-uncertainty is elevated by ongoing conflict, high inflation, and weak rule of law. Information capacity is impaired by media suppression and only moderate statistical performance. Edge vitality is low. No sovereign stress is observed, but the risk of further escalation is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": true
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11244,
+      "ledger_scores": {
+        "edge_vitality": 0.24,
+        "friction": 0.62,
+        "information_capacity": 0.74,
+        "order_uncertainty": 0.81
+      },
+      "lint": [],
+      "llm_score": 0.91,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 706,
+      "payload_fingerprint": "aad9c55ab09c0eb2",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.87,
+      "seconds": 5.49,
+      "spend_usd": 0.028136,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-04-02",
+      "bullet_summary": "The country faces severe investor risk due to sustained military operations in a neighboring region, mass displacement, and persistent internal conflict (C). Emergency rule is in effect, with the governing party consolidating authoritarian control, suppressing media, and eroding rule of law. Friction is high, with moderate tax extraction but poor conversion due to corruption and weak government effectiveness. Information capacity is impaired by media crackdowns and only moderate statistical quality. No sovereign stress is observed, but order-uncertainty is very high due to ongoing conflict, legal unpredictability, and institutional degradation.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 14542,
+      "ledger_scores": {
+        "edge_vitality": 0.24,
+        "friction": 0.62,
+        "information_capacity": 0.77,
+        "order_uncertainty": 0.81
+      },
+      "lint": [],
+      "llm_score": 0.88,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 806,
+      "payload_fingerprint": "bffb358ad338a06c",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.85,
+      "seconds": 6.87,
+      "spend_usd": 0.028419,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-09",
+      "bullet_summary": "The country faces severe internal conflict, with sustained military operations and mass displacement in a Kurdish enclave (articles a6, a7, a13, a20). Political stability is low, rule of law is weak, and media independence is under threat (a1). Friction is moderate, with high corruption and only modest government effectiveness. Information capacity is impaired by media capture and middling statistical quality. No sovereign stress is observed, but persistent conflict and institutional erosion drive high investor risk over both horizons.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "C",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12191,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.77
+      },
+      "lint": [],
+      "llm_score": 0.85,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 540,
+      "payload_fingerprint": "bffb358ad338a06c",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.81,
+      "seconds": 6.04,
+      "spend_usd": 0.028702,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-16",
+      "bullet_summary": "The country faces moderate-to-high investor risk, driven by recent military operations in a neighboring conflict zone, persistent internal violence, and a clampdown on media freedom (a1, a7, a11). Political stability and rule of law are weak, with high corruption and moderate friction. Inflation is elevated and rising, and the currency is under pressure. Statistical capacity is moderate but undermined by media capture. No sovereign stress or emergency rule is present, but persistent conflict and institutional erosion raise 12-month risk.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "A",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11731,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.49,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.81,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 701,
+      "payload_fingerprint": "bffb358ad338a06c",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.74,
+      "seconds": 6.15,
+      "spend_usd": 0.02907,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-23",
+      "bullet_summary": "The country faces rising friction from moderate extraction and weak conversion, with high corruption and declining government effectiveness. Order-uncertainty is elevated due to imminent snap elections, a shift to executive presidency, ongoing emergency rule, and military tensions with neighbors. Information capacity is moderate: the statistical system is functional but compromised by political interference and media suppression. No war or sovereign stress is present, but persistent emergency rule and institutional weakening raise medium-term risk. Edge vitality is low, reflecting weak business dynamism.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11729,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.48,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 702,
+      "payload_fingerprint": "bffb358ad338a06c",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 5.81,
+      "spend_usd": 0.029074,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-04-30",
+      "bullet_summary": "The country faces moderate-to-high investor risk. Snap elections will cement a powerful executive presidency under emergency rule, raising order uncertainty. Political stability and rule of law are weak, with high corruption and a crackdown on dissent. Military tensions with neighbors and migration pressures persist. Inflation is high but stable; the currency is under pressure. Statistical capacity is moderate, but media and institutional independence are compromised. Friction is elevated by inefficient extraction and corruption. Edge vitality is low. No war or sovereign stress, but emergency rule is in effect.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 15777,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 820,
+      "payload_fingerprint": "9ad43c939db1d549",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.66,
+      "seconds": 7.04,
+      "spend_usd": 0.030518,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-07",
+      "bullet_summary": "The country faces moderate investor risk, driven by the abrupt move to snap elections under a state of emergency, consolidation of executive power, and persistent crackdowns on dissent and the press. Political stability is low, with high corruption and weak rule of law. Military tensions with neighbors and a surge in border crossings add to uncertainty. Inflation is high but not accelerating. Statistical capacity is middling, but press repression raises information risk. Fiscal metrics are moderate, with manageable debt and interest burdens. Edge vitality is low, reflecting weak new business formation. No war or sovereign stress is present, but emergency rule is in effect.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12093,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.41,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 720,
+      "payload_fingerprint": "9ad43c939db1d549",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 5.95,
+      "spend_usd": 0.029946,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-14",
+      "bullet_summary": "The country faces moderate investor risk, driven by a rapid shift to an executive presidency, ongoing emergency rule, and severe media repression (a1, a6, a8, a12). Political stability and rule of law are weak, with high corruption and only moderate government effectiveness. Inflation is elevated (10%), the currency is under pressure, and information quality is impaired by state control and intimidation of journalists. No active war or sovereign stress is present, but persistent institutional uncertainty and weak checks on power raise 12-month risk.",
+      "cached_tokens": 0,
+      "calls": 4,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 18249,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.48,
+        "information_capacity": 0.67,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 1007,
+      "payload_fingerprint": "9ad43c939db1d549",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 10.2,
+      "spend_usd": 0.031088,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-05-21",
+      "bullet_summary": "Investor risk is elevated due to persistent protests, press repression, and high-profile corruption (a2, a9, a5, a6, a14). Political stability and rule of law are weak, with a high corruption index and negative trends. Friction is moderate: tax extraction is not excessive, but conversion is poor and interest payments are rising. Information capacity is impaired by media crackdowns and only moderate statistical performance. Military tensions with neighbors (a3, a8) add to uncertainty. No sovereign stress or war is present, but the risk of further deterioration is high, especially over 12 months.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 17432,
+      "ledger_scores": {
+        "edge_vitality": 0.28,
+        "friction": 0.47,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 822,
+      "payload_fingerprint": "9ad43c939db1d549",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.63,
+      "seconds": 8.47,
+      "spend_usd": 0.033888,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-05-28",
+      "bullet_summary": "Investor risk is elevated by persistent anti-government protests, police brutality, and media repression (a4, a10), all undermining rule of law and contract certainty. The country faces double-digit inflation (10.8%), currency pressure, and rising interest rates, with moderate but deteriorating government effectiveness and high corruption. Migration surges at borders (a18) add to institutional strain. Statistical capacity is moderate but press freedom is weak, raising information risk. No war or sovereign stress is present, but the compounding wedge and order uncertainty drive high risk over both horizons.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 14045,
+      "ledger_scores": {
+        "edge_vitality": 0.28,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 677,
+      "payload_fingerprint": "8418fa6aa5e41bf2",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 6.42,
+      "spend_usd": 0.033506,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-04",
+      "bullet_summary": "The country faces moderate investor risk, driven by recent currency turmoil, double-digit inflation, and rising interest rates (a1, a9). Political stability is low, with persistent protests, press repression, and EU accession at risk (a4, a10). Corruption is high and rule of law weak. Friction is moderate: tax extraction is not excessive, but conversion to capability is poor. Information quality is impaired by media crackdowns and middling statistical performance. No war or sovereign stress is present. Edge vitality is low, with weak new business formation. Risks are likely to persist or worsen over 12 months.",
+      "cached_tokens": 0,
+      "calls": 3,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 15931,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.47,
+        "information_capacity": 0.68,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 671,
+      "payload_fingerprint": "459a1d570272fe72",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 7.95,
+      "spend_usd": 0.031205,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 19,
+      "as_of": "2018-06-11",
+      "bullet_summary": "Investor risk is elevated by persistent anti-government protests, police violence, and strained foreign relations, including military posturing and disputes over extradition (a5, a16, a11, a17). The country faces high inflation (10.8%), currency pressure, and moderate friction due to corruption and weak rule of law. Press freedom is under threat, with journalist arrests and state intimidation (a15, a8, a9). Statistical capacity is moderate, but information reliability is undermined by political interference. No war or sovereign stress is present, but the risk of further unrest and institutional slippage is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 13698,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.44,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.67,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 707,
+      "payload_fingerprint": "459a1d570272fe72",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 7.18,
+      "spend_usd": 0.033052,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-18",
+      "bullet_summary": "Investor risk is elevated by persistent currency pressure, high inflation (10.8% y/y), and moderate political instability. The country faces moderate friction: tax extraction is not excessive, but conversion is hampered by high corruption and only modest government effectiveness. Order-uncertainty is high due to recent currency volatility, tense elections, and cross-border disputes. Information capacity is moderate; statistics are generally reliable but press freedom is under pressure. No war or emergency rule is present. Edge vitality is modest, with low new business formation. The evidence is broad, but some key fiscal and external indicators are stale.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 16475,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.44,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 811,
+      "payload_fingerprint": "459a1d570272fe72",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 7.22,
+      "spend_usd": 0.03169,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-06-25",
+      "bullet_summary": "The country faces elevated investor risk due to a recent election granting sweeping executive powers to the leader, ongoing emergency rule, and a crackdown on dissent and media. Friction is moderate, with rising inflation and currency pressure. Order-uncertainty is high, driven by political instability, rule of law concerns, and the risk of further institutional disruption. Information capacity is weak, as press freedom is severely curtailed and official statistics are less reliable. Edge vitality is moderate, with some business and education activity. No war or sovereign stress is present, but emergency rule persists.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11830,
+      "ledger_scores": {
+        "edge_vitality": 0.36,
+        "friction": 0.54,
+        "information_capacity": 0.74,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 769,
+      "payload_fingerprint": "bff3ec3921ab1585",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 5.55,
+      "spend_usd": 0.029812,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-02",
+      "bullet_summary": "The country has entered a new era of executive dominance after the leader\u2019s election victory and constitutional changes, abolishing checks on presidential power. Emergency rule persists post-2016 coup, with high political corruption, weak rule of law, and rising inflation (12%). The central bank\u2019s high policy rate (17.75%) and currency depreciation signal macroeconomic stress. Official statistics are moderately reliable but compromised by government control of media and judiciary. No war or sovereign stress is present, but order-uncertainty is elevated due to institutional erosion and persistent emergency rule. Edge vitality is modest, with some business formation and education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11419,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.44,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.67,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 808,
+      "payload_fingerprint": "164a7142438dba60",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 5.69,
+      "spend_usd": 0.029302,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-09",
+      "bullet_summary": "The country has entered a new era of executive dominance after the leader's election victory and constitutional changes, consolidating power and weakening checks and balances. Persistent state of emergency, judiciary capture, and high corruption raise order-uncertainty. Friction is moderate: tax extraction is not excessive, but conversion is hampered by weak governance and rising interest costs. Information capacity is impaired by government control of media and judiciary. No war or sovereign stress, but emergency rule is present. Edge vitality is low. Risks are elevated and likely to persist or worsen over 12 months.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11452,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.48,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 755,
+      "payload_fingerprint": "164a7142438dba60",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 6.04,
+      "spend_usd": 0.028944,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-16",
+      "bullet_summary": "The country faces moderate-to-high investor risk. Recent elections consolidated vast executive powers under the leader, abolishing checks and weakening the judiciary (a4, a6, a19). The state of emergency persists, undermining rule of law and raising order uncertainty. Inflation is high (12%), the currency is depreciating, and policy rates are sharply elevated. Friction is compounded by high corruption and modest government effectiveness. Statistical capacity is middling, but media and judicial independence are compromised. No war or mass unrest, but emergency rule is in effect. Edge vitality is low, with weak new business formation. Risks are rising, especially over 12 months, as institutional erosion may compound economic fragility.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11488,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 748,
+      "payload_fingerprint": "164a7142438dba60",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.66,
+      "seconds": 6.1,
+      "spend_usd": 0.02896,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-23",
+      "bullet_summary": "The country has entered a period of heightened risk following the leader's consolidation of power, with a new executive system, weakened judiciary, and persistent state of emergency. Friction is moderate, with manageable debt and interest burdens, but high corruption and declining government effectiveness. Order-uncertainty is elevated due to autocratic drift, institutional erosion, double-digit inflation, and currency pressure. Information capacity is impaired by government control of media and judiciary, reducing trust in official data. No war or sovereign stress is present, but emergency rule persists. Edge vitality is low, reflecting weak business formation. Risks are rising, especially over 12 months, as institutional checks erode.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": true,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 10442,
+      "ledger_scores": {
+        "edge_vitality": 0.22,
+        "friction": 0.47,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.73
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 668,
+      "payload_fingerprint": "164a7142438dba60",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.68,
+      "seconds": 5.64,
+      "spend_usd": 0.026228,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-07-30",
+      "bullet_summary": "Investor risk is elevated due to a sharp rise in inflation (15.4% y/y), a plunging currency, and a recent consolidation of power by the leader, undermining institutional checks and the rule of law. Multiple articles confirm a shift to authoritarian governance, persistent crackdowns, and weakened judicial independence. Friction is moderate-high, with rising extraction and corruption. Information capacity is impaired by political interference and only moderate statistical performance. No war or sovereign stress is present, but order-uncertainty is high and rising. Edge vitality is modest, with limited new business formation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12475,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 750,
+      "payload_fingerprint": "9a9a70d81d0fdfc9",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 5.88,
+      "spend_usd": 0.03095,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 18,
+      "as_of": "2018-08-06",
+      "bullet_summary": "Investor risk is elevated due to persistent democratic backsliding, high-profile purges, and a concentration of power in the executive, as shown by recent articles and weak rule of law scores. The country faces acute currency and inflation pressures, with policy rates and inflation both above 15% and the currency under stress. Foreign sanctions over a detained religious leader further raise uncertainty. Statistical capacity is moderate, but information risk is rising as institutional independence erodes. No war or sovereign stress is observed, but the risk of further deterioration is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11268,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.48,
+        "information_capacity": 0.41,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 707,
+      "payload_fingerprint": "f415f5809a758c3f",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 5.25,
+      "spend_usd": 0.028192,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-13",
+      "bullet_summary": "The country faces a severe currency and inflation crisis, with the local currency down by a third in 12 months, inflation above 15%, and 10-year yields over 20%. Political interference in monetary policy, high corruption, and weak rule of law amplify order-uncertainty. Sanctions and diplomatic tensions with a major partner worsen the outlook. Statistical capacity is moderate, but persistent crisis signals high risk of further deterioration. No war or emergency rule is present, but sovereign stress is likely if current trends persist.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11503,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.77
+      },
+      "lint": [],
+      "llm_score": 0.81,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 679,
+      "payload_fingerprint": "f415f5809a758c3f",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.74,
+      "seconds": 5.59,
+      "spend_usd": 0.028438,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-20",
+      "bullet_summary": "The country faces a severe and persistent currency and inflation crisis, with the local currency down over 40% in a year and inflation above 15%. The central bank is under political pressure, limiting its ability to respond. Sanctions and diplomatic tensions with a major trading partner have worsened the crisis. Friction is high due to weak government effectiveness and high corruption. Order-uncertainty is elevated by policy unpredictability, currency volatility, and institutional interference. Information capacity is moderate, with statistical systems functioning but under some pressure. No war, emergency rule, or sovereign default is observed, but sovereign stress risk is rising.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 15326,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.62,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.81,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 806,
+      "payload_fingerprint": "f415f5809a758c3f",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.77,
+      "seconds": 7.17,
+      "spend_usd": 0.02972,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-08-27",
+      "bullet_summary": "The country faces a severe and persistent currency and inflation crisis, with the local currency down over 40% in a year and inflation above 15%. Political interference in monetary policy, high foreign-currency debt, and deteriorating relations with a major trading partner have driven risk sharply higher. The central bank\u2019s independence is in question, and market confidence is low. Statistical capacity is moderate, but information is not deeply impaired. No war or internal conflict is present, but sovereign stress is acute. Edge vitality is modest, reflecting weak new business formation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11657,
+      "ledger_scores": {
+        "edge_vitality": 0.24,
+        "friction": 0.62,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.75
+      },
+      "lint": [],
+      "llm_score": 0.82,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 732,
+      "payload_fingerprint": "86426993a99e88a2",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.78,
+      "seconds": 5.51,
+      "spend_usd": 0.02917,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-03",
+      "bullet_summary": "The country faces a severe and persistent currency and inflation crisis, with the local currency down over 40% in 2018 and inflation above 15%. Political interference in monetary policy, high foreign-currency debt, and external sanctions have undermined confidence. Friction is elevated by weak government effectiveness and high corruption. Order-uncertainty is high due to policy unpredictability, rapid currency depreciation, and eroding rule of law. Information capacity is moderate, with statistical systems functional but under pressure. No war or emergency rule is present, but sovereign stress is acute. Edge vitality is low, reflecting weak business formation.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11648,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.68
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 743,
+      "payload_fingerprint": "3cca2306327fa267",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.71,
+      "seconds": 5.65,
+      "spend_usd": 0.02924,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-10",
+      "bullet_summary": "The country faces a severe currency and financial crisis, with the local currency down 45% YTD, inflation above 15%, and policy rates at 17.75%. The central bank's interventions have failed to restore confidence, and political interference undermines monetary credibility. High corporate foreign-currency debt and weak rule of law amplify risk. Statistical capacity is moderate, but high corruption and low government effectiveness raise friction. No war or emergency rule is present, but persistent crisis signals elevated investor risk over both horizons.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12889,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.58,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 737,
+      "payload_fingerprint": "3cca2306327fa267",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 5.7,
+      "spend_usd": 0.031674,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-17",
+      "bullet_summary": "Investor risk is elevated due to a severe currency and inflation crisis: the central bank raised rates sharply to 24% amid nearly 18% inflation and a 39% currency depreciation (a1). Political interference in monetary policy, high corruption, and weak rule of law (frictional_extraction, Political corruption index, Rule of law) further undermine confidence. Regional conflict risks and authoritarian drift (a4, a8, a18) add to uncertainty. Statistical capacity is moderate, but information risk is not extreme. Edge vitality is low, reflecting weak business dynamism. No active war or sovereign default, but risk of further deterioration is high.",
+      "cached_tokens": 0,
+      "calls": 3,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 14059,
+      "ledger_scores": {
+        "edge_vitality": 0.22,
+        "friction": 0.58,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 1303,
+      "payload_fingerprint": "3cca2306327fa267",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 10.7,
+      "spend_usd": 0.033573,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-09-24",
+      "bullet_summary": "The country faces acute investor risk due to a currency crisis, surging inflation (nearly 18%), and a dramatic policy rate hike to 24% by the central bank, despite political interference from the leader. Political stability and rule of law are weak, with high corruption and moderate government effectiveness. Regional conflict at the border raises humanitarian and security risks. Information capacity is moderate, but most economic indicators are stale. No active war or sovereign stress is observed, but persistent policy and market instability elevate both short- and medium-term risk.",
+      "cached_tokens": 0,
+      "calls": 3,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 13959,
+      "ledger_scores": {
+        "edge_vitality": 0.24,
+        "friction": 0.58,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 674,
+      "payload_fingerprint": "3cca2306327fa267",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 7.28,
+      "spend_usd": 0.029369,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-01",
+      "bullet_summary": "The country faces acute investor risk from surging inflation (18%), a sharp policy rate hike (24%), and a 39% currency depreciation, indicating monetary instability. Political interference in the central bank, high corruption, and post-coup purges undermine rule of law and contract security. Civil society clampdowns and media expropriation further erode institutional trust. While gross debt is moderate, friction is elevated by weak conversion and rising extraction. Statistical capacity is middling, so official data require caution. No active war or sovereign stress, but persistent order uncertainty and compounding risks drive high short- and medium-term scores.",
+      "cached_tokens": 0,
+      "calls": 3,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 14496,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 1092,
+      "payload_fingerprint": "728943498d1a55da",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 9.69,
+      "spend_usd": 0.031486,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-08",
+      "bullet_summary": "The country faces acute investor risk due to surging inflation (~18%), a sharp currency depreciation, and a recent emergency rate hike to 24% by the central bank, despite political interference. Political purges, weak rule of law, and high corruption undermine order and information quality. While gross debt is moderate, friction is elevated by poor conversion and governance. Regional conflict and refugee risks persist but have not crossed into war. Statistical capacity is middling; edge vitality is low. No sovereign stress or emergency rule is observed.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12305,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 792,
+      "payload_fingerprint": "728943498d1a55da",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 6.9,
+      "spend_usd": 0.030946,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-15",
+      "bullet_summary": "Investor risk is elevated. The country faces high friction due to weak government effectiveness, high corruption, and moderate debt, despite strong recent growth. Order-uncertainty is high: rule of law is weak, inflation is surging (18%), the currency is volatile, and recent events\u2014mass post-coup purges, clampdowns on civil society, and the high-profile disappearance of a journalist\u2014undermine contract and institutional reliability. Information capacity is moderate: statistics are adequate but press freedom and judicial independence are compromised. No war or sovereign stress is present, but persistent institutional and rule-of-law risks keep both short- and medium-term risk high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12698,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.41,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 793,
+      "payload_fingerprint": "728943498d1a55da",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.63,
+      "seconds": 5.91,
+      "spend_usd": 0.03174,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-22",
+      "bullet_summary": "Investor risk is elevated by persistent post-coup repression, mass detentions, and a hostile environment for journalists and dissidents, as shown by multiple high-severity articles and weak rule of law. Inflation is high and rising, with a sharp policy rate hike and currency depreciation. Information capacity is impaired by state pressure on media and courts, and statistical performance is only moderate. No war or sovereign stress is present, but order-uncertainty is high due to ongoing institutional and rights-based instability.",
+      "cached_tokens": 0,
+      "calls": 3,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 15234,
+      "ledger_scores": {
+        "edge_vitality": 0.28,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 912,
+      "payload_fingerprint": "728943498d1a55da",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 7.85,
+      "spend_usd": 0.031635,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-10-29",
+      "bullet_summary": "Investor risk is elevated by persistent, high-profile domestic repression (mass detentions, media shutdowns), weak rule of law, and a series of severe events around the murder of a journalist on the country's soil, which challenge order and due process. Inflation is surging (24.5% y/y), the policy rate is very high, and the currency is under pressure. Information capacity is impaired by state control and intimidation of the press. Edge vitality is low, with weak new business formation. No war or sovereign stress is observed, but the risk of further institutional decay is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 13630,
+      "ledger_scores": {
+        "edge_vitality": 0.23,
+        "friction": 0.54,
+        "information_capacity": 0.68,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 839,
+      "payload_fingerprint": "d2d030ff0f381222",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 5.99,
+      "spend_usd": 0.033972,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-05",
+      "bullet_summary": "Investor risk is elevated due to persistent, high-profile rule-of-law breaches: mass journalist detentions, deportations of refugees in violation of international law, and a major unresolved journalist murder on the country's soil. Inflation is surging (24.5%), the currency is under pressure, and the policy rate is sharply elevated. Political stability and rule of law are weak. Statistical capacity is moderate but undermined by press repression. No war or sovereign stress is present, but order-uncertainty is high and compounding risk is likely.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 13589,
+      "ledger_scores": {
+        "edge_vitality": 0.28,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 658,
+      "payload_fingerprint": "556bb707cc5e784e",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 6.13,
+      "spend_usd": 0.032442,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-12",
+      "bullet_summary": "Investor risk is elevated due to persistent domestic repression (mass detentions, media shutdowns, high-profile imprisonments), weak rule of law, and a hostile environment for journalists and dissidents. The country faces high inflation (24.5% y/y), a sharply raised policy rate (24%), and a depreciating currency, indicating monetary instability. Political stability and corruption scores are poor. Information quality is undermined by state control and intimidation of the press. No war or sovereign stress is present, but the risk of further institutional decay and unpredictable policy is high. Edge vitality is low, reflecting weak business formation and constrained adaptation.",
+      "cached_tokens": 0,
+      "calls": 2,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 17195,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.62,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.72,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 842,
+      "payload_fingerprint": "556bb707cc5e784e",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 7.21,
+      "spend_usd": 0.033752,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-19",
+      "bullet_summary": "The country faces high investor risk due to persistent domestic repression (mass detentions, media shutdowns), weak rule of law, and a hostile environment for journalists. Severe inflation (24.5% y/y), a sharply depreciating currency, and high policy rates signal macro instability. Major foreign sanctions and diplomatic crises further elevate uncertainty. Statistical capacity is moderate but undermined by press restrictions and political interference. Friction is moderate, with relatively low debt but high corruption and weak government effectiveness. Edge vitality is low, reflecting limited business dynamism. No war or sovereign stress is observed, but the risk outlook is high and rising.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12070,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.48,
+        "information_capacity": 0.72,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.74,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 743,
+      "payload_fingerprint": "556bb707cc5e784e",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 5.93,
+      "spend_usd": 0.030084,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-11-26",
+      "bullet_summary": "Investor risk is elevated. The country faces high inflation (25% y/y), a sharp policy rate hike, and a depreciating currency, indicating acute macro instability. Major foreign sanctions (a5) and persistent diplomatic crises (a12, a13, a19) raise order-uncertainty, with repeated crackdowns on dissent (a1, a11) and high corruption (0.837) undermining institutional trust. Statistical performance is moderate, but information risk is compounded by weak rule of law and political interference. No war or sovereign stress is present, but the risk of further deterioration is high.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12162,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.48,
+        "information_capacity": 0.54,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 879,
+      "payload_fingerprint": "fbe4e1f15f184062",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 6.64,
+      "spend_usd": 0.031356,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-03",
+      "bullet_summary": "Investor risk is elevated due to persistent high inflation (25% y/y), a sharp policy rate hike, and a rapidly depreciating currency. The country faces moderate friction: extraction is not extreme, but conversion is weak amid high corruption and only modest government effectiveness. Order-uncertainty is high, driven by severe repression of dissent, mass detentions, and a politicized judiciary (a3, a11), compounded by foreign sanctions (a4) and renewed territorial tensions (a20). Information capacity is impaired by weak statistical performance and press repression. Edge vitality is low, with weak new business formation. No war, sovereign stress, or emergency rule is observed, but the risk of further deterioration is significant.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11952,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.61,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 541,
+      "payload_fingerprint": "6fbdbe9c66e41d81",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 4.83,
+      "spend_usd": 0.028232,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-10",
+      "bullet_summary": "Investor risk is elevated. The country faces high inflation (25% y/y), a sharp policy rate hike (24%), and a depreciating currency, indicating macro instability. Political risk is acute: recent articles detail severe repression, a life sentence for a prominent journalist, persistent corruption, and aggressive rhetoric over a territorial dispute. Friction is moderate-high, with weak government effectiveness and high corruption. Information capacity is impaired by political interference but not collapsed. No war or sovereign stress is present, but the risk of further deterioration is significant. Edge vitality is low, reflecting weak business formation and moderate education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 11277,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.68,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 547,
+      "payload_fingerprint": "6fbdbe9c66e41d81",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.62,
+      "seconds": 4.66,
+      "spend_usd": 0.02693,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-17",
+      "bullet_summary": "The country faces high friction due to moderate tax extraction, weak government effectiveness, and high corruption. Order-uncertainty is elevated by surging inflation (25% y/y), a sharply raised policy rate (24%), and a volatile exchange rate, compounded by recent and persistent threats of military action in a neighboring region. Political repression, including jailing of journalists, further undermines rule of law and information quality. Statistical capacity is moderate but not robust. No sovereign stress or emergency rule is observed, but the risk of escalation is significant. Edge vitality is low, reflecting weak new business formation and moderate education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12483,
+      "ledger_scores": {
+        "edge_vitality": 0.27,
+        "friction": 0.54,
+        "information_capacity": 0.41,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 732,
+      "payload_fingerprint": "6fbdbe9c66e41d81",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.72,
+      "seconds": 6.78,
+      "spend_usd": 0.030822,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-24",
+      "bullet_summary": "The country faces high friction due to moderate extraction and weak conversion, with rising political corruption and only modest government effectiveness. Order-uncertainty is elevated by recent and persistent military operations in a neighboring region, high inflation (25% y/y), a sharply raised policy rate, and weak rule of law. Information capacity is impaired by political repression, closure of NGOs, and only moderate statistical performance. No sovereign stress or war on territory is observed, but persistent regional conflict and domestic repression raise risk. Edge vitality is low, reflecting weak new business formation and moderate education spending.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12537,
+      "ledger_scores": {
+        "edge_vitality": 0.29,
+        "friction": 0.54,
+        "information_capacity": 0.48,
+        "order_uncertainty": 0.67
+      },
+      "lint": [],
+      "llm_score": 0.77,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 734,
+      "payload_fingerprint": "6fbdbe9c66e41d81",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.73,
+      "seconds": 6.05,
+      "spend_usd": 0.030946,
+      "status": "complete",
+      "utc_hour": 18
+    },
+    {
+      "articles": 20,
+      "as_of": "2018-12-31",
+      "bullet_summary": "The country faces moderate-to-high investor risk, driven by recent and persistent military mobilization near its borders, high inflation (16%), a sharp policy rate hike (24%), and a volatile currency. Political repression and weak rule of law further elevate order-uncertainty. Friction is compounded by high corruption and rising interest burdens, though gross debt remains moderate. Statistical capacity is fair, but press freedom is constrained. No sovereign stress or war on territory is observed, but persistent regional conflict and domestic repression raise 12-month risk.",
+      "cached_tokens": 0,
+      "calls": 1,
+      "condition_flags": {
+        "emergency_rule": false,
+        "internal_conflict_level": "none",
+        "sovereign_stress": false,
+        "war_on_territory": false
+      },
+      "elicitation": {},
+      "error": null,
+      "input_tokens": 12931,
+      "ledger_scores": {
+        "edge_vitality": 0.41,
+        "friction": 0.58,
+        "information_capacity": 0.38,
+        "order_uncertainty": 0.62
+      },
+      "lint": [],
+      "llm_score": 0.73,
+      "model_id": "gpt-4.1-2025-04-14",
+      "offpeak_usd": null,
+      "output_tokens": 643,
+      "payload_fingerprint": "f821fc03038b99a0",
+      "prompt_version": "v4.5-no-publisher",
+      "schema_violations": 0,
+      "score_3m": 0.67,
+      "seconds": 5.25,
+      "spend_usd": 0.031006,
+      "status": "complete",
+      "utc_hour": 18
+    }
+  ],
+  "since": "2018-01-01",
+  "until": "2018-12-31"
+}

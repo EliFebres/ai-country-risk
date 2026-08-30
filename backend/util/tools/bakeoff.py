@@ -283,6 +283,25 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
         "env": {"SCORING_MODEL": "gpt-4.1-2025-04-14"},
         "key_env": "OPENAI_API_KEY",
     },
+    # The same model, re-scored 2026-08-30 on the payload and prompt a candidate
+    # would actually be handed. A new file rather than an overwrite of
+    # `gpt-4.1.json`, deliberately: that file is the record of what the
+    # benchmark incumbent was before the vintage fix, and part 1 of this branch
+    # has just spent a commit arguing against editing history in place.
+    #
+    # Two things moved under the old arm, and neither was visible from it. The
+    # vintage fix (2026-08-29) put eight more indicators into every payload
+    # inside an unchanged `PAYLOAD_VERSION: p2` -- the old arm saw 15 of 38 with
+    # the information and edge ledgers empty, this one sees 23. And
+    # `PROMPT_VERSION` moved to v4.5-no-publisher when the article entry stopped
+    # naming its publisher. `payload_fingerprint` on every row now records the
+    # first; `captured_under` records the second.
+    "gpt-4.1-postfix": {
+        "arm": "scoring",
+        "note": "the benchmark incumbent, re-captured on the fixed payload and v4.5 prompt",
+        "env": {"SCORING_MODEL": "gpt-4.1-2025-04-14"},
+        "key_env": "OPENAI_API_KEY",
+    },
     # The payload arm. The scorer is deliberately left unset so `candidate_env`
     # clears SCORING_MODEL and the incumbent applies: this varies the *evidence*
     # and holds the instrument fixed, which is the mirror image of every entry
@@ -323,6 +342,24 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
     "p2-rebaseline": {
         "arm": "payload",
         "note": "p2 re-scored after the vintage fix, scorer held at gpt-4o",
+        "env": {"PAYLOAD_VARIANT": "p2"},
+        "key_env": "OPENAI_API_KEY",
+    },
+    # A-prime again, and the reason is the prompt rather than the payload. The
+    # 2026-08-29 arm above was scored under v4.0-masked-production, when every
+    # article entry still carried `"source": "guardian"`. Removing that moved
+    # `PROMPT_VERSION` to v4.5-no-publisher, so the existing A-prime is now the
+    # only reference on a prompt no candidate will ever be sent -- which is the
+    # staleness this branch exists to stop, arriving by a different door within
+    # a day of the first one.
+    #
+    # Re-scored rather than reasoned about. The change is one constant field
+    # removed from twenty article entries and is very unlikely to move a rank
+    # correlation, and "very unlikely" is the phrase this project has been
+    # wrong about three times.
+    "p2-rebaseline-postfix": {
+        "arm": "payload",
+        "note": "A-prime re-scored on the v4.5 prompt, scorer held at gpt-4o",
         "env": {"PAYLOAD_VARIANT": "p2"},
         "key_env": "OPENAI_API_KEY",
     },
@@ -2253,7 +2290,12 @@ def main() -> None:
         # one: the gate is measured on a canned payload with no country in it, so
         # filing it under one window was what left 24 of 26 files claiming the
         # gate had never been run.
-        gates = {k: result[k] for k in ("schema", "determinism", "cost")}
+        # `payload` rides with them. It was computed and dropped on the first
+        # run of this branch -- `smoke` built the report, this line carried three
+        # keys, and the block that says how big the gate's own request was never
+        # reached disk. Which is the write-a-thing-nobody-reads pattern committed
+        # inside the commit that added an instrument to catch it.
+        gates = {k: result[k] for k in ("schema", "determinism", "cost", "payload")}
         paths = save_gates(args.candidate, gates)
         for path in paths:
             payload = json.loads(path.read_text(encoding="utf-8"))
