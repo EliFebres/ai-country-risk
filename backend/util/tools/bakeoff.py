@@ -1967,6 +1967,12 @@ def score_anchors(name: str, budget_usd: float = BAKEOFF_BUDGET_USD,
                 # vintage fix and nothing could tell them apart.
                 "payload_fingerprint": ((manifest.get("payload_health") or {})
                                         .get("indicators") or {}).get("fingerprint"),
+                # Criterion 1 is "zero invalid outputs over the anchor set", and
+                # over the anchor set it was unobservable: `_from_100` clamped an
+                # out-of-range score into a plausible one before anything saw it.
+                # The full findings are on the manifest; the arm carries the
+                # count, which is what the criterion actually reads.
+                "schema_violations": len(out.get("schema_violations") or []),
                 "ledger_scores": out.get("ledger_scores") or {},
                 "condition_flags": out.get("condition_flags") or {},
                 "lint": manifest.get("lint") or [],

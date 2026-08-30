@@ -196,6 +196,88 @@ def _extract_iso2(payload: Dict) -> Optional[str]:
 # -------------------------
 # The 0-100 → 0-1 boundary
 # -------------------------
+# The fields `_from_100` rescales, and therefore the ones where an out-of-range
+# answer becomes a plausible number instead of an error. Named so a violation
+# can say whether the clamp swallowed it or it merely went unenforced.
+_CLAMPED_FIELDS = frozenset({
+    "score_12m", "score_3m", "evidence_coverage", "ledger_scores", "impact",
+})
+
+
+def schema_violations(data: Any, schema: Dict[str, Any], *,
+                      iso2: Optional[str] = None,
+                      as_of: Optional[date] = None,
+                      model_id: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Every constraint the answer broke, after decoding and before rescaling.
+
+    `bakeoff.grammar_risks(RISK_SCHEMA_V3)` names 21 constraints no
+    context-free grammar can express -- every ``minimum``/``maximum`` on the
+    four ledgers, on ``impact``, ``score_3m``, ``score_12m`` and
+    ``evidence_coverage``, the four ``["integer", "null"]`` unions, and
+    ``bullet_summary``'s ``maxLength``. LangChain forwards all of them to the
+    provider under ``strict: true`` and none is in the enforced subset, so
+    **production has this hole today** and not only a local endpoint would.
+
+    What stood in for enforcement was `_from_100`, which clamps to 0-1 and
+    returns None on anything non-numeric. That is a good safety net and a
+    terrible record: a model answering 250 became 1.0, a model answering "high"
+    became None, and nothing logged, stored or counted either. Criterion 1 of
+    `docs/scorer-acceptance.md` is "zero invalid outputs **over the anchor
+    set**" -- which was unmeasurable, because the only place a bound was ever
+    checked was the smoke gate's nine calls on canned payloads.
+
+    So: validate the parsed answer against the schema the run actually sent,
+    collect every error rather than raising on the first, and say for each
+    whether the clamp then swallowed it. A superset of what the clamp could
+    have reported on its own -- `maxLength`, `required` and
+    `additionalProperties` are violations the rescale never sees.
+
+    Non-fatal by construction. A country that answered out of range still
+    scores, on the clamped value, exactly as before; the difference is that the
+    row now says so.
+
+    Args:
+        data: the parsed model answer.
+        schema: the schema this call was dispatched with, variant included.
+        iso2, as_of, model_id: stamped onto each finding, because "a bound was
+            broken" is not actionable and "gpt-4.1 answered 250 for score_12m
+            at TR 2018-08-13" is.
+
+    Returns:
+        One dict per violation, sorted by path. Empty when the answer is clean,
+        which is the overwhelmingly common case.
+    """
+    try:
+        import jsonschema
+    except ImportError:  # pragma: no cover - pinned in requirements
+        logger.warning("jsonschema is unavailable; the answer went unchecked")
+        return []
+
+    validator = jsonschema.validators.validator_for(schema)(schema)
+    findings = []
+    for err in validator.iter_errors(data):
+        parts = list(err.absolute_path)
+        path = "$" + "".join(f"[{p}]" if isinstance(p, int) else f".{p}"
+                             for p in parts)
+        findings.append({
+            "path": path,
+            "rule": err.validator,
+            "limit": err.validator_value if isinstance(
+                err.validator_value, (int, float, str)) else None,
+            # The raw answer, before anything rescaled it. This is the number a
+            # reader needs and the one the clamp destroyed.
+            "value": err.instance if isinstance(
+                err.instance, (int, float, str, bool, type(None))) else None,
+            "message": err.message[:300],
+            "clamped": bool(parts) and str(parts[-1]) in _CLAMPED_FIELDS or bool(
+                parts) and str(parts[0]) in _CLAMPED_FIELDS,
+            "country_iso2": iso2,
+            "as_of": as_of.isoformat() if as_of else None,
+            "model_id": model_id,
+        })
+    return sorted(findings, key=lambda f: (f["path"], f["rule"]))
+
+
 def _from_100(value: Any) -> Optional[float]:
     """Convert one model-reported 0-100 integer to the 0-1 scale.
 
@@ -296,6 +378,10 @@ def _failure_result(payload: object = None) -> Dict[str, object]:
         "model_id": ai_client.scoring_model(),
         "prompt_version": _prompt_rules_and_version(payload)[1],
         "policy_version": policy.POLICY_VERSION,
+        # Same keys as a success, per this function's own contract: a caller
+        # counting violations must not have to ask whether the call succeeded.
+        # Empty rather than None -- nothing was validated, and nothing broke.
+        "schema_violations": [],
         "elicitation": {},
     }
 
@@ -466,6 +552,18 @@ def country_llm_score(
         logger.error("Model returned invalid structure: %s", str(data)[:300])
         return _failure_result(payload)
 
+    # Before the rescale, because the rescale is what destroys the evidence. A
+    # `score_12m` of 250 is a model that misunderstood the scale; one line later
+    # it is the number 1.0 and indistinguishable from a model that meant it.
+    violations = schema_violations(
+        data, schema, iso2=iso2, as_of=as_of,
+        model_id=ai_client.scoring_model())
+    for bad in violations:
+        logger.error("[%s %s] schema violation at %s: %s%s",
+                     iso2 or "?", as_of, bad["path"], bad["message"],
+                     f" — answered {bad['value']!r}, clamped to the bound"
+                     if bad["clamped"] else "")
+
     # --- Leave the 0-100 scale here and never return to it.
     score_12m = _from_100(data.get("score_12m"))
     score_3m = _from_100(data.get("score_3m"))
@@ -510,6 +608,10 @@ def country_llm_score(
         "model_id": ai_client.scoring_model(),
         "prompt_version": prompt_version,
         "policy_version": policy.POLICY_VERSION,
+        # Carried out so the manifest and the ledger can record it. Empty on a
+        # clean answer, which is nearly always -- the point is that "nearly" is
+        # now countable.
+        "schema_violations": violations,
         # Empty on every arm but the two elicitation ones. Reported, never read
         # back into a score: `delta_vs_typical` is how the model reached its
         # number, not a number anything here recomputes from.

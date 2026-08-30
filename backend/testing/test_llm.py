@@ -614,6 +614,73 @@ def scored(monkeypatch):
     return run
 
 
+class TestAClampLeavesARecord:
+    """`_from_100` is a good safety net and was a terrible record.
+
+    `bakeoff.grammar_risks` names 21 constraints no grammar enforces -- every
+    numeric bound, `maxLength`, and the four `["integer", "null"]` unions.
+    LangChain forwards them under `strict: true` and they are not in the
+    enforced subset, so production has the hole too. What stood in for
+    enforcement was a clamp: a model answering 250 became 1.0, one answering
+    "high" became None, and nothing logged, stored or counted either -- which
+    made criterion 1 of `docs/scorer-acceptance.md`, "zero invalid outputs over
+    the anchor set", unmeasurable anywhere but the smoke gate's nine calls.
+    """
+
+    def test_an_out_of_range_score_is_recorded_and_still_clamped(self, scored):
+        out = scored(score_12m=250)
+        assert out["score"] == 1.0, "the safety net stops being one"
+        bad = [v for v in out["schema_violations"] if v["path"] == "$.score_12m"]
+        assert bad, "the clamp fired and left no record"
+        assert bad[0]["value"] == 250, "the raw answer was not kept"
+        assert bad[0]["rule"] == "maximum" and bad[0]["limit"] == 100
+        assert bad[0]["clamped"] is True
+
+    def test_the_finding_says_which_country_week_and_model(self, scored):
+        out = scored(iso2="RU", score_12m=250)
+        bad = out["schema_violations"][0]
+        assert bad["as_of"] == SANCTIONED_DAY.isoformat()
+        assert bad["model_id"], "a violation with no model is not actionable"
+
+    def test_a_clean_answer_records_nothing(self, scored):
+        assert scored()["schema_violations"] == []
+
+    def test_it_catches_what_the_clamp_never_sees(self, scored):
+        """`maxLength` is not a bound any rescale passes through."""
+        out = scored(bullet_summary="x" * 5000)
+        paths = {v["path"]: v for v in out["schema_violations"]}
+        assert "$.bullet_summary" in paths
+        assert paths["$.bullet_summary"]["rule"] == "maxLength"
+        assert paths["$.bullet_summary"]["clamped"] is False
+
+    def test_every_violation_is_collected_not_just_the_first(self, scored):
+        out = scored(score_12m=250, score_3m=-4, evidence_coverage=900)
+        assert {v["path"] for v in out["schema_violations"]} == {
+            "$.score_12m", "$.score_3m", "$.evidence_coverage"}
+
+    def test_a_nested_ledger_bound_is_found_and_marked_clamped(self, scored):
+        out = scored(ledger_scores={"friction": 400, "order_uncertainty": 83,
+                                    "information_capacity": 29,
+                                    "edge_vitality": 34})
+        bad = [v for v in out["schema_violations"]
+               if v["path"] == "$.ledger_scores.friction"]
+        assert bad and bad[0]["value"] == 400 and bad[0]["clamped"] is True
+        assert out["ledger_scores"]["friction"] == 1.0
+
+    def test_a_failure_returns_the_same_key(self, monkeypatch):
+        """The no-score shape must not have a hole a counter would trip on."""
+        monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+        def boom(_key):
+            raise RuntimeError("no endpoint")
+
+        monkeypatch.setattr(llm.ai_client, "build_chat", boom)
+        out = llm.country_llm_score(
+            country_display="X", payload={"_meta": {"country": "PT"}},
+            articles=[], as_of=SANCTIONED_DAY, fulltext_ids=[])
+        assert out["schema_violations"] == []
+
+
 class TestSanctionedCountryKeepsItsScore:
     """The fixture the deleted gate would have failed."""
 

@@ -578,8 +578,14 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             # Taken here rather than from `payload_census.census`, which rebuilds
             # a payload without the structural and trailing-context blocks and
             # would therefore record a number about a payload nobody sent.
+            # The scorer's own violations ride in the same block, because the
+            # question they answer is the same one: what did this run actually
+            # produce, as against what the contract said it would. Merged here
+            # rather than inside `payload_health`, which runs before the model
+            # call and is a pure function of the evidence.
             payload_health=_safe(
-                lambda: llm_payload.payload_health(evidence, series, as_of, scored),
+                lambda: {**llm_payload.payload_health(evidence, series, as_of, scored),
+                         "schema_violations": llm_output.get("schema_violations") or []},
                 iso2, "payload_health"),
             model_id=llm_output.get("model_id"),
             prompt_version=llm_output.get("prompt_version"),
