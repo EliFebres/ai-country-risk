@@ -174,27 +174,50 @@ invented numbers.
 `python backend/main.py census PT` shows this per country. The ranked fill order,
 with the source for each, is in `backend/README.md`.
 
-## 4. The WEO fetch recovers 13 of 19 editions
+## 4. A fresh clone has no WEO archive at all
 
-The clone-and-run acceptance test, run for real: the 19 `.xls` editions were
-renamed aside and `fetch_editions` was run against an empty directory.
+**Half closed 2026-08-30, and the surviving half is worse than this item said.**
 
-**Recovered (13):** 2016-04 → 2019-10 complete, plus 2020-04, 2021-04, 2021-10,
-2022-04, 2023-04. All thirteen **byte-identical** to the originals, verified by
-SHA-256 — the live IMF path and the Wayback fallback return the published bytes,
-not a re-render.
+**Closed:** the *loaded* archive is complete. `indicator_series` on both
+databases carries **21 editions, 2016-04 through 2026-04**, each stamped with
+its own edition date — verified by query, not by counting files
+(`docs/pipeline-audit.md` §1, stage 1). Nothing in a payload is reading a stale
+vintage because an edition is missing from the store. The old wording, "the
+WEO fetch recovers 13 of 19 editions", described a *re-fetch* and was read as a
+statement about coverage; the coverage half is now answered.
 
-**Not recovered (6):** 2020-10, 2022-10, 2023-10, 2024-04, 2024-10, 2025-04.
+**Still open, and re-measured:** what a fresh clone gets, which is **nothing**.
+`backend/data/curated/weo_vintages/*.xls` is gitignored (`.gitignore:94`), so a
+clone starts with an empty folder and `fetch_editions` has to recover all 21.
+The last measurement of that recovery was 13 of 19 — 2016-04 → 2019-10 complete
+plus 2020-04, 2021-04, 2021-10, 2022-04, 2023-04, all byte-identical to the
+originals by SHA-256, with 2020-10, 2022-10, 2023-10, 2024-04, 2024-10 and
+2025-04 not recovered.
 
-The gaps are *scattered*, which is worse than a clean cut-off. The vintage rule
+Two things have changed since, both in the wrong direction:
+
+- **2025-10 and 2026-04 cannot be fetched at all.** The WEO database moved to
+  `data.imf.org` in October 2025 and `fetch_editions.py` still points at the
+  legacy path (it says so itself, `fetch_editions.py:265`). Those two were
+  downloaded by hand.
+- **And they are no longer on disk here.** The folder holds 19 `.xls` files;
+  `2025-10.xls` and `2026-04.xls` are absent. They reached the database and then
+  the files went. So the only copy of the two newest editions is the loaded rows
+  — nothing on this machine or in the repo can rebuild them.
+
+The gaps are *scattered*, which is worse than a clean cut-off: the vintage rule
 picks the newest edition not after the anchor, so a missing 2023-10 means every
 anchor from October 2023 to April 2024 reads April-2023 macro instead. Honest —
-the stamps say so — but staler than intended, and invisible unless somebody diffs
-the edition list.
+the stamps say so — and staler than intended, and invisible unless somebody
+diffs the edition list against the store.
 
-A fresh clone therefore gets a WEO archive with holes. The acceptance test passes
-for the schema, the roster, the World Bank panels, the BIS and IMF series and the
-curated files. It is **partial for WEO**.
+**What it would take.** Point `fetch_editions` at `data.imf.org` (item 5 is the
+related question of whether the SDMX vintage dataflows retire the folder
+entirely), and re-run the clone-and-run test against the current 21 rather than
+the old 19. Until then the acceptance test passes for the schema, the roster,
+the World Bank panels, the BIS and IMF series and the curated files, and is
+**partial for WEO** — not because the archive has holes, but because the
+recovery path does.
 
 ## 5. WEO vintage dataflows may retire `weo_vintages/` entirely
 
@@ -591,38 +614,28 @@ session that put the harvest on a cron — a rename landing at the same time as
 new automation makes both harder to bisect. Worth doing once the harvest has
 converged and the CLI is not being invoked four times a day.
 
-## 17. The IMF CPI endpoint answers about one country in six
+## 17. Closed — the IMF CPI endpoint converged on its own
 
-Measured on 2026-08-28, first weekly macro run across the full roster:
+**Closed 2026-08-30.** This item recorded 919 rows across **7 of 48 countries**
+on 2026-08-28, with 41 countries returning nothing: 15 read timeouts at the 40s
+ceiling, 15 HTTP 503, 11 HTTP 500. It predicted its own resolution — "it half
+converges: `indicator_series` upserts are idempotent and the job is weekly, so a
+country that timed out this week may land next week" — and that is what
+happened.
 
-| source | rows | countries |
-|---|---|---|
-| BIS XRU | 6,912 | 48 |
-| BIS CBPOL | 4,608 | 32 (BIS publishes policy rates for 32; not a failure) |
-| **IMF CPI** | **919** | **7 of 48** |
+Measured on prod: **6,769 rows across 46 of 48 countries**, latest period
+`2026-07` (`docs/pipeline-audit.md` §1, stage 1). The endpoint was unreliable
+per request rather than rate-limiting a wide roster, which is why patience
+worked and why the diagnosis in this item was right.
 
-41 of 48 countries returned nothing: 15 read timeouts at the 40s ceiling, 15
-HTTP 503, 11 HTTP 500. `imf_macro_fetch` degrades a failure to an empty series
-by design, so the run logs INFO and exits 0 having fetched almost no CPI.
-
-**It is not rate limiting introduced by widening the roster.** Successes and
-failures interleave from the first country — PT and US fail, TR succeeds, KR and
-BR fail, BE succeeds — rather than clustering after a burst, so this is the
-endpoint being unreliable per request. Widening the roster from four to
-forty-eight only made it visible.
-
-It half-converges: `indicator_series` upserts are idempotent and the job is
-weekly, so a country that timed out this week may land next week. At ~7 a run
-that is months to fill, and nothing reports the shortfall — the run says "12,439
-monthly row(s) written" and the number is dominated by BIS.
-
-Worth either a retry-with-backoff pass over the countries that came back empty
-within the same run, or a coverage line in the summary that names how many of
-the roster actually got a CPI print. Priority is low while the corpus is being
-harvested and no scoring is running, but a payload census before the first
-historical scores should check it rather than assume it.
-
----
+**What is worth keeping from it**, and is not fixed: nothing reports the
+shortfall. The run says "12,439 monthly row(s) written" and that number is
+dominated by BIS, so a week where CPI fetched almost nothing looks identical to
+a week where it fetched everything. A coverage line naming how many of the
+roster actually got a CPI print is the durable version of what this item was
+noticing, and it belongs with §20a — eleven consecutive failed Guardian
+checkpoints produced no summary line either. Both are the same missing habit:
+the harvest reports what it did and not what it failed to do.
 
 ## 18. `source_system` carries two facts, and a merge overwrites one of them
 
@@ -1099,3 +1112,137 @@ the indicator counts it already carries. Both are computed during selection and
 thrown away, and having them stored is what let the §29 correction be made from
 disk rather than by re-scoring. Same lesson as §25 — every writer needs a
 consumer — pointed at the evidence side.
+
+
+---
+
+## 35. HIGH — the pilot's regression baseline was measured on starved evidence
+
+**Raised 2026-08-30 from `docs/pipeline-audit.md`.** Not a Phase 1 blocker —
+Phase 1 runs US 2019 and TR 2018 — but it is a pilot blocker, and it should not
+stay in a paragraph of an audit.
+
+**PT 2019 is topped up below the relevance threshold at 52 of 52 anchors.**
+Measured by re-running the real selection path over every anchor of each window:
+
+```
+                candidate pool     clearing 0.3     SELECTED   topped up    mean selected relevance
+TR 2018 (53)   88 / 125 / 243    11 /  32 /  69    18-20      10 of 53    0.304 - 0.750
+US 2019 (52)  321 / 402 / 465    52 /  76 /  98    20 always   0 of 52    0.471 - 0.552
+PT 2019 (52)   39 /  56 /  96     2 /   6 /  16    20 always  52 of 52    0.120 - 0.394
+                min/med/max        min/med/max
+```
+
+The median PT anchor has **six** articles clearing 0.3 and is filled to twenty
+with fourteen that do not. At the worst anchor the mean relevance of the twenty
+the model scores is **0.120**, well under the bar. This is §34's "tops up with
+noise", and §34 understates it: on PT it is not a thin-week edge case, it is
+every week of the year.
+
+**Three things sit on top of that window.**
+
+1. **The highest round-number share of any window measured: 84.6%**, against
+   US 69.2% and TR 18.9% (recomputed from the stored rows, and the latter two
+   reproduce `docs/scorer-acceptance.md` §3 exactly). PT has never been
+   reported. Evidence that is genuinely indeterminate and evidence flattened by
+   a saturated selector look identical from inside the prompt, and PT is the
+   strongest case for the second reading anyone has measured.
+2. **`GATE2_BASELINE` was captured on it** — PT 2019, 52 masked anchors. So the
+   baseline the pilot regression-checks against was measured on the thinnest
+   evidence in the corpus. §27 already says it was captured before the vintage
+   fix; this is the second, independent reason it does not describe a run
+   anybody would want to reproduce.
+3. **It is the only window with measured look-ahead** — see §36.
+
+**What it would take, as three separable questions.** Do not conflate them.
+
+- **Is PT's Guardian coverage for 2019 complete?** The ledger says 13 of 13
+  windows `done` with no failures, and the candidate pool is 39–96 articles per
+  anchor. So this is very probably **selector-bound rather than corpus-bound** —
+  but confirm it from the ledger before acting, because the BR lesson (§20a) is
+  that a coverage gap and a forgotten failure are indistinguishable from row
+  counts.
+- **Is the shortfall corpus or selector?** If the pool genuinely holds only six
+  relevant articles a week for a small open economy, then twenty is the wrong
+  budget for PT and a floor that refuses to fill would be more honest — a
+  different instrument, and a better one. If instead
+  `article_ranking.score_relevance` is saturating the way it does on US
+  (`_BODY_MENTION_CAP = 0.55` whenever the country name is absent from the
+  title), the fix is in the heuristic and PT is simply where it shows worst.
+- **Does the baseline need re-capturing on a different window?** Probably yes,
+  and the question is which. TR 2018 is the only window with evidence weight
+  that actually varies (relevance spread 0.446 against US's 0.081), which makes
+  it the better regression subject and the worse *calm* one.
+
+**Deliberately not fixed here.** Changing either the threshold or the cap
+changes every stored score, invalidating the bake-off corpus, the GATE2 baseline
+and the p2 reference simultaneously — the same treatment §24 is waiting for. And
+it is a judgement call rather than a bug fix.
+
+**Cheap and worth doing first**, unchanged from §34: record the selected set's
+mean relevance and the count clearing the threshold in
+`input_manifest.payload_health`. Both are computed during selection and thrown
+away. The part-2 fingerprint now records what the *indicators* were; this is the
+same idea pointed at the evidence, and it is what would let the next version of
+this item be answered from disk instead of by re-scoring.
+
+---
+
+## 36. `usable_body` trusts `api-native` unconditionally, and the Guardian is not a fixture
+
+**Raised 2026-08-30.** The mechanism behind §35's third bullet, and larger than
+the symptom that found it.
+
+`snapshot_select.usable_body` is where the no-future rule bites on bodies. It
+refuses a `wayback-` body captured on or after the anchor, and it returns an
+`api-native` body **unconditionally**, on this reasoning: *"the body arrived
+inside the search response, as the article itself."*
+
+**53,361 of 53,368 bodies on the pilot database are `api-native`** (7 are
+`live-refetch`; zero are `wayback-`). So the rule does not run on bodies at all,
+in practice.
+
+The premise is false for the Guardian. Its Content API serves the **current**
+version of an article, not the version that was published — and the proof is
+already in the corpus: **2,405 bodies carry a `This article was amended on
+<date>` footer**, and in a 400-row sample **284 of them are dated after their
+own `published_at`**. That text did not exist when the article was published.
+
+**Measured against the anchor**, which is the question that matters, by
+re-running the real selection path across all 157 stored anchors:
+
+| window | anchors affected | selected articles | of those, in the top-3 full-text slots |
+|---|---|---|---|
+| TR 2018 | **0 of 53** | 0 of 1,051 | 0 |
+| US 2019 | **0 of 52** | 0 of 1,040 | 0 |
+| PT 2019 | **6 of 52** | 6 of 1,040 (0.58%) | **2** |
+
+Furthest reach: a footer dated 2019-08-06 inside a body served at the 2019-07-29
+anchor, eight days past it. The two full-text hits are rank 1 at 2019-05-27 and
+rank 2 at 2019-01-14, both one day past — the two slots the scorer reads end to
+end rather than as a digest.
+
+**Zero on both Phase 1 windows, which is why this is not a Phase 1 blocker.**
+
+**The symptom is fixed and the mechanism is not.** The 2026-08-30 boilerplate
+strip removes amendment footers at `digest_engine.article_input_text`, so no
+footer of that shape reaches a payload any more. That closes the leak this
+particular text opened. It does not close the hole: any *other* post-publication
+edit the Guardian makes — a corrected figure, a rewritten paragraph, a headline
+change — arrives silently, carries no marker, and the guard waves it through.
+The footer was detectable precisely because it announced itself.
+
+**What a real fix looks like**, and why it is its own session:
+
+- **A per-source policy.** `api-native` is a statement about *transport*, not
+  about vintage, and it is being read as both. The Guardian serves current; a
+  source that serves as-published could keep the fast path.
+- **Or treat the amendment footer's date as the body's vintage** where one
+  exists, which is the cheap 90% and is honest about what it cannot see.
+- Either changes what every stored row was scored on, so it wants its own
+  before/after measurement and its own re-baseline — the same treatment §24 is
+  waiting for, and for the same reason.
+
+**Related:** §23, which notes `content_sha256` hashes a clipped body and so
+identifies "the first 24k of this article" rather than the article. Same family:
+a provenance field describing something narrower than its name suggests.
