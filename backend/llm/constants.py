@@ -67,7 +67,21 @@ from typing import Dict
 # wedge, door F, observation-only flags, the calibration anchors — is unchanged,
 # which is the point: the wording is the same instrument, pointed at evidence
 # with the name taken out.
-PROMPT_VERSION = "v4.0-masked-production"
+# "v4.5-no-publisher" removes one field. `prompt_entries` carried
+# `"source": "guardian"` on every article of every anchor -- 12 to 15
+# occurrences inside a prompt whose whole purpose is that the model cannot tell
+# which country it is reading about. It discriminated nothing (a constant
+# cannot) and would have discriminated the wrong thing later: Guardian is
+# harvested for 6 of 48 countries and NYT supplies no bodies at all, so the
+# field was one roster expansion away from partitioning countries by evidence
+# regime. Publisher boilerplate is stripped from the body at the same commit.
+#
+# The version moves because the contract moved, and that is the point: unlike
+# the vintage fix, which changed nine indicators inside an unchanged `p2`, this
+# change is visible to `score.drift`, to `captured_under` and to
+# `bakeoff.compare_one`. An arm scored under v4.0 and one scored under v4.5 are
+# not comparable and now say so.
+PROMPT_VERSION = "v4.5-no-publisher"
 
 # The prompt as it stands when the payload carries a trailing-context block.
 # Appended rather than interpolated, so a payload without the block renders the

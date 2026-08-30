@@ -22,8 +22,10 @@ it cannot name, from evidence that is exactly as published. That is what makes a
 
 Which is also why masking is not a backfill-only trick. It is the production
 regime: `scoring_mode` defaults to `'masked'` and the live prompt is
-`v4.0-masked-production`. A series that changes scoring regime half way through
-its own history is worse than no series at all.
+`v4.5-no-publisher` (`v4.0-masked-production` until 2026-08-30, when the article
+entry stopped naming its publisher — see *What the gate does not scan*). A
+series that changes scoring regime half way through its own history is worse
+than no series at all, which is why the stamp moves whenever the prompt does.
 
 ## 2. One premise
 
@@ -367,6 +369,64 @@ series it would sit there looking exactly like a right one forever after.
 One deliberate narrowing: the gate scans the four serialized evidence strings,
 not the whole prompt. The prompt template's own worked examples name real
 countries, and those are instructions, not evidence.
+
+### What the gate does not scan — publishers
+
+`assert_clean` scans for **roster terms**, and a publisher is not a country. Two
+things reached the masked prompt through that gap, and were removed on
+2026-08-30 (`docs/pipeline-audit.md` §1, stage 3):
+
+- **`"source": "guardian"` on every article entry**, 12 to 15 occurrences per
+  prompt. It discriminated nothing while Guardian was the only body source — a
+  constant carries no signal — and it was one roster expansion away from
+  discriminating the wrong thing: Guardian is harvested for 6 of 48 countries
+  and NYT supplies no bodies at all, so the field would have split the roster
+  into two visibly different evidence regimes. Dropped from `prompt_entries`.
+- **Publisher boilerplate inside the body.** Counted across the 80,975 bodies on
+  the corpus DB (dev in brackets, of 53,368):
+
+  | pattern | rows | share |
+  |---|---|---|
+  | `This article was amended/corrected on …` | 2,405 (2,347) | 2.97% |
+  | `Support the Guardian …` | 494 (—) | 0.61% |
+  | the letters block (`Join the debate … guardian.letters@…`) | 253 (200) | 0.31% |
+  | `gu.com/…` | 162 (158) | 0.20% |
+
+  Stripped at `digest_engine.article_input_text`, the chokepoint both the digest
+  input and the prompt's full-text block route through. About **1.8% of selected
+  article-slots** on either bake-off window are affected, so those articles are
+  re-digested once; the stored corpus is untouched.
+
+**Publisher names in prose were measured and declined, not overlooked.** The
+word "Guardian" appears in **27.7%** of bodies and `theguardian.com` in 4.0%,
+almost all of it ordinary editorial usage — "told the Guardian", "the Guardian
+understands". Masking those would mean adding publishers to the gazetteer, which
+moves `MASK_MAP_VERSION` and `SWEEP_VERSION`, invalidates every cached digest
+and rewrite, and breaks `rebuild_snapshot` on all 157 stored rows. That price
+buys a defence against a leak nobody has evidence for:
+
+- `probe.source_mix_caveat` exists to detect exactly this shape — it computes
+  `nyt_share_gap`, the difference in NYT share between bundles the probe placed
+  and bundles it could not. **Positive** would mean the probe was reading the
+  newspaper rather than the evidence. The measurement taken when it was written
+  came back at **−0.056**: the NYT-heaviest bundles were the *hardest* to
+  identify, which is the opposite of fingerprinting.
+- The 25 stored probe rows agree directly: **24 of 25 bundles were not
+  identified at all** (22 `ZZ`, plus one wrong guess each for `SA` and `GB`),
+  and the single hit is `TR`.
+
+**One caveat, and it is the honest half.** The −0.056 is **prose only and cannot
+be re-derived** — `snapshot_diagnostic.detail` records `guess`, `confidence`,
+`n_articles` and the mask versions, but *not* the per-bundle `sources` counts
+`source_mix_caveat` needs. This is the same category `docs/scorer-acceptance.md`
+catalogues as "a number that will be quoted needs a writer that persists it".
+Adding `sources` to the probe's stored detail is a one-line change and would
+make the claim above checkable rather than remembered. The stored 24-of-25
+result stands on its own either way.
+
+Also deliberately **not** stripped, because each is mostly ordinary prose:
+`Follow …` (11.5% of bodies), `Read more` (2.7%), `subscribe` (2.0%). A pattern
+that eats article text to remove furniture is worse than the furniture.
 
 ### The meter — `probe` (never a gate)
 

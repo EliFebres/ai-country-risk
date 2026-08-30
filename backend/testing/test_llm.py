@@ -950,6 +950,87 @@ class TestForbiddenLanguage:
         assert "do not let a high value raise friction" in lower()
 
 
+class TestPublisherBoilerplateNeverReachesTheModel:
+    """Furniture that arrives inside the body and is not about the country.
+
+    Found by reading a payload dump, then by searching for siblings -- the right
+    order, and not the one that finds everything. Over the 80,975 bodies on the
+    corpus DB: amendment and correction footers on 2,405 (2.97%), the
+    fundraising line on 494 (0.61%), the letters block on 253 (0.31%).
+
+    Stripped at `article_input_text`, the chokepoint both the digest input and
+    the prompt's full-text block route through, so one guard covers both rather
+    than one per caller.
+    """
+
+    LETTERS = ("Raphael Levy Cambridge • Join the debate • email "
+               "guardian.letters@theguardian.com • Read more Guardian "
+               "letters • click here to visit gu.com/letters")
+    AMENDED = ("...an important democratic institution in this country. • "
+               "This article was amended on 20 October 2016. An earlier version "
+               "said 'just days before a pregnancy'.")
+
+    def test_the_letters_block_is_cut_to_the_end(self):
+        got = digest_engine.strip_publisher_boilerplate(
+            "The council raised rates. " + self.LETTERS)
+        assert got == "The council raised rates. Raphael Levy Cambridge"
+
+    def test_an_amendment_footer_goes_with_its_date(self):
+        got = digest_engine.strip_publisher_boilerplate(self.AMENDED)
+        assert "amended on" not in got
+        assert got.endswith("in this country.")
+
+    def test_a_correction_footer_goes_too(self):
+        got = digest_engine.strip_publisher_boilerplate(
+            "The OPCW said so. • This article was corrected on 4 May 2018 "
+            "because an earlier version misnamed the agency.")
+        assert got == "The OPCW said so."
+
+    def test_the_fundraising_line_goes_without_taking_the_article(self):
+        """Inline, not terminal -- one body carries 8,459 characters after it."""
+        got = digest_engine.strip_publisher_boilerplate(
+            "Rates rose. Support the Guardian with a monthly payment, or a "
+            "one-off contribution. The minister then resigned.")
+        assert got == "Rates rose. The minister then resigned."
+
+    def test_it_goes_when_it_ends_the_body_with_no_full_stop(self):
+        """The shape the first version of the pattern missed."""
+        got = digest_engine.strip_publisher_boilerplate(
+            "He said so. Support the Guardian's independent journalism by "
+            "making a contribution or becoming a member")
+        assert got == "He said so."
+
+    def test_ordinary_prose_naming_a_publisher_survives(self):
+        """The guard that matters. A pattern that eats article text to remove
+        furniture is worse than the furniture."""
+        for keep in (
+            "The bank would support the Guardian angel programme.",
+            "Read more of the report was the minister's advice.",
+            "Subscribers to the service rose by a fifth.",
+            "Follow the money, the auditor said.",
+            "She told the Guardian the talks had collapsed.",
+        ):
+            assert digest_engine.strip_publisher_boilerplate(keep) == keep
+
+    def test_it_survives_an_empty_or_missing_body(self):
+        for value in ("", "   ", None):
+            digest_engine.strip_publisher_boilerplate(value)
+
+    def test_the_strip_runs_at_the_read_chokepoint(self):
+        """Not at harvest: the corpus is untouched and the rule can change
+        without a re-crawl."""
+        item = {"text": "Rates rose. " + self.LETTERS}
+        assert "theguardian.com" not in digest_engine.article_input_text(item)
+
+    def test_the_digest_cache_key_follows_the_stripped_text(self):
+        """An affected article is re-digested once, which is the price. Measured
+        first: about 1.8% of selected article-slots on either bake-off window."""
+        with_furniture = digest_engine._content_sha("Rates rose. " + self.LETTERS,
+                                                    masked=True)
+        without = digest_engine._content_sha("Rates rose.", masked=True)
+        assert with_furniture != without
+
+
 class TestTheSchemaIsStrict:
     def test_is_strict(self):
         assert SCHEMA["additionalProperties"] is False
@@ -1002,10 +1083,35 @@ class TestTheSchemaIsStrict:
         assert "Keep every NUMBER exactly as written" in prompt
 
     def test_the_version_stamps_the_masked_production_regime(self):
-        # v3.0-friction-framework -> v3.1 -> v4.0-masked-production. Every one
-        # had snapshots scored under it, so each gets its own stamp rather than
-        # rewriting history under the previous wording.
-        assert ai_constants.PROMPT_VERSION == "v4.0-masked-production"
+        # v3.0-friction-framework -> v3.1 -> v4.0-masked-production ->
+        # v4.5-no-publisher. Every one had snapshots scored under it, so each
+        # gets its own stamp rather than rewriting history under the previous
+        # wording. This test is the tripwire: a change to what the prompt
+        # carries has to move the version, or two incomparable arms both claim
+        # to be the same instrument -- which is the vintage fix's failure in the
+        # neighbouring axis.
+        assert ai_constants.PROMPT_VERSION == "v4.5-no-publisher"
+
+    def test_no_article_entry_names_its_publisher(self):
+        """The masked prompt said `"source": "guardian"` on all twenty articles.
+
+        Constant across every anchor, so it discriminated nothing; and one
+        roster expansion away from discriminating the wrong thing, since
+        Guardian covers 6 of 48 countries and NYT supplies no bodies at all.
+        `assert_clean` never caught it: it scans for roster terms, and a
+        publisher is not a country.
+        """
+        items = [{"id": "a1", "source": "guardian", "title": "T",
+                  "digest": {"what_happened": "x", "actors": "y", "numbers": "1",
+                             "transmission": "z", "directly_about_country": True,
+                             "stage1_severity": 10}},
+                 # The degraded shape too: it is what a country gets when stage
+                 # 1 is down, which is when nobody is reading the prompt closely.
+                 {"id": "a2", "source": "guardian", "title": "T2",
+                  "summary": "s"}]
+        for entry in llm.prompt_entries(items):
+            assert "source" not in entry, entry
+        assert "guardian" not in llm._digests_to_json(items)
 
 
 # ---------------------------------------------------------------------------

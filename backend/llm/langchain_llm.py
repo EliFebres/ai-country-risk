@@ -74,7 +74,9 @@ def _legacy_entry(it: Dict) -> Dict:
     summary = (it.get("summary") or it.get("text") or it.get("snippet") or "").strip()
     return {
         "id": it.get("id") or "",
-        "source": (it.get("source") or "").strip(),
+        # Dropped here too, and for the same reason. The fallback shape is what
+        # a country gets when stage 1 is down, which is exactly when nobody is
+        # watching the prompt closely.
         "published_at": (it.get("published") or "")[:10],
         "title": (it.get("title") or "").strip(),
         "summary": summary[:_FALLBACK_SUMMARY_CHARS],
@@ -120,7 +122,19 @@ def prompt_entries(articles: List[Dict]) -> List[Dict]:
         if isinstance(digest, dict):
             norm.append({
                 "id": it.get("id") or "",
-                "source": (it.get("source") or "").strip(),
+                # `source` used to be here, and it was `"guardian"` on every
+                # article of every anchor -- 12 to 15 occurrences in a masked
+                # prompt whose whole purpose is that the model cannot tell which
+                # country it is reading about. It carried no information the
+                # scorer could use (a constant does not discriminate) and one it
+                # should not have: with Guardian harvested for 6 of 48 countries
+                # and NYT supplying no bodies at all, the field would have split
+                # the roster into two visibly different evidence regimes the
+                # moment scoring went past the pilot five.
+                #
+                # `assert_clean` never caught it because it scans for roster
+                # terms, and a publisher is not a country. See
+                # `docs/pipeline-audit.md` section 1, stage 3.
                 "published_at": (it.get("published") or "")[:10],
                 "title": (it.get("title") or "").strip(),
                 "digest": digest,

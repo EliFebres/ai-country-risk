@@ -202,7 +202,7 @@ score.
 ## 7. The country is not named
 
 **Masking is the production regime, not an experiment.** `scoring_mode` defaults
-to `'masked'` and `PROMPT_VERSION` is `v4.0-masked-production`. Before the
+to `'masked'` and `PROMPT_VERSION` is `v4.5-no-publisher`. Before the
 payload is sent, every country name, city, person, party, currency and
 institution is replaced by the role it plays — "the country", "the capital", "the
 central bank" — while **every number is left exactly as written**.

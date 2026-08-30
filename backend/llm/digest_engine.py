@@ -25,6 +25,7 @@ import datetime
 import hashlib
 import logging
 import os
+import re
 from typing import Dict, List, Optional, Protocol, Sequence
 
 from langchain_core.messages import SystemMessage
@@ -82,6 +83,74 @@ def _ran_away(result: object) -> bool:
     return isinstance(result, Exception) and "length limit" in str(result).lower()
 
 
+# Publisher furniture that arrives inside the body and is not about the country.
+#
+# Found by reading a payload dump, then by searching for its siblings -- which
+# is the right order and not the one that finds everything. Counts over the
+# 80,975 bodies on the corpus DB:
+#
+#     This article was amended/corrected on ...      2,405   2.97%
+#     Support the Guardian ...                         494   0.61%
+#     the letters block (Join the debate ... )          253   0.31%
+#
+# Two shapes, and they want different handling. The letters block and the
+# amendment footer are *terminal* -- 98 to 168 characters of tail, always the
+# last thing in the body -- so they are cut to the end. The fundraising line is
+# inline, sometimes with eight thousand characters of article after it, so only
+# the sentence goes.
+#
+# Deliberately NOT stripped: `Follow ...` (11.5% of bodies), `Read more` (2.7%)
+# and `subscribe` (2.0%). Each is mostly ordinary prose -- "subscribers to the
+# service", "Follow the money" -- and a pattern that eats article text to
+# remove furniture is worse than the furniture.
+#
+# The amendment footer is the one that is not merely cosmetic. It carries a date
+# *after* the article's own publication, because the Guardian Content API serves
+# the current version of a piece rather than the version that was published; on
+# PT 2019 six anchors were served a body whose footer postdates the anchor, two
+# of them in the full-text block. See `deferred.md` and the `usable_body` item:
+# removing the footer removes the symptom, not the mechanism.
+# The separator is whitespace and an optional bullet -- never `\W`, which
+# includes the full stop that ends the article's own last sentence. An earlier
+# version used `[\s\W]{0,4}` and quietly took the period with the footer.
+_SEP = r"\s*[•·|‧∙・–—-]?\s*"
+
+_BOILERPLATE_TAIL = re.compile(
+    rf"{_SEP}(?:Join the debate{_SEP}email guardian\.letters@theguardian\.com"
+    r"|This article was (?:amended|corrected) on\s+\d)"
+    r".*\Z",
+    re.IGNORECASE | re.DOTALL)
+
+# End-of-string is a terminator as well as a full stop: the fundraising line is
+# sometimes the last thing in the body and carries no closing period, which is
+# how the first version of this pattern left it in place on exactly the bodies
+# where it was most visible.
+#
+# Case-sensitive, unlike the tail patterns, and that is the whole guard. The
+# fundraising line is a sentence and starts with a capital; "the bank would
+# support the Guardian angel programme" is a sentence about a country. An
+# earlier version of this pattern ate the second one.
+_BOILERPLATE_INLINE = re.compile(
+    r"\s*Support the Guardian(?:'s|’s)?[^.]{0,160}(?:\.|\Z)")
+
+
+def strip_publisher_boilerplate(text: str) -> str:
+    """Remove publisher furniture from an article body.
+
+    Runs at the read chokepoint rather than at harvest, so the stored corpus is
+    untouched and the rule can change without a re-crawl. It does change the
+    digest cache key -- `_content_sha` hashes this function's output -- so an
+    affected article is re-digested once. Measured before it was written: 17 of
+    1,040 selected article-slots on US 2019 and 20 of 1,051 on TR 2018, about
+    1.8%.
+    """
+    if not text:
+        return text
+    text = _BOILERPLATE_TAIL.sub("", text)
+    text = _BOILERPLATE_INLINE.sub("", text)
+    return text.strip()
+
+
 def article_input_text(item: Dict) -> str:
     """The fullest text we hold for an article — the stage-1/full-text input.
 
@@ -89,6 +158,10 @@ def article_input_text(item: Dict) -> str:
     if neither exists, ``summary``, then ``snippet``, then ``""``. Thin or
     empty text is still digestible — the digest prompt's "not stated" rule
     handles it.
+
+    The one chokepoint both the digest input and the prompt's full-text block
+    route through, which is why the boilerplate strip lives here rather than in
+    each of them.
 
     Raises:
         TypeError: if ``item`` is not a dict.
@@ -98,7 +171,8 @@ def article_input_text(item: Dict) -> str:
     content = item.get("content") or ""
     text = item.get("text") or ""
     best = content if len(content) >= len(text) else text
-    return (best or item.get("summary") or item.get("snippet") or "").strip()
+    return strip_publisher_boilerplate(
+        (best or item.get("summary") or item.get("snippet") or "").strip())
 
 
 def _severity_or_none(value) -> Optional[float]:
