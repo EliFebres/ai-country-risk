@@ -903,6 +903,73 @@ def projection(per_snapshot_usd: Optional[float]) -> Dict[str, Optional[float]]:
             "backfill_usd": round(per_snapshot_usd * BACKFILL_SNAPSHOTS, 2)}
 
 
+# --- criterion 7: the disaster detector -------------------------------------
+
+# A rank correlation over a series with three values is not a rank correlation.
+# `edge_vitality` takes **two** distinct values across all 52 US 2019 anchors
+# (`deferred.md` §3 -- the ledger has at most three indicators underneath it),
+# and on that series gpt-4o disagrees with *itself* at rho = -0.287 across a
+# payload change. Gating on it would fail the reference, which is the mistake
+# the determinism gate already made once and had to be rescued from.
+RHO_GATE_MIN_DISTINCT = 5
+
+# Not zero. The gate exists to catch a candidate ranking a year backwards, not
+# to adjudicate noise around the origin: `gpt-4.1-nano` sits at -0.036 on TR
+# `information_capacity`, which is a coin flip on a coarse ledger rather than an
+# inversion. `gpt-4.1-nano`'s friction at -0.228 against the older reference is
+# the shape this is for. The reference itself clears it with room -- gpt-4o
+# against A-prime is worst-gated 0.279 -- which is the test any gate has to pass
+# before it is allowed to disqualify anybody.
+RHO_GATE_FLOOR = -0.10
+
+
+def rho_gate(baseline_rows: List[Dict[str, Any]], candidate_rows: List[Dict[str, Any]],
+             *, floor: float = RHO_GATE_FLOOR,
+             min_distinct: int = RHO_GATE_MIN_DISTINCT) -> Dict[str, Any]:
+    """Rank agreement read as a disaster detector, not as a ranking criterion.
+
+    Agreement with the incumbent rewards a candidate for reproducing the
+    incumbent's judgement *including where it is wrong*, and the reason a
+    candidate is being screened at all is that the incumbent might be. So this
+    returns pass/fail on inversions and reports everything else.
+
+    Metrics whose baseline or candidate series is too coarse to rank are
+    excluded and named, because "excluded" and "agreed" are different answers --
+    the same distinction `cost_summary.cache_share` draws with None.
+    """
+    metrics = compare_one(baseline_rows, candidate_rows)["metrics"]
+    gated, excluded = {}, {}
+    for name, result in metrics.items():
+        rho = result.get("spearman")
+        n = min(_distinct_ledger(baseline_rows, name),
+                _distinct_ledger(candidate_rows, name))
+        if name in ("llm_score", "score_3m") or n >= min_distinct:
+            gated[name] = rho
+        else:
+            excluded[name] = {"spearman": rho, "distinct": n}
+    failures = {k: v for k, v in gated.items() if v is not None and v < floor}
+    measured = [v for v in gated.values() if v is not None]
+    return {
+        "passed": not failures,
+        "floor": floor,
+        "failures": failures,
+        "worst_gated": min(measured) if measured else None,
+        "gated": gated,
+        # Reported rather than dropped: a ledger too coarse to rank is itself a
+        # finding about the instrument, not a gap in the comparison.
+        "excluded_as_too_coarse": excluded,
+    }
+
+
+def _distinct_ledger(rows: List[Dict[str, Any]], metric: str) -> int:
+    """How many values `metric` actually takes across these rows."""
+    if metric in ("llm_score", "score_3m"):
+        values = {r.get(metric) for r in rows}
+    else:
+        values = {(r.get("ledger_scores") or {}).get(metric) for r in rows}
+    return len(values - {None})
+
+
 # --- reading and writing the result files -----------------------------------
 
 def result_path(name: str) -> pathlib.Path:
@@ -1386,6 +1453,27 @@ def smoke(name: str, repeats: int = 3,
     return out
 
 
+def _moved_fields(parsed: List[Dict[str, Any]]) -> Dict[str, List[Any]]:
+    """The gated fields that took more than one value across the repeats.
+
+    Keyed by a dotted path so a ledger is named rather than the whole
+    `ledger_scores` object: "the model wobbled on `edge_vitality`" and "the
+    model returned a different risk score" are answers a reader needs kept
+    apart, and one of them is a reason to stop.
+    """
+    moved: Dict[str, List[Any]] = {}
+    for key in sorted({k for p in parsed for k in p} - set(_UNGATED_FIELDS)):
+        values = [p.get(key) for p in parsed]
+        if all(isinstance(v, dict) for v in values):
+            for sub in sorted({k for v in values for k in v}):
+                seen = [v.get(sub) for v in values]
+                if len(set(map(repr, seen))) > 1:
+                    moved[f"{key}.{sub}"] = sorted(set(seen), key=repr)
+        elif len({json.dumps(v, sort_keys=True, default=str) for v in values}) > 1:
+            moved[key] = values
+    return moved
+
+
 def _band_result(answers: List[str]) -> Dict[str, Any]:
     """One band's repeats, with the per-sample scores kept.
 
@@ -1412,6 +1500,13 @@ def _band_result(answers: List[str]) -> Dict[str, Any]:
         "scored_match_rate": round(scored_identical / (len(answers) - 1), 3),
         "scores": scores,
         "distinct_scored": len(set(scored)),
+        # Which gated fields actually moved. "The scorer changed" and "the
+        # scorer drifted by one point on one ledger" are different findings and
+        # `deferred.md` §10 asks the canary to tell them apart; a match rate
+        # cannot. Measured on the first run of this: gpt-4o holds `score_12m`
+        # at 12 across ten calm repeats and still returns two distinct scored
+        # payloads, so without this the divergence is visible and anonymous.
+        "moved_fields": _moved_fields(parsed),
         # The number that survives a model reformatting its prose. Two runs can
         # differ in `bullet_summary` and agree perfectly on every score, which is
         # a far weaker failure than two runs that disagree about the risk.

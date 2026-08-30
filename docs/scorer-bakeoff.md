@@ -11,11 +11,23 @@ moved. Price is read last, and only by candidates that got that far.
 
 **Answer: stay on `gpt-4o`.** Nothing is switched.
 
+> **Correction, 2026-08-29 — finding 1 below is payload-specific and was
+> measured on the only payload where it holds.** Re-run against three payloads
+> instead of one, `gpt-4o` reproduces its own scored output on the *moderate*
+> band and on neither of the others: on a calm payload `edge_vitality`
+> alternates between `60` and `null` across ten identical calls, and on a
+> stressed one `score_12m` returns 92 nine times and 90 once, with
+> `information_capacity` and `order_uncertainty` moving too. Worst-band spread
+> is **2 points, the same as `gpt-4.1`'s.** The recommendation to stay on
+> `gpt-4o` survives on other grounds (`deferred.md` §11) but *not* on this one.
+> See *Determinism is payload-specific* below.
+
 **Two findings, and the second is the one that decides it.**
 
 1. Of every model tested, **only the incumbent reproduces its own scored output**
    at `temperature=0`, `seed=42` — and strict grammar enforcement turns out to be
-   necessary but not sufficient to explain why.
+   necessary but not sufficient to explain why. *(Holds on the moderate payload
+   only; see the correction above.)*
 2. **Models agree when the evidence is determinate and scatter when it is not.**
    On an ordinary year for a stable country the candidates disagree with the
    incumbent by **1.3–2.1× the series' own variation**; on a crisis year that
@@ -181,7 +193,62 @@ the measurement, and there is no reading of it that is useful.
 Compared on **scored fields** — every field except `bullet_summary` and
 `subscore_evidence`, for the reasons in *The gate that failed the reference*.
 
+### Determinism is payload-specific
+
+**Measured 2026-08-29, and it corrects the headline claim of this document.**
+
+Every determinism number below was taken on **one payload** — `_SMOKE_EVIDENCE`,
+a Moderate anchor — because that was the only canned payload that existed. The
+calm and stressed payloads now exist (`bakeoff._SMOKE_BANDS`), and the per-repeat
+draws are persisted rather than summarised. Ten repeats per band,
+`temperature=0`, `seed=42`, through the production wrapper, `strict` route,
+compared on scored fields:
+
+| model | calm | moderate | stressed | **worst** |
+|---|---|---|---|---|
+| `gpt-4o` | spread 0, but 0.222 scored-match | **spread 0, 1.000 — exact** | spread 2, 0.333 | **2 pts** |
+| `gpt-4.1` | spread 0, 0.000 scored-match | spread 2, 0.333 | spread 0, 0.444 | **2 pts** |
+
+**`gpt-4o` is exactly reproducible on the payload it was measured on and on
+neither of the other two.** What moves, recorded rather than inferred:
+
+| band | what moved across ten identical calls |
+|---|---|
+| calm | `ledger_scores.edge_vitality`: **60 / null**. Not a drift — the model sometimes returns a value for that ledger and sometimes declines to. `score_12m` holds at 12 throughout. |
+| stressed | `score_12m` 92 ×9, 90 ×1; `score_3m` 90 ×9, 92 ×1; `information_capacity` 80 / 90; `order_uncertainty` 90 / 92 |
+
+**What this does and does not overturn.** It does not touch the mechanism
+argument below — grammar still matters, and the `anyOf` control still stands. It
+does not make `gpt-4o` and `gpt-4.1` equivalent: the incumbent is exact on one of
+three bands and the candidate on none, and `gpt-4.1` moves `evidence_coverage`
+and three ledgers on the band where `gpt-4o` is perfect. But **"only the
+incumbent reproduces its own scored output" is now false as stated**, and the
+worst-band spread — the number an acceptance bar has to be written against — is
+2 points for both.
+
+The honest reading is the one this document already reaches for a different
+reason: determinism here is a property of *how the model is served on a
+particular input*, not a property anyone owns. A near-tie decides a token, and
+whether there is a near-tie depends on the evidence. The moderate payload
+happened not to have one.
+
+**Two caveats worth keeping.** These are three synthetic payloads, not the three
+real anchors the matrix further down used, so this is not a direct refutation of
+those numbers — it is a new measurement that reaches a different conclusion on
+different inputs, which is itself the finding. And the stressed payload sits near
+the top of the scale (92, 97), where a ceiling could compress the spread; the
+calm divergence, where a whole ledger appears and disappears, has no such
+explanation.
+
+**What follows.** `deferred.md` §10 — the determinism canary — moves from
+elective to owed, and it now has a reason beyond "the vendor might re-tune":
+the property it would watch is already known not to hold everywhere.
+`docs/scorer-acceptance.md` sets its determinism gate on the worst band for
+exactly this reason.
+
 ### The results, across both rounds
+
+*(One payload — the moderate one. See the correction immediately above.)*
 
 | model | route | valid | distinct scored payloads | `score_12m` seen |
 |---|---|---|---|---|

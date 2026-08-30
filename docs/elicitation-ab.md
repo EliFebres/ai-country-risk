@@ -24,15 +24,19 @@ is what they add up to.
    share to 5.8%.
 3. **The two do not add up. They subtract.** Elicitation on top of `gpt-4.1`
    *loses* six distinct values against `gpt-4.1` alone.
-4. **And the extra resolution does not obviously track anything real.** On the
-   one window containing a large unambiguous crisis, every `gpt-4o` arm rises
-   into it and both `gpt-4.1` cells drift down through it.
+4. **Whether the extra resolution tracks anything real is still open, but the
+   evidence that said it did not was broken.** *(Corrected 2026-08-29.)* The
+   crisis-response check compared TR's Aug–Sep against a Jan–Feb baseline that
+   contained an undetected crisis of its own — the Afrin offensive, 20 January
+   to 24 March. Against a period checked to be quiet, every arm rises into the
+   lira crisis, `gpt-4.1` included. `gpt-4o` still responds more. See *Does the
+   finer output track anything real?* below.
 
 So the coarseness is a property of `gpt-4o`, the cure is a different model, and
-there is not yet evidence that the cure is an improvement. That is a worse
-position than "elicitation fixes it" and a better one than the four sessions of
-payload work that preceded it, because it is finally pointed at the right
-variable.
+the evidence on whether the cure is an improvement is thinner than this document
+first claimed — not adverse, merely absent. That is a worse position than
+"elicitation fixes it" and a better one than the four sessions of payload work
+that preceded it, because it is finally pointed at the right variable.
 
 ---
 
@@ -206,6 +210,139 @@ addition.**
 ---
 
 ## Does the finer output track anything real?
+
+**This section has been rewritten. The measurement it used to report was wrong,
+and it was wrong in the direction that decided `deferred.md` §11.** The original
+is preserved at the bottom of the section, because a retracted number that
+vanishes is worse than one that stays visible.
+
+### The correction: the baseline period contained an undetected crisis
+
+The old measure compared TR 2018's **Jan–Feb** mean against **Aug–Sep** and read
+the difference as "the move into the lira crisis". Jan–Feb 2018 is not a quiet
+period in Turkey. **Operation Olive Branch — the cross-border offensive into
+Afrin — ran 20 January to 24 March 2018**, and twenty-four journalists were
+sentenced to prison on 9 March. Both are in the corpus and both reach the
+scorer: the selected twenty at the February and March anchors are dominated by
+Afrin coverage.
+
+So the statistic compared one crisis against another. Re-measured against a
+genuinely quiet window — **7 May to 18 June 2018**, the year's lowest article
+relevance with no named event — every arm responds to the lira crisis, including
+both `gpt-4.1` cells:
+
+| cell | quiet May–Jun | Afrin Jan–Apr | lira Aug–Sep | vs quiet | vs Jan–Feb *(as published)* |
+|---|---|---|---|---|---|
+| A′ (`p2-rebaseline`) | 0.654 | 0.782 | 0.803 | **+0.149** | +0.091 |
+| `gpt-4o` | 0.663 | 0.770 | 0.778 | **+0.115** | +0.078 |
+| V1 (`gpt-4o`) | 0.677 | 0.805 | 0.808 | +0.131 | +0.073 |
+| V2 (`gpt-4o`) | 0.674 | 0.715 | 0.728 | +0.054 | +0.063 |
+| `gpt-4.1` | 0.720 | **0.870** | 0.793 | **+0.073** | **−0.018** |
+| `gpt-4.1` × V1 | 0.669 | 0.793 | 0.735 | **+0.066** | **−0.012** |
+
+**The claim that `gpt-4.1` "never distinguishes the lira collapse from January"
+is false.** It distinguishes it by +0.073. What it also does — visible in the
+Afrin column, where it scores 0.870, its highest of any period — is rate the
+January–March offensive *above* the August currency crisis. That is a defensible
+reading of 2018 rather than a failure to respond, and it is a different
+criticism from the one that was published.
+
+What survives: **`gpt-4o` still shows the larger crisis response** (+0.115, and
++0.149 for A′, against `gpt-4.1`'s +0.073). The ranking holds. The sign does not.
+
+### Three independent defects in the original measure
+
+**1. No control period.** Jan–Feb was assumed quiet and was not. Nothing in the
+method checked.
+
+**2. It fails a negative control.** Computed across all thirteen stored arms, the
+same Jan–Feb-vs-Aug–Sep statistic on **US 2019, a window with no crisis**,
+returns effects of the same magnitude as TR 2018, which has a large one:
+
+| window | mean Δ | mean \|Δ\| | range |
+|---|---|---|---|
+| TR 2018 (large crisis) | +0.049 | 0.054 | −0.019 … +0.130 |
+| US 2019 (no crisis) | −0.021 | **0.039** | −0.121 … +0.038 |
+
+A measure that cannot tell a crisis year from an ordinary one is not measuring
+crisis response.
+
+**3. The evidence-movement proxy is constant by construction.**
+`snapshot_select.select` caps at twenty articles and *tops up by rank* when
+fewer clear the relevance threshold, so it returns twenty unless the whole
+30-day window holds fewer. Across the stored arms, `articles` is **20 at all 676
+US 2019 rows**, and takes three values (18/19/20) on TR. |Δarticle count| is
+therefore zero in almost every week, and the published ρ of −0.068 / −0.114 was
+computed against a series with almost no variation. It indicts the proxy,
+exactly as the original text suspected, and completely.
+
+A proxy that does vary is the relevance of the set actually selected. Against
+mean selected relevance and the count of articles clearing the 0.3 threshold, on
+TR 2018:
+
+| arm | ρ vs n clearing | ρ vs mean relevance |
+|---|---|---|
+| `gpt-4o` | +0.237 | +0.242 |
+| A′ (`p2-rebaseline`) | +0.266 | +0.175 |
+| `gpt-4.1-mini` | +0.298 | **+0.401** |
+| `gpt-4.1` | +0.051 | +0.046 |
+
+On the determinate window the incumbent tracks evidence weight and `gpt-4.1`
+essentially does not — a real point against the finer model, and a
+better-founded one than the number it replaces. On US 2019 the same correlations
+collapse or invert for every model, because the relevance heuristic saturates
+there: mean selected relevance spans 0.47–0.55 across the whole year, against
+TR's 0.30–0.75.
+
+### And the Q1 peak, which was the stated reason to distrust all of it
+
+Investigated read-only across all thirteen arms in both windows. It is **two
+different things wearing one name**, and neither is a payload artifact.
+
+**On TR 2018 it is an argmax artifact of a tied, coarse series.** A′ attains its
+maximum of 0.820 at **ten anchors — five in Feb–Apr and five in Aug–Sep**, a dead
+heat; `gpt-4o` at five, three of them Q1 and two in August. With nine distinct
+values across fifty-three weeks, "where does the year peak" is decided by a
+tie-break. The underlying Q1 plateau is real and event-driven: scores step up on
+2018-01-22, two days after Olive Branch opens, and step down on 2018-04-09, the
+first anchor whose 30-day window has emptied of it.
+
+It is also not *every* cell, as the peak has been described. On quarterly means
+only five of thirteen TR arms peak in Q1, and `gpt-4o` peaks in **Q3**;
+`gpt-4.1-mini`, `gpt-4.1-nano` and `gpt-5.6-luna` all peak in Aug–Sep.
+
+**On US 2019 it is a genuine cross-model agreement with no visible cause.**
+Eleven of thirteen arms peak in Q1 and ten land on one of two adjacent weeks,
+`2019-03-11` / `2019-03-18` — six scorers from three families, mostly at a
+*unique* maximum rather than a tie. Ruled out, read-only:
+
+- **not article volume** — US March 2019 is unremarkable (404 rows against a 408
+  monthly mean), and TR March 2018 is the *thinnest* month of its year (88);
+- **not the macro payload** — annual `indicator_series.as_of` for both countries
+  lands on exactly three dates a year (April, October, December), so Q1 is a
+  constant-macro plateau: resolved-code count is flat at 23/24 across every Q1
+  anchor and staleness rises monotonically until the April WEO edition resets
+  it. A step function cannot produce a mid-quarter peak;
+- **not distinctive evidence** — the theme mix of the selected twenty at the peak
+  is within two points of the rest of the year (order 35% against 37%), and no
+  selected article is unique to those anchors;
+- **not more evidence** — the peak sits at the year's *lowest* selected relevance
+  (0.471, against a 0.527 annual mean) and near its fewest strong articles.
+
+So it is a property of the instrument on a specific article set, reproducible
+across six models, and not the payload contamination §29 feared. It is worth
+knowing and it contaminates nothing.
+
+### What this leaves
+
+The correctness evidence is no longer negative for `gpt-4.1`, and all three legs
+of the original argument — the Jan–Feb baseline, the missing negative control,
+the article-count proxy — are unsound. `deferred.md` §11 is updated accordingly.
+The event study in §29 is still worth doing, and it now has a specification: a
+control period *checked* to be quiet, a negative-control window, and an evidence
+proxy that varies.
+
+### The original text, as published, retracted 2026-08-29
 
 This decides whether a migration buys signal or decoration, and **nothing here
 settles it.** What follows is an indicative check on stored rows, not an event

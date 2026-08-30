@@ -1713,3 +1713,106 @@ class TestWhatAGrammarWillNotEnforce:
         assert langchain_llm._from_100(250) == 1.0
         assert langchain_llm._from_100(-40) == 0.0
         assert langchain_llm._from_100(None) is None
+
+
+class TestTheRhoGateCatchesInversionsAndNotDisagreement:
+    """Rank agreement demoted from ranking criterion to disaster detector.
+
+    Agreement with the incumbent rewards a candidate for reproducing the
+    incumbent's judgement including where it is wrong, and the reason to screen
+    a candidate at all is that the incumbent might be. So the only thing gated
+    is a candidate ranking the year backwards.
+    """
+
+    @staticmethod
+    def _rows(scores, ledger=None, key="friction"):
+        rows = []
+        for i, s in enumerate(scores):
+            led = {"friction": None, "order_uncertainty": None,
+                   "information_capacity": None, "edge_vitality": None}
+            if ledger is not None:
+                led[key] = ledger[i]
+            rows.append({"as_of": f"2019-01-{7 + i:02d}", "status": "complete",
+                         "llm_score": s, "score_3m": s, "ledger_scores": led,
+                         "condition_flags": {}, "lint": []})
+        return rows
+
+    def test_a_backwards_ranking_fails(self):
+        forward = self._rows([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        backward = self._rows([0.6, 0.5, 0.4, 0.3, 0.2, 0.1])
+        got = bakeoff.rho_gate(forward, backward)
+        assert got["passed"] is False
+        assert got["failures"]["llm_score"] < bakeoff.RHO_GATE_FLOOR
+
+    def test_mere_disagreement_passes(self):
+        """rho of 0.3 is not a finding. That is the whole demotion."""
+        base = self._rows([0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        noisy = self._rows([0.2, 0.1, 0.4, 0.3, 0.6, 0.5])
+        got = bakeoff.rho_gate(base, noisy)
+        assert got["passed"] is True
+        assert 0.0 < got["worst_gated"] < 1.0
+
+    def test_a_ledger_too_coarse_to_rank_is_excluded_and_named(self):
+        """`edge_vitality` takes two values across all 52 US 2019 anchors.
+
+        A rank correlation over two values is not a rank correlation, and
+        gating on one fails gpt-4o against itself at -0.287 -- the same shape as
+        the determinism gate that failed the reference and had to be rescued.
+        """
+        base = self._rows([0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+                          ledger=[0.5, 0.5, 0.5, 0.9, 0.9, 0.9])
+        cand = self._rows([0.1, 0.2, 0.3, 0.4, 0.5, 0.6],
+                          ledger=[0.9, 0.9, 0.9, 0.5, 0.5, 0.5])
+        got = bakeoff.rho_gate(base, cand)
+        assert got["passed"] is True, "a two-value ledger must not disqualify"
+        assert "friction" in got["excluded_as_too_coarse"]
+        # Excluded, not silently dropped: the coarseness is itself a finding.
+        assert got["excluded_as_too_coarse"]["friction"]["distinct"] == 2
+
+    def test_a_ledger_with_enough_range_is_still_gated(self):
+        base = self._rows([0.1] * 6, ledger=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6])
+        cand = self._rows([0.1] * 6, ledger=[0.6, 0.5, 0.4, 0.3, 0.2, 0.1])
+        got = bakeoff.rho_gate(base, cand)
+        assert got["passed"] is False
+        assert "friction" in got["failures"]
+
+
+@pytest.mark.skipif(not (bakeoff.RESULTS_DIR / "US-2019" / "gpt-4o.json").exists(),
+                    reason="the committed bake-off arms are not present")
+class TestTheRhoGateAgainstTheArmsItWasCalibratedOn:
+    """A gate is only allowed to disqualify anybody if the reference passes it.
+
+    Committed data, no network. These are the numbers docs/scorer-acceptance.md
+    quotes, so a change to either has to break this.
+    """
+
+    @staticmethod
+    def _arm(window, name):
+        return json.loads((bakeoff.RESULTS_DIR / window / f"{name}.json")
+                          .read_text(encoding="utf-8"))["rows"]
+
+    def test_the_reference_clears_its_own_gate_on_both_windows(self):
+        for window in ("US-2019", "TR-2018"):
+            got = bakeoff.rho_gate(self._arm(window, "p2-rebaseline"),
+                                   self._arm(window, "gpt-4o"))
+            assert got["passed"], f"{window}: the reference failed its own gate"
+
+    def test_it_catches_the_inversion_it_exists_for(self):
+        """gpt-4.1-nano's friction ledger, ordered backwards against gpt-4o."""
+        got = bakeoff.rho_gate(self._arm("US-2019", "gpt-4o"),
+                               self._arm("US-2019", "gpt-4.1-nano"))
+        assert got["passed"] is False
+        assert got["failures"]["friction"] == pytest.approx(-0.2283, abs=1e-3)
+
+    def test_three_of_four_us_ledgers_are_too_coarse_to_rank(self):
+        """Reported because it is a finding about the instrument, not the gate.
+
+        Only `order_uncertainty` has enough range to rank on the ambiguous
+        window. See deferred.md §3 -- `information` scores on one indicator and
+        `edge` on 2.7 of four.
+        """
+        got = bakeoff.rho_gate(self._arm("US-2019", "p2-rebaseline"),
+                               self._arm("US-2019", "gpt-4.1"))
+        assert set(got["excluded_as_too_coarse"]) == {
+            "friction", "information_capacity", "edge_vitality"}
+        assert "order_uncertainty" in got["gated"]

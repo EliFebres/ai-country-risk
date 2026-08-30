@@ -11,7 +11,7 @@
     "SCORING_MODEL": "gpt-4o-2024-08-06",
     "SEED": "42",
     "SWEEP_VERSION": "9f4aee55",
-    "git_sha": "30e07ef90801536a3659c5c99226f773354f1db0"
+    "git_sha": "b47b2b2b4341cfcbec5d1323bbc7949b4e01d14a"
   },
   "cost": {
     "cache_share": null,
@@ -27,7 +27,322 @@
   "endpoint": {
     "SCORING_MODEL": "gpt-4o-2024-08-06"
   },
-  "gates": {},
+  "gates": {
+    "cost": {
+      "cached_tokens": 92800,
+      "calls": 30,
+      "input_tokens": 100120,
+      "output_tokens": 7289,
+      "priced": true,
+      "seconds": 58.64,
+      "spend_usd": 0.20719
+    },
+    "determinism": {
+      "bands": 3,
+      "by_band": {
+        "calm": {
+          "distinct_scored": 2,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "ledger_scores.edge_vitality": [
+              60,
+              null
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 0,
+          "scored_match_rate": 0.222,
+          "scores": [
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "moderate": {
+          "distinct_scored": 1,
+          "exact_match_rate": 0.0,
+          "moved_fields": {},
+          "repeats": 10,
+          "score_spread": 0,
+          "scored_match_rate": 1.0,
+          "scores": [
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50
+          ]
+        },
+        "stressed": {
+          "distinct_scored": 4,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "ledger_scores.information_capacity": [
+              80,
+              90
+            ],
+            "ledger_scores.order_uncertainty": [
+              90,
+              92
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_devaluation"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 88,
+                  "topic_group": "currency_and_reserves"
+                },
+                {
+                  "id": "a2",
+                  "impact": 92,
+                  "topic_group": "emergency_powers_and_protests"
+                }
+              ]
+            ],
+            "score_12m": [
+              92,
+              92,
+              92,
+              92,
+              90,
+              92,
+              92,
+              92,
+              92,
+              92
+            ],
+            "score_3m": [
+              90,
+              90,
+              90,
+              90,
+              92,
+              90,
+              90,
+              90,
+              90,
+              90
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 2,
+          "scored_match_rate": 0.333,
+          "scores": [
+            92,
+            92,
+            92,
+            92,
+            90,
+            92,
+            92,
+            92,
+            92,
+            92
+          ]
+        }
+      },
+      "exact_match_rate": 0.0,
+      "repeats": 10,
+      "score_spread": 2,
+      "scored_match_rate": 0.222,
+      "scores": [
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        50,
+        92,
+        92,
+        92,
+        92,
+        90,
+        92,
+        92,
+        92,
+        92,
+        92
+      ]
+    },
+    "schema": {
+      "error": null,
+      "passed": true,
+      "route": "strict",
+      "sample": {
+        "bullet_summary": "The country shows low investor risk with a widening budget surplus and strong fiscal position (a1). Order uncertainty is minimal, with no destabilizing events reported. Information capacity is reliable, supported by credible fiscal reporting (a1). Edge vitality is moderate, indicating a dynamic economic environment. The evidence coverage is limited, but current indicators suggest stability over both short and long-term horizons.",
+        "condition_flags": {
+          "emergency_rule": false,
+          "internal_conflict_level": "none",
+          "sovereign_stress": false,
+          "war_on_territory": false
+        },
+        "evidence_coverage": 60,
+        "ledger_scores": {
+          "edge_vitality": 60,
+          "friction": 15,
+          "information_capacity": 15,
+          "order_uncertainty": 10
+        },
+        "news_article_scores": [
+          {
+            "id": "a1",
+            "impact": 10,
+            "topic_group": "budget_surplus"
+          },
+          {
+            "id": "a2",
+            "impact": 10,
+            "topic_group": "rail_concession"
+          }
+        ],
+        "score_12m": 12,
+        "score_3m": 12,
+        "subscore_evidence": {
+          "friction": [
+            "a1"
+          ],
+          "information_capacity": [
+            "a1"
+          ],
+          "order_uncertainty": []
+        }
+      }
+    }
+  },
   "note": "the incumbent; captured from risk_snapshot, not re-scored",
   "rows": [
     {

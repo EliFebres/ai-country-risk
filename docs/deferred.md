@@ -262,7 +262,32 @@ than the country, the same line the schema draws for `snapshot_diagnostic` — b
 six folder files plus one invariants file is the agreed shape, so it stays whole
 for now.
 
-## 10. A determinism canary, because the freeze cannot see behind a model id
+## 10. HIGH — a determinism canary, because the freeze cannot see behind a model id
+
+**Promoted 2026-08-29, and the reason changed.** This item argued that
+`gpt-4o`'s determinism could move without notice because it is a property of how
+the model is served. Measured across three payloads instead of one, it does not
+hold *now*: `gpt-4o` is exact on the Moderate payload it was measured on, and on
+neither the calm nor the stressed one — `edge_vitality` alternates between `60`
+and `null` across ten identical calls, and `score_12m` returns 90 once in ten on
+the stressed payload. Worst-band spread is 2 points, the same as `gpt-4.1`'s.
+See `docs/scorer-bakeoff.md`, *Determinism is payload-specific*, and §11.
+
+Two of the three things this item lists as load-bearing are therefore already
+weaker than assumed, on the model currently in production. The canary is no
+longer insurance against a future vendor change; it is instrumentation for a
+property that is known to be conditional.
+
+**What is now cheap that was not.** The blocking work this item described is
+done: `bakeoff._SMOKE_BANDS` holds the three payloads, per-repeat draws are
+persisted, and `_moved_fields` records *what* moved rather than only that
+something did — which is what this item asked for and could not have got from a
+match rate. What remains is the schedule, and `pytest` staying network-free is
+still worth more than putting it in the suite.
+
+### The original item
+
+
 
 `score.FROZEN_FIELDS` pins `SCORING_MODEL` and refuses to resume when it moves.
 That catches *us* changing the scorer. It cannot catch the scorer changing
@@ -311,7 +336,76 @@ does not tell you the stored series was wrong, and it cannot repair anything
 already written. Its value is that the next claim made about reproducibility is
 made knowingly. That is worth having and it is not worth over-building.
 
-## 11. The scorer choice, reopened on an axis that was never weighed
+## 11. Closed — production stays on `gpt-4o`; the benchmark incumbent is `gpt-4.1`
+
+**Resolved 2026-08-29**, after the evidence that reopened it was re-measured and
+one half of it turned out to be an artifact. Kept in full because the fork was
+live for a day and the reasoning on both sides is worth not re-deriving.
+
+### The decision
+
+| role | model | why |
+|---|---|---|
+| **Production scorer** | `gpt-4o-2024-08-06`, unchanged | below |
+| **Benchmark incumbent** — the discrimination and prompt-compliance reference a candidate is measured against | **`gpt-4.1`**, the stored `US-2019/gpt-4.1.json` and `TR-2018/gpt-4.1.json` arms | it is the best-resolving arm anyone has measured, and a bar set by what we happen to ship is not a bar |
+| **ρ disaster detector** | A′ — `p2-rebaseline`, `gpt-4o` on the current payload | an inversion matters against the series actually stored, which is what A′ is |
+
+Two different questions were being answered with one model name. Splitting them
+is what let the fork close: nothing about screening a local candidate requires
+production to migrate first, which was the sequencing claim in
+`docs/elicitation-ab.md`, and it is withdrawn.
+
+### Why production stays
+
+**The reason to move was discrimination, and the two correctness proxies that
+now exist both favour the incumbent.** Neither is adverse to `gpt-4.1` — see §29
+for the retraction of the number that was — but neither supports paying $747
+for the finer output:
+
+| measure | `gpt-4o` | `gpt-4.1` |
+|---|---|---|
+| crisis response, quiet-baseline (TR 2018) | **+0.115** (A′ +0.149) | +0.073 |
+| ρ, score vs mean selected relevance (TR 2018) | **+0.242** | +0.046 |
+| repeat spread on `score_12m`, worst of three payloads | **2 points** | **2 points** |
+
+**The third row was going to be the one that decided it, and then it was
+measured properly and stopped deciding anything.** The published 0-against-1 was
+taken on a single Moderate payload, the only one that existed. Re-run on three,
+`gpt-4o` is exact on that payload and on neither of the others — a whole ledger
+appears and disappears between identical calls on the calm one — and the two
+candidates are **level at 2 points**. See `docs/scorer-bakeoff.md`,
+*Determinism is payload-specific*.
+
+So the decision now rests on the first two rows and on cost, and it is a weaker
+decision than it would have been an hour earlier. Stated plainly because the
+temptation is to leave the determinism argument standing: it was the cleanest
+one, it is the one the 2026-08-27 decision was made on, and it is no longer
+true as stated.
+
+Determinism is still load-bearing for three things — the byte-for-byte
+`rebuild_snapshot` check, a gate-2 repeat that measures an effect rather than
+noise, and a resumed pilot whose halves match. What has changed is that **none
+of the three is as safe as they were believed to be**, on either model. §10 is
+therefore promoted from elective to owed, and its rationale is no longer
+speculative: the property it would watch is already known not to hold on two
+payloads out of three.
+
+**And the resolution problem has a cheaper answer that is certainly correct.**
+§30 — publish a band rather than a point — costs nothing and is right whichever
+scorer runs. §31 — predict changes rather than levels — is the modelling
+consequence, and coarseness damages a direction model far less than a level one.
+Buying ten distinct values for $747 addresses a symptom that §30 addresses for
+free.
+
+### What would reopen it
+
+The event study in §29, run to its new specification, showing `gpt-4.1` clusters
+score moves on dated events better than the incumbent. That is the one result
+that would make the finer output demonstrably the more correct output. Absent
+it, resolution and correctness remain different properties and only one of them
+has ever been measured.
+
+### The original item, as it stood on 2026-08-29
 
 **The 2026-08-27 decision was to stay on `gpt-4o-2024-08-06`, and on the axes it
 weighed it was right.** Migration cost ~$747, rank agreement 0.708, no constant
@@ -349,7 +443,9 @@ re-score of ~$747 rather than a recalibration, because there is no constant
 offset to remove — `score.FROZEN_FIELDS` will refuse the resume, correctly. And
 the one that actually decides it:
 
-**No evidence yet that the finer output is the more correct output.** On TR 2018,
+**No evidence yet that the finer output is the more correct output.** *(The
+paragraph that follows is the retracted one. Its baseline period contained the
+Afrin offensive; see §29 and `docs/elicitation-ab.md`.)* On TR 2018,
 which contains a large unambiguous crisis, every `gpt-4o` cell rises into
 August–September (+0.078, +0.051, +0.047) and both `gpt-4.1` cells drift *down*
 through it (−0.019, −0.014). `gpt-4.1` opens the year above where the incumbent
@@ -365,7 +461,10 @@ different properties, and only one of them has been measured. A model that
 spreads noise across thirty buckets scores better on discrimination than one that
 is coarse and right.
 
-**Sequencing, which this changes.** The scorer choice must now settle **before**
+**Sequencing, which this changes.** *(Withdrawn — see the decision at the top of
+this item. Naming a benchmark incumbent separately from the production scorer
+removes the dependency; the local-model screen is not blocked on a migration.)*
+The scorer choice must now settle **before**
 the local-model screen. Payload and prompt were already required to be final
 first, so that a candidate is measured against a fixed instrument; the scorer is
 now on that list, because whichever model is chosen defines the bar, and the two
@@ -825,45 +924,56 @@ added for, because A-prime and C had already run. See item 33. The durable lesso
 dry-run or a stored row before the arms are paid for.** A criterion that cannot
 be evaluated is indistinguishable, at write time, from one that can.
 
-## 29. HIGH — the event study, which is the only thing that unblocks the scorer choice
+## 29. The event study — no longer a blocker, still worth doing
 
-**Raised 2026-08-29.** Item 11 is a fork with one blocker: no evidence that a
-finer instrument is a more correct one. Every measurement this project has on
-discrimination — distinct values, round-number share, bands occupied, run
-lengths — answers *does the instrument resolve*. None answers *does it resolve
-onto anything real*, and a model spreading noise across thirty buckets beats a
-coarse-and-right one on all four.
+**Raised 2026-08-29. Downgraded from HIGH the same day**, because the cheap first
+step it proposed was taken and it dissolved the blocker rather than confirming
+it. The crisis-response evidence that pointed away from `gpt-4.1` was wrong, and
+the Q1 peak is not a payload artifact. `docs/elicitation-ab.md` has the full
+rewrite; the summary:
 
-The indicative check in `docs/elicitation-ab.md` points the wrong way for
-`gpt-4.1` and is too weak to act on:
+**The baseline period contained an undetected crisis.** Jan–Feb 2018 was assumed
+quiet. **Operation Olive Branch ran 20 January to 24 March 2018** and dominates
+the selected twenty at every February and March anchor. Against a period checked
+to be quiet (7 May – 18 June), every arm rises into the lira crisis:
+`gpt-4.1` +0.073, `gpt-4o` +0.115, A′ +0.149. The published −0.019 and −0.014
+were an artifact of the baseline. `gpt-4o` still responds more; it is no longer
+the case that `gpt-4.1` responds *backwards*.
 
-| TR 2018 | Jan–Feb | Aug–Sep | move into the crisis |
-|---|---|---|---|
-| A′ (`gpt-4o`) | 0.712 | 0.790 | **+0.078** |
-| V1 (`gpt-4o`) | 0.736 | 0.786 | +0.051 |
-| `gpt-4.1` | 0.811 | 0.792 | **−0.019** |
-| `gpt-4.1` × V1 | 0.747 | 0.732 | **−0.014** |
+**The measure also failed a negative control** it was never given: the same
+statistic on US 2019, which contains no crisis, returns a mean |Δ| of 0.039
+against TR 2018's 0.054.
 
-Every `gpt-4o` cell rises into the lira crisis; both `gpt-4.1` cells drift down
-through it. Also: neither model's |Δscore| correlates with |Δarticle count|
-(−0.068, −0.114), and for both, weeks where a condition flag flipped moved *less*
-than weeks where none did. And every cell peaks in Q1, which no reading of 2018
-explains and which nobody has looked into.
+**And the evidence proxy had no variance.** `snapshot_select.select` tops up to
+twenty by rank, so `articles` is **20 at all 676 stored US rows**. The ρ of
+−0.068 / −0.114 against |Δarticle count| was computed against a constant.
+Replaced by mean selected relevance, which varies: on TR 2018 `gpt-4o` is +0.242
+and `gpt-4.1` +0.046, so the incumbent tracks evidence weight and the candidate
+largely does not. That is the surviving point against `gpt-4.1`, and it is
+better founded than the one it replaces.
 
-**Why it is not conclusive.** One country, one crisis, one year. Article count is
-a crude proxy and condition flags are the model's own output, so the near-zero
-correlations may indict the proxy rather than the models. The Q1 peak is
-unexplained and could be a payload artifact that swamps everything else.
+**The Q1 peak, resolved.** Two different things: on TR an argmax artifact of a
+nine-value series (A′ ties its maximum at ten anchors, five in Q1 and five in
+Aug–Sep) over a real event-driven plateau; on US a genuine six-model agreement on
+`2019-03-11` / `2019-03-18` with article volume, macro vintage, theme mix and
+evidence relevance all ruled out read-only. It contaminates nothing.
 
-**The shape of the test.** A dated event list for two or three countries with
-real crises in the harvested range, built from a source independent of the
-scoring payload, and a check of whether score moves cluster near events more than
-chance — per scorer, on the same anchors. It is Phase E work in sequence but item
-11 cannot close without it, and item 11 now gates the local-model screen.
+**Why the study is still worth doing.** Everything above is still one country,
+one year, and a level comparison between hand-picked periods. A dated event list
+for two or three countries, built from a source independent of the scoring
+payload, with score moves checked against events per scorer on the same anchors,
+is the real test. What it must now include, learned the expensive way:
 
-**Cheap first step, before any of that:** find out what the Q1 peak is. It shows
-up in all five TR cells, and if it is an artifact of the evidence rather than the
-scorers, it contaminates every crisis-response number above.
+- a control period **verified quiet**, not assumed — the defect that produced a
+  published sign error;
+- a **negative-control window** with no crisis, which the measure must
+  distinguish;
+- an **evidence proxy with variance**, which `articles` is not.
+
+Those three are pre-registered in `docs/scorer-acceptance.md` as the condition
+for the event-validity criterion leaving provisional status.
+
+**Related:** §34, the relevance heuristic that saturates on US.
 
 ## 30. Report the series with an uncertainty band, and stop claiming resolution
 
@@ -948,3 +1058,44 @@ reading it can baseline against B only.
 
 Not worth a re-score on its own. Worth knowing before someone pre-registers
 against it a second time and discovers it after paying.
+
+## 34. The relevance heuristic saturates, and the selector tops up with noise
+
+**Found 2026-08-29** while establishing that the Q1 peak was not a selection
+artifact. It is not one. But the selection has two properties nobody has
+written down, and both bear on how much any scorer can be blamed for.
+
+**It saturates on a large corpus.** `article_ranking.score_relevance` caps at
+`_BODY_MENTION_CAP = 0.55` whenever the country name is absent from the *title*,
+which is most of the time. On US 2019 the mean relevance of the selected twenty
+spans **0.47–0.55 across the whole year**; on TR 2018 it spans 0.30–0.75. So on
+the ambiguous window the selector is choosing twenty from a pool of 52–98
+articles that are almost all tied at the cap, and the tie is broken by
+`read_window`'s `published_at DESC, url ASC`. Which twenty articles a US anchor
+sees is close to arbitrary.
+
+That is a candidate explanation for a finding this project has attributed to the
+scorer: the round-number share is 69.2% on US and 18.9% on TR for the same model
+on the same prompt. Evidence that is genuinely less determinate and evidence
+that has been *flattened by a saturated heuristic* look identical from inside the
+prompt.
+
+**It tops up with noise.** `snapshot_select.select` fills to twenty by rank when
+fewer than twenty clear the 0.3 threshold. At thin TR anchors that admits
+articles matching the bird rather than the country — *"Going TV cold turkey"*,
+*"turkey meatballs gave an Oregon baby salmonella poisoning"* — at five of
+twenty slots on 2018-03-05. They arrive as evidence with a digest each.
+
+**Why it is deferred rather than fixed.** Changing either changes every stored
+score, so it invalidates the bake-off corpus, the GATE2 baseline and the p2
+reference simultaneously — the same treatment §24 is waiting for. And the fix is
+a judgement call rather than a bug fix: a floor that refuses to fill to twenty
+would make thin anchors visibly thin, which is more honest and is a different
+instrument.
+
+**Cheap and worth doing first:** record the selected set's mean relevance and
+the count clearing the threshold in `input_manifest.payload_health`, alongside
+the indicator counts it already carries. Both are computed during selection and
+thrown away, and having them stored is what let the §29 correction be made from
+disk rather than by re-scoring. Same lesson as §25 — every writer needs a
+consumer — pointed at the evidence side.

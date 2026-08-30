@@ -11,7 +11,7 @@
     "SCORING_MODEL": "gpt-4.1-2025-04-14",
     "SEED": "42",
     "SWEEP_VERSION": "9f4aee55",
-    "git_sha": "30e07ef90801536a3659c5c99226f773354f1db0"
+    "git_sha": "b47b2b2b4341cfcbec5d1323bbc7949b4e01d14a"
   },
   "cost": {
     "cache_share": 0.0,
@@ -29,7 +29,486 @@
   "endpoint": {
     "SCORING_MODEL": "gpt-4.1-2025-04-14"
   },
-  "gates": {},
+  "gates": {
+    "cost": {
+      "cached_tokens": 60800,
+      "calls": 30,
+      "input_tokens": 100120,
+      "output_tokens": 7601,
+      "priced": true,
+      "seconds": 47.37,
+      "spend_usd": 0.169848
+    },
+    "determinism": {
+      "bands": 3,
+      "by_band": {
+        "calm": {
+          "distinct_scored": 4,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "evidence_coverage": [
+              70,
+              65,
+              65,
+              65,
+              65,
+              65,
+              65,
+              65,
+              65,
+              65
+            ],
+            "ledger_scores.edge_vitality": [
+              28,
+              32
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a1",
+                  "impact": 15,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 12,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 15,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 12,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 15,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 12,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "budget_surplus_receipts"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "rail_concession_infrastructure"
+                }
+              ]
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 0,
+          "scored_match_rate": 0.0,
+          "scores": [
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12,
+            12
+          ]
+        },
+        "moderate": {
+          "distinct_scored": 5,
+          "exact_match_rate": 0.111,
+          "moved_fields": {
+            "evidence_coverage": [
+              54,
+              54,
+              54,
+              54,
+              54,
+              54,
+              54,
+              54,
+              54,
+              48
+            ],
+            "ledger_scores.edge_vitality": [
+              32,
+              41
+            ],
+            "ledger_scores.information_capacity": [
+              18,
+              22
+            ],
+            "ledger_scores.order_uncertainty": [
+              37,
+              41
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate_decision"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate_decision"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate_decision"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate_decision"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 25,
+                  "topic_group": "central_bank_policy_rate"
+                },
+                {
+                  "id": "a2",
+                  "impact": 45,
+                  "topic_group": "regional_election_governing_party_loss"
+                }
+              ]
+            ],
+            "score_12m": [
+              43,
+              43,
+              43,
+              43,
+              43,
+              45,
+              43,
+              43,
+              43,
+              44
+            ],
+            "score_3m": [
+              39,
+              39,
+              39,
+              39,
+              39,
+              41,
+              39,
+              39,
+              39,
+              41
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 2,
+          "scored_match_rate": 0.333,
+          "scores": [
+            43,
+            43,
+            43,
+            43,
+            43,
+            45,
+            43,
+            43,
+            43,
+            44
+          ]
+        },
+        "stressed": {
+          "distinct_scored": 2,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "ledger_scores.information_capacity": [
+              87,
+              88
+            ],
+            "ledger_scores.order_uncertainty": [
+              93,
+              94
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 0,
+          "scored_match_rate": 0.444,
+          "scores": [
+            97,
+            97,
+            97,
+            97,
+            97,
+            97,
+            97,
+            97,
+            97,
+            97
+          ]
+        }
+      },
+      "exact_match_rate": 0.0,
+      "repeats": 10,
+      "score_spread": 2,
+      "scored_match_rate": 0.0,
+      "scores": [
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        12,
+        43,
+        43,
+        43,
+        43,
+        43,
+        45,
+        43,
+        43,
+        43,
+        44,
+        97,
+        97,
+        97,
+        97,
+        97,
+        97,
+        97,
+        97,
+        97,
+        97
+      ]
+    },
+    "schema": {
+      "error": null,
+      "passed": true,
+      "route": "strict",
+      "sample": {
+        "bullet_summary": "The country shows low investor risk, supported by a widening budget surplus, moderate government debt, low inflation, and low unemployment. Fiscal receipts are strong, and infrastructure investment continues under routine regulatory oversight. No evidence of conflict, emergency rule, or sovereign stress is present. Instruments and statistics appear reliable, with no signs of order-uncertainty. Edge vitality is moderate, reflecting ongoing investment and fiscal discipline.",
+        "condition_flags": {
+          "emergency_rule": false,
+          "internal_conflict_level": "none",
+          "sovereign_stress": false,
+          "war_on_territory": false
+        },
+        "evidence_coverage": 70,
+        "ledger_scores": {
+          "edge_vitality": 32,
+          "friction": 12,
+          "information_capacity": 10,
+          "order_uncertainty": 10
+        },
+        "news_article_scores": [
+          {
+            "id": "a1",
+            "impact": 15,
+            "topic_group": "budget_surplus_receipts"
+          },
+          {
+            "id": "a2",
+            "impact": 12,
+            "topic_group": "rail_concession_infrastructure"
+          }
+        ],
+        "score_12m": 12,
+        "score_3m": 12,
+        "subscore_evidence": {
+          "friction": [
+            "structural",
+            "a1"
+          ],
+          "information_capacity": [
+            "structural",
+            "a1"
+          ],
+          "order_uncertainty": [
+            "structural",
+            "a1"
+          ]
+        }
+      }
+    }
+  },
   "note": "the conservative upgrade; same family as the incumbent",
   "rows": [
     {
