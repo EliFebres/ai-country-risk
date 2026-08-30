@@ -83,10 +83,57 @@ what actually holds the line. Run `grammar_risks` before pointing the harness at
 any grammar-constrained endpoint and read the output as a list of things the
 local validator is solely responsible for.
 
-### 2. Determinism
+### 2. Determinism — **the line is PROVISIONAL**
 
 **Line: worst-band `score_spread` ≤ 3 points on the 0–100 scale, and
 `scored_match_rate` reported alongside it.**
+
+> ## ⚠ The 3-point line was derived on the wrong instrument
+>
+> **Marked provisional 2026-08-30. Deliberately not re-derived here** — that
+> wants writing cold, the way §12's criteria were, and it needs both numbers in
+> hand first. They now are.
+>
+> Every figure this line was calibrated against — `gpt-4o` at 2, `gpt-4.1` at 2,
+> and the four prose-only rows at 7, 8, 11 and 20 — was measured on a **canned
+> ~2,980-token payload**. The prompt the run dispatches is **11,142 to 13,038
+> tokens**. Re-measured on real assembled payloads:
+>
+> | model | canned worst | **real worst** | real by band |
+> |---|---|---|---|
+> | `gpt-4o` — **production** | 2 | **17** | 5 / 17 / 0 |
+> | `gpt-4.1` — benchmark incumbent | 2 | **9** | 4 / 9 / 0 |
+>
+> `scored_match_rate` is **0.000 on all three bands for both**. Neither model
+> reproduces its own scored output once in ten on the payload it is actually
+> sent.
+>
+> **Do not fail a candidate on this line until it is re-derived.** As written it
+> disqualifies the production scorer and the benchmark incumbent, and a gate the
+> reference cannot pass disqualifies every candidate for a defect the reference
+> shares — the mistake this criterion was already rescued from once.
+>
+> The *reasoning* below is unchanged and is still the right way to set the
+> number: repeat noise has to be small against the **smallest** effect anyone
+> would call real, which is TR 2018's crisis response at +7.3 to +14.9 points.
+> What has to be redone is the measurement it was set against.
+>
+> **The question the re-derivation has to answer**, and it is not "what is a
+> looser line": if the instrument's own noise is 17 points and the largest real
+> effect ever measured is 14.9, then on the composite **there is no threshold
+> that admits the signal and excludes the noise**. The honest conclusions
+> available are that the composite is the wrong unit and §30's uncertainty band
+> is the reporting, or that repeats must be averaged rather than required to
+> match, or that the ledgers and flags are the instrument and the composite is a
+> summary of them. Choosing between those is the work, and it is not a threshold
+> tweak.
+>
+> **What is not in doubt**: per-field draws, not just spreads. On `gpt-4o`'s
+> stressed band the composite holds at 82 across all ten calls while
+> `sovereign_stress` flips `False`/`True` and `evidence_coverage` alternates
+> 75/85. A spread of 0 reads as reproducible there, and the instrument is
+> disagreeing with itself about whether the country is in sovereign stress.
+> Whatever line replaces this one has to be read alongside `moved_fields`.
 
 Three anchors × ten repeats at `temperature=0`, `seed=42`, compared on **scored
 fields only** (`bakeoff._scored_only`): `bullet_summary`, `subscore_evidence`,

@@ -197,12 +197,58 @@ Compared on **scored fields** — every field except `bullet_summary` and
 
 **Measured 2026-08-29, and it corrects the headline claim of this document.**
 
+> ## ⚠ Every determinism number in this document is a lower bound
+>
+> **Added 2026-08-30, and it is a larger correction than the one below it.**
+>
+> All of it — the table in this section, the four prose-only rows further down,
+> and the "worst" column `docs/scorer-acceptance.md` §2 was calibrated against —
+> was measured on a **canned payload of about 2,980 tokens**. The prompt the
+> pipeline dispatches at a real anchor is **11,142 to 13,038 tokens**. The
+> difference is the full-text block and twenty real digests against two
+> hand-written ones, and it is not cosmetic.
+>
+> Re-measured on real assembled payloads. Same models, same ten repeats, same
+> `temperature=0`, `seed=42`, same `strict` route, same scored-field comparison:
+>
+> | model | canned worst | **real worst** | real by band (calm / mod / stressed) |
+> |---|---|---|---|
+> | `gpt-4o` — **production** | 2 pts | **17 pts** | 5 / **17** / 0 |
+> | `gpt-4.1` — benchmark incumbent | 2 pts | **9 pts** | 4 / **9** / 0 |
+>
+> **The incumbent is the worse of the two**, at eight and a half times its
+> published figure and nearly six times the ≤3-point line. And
+> `scored_match_rate` is **0.000 on all three bands** for both models: on a real
+> payload neither reproduces its own scored output even once in ten.
+>
+> So *"only the incumbent reproduces its own scored output"* is not merely
+> false as stated — on the payload the pipeline actually sends, the incumbent
+> reproduces it **zero times out of ten, on every band**.
+>
+> **Read every row below as "at least this much noise", never as a noise
+> floor.** The gate assembles real payloads from three pinned anchors since
+> 2026-08-30 (`bakeoff._SMOKE_ANCHORS`); anything measured before that date was
+> not. The four prose-only rows — `gpt-5.4-mini` 7, `gpt-4.1-mini` 8,
+> `gpt-5.6-luna` 11, `gpt-4.1-nano` 20 — were already argued to be lower bounds
+> because they were worst-of-three-anchors; they are lower bounds twice over.
+>
+> **What moves matters more than how much.** On `gpt-4o`'s stressed band the
+> composite is perfectly stable — `score_12m` is 82 in all ten calls — while
+> `condition_flags.sovereign_stress` flips between `False` and `True`,
+> `evidence_coverage` alternates 75/85 and `edge_vitality` 30/40. A spread of 0
+> on that band would read as "reproducible" and the instrument is disagreeing
+> with itself about whether the country is in sovereign stress. On the moderate
+> band `emergency_rule` flips too, `internal_conflict_level` alternates between
+> a level and `none`, and all four ledgers move. That is a different failure
+> from a composite wobbling at the last digit, and only the per-field draws show
+> it.
+
 Every determinism number below was taken on **one payload** — `_SMOKE_EVIDENCE`,
 a Moderate anchor — because that was the only canned payload that existed. The
-calm and stressed payloads now exist (`bakeoff._SMOKE_BANDS`), and the per-repeat
-draws are persisted rather than summarised. Ten repeats per band,
-`temperature=0`, `seed=42`, through the production wrapper, `strict` route,
-compared on scored fields:
+calm and stressed payloads now exist, and the per-repeat draws are persisted
+rather than summarised. Ten repeats per band, `temperature=0`, `seed=42`,
+through the production wrapper, `strict` route, compared on scored fields —
+**all on the ~2,980-token canned payloads**:
 
 | model | calm | moderate | stressed | **worst** |
 |---|---|---|---|---|

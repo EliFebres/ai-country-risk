@@ -1,0 +1,3457 @@
+{
+  "arm": "scoring",
+  "candidate": "gpt-4o-postfix",
+  "captured_under": {
+    "DIGEST_MODEL": "gpt-4o-mini-2024-07-18",
+    "GAZETTEER_VERSION": "aa63700b",
+    "MASK_MAP_VERSION": "g5",
+    "PAYLOAD_FINGERPRINT": "f415f5809a758c3f",
+    "PAYLOAD_VERSION": "p2",
+    "PROMPT_VERSION": "v4.5-no-publisher",
+    "REWRITE_VERSION": "7078d4f6",
+    "SCORING_MODEL": "gpt-4o-2024-08-06",
+    "SEED": "42",
+    "SWEEP_VERSION": "9f4aee55",
+    "git_sha": "34eef79136655a9fecc4bec362af9470aec279e8"
+  },
+  "cost": {
+    "snapshots": 0
+  },
+  "country": "TR",
+  "endpoint": {},
+  "gates": {
+    "cost": {
+      "cached_tokens": 359296,
+      "calls": 30,
+      "input_tokens": 378330,
+      "output_tokens": 18583,
+      "priced": true,
+      "seconds": 195.43,
+      "spend_usd": 0.682535
+    },
+    "determinism": {
+      "bands": 3,
+      "by_band": {
+        "calm": {
+          "distinct_scored": 9,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "evidence_coverage": [
+              75,
+              70,
+              70,
+              70,
+              70,
+              75,
+              70,
+              70,
+              70,
+              75
+            ],
+            "ledger_scores.edge_vitality": [
+              60,
+              65
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_surge"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_hate"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_election"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_hate"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_election"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_hate"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_surge"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_surge"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_election"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "river_beaches"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_election"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_club_takeover"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behavior"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_election"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_hate"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_surge"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_transfer_rumours"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_division"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "sports_fan_behaviour"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "campervan_trip"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "football_tournament"
+                },
+                {
+                  "id": "a3",
+                  "impact": 0,
+                  "topic_group": "riverbanks_tourism"
+                },
+                {
+                  "id": "a4",
+                  "impact": 0,
+                  "topic_group": "song_contest"
+                },
+                {
+                  "id": "a5",
+                  "impact": 0,
+                  "topic_group": "football_selection"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "football_fantasy"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "green_party_surge"
+                },
+                {
+                  "id": "a8",
+                  "impact": 0,
+                  "topic_group": "park_football"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "wine_preferences"
+                },
+                {
+                  "id": "a10",
+                  "impact": 25,
+                  "topic_group": "anti_abortion_legislation"
+                },
+                {
+                  "id": "a11",
+                  "impact": 25,
+                  "topic_group": "regional_diplomacy"
+                },
+                {
+                  "id": "a12",
+                  "impact": 0,
+                  "topic_group": "pudding_recipes"
+                },
+                {
+                  "id": "a13",
+                  "impact": 0,
+                  "topic_group": "football_transfer"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "currency_notes"
+                },
+                {
+                  "id": "a15",
+                  "impact": 0,
+                  "topic_group": "football_club_takeover"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "football_injury"
+                },
+                {
+                  "id": "a17",
+                  "impact": 25,
+                  "topic_group": "citizenship_exams"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "football_hate"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "film_music_events"
+                },
+                {
+                  "id": "a20",
+                  "impact": 25,
+                  "topic_group": "fan_behaviour"
+                }
+              ]
+            ],
+            "score_12m": [
+              40,
+              40,
+              40,
+              40,
+              38,
+              35,
+              40,
+              40,
+              40,
+              35
+            ],
+            "score_3m": [
+              35,
+              35,
+              35,
+              35,
+              35,
+              32,
+              35,
+              35,
+              35,
+              32
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 5,
+          "scored_match_rate": 0.0,
+          "scores": [
+            40,
+            40,
+            40,
+            40,
+            38,
+            35,
+            40,
+            40,
+            40,
+            35
+          ]
+        },
+        "moderate": {
+          "distinct_scored": 10,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "condition_flags.emergency_rule": [
+              false,
+              true
+            ],
+            "condition_flags.internal_conflict_level": [
+              "B",
+              "none"
+            ],
+            "evidence_coverage": [
+              75,
+              75,
+              75,
+              75,
+              75,
+              75,
+              70,
+              75,
+              75,
+              75
+            ],
+            "ledger_scores.edge_vitality": [
+              60,
+              65
+            ],
+            "ledger_scores.friction": [
+              38,
+              40
+            ],
+            "ledger_scores.information_capacity": [
+              30,
+              40
+            ],
+            "ledger_scores.order_uncertainty": [
+              60,
+              75
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_relations"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_policy"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_failure"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "domestic_security"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "domestic_politics"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "social_issues"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democracy_challenges"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_relations_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_policy_risks"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_crisis"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "domestic_security_issues"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "political_protests"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_events"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports_events"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migration_issues"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports_events"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democracy_challenges"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_threats"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_agreements"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_failure"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "domestic_violence"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "climate_protests"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migration_issues"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_relations"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_policy"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_crisis"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "domestic_security"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "domestic_politics"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "social_issues"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "power_blackout"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_deals_isds"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence"
+                },
+                {
+                  "id": "a1",
+                  "impact": 10,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 10,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_concerns"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democracy_challenges"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_fraud"
+                },
+                {
+                  "id": "a6",
+                  "impact": 10,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_threats"
+                },
+                {
+                  "id": "a9",
+                  "impact": 10,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 10,
+                  "topic_group": "intelligence_breach"
+                },
+                {
+                  "id": "a11",
+                  "impact": 10,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a14",
+                  "impact": 10,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "climate_protests"
+                },
+                {
+                  "id": "a16",
+                  "impact": 10,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a17",
+                  "impact": 10,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "child_migrants"
+                },
+                {
+                  "id": "a19",
+                  "impact": 10,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 10,
+                  "topic_group": "sports_event"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democracy_challenges"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_threats"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_policy_ISDS"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_crisis"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "climate_protests"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "child_migrant_crisis"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                }
+              ],
+              [
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "power_blackout"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_deals_isds"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "election_transition"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democracy_retreat"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_fraud"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_threats"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "climate_protests"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democracy_challenges"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_threats"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_policy_ISDS"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_crisis"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "youth_violence"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "climate_protests"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "child_migrant_crisis"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "democracy_challenges"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_relations"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_policy"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_crisis"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "domestic_security"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "climate_protests"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "migration_issues"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a2",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "election_integrity"
+                },
+                {
+                  "id": "a6",
+                  "impact": 0,
+                  "topic_group": "trade_negotiations"
+                },
+                {
+                  "id": "a7",
+                  "impact": 25,
+                  "topic_group": "foreign_relations"
+                },
+                {
+                  "id": "a8",
+                  "impact": 60,
+                  "topic_group": "trade_policy_risks"
+                },
+                {
+                  "id": "a9",
+                  "impact": 0,
+                  "topic_group": "diplomatic_relations"
+                },
+                {
+                  "id": "a10",
+                  "impact": 0,
+                  "topic_group": "intelligence_security"
+                },
+                {
+                  "id": "a11",
+                  "impact": 0,
+                  "topic_group": "regional_security"
+                },
+                {
+                  "id": "a12",
+                  "impact": 85,
+                  "topic_group": "infrastructure_crisis"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "domestic_security"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_appointments"
+                },
+                {
+                  "id": "a15",
+                  "impact": 25,
+                  "topic_group": "political_transition_risks"
+                },
+                {
+                  "id": "a16",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a17",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "social_issues"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "media_coverage"
+                },
+                {
+                  "id": "a20",
+                  "impact": 0,
+                  "topic_group": "sports_event"
+                }
+              ]
+            ],
+            "score_12m": [
+              58,
+              65,
+              62,
+              65,
+              65,
+              65,
+              75,
+              65,
+              65,
+              65
+            ],
+            "score_3m": [
+              62,
+              62,
+              58,
+              62,
+              62,
+              62,
+              78,
+              62,
+              62,
+              62
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 17,
+          "scored_match_rate": 0.0,
+          "scores": [
+            58,
+            65,
+            62,
+            65,
+            65,
+            65,
+            75,
+            65,
+            65,
+            65
+          ]
+        },
+        "stressed": {
+          "distinct_scored": 7,
+          "exact_match_rate": 0.0,
+          "moved_fields": {
+            "condition_flags.sovereign_stress": [
+              false,
+              true
+            ],
+            "evidence_coverage": [
+              85,
+              85,
+              75,
+              75,
+              85,
+              75,
+              85,
+              85,
+              85,
+              75
+            ],
+            "ledger_scores.edge_vitality": [
+              30,
+              40
+            ],
+            "news_article_scores": [
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "sports_and_economy"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_and_criticism"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a12",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a14",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a16",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "economic_austerity"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "unrelated"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "sports_and_economy"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_and_criticism"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "sports_and_economy"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_and_criticism"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a2",
+                  "impact": 60,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 25,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 25,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 25,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 25,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a9",
+                  "impact": 60,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a10",
+                  "impact": 60,
+                  "topic_group": "bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 60,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 60,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "economic_austerity"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "human_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "foreign_bailout"
+                },
+                {
+                  "id": "a11",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "economic_austerity"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_issue"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "human_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "sports_and_economy"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_and_criticism"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "sports_and_economy"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_and_criticism"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 60,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a10",
+                  "impact": 60,
+                  "topic_group": "bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 75,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "sanctions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "sports_policy"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights"
+                }
+              ],
+              [
+                {
+                  "id": "a1",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a2",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a3",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a4",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a5",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a6",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a7",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a8",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a9",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a10",
+                  "impact": 40,
+                  "topic_group": "foreign_bailout_exit"
+                },
+                {
+                  "id": "a11",
+                  "impact": 40,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a12",
+                  "impact": 25,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a13",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a14",
+                  "impact": 0,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a15",
+                  "impact": 75,
+                  "topic_group": "currency_crisis_and_sanctions"
+                },
+                {
+                  "id": "a16",
+                  "impact": 60,
+                  "topic_group": "diplomatic_tensions"
+                },
+                {
+                  "id": "a17",
+                  "impact": 60,
+                  "topic_group": "authoritarianism_and_civil_liberties"
+                },
+                {
+                  "id": "a18",
+                  "impact": 40,
+                  "topic_group": "sports_and_economy"
+                },
+                {
+                  "id": "a19",
+                  "impact": 0,
+                  "topic_group": "consumer_complaint"
+                },
+                {
+                  "id": "a20",
+                  "impact": 40,
+                  "topic_group": "lgbt_rights_and_criticism"
+                }
+              ]
+            ]
+          },
+          "repeats": 10,
+          "score_spread": 0,
+          "scored_match_rate": 0.222,
+          "scores": [
+            82,
+            82,
+            82,
+            82,
+            82,
+            82,
+            82,
+            82,
+            82,
+            82
+          ]
+        }
+      },
+      "exact_match_rate": 0.0,
+      "repeats": 10,
+      "score_spread": 17,
+      "scored_match_rate": 0.0,
+      "scores": [
+        40,
+        40,
+        40,
+        40,
+        38,
+        35,
+        40,
+        40,
+        40,
+        35,
+        58,
+        65,
+        62,
+        65,
+        65,
+        65,
+        75,
+        65,
+        65,
+        65,
+        82,
+        82,
+        82,
+        82,
+        82,
+        82,
+        82,
+        82,
+        82,
+        82
+      ]
+    },
+    "payload": {
+      "calm": {
+        "anchor": "PT 2019-06-03",
+        "articles": 20,
+        "counted_by": "tiktoken",
+        "fulltext_ids": [
+          "a18",
+          "a7",
+          "a10"
+        ],
+        "indicators_resolved": 22,
+        "payload_fingerprint": "92e50cfa850b95d9",
+        "prompt_chars": 51790,
+        "prompt_tokens": 13038,
+        "why": "0.35, Low-Moderate; the calmest evidence the pilot has scored"
+      },
+      "moderate": {
+        "anchor": "US 2019-03-11",
+        "articles": 20,
+        "counted_by": "tiktoken",
+        "fulltext_ids": [
+          "a12",
+          "a8",
+          "a13"
+        ],
+        "indicators_resolved": 23,
+        "payload_fingerprint": "453779934da552f7",
+        "prompt_chars": 50807,
+        "prompt_tokens": 12570,
+        "why": "0.70, Moderate; the flat-band year's own maximum"
+      },
+      "stressed": {
+        "anchor": "TR 2018-08-13",
+        "articles": 20,
+        "counted_by": "tiktoken",
+        "fulltext_ids": [
+          "a1",
+          "a2",
+          "a8"
+        ],
+        "indicators_resolved": 24,
+        "payload_fingerprint": "f415f5809a758c3f",
+        "prompt_chars": 44037,
+        "prompt_tokens": 11142,
+        "why": "0.82, High; the peak of the currency crisis"
+      }
+    },
+    "schema": {
+      "error": null,
+      "passed": true,
+      "route": "strict",
+      "sample": {
+        "bullet_summary": "The country shows moderate friction with a high government effectiveness score and manageable debt levels. Order uncertainty is low, supported by stable political and legal environments. Information capacity is strong, with reliable statistics. Recent political shifts, such as the rise of Green parties, and social issues like anti-abortion legislation, indicate potential changes in policy direction. Edge vitality is high, reflecting robust human capital and business dynamics. Overall, the country presents a stable investment environment with moderate risks.",
+        "condition_flags": {
+          "emergency_rule": false,
+          "internal_conflict_level": "none",
+          "sovereign_stress": false,
+          "war_on_territory": false
+        },
+        "evidence_coverage": 75,
+        "ledger_scores": {
+          "edge_vitality": 65,
+          "friction": 38,
+          "information_capacity": 20,
+          "order_uncertainty": 25
+        },
+        "news_article_scores": [
+          {
+            "id": "a1",
+            "impact": 0,
+            "topic_group": "campervan_trip"
+          },
+          {
+            "id": "a2",
+            "impact": 0,
+            "topic_group": "football_tournament"
+          },
+          {
+            "id": "a3",
+            "impact": 0,
+            "topic_group": "riverbanks_tourism"
+          },
+          {
+            "id": "a4",
+            "impact": 0,
+            "topic_group": "song_contest"
+          },
+          {
+            "id": "a5",
+            "impact": 0,
+            "topic_group": "football_selection"
+          },
+          {
+            "id": "a6",
+            "impact": 0,
+            "topic_group": "football_fantasy"
+          },
+          {
+            "id": "a7",
+            "impact": 25,
+            "topic_group": "green_party_surge"
+          },
+          {
+            "id": "a8",
+            "impact": 0,
+            "topic_group": "park_football"
+          },
+          {
+            "id": "a9",
+            "impact": 0,
+            "topic_group": "wine_preferences"
+          },
+          {
+            "id": "a10",
+            "impact": 25,
+            "topic_group": "anti_abortion_legislation"
+          },
+          {
+            "id": "a11",
+            "impact": 25,
+            "topic_group": "regional_diplomacy"
+          },
+          {
+            "id": "a12",
+            "impact": 0,
+            "topic_group": "pudding_recipes"
+          },
+          {
+            "id": "a13",
+            "impact": 0,
+            "topic_group": "football_transfer_rumours"
+          },
+          {
+            "id": "a14",
+            "impact": 0,
+            "topic_group": "currency_notes"
+          },
+          {
+            "id": "a15",
+            "impact": 0,
+            "topic_group": "football_transfer_rumours"
+          },
+          {
+            "id": "a16",
+            "impact": 0,
+            "topic_group": "football_injury"
+          },
+          {
+            "id": "a17",
+            "impact": 25,
+            "topic_group": "citizenship_exams"
+          },
+          {
+            "id": "a18",
+            "impact": 40,
+            "topic_group": "football_hate"
+          },
+          {
+            "id": "a19",
+            "impact": 0,
+            "topic_group": "film_music_events"
+          },
+          {
+            "id": "a20",
+            "impact": 25,
+            "topic_group": "sports_fan_behaviour"
+          }
+        ],
+        "score_12m": 40,
+        "score_3m": 35,
+        "subscore_evidence": {
+          "friction": [
+            "Government effectiveness (z-score)",
+            "Tax revenue (% GDP)",
+            "Interest payments (% revenue)",
+            "Government gross debt (% GDP)",
+            "Government net lending/borrowing (% GDP)"
+          ],
+          "information_capacity": [
+            "Statistical performance (0\u2013100)"
+          ],
+          "order_uncertainty": [
+            "Political stability (z-score)",
+            "Rule of law (z-score)",
+            "Inflation (% y/y)",
+            "Exchange rate vs another country"
+          ]
+        }
+      }
+    }
+  },
+  "note": "the incumbent's noise floor at real payload size; gates only, no rows",
+  "rows": [],
+  "since": "2018-01-01",
+  "until": "2018-12-31"
+}

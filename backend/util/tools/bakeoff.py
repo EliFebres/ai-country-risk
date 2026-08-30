@@ -244,6 +244,24 @@ CANDIDATES: Dict[str, Dict[str, Any]] = {
         "env": {},
         "key_env": "OPENAI_API_KEY",
     },
+    # The incumbent's determinism, re-measured on a real assembled payload. A
+    # separate entry rather than a re-smoke of `gpt-4o`, because `save_gates`
+    # would overwrite the canned-payload block on that file -- and that block is
+    # the record this measurement exists to be compared against. Same reasoning
+    # as part 1: a later run does not get to restamp what an earlier one
+    # measured.
+    #
+    # Gates only. There are no rows here and there should not be: `gpt-4o`'s
+    # anchors are captured from `risk_snapshot` by `capture-baseline`, and
+    # `p2-rebaseline-postfix` is the re-scored incumbent series. This entry
+    # answers one question -- what is the incumbent's repeat spread at the size
+    # the run actually dispatches.
+    "gpt-4o-postfix": {
+        "arm": "scoring",
+        "note": "the incumbent's noise floor at real payload size; gates only, no rows",
+        "env": {},
+        "key_env": "OPENAI_API_KEY",
+    },
     "gpt-4.1-nano": {
         "arm": "scoring",
         "note": "cheapest candidate, ~1/20th the incumbent",
