@@ -48,8 +48,8 @@ against a strength elsewhere — out.
 
 **Line: zero invalid outputs over the anchor set, and the route is recorded.**
 
-Run `python -m backend.util.tools.bakeoff smoke <candidate>` first — it is nine
-calls and cents, and it runs the real `AI_PROMPT_V3` against the real
+Run `python -m backend.util.tools.bakeoff smoke <candidate>` first — nine calls,
+and it runs the real `AI_PROMPT_V3` on a real assembled payload against the real
 `RISK_SCHEMA_V3` through the production wrapper. A three-field toy schema says
 nothing about one with ten required fields, nested objects and
 `additionalProperties: false` throughout.
@@ -410,6 +410,36 @@ Expect `route: json_object` rather than `strict` — no local server implements
 OpenAI's strict flag, and the harness falls back and says so. Read the three
 per-band spreads, not just the worst.
 
+**It needs a database, and it will refuse without one.** Since 2026-08-30 the
+three bands are real payloads assembled from three pinned anchors — PT
+2019-06-03 (calm), US 2019-03-11 (moderate), TR 2018-08-13 (stressed) — entirely
+out of the digest and rewrite caches, so no model call is made to build them. An
+unreachable corpus or an uncached digest raises `SmokePayloadUnavailable` rather
+than dropping to a canned payload: a gate that quietly runs small reports a pass
+for a request the candidate was never asked to satisfy, and on disk that pass
+looks exactly like a real one.
+
+**What it now costs, and why that is worth paying.** The canned payloads
+rendered at 2,962 / 2,980 / 2,987 tokens; the real ones render at 13,168 /
+12,732 / 11,262 — within two tokens of what the scoring call dispatches at the
+same anchors. That is **4.2× the input tokens**, and roughly:
+
+| candidate | before | after |
+|---|---|---|
+| `gpt-4.1` | $0.158 | **$0.465** |
+| `gpt-4o` | $0.231 | **$0.723** |
+
+Three tenths of a dollar to stop certifying a fifth of the request. Gates 1 and
+2 are the two this document says to stop on, and for a self-served model they
+test exactly the properties that degrade with context — grammar-constrained
+decoding gets harder, and determinism under batching and KV-cache pressure is a
+different question at 13k than at 3k. `docs/pipeline-audit.md` §4 blocker 4.
+
+The gate result now carries a `payload` block naming each band's anchor, its
+realised token count and how it was counted, so payload size drifting away from
+what the gate exercises is visible in the next run rather than needing an audit
+to find.
+
 The gate is **stricter than the run** on one point: `_validate_locally` rejects
 a `score_12m` of 250 that `_from_100` would clamp to 1.0. That is the right
 direction — a model answering 250 has misunderstood the scale — but a candidate
@@ -467,7 +497,9 @@ produced them ran once, in a terminal, and reported a summary.
 ## Running order
 
 1. `grammar_risks` — free, and it changes how you read everything after it.
-2. `smoke --repeats 10` — cents. Gates 1 and 2. **Stop here if either fails.**
+2. `smoke --repeats 10` — **~$0.47 on gpt-4.1, ~$0.72 on gpt-4o**, at the ~61%
+   prompt-cache share ten repeats of one prompt actually get. Gates 1 and 2.
+   **Stop here if either fails.**
 3. Score US 2019 — the ambiguous window. Criteria 3, 4, 5, 7.
 4. Score TR 2018 — the determinate window. Same criteria, plus interim 6.
 5. Compare against `gpt-4.1` for discrimination, A′ for ρ.

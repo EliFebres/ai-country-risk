@@ -61,6 +61,7 @@ as the only variable.
 import argparse
 import contextlib
 import datetime
+import functools
 import json
 import logging
 import os
@@ -95,6 +96,7 @@ from backend.llm import client as ai_client  # noqa: E402
 from backend.llm import constants as ai_constants  # noqa: E402
 from backend.llm import usage  # noqa: E402
 from backend.util import config  # noqa: E402
+from backend.util import constants  # noqa: E402
 from backend.util import provenance  # noqa: E402
 from backend.util.pilot import reports  # noqa: E402
 
@@ -1123,11 +1125,16 @@ def save_gates(name: str, gates: Dict[str, Any]) -> List[pathlib.Path]:
     """Record one candidate's gate result in every window it has a file in.
 
     The gates are a property of the *candidate*, not of the window: `smoke` runs
-    against `_SMOKE_EVIDENCE`, a canned payload with no country and no anchor in
-    it. Storing them in a window-scoped file therefore made them look
-    window-scoped, and smoking a candidate under `US-2019` left the `TR-2018`
-    file saying the gate had never been run -- indistinguishable, on disk, from
-    a candidate that had never been smoked at all.
+    the three `_SMOKE_ANCHORS` payloads whatever window is selected, so its
+    verdict does not depend on `--country`. Storing them in a window-scoped file
+    therefore made them look window-scoped, and smoking a candidate under
+    `US-2019` left the `TR-2018` file saying the gate had never been run --
+    indistinguishable, on disk, from a candidate that had never been smoked at
+    all.
+
+    The anchors are three specific weeks now rather than three canned dicts, so
+    the gate is no longer *country*-free; it is simply the same three countries
+    for every candidate, which is what keeps the result comparable.
     """
     written = []
     for window in sorted({p.parent.name for p in RESULTS_DIR.glob(f"*/{name}.json")}
@@ -1148,127 +1155,227 @@ def save_gates(name: str, gates: Dict[str, Any]) -> List[pathlib.Path]:
 # retry is not the same instrument, and a candidate that ignores `seed` costs
 # the byte-for-byte rebuild `rebuild_snapshot` exists to perform.
 
-# A payload with the shape of a real one and none of its cost: masked language,
-# plausible magnitudes, two articles. Magnitudes are kept realistic because a
-# schema that holds on trivial input and fails on a real number is a schema that
-# was never tested — and `evidence_coverage` and the ledger scores are exactly
-# where a model improvises.
-_SMOKE_EVIDENCE = {
-    "structural": {"gdp_growth_pct": 2.1, "cpi_inflation_pct": 0.9,
-                   "unemployment_pct": 6.5, "gov_debt_pct_gdp": 117.2},
-    "vintages": {"weo_edition": "2019-04"},
-}
-_SMOKE_ARTICLES = [
-    {"id": "a1", "source": "a national daily", "published_at": "2019-06-03",
-     "title": "Central bank holds policy rate for a third meeting",
-     "digest": {"what_happened": "The central bank held its policy rate, citing "
-                                 "balanced risks and easing headline inflation.",
-                "actors": "the central bank, the rate-setting committee",
-                "numbers": "0.0%, third consecutive meeting, 7-2 vote",
-                "transmission": "borrowing costs, credit growth",
-                "directly_about_country": True, "stage1_severity": 25}},
-    {"id": "a2", "source": "a news agency", "published_at": "2019-06-05",
-     "title": "Governing party loses majority in regional vote",
-     "digest": {"what_happened": "The governing party lost its majority in a "
-                                 "regional election and coalition talks began.",
-                "actors": "the governing party, the main opposition party",
-                "numbers": "41 seats, 38%, 12 days",
-                "transmission": "policy continuity, fiscal plans",
-                "directly_about_country": True, "stage1_severity": 45}},
-]
-
-
-# The other two bands. A noise floor measured on one Moderate payload is a noise
-# floor for Moderate, and the models do not behave the same across the range:
-# `gpt-4.1-nano` swings 20 points on a calm payload and 5 on a stressed one, so
-# smoking only the middle would have reported it four times steadier than it is.
+# The three anchors the gate is measured on.
 #
-# Three payloads rather than three real anchors, for the same reason
-# `_SMOKE_EVIDENCE` exists: an anchor costs a database, a harvest and a digest
-# pass, and none of that is what the gate measures. What matters is that the
-# three land in different bands, which `BAND_BOUNDS` decides.
-_SMOKE_BANDS: Dict[str, Tuple[Dict[str, Any], List[Dict[str, Any]]]] = {}
-
-_CALM_EVIDENCE = {
-    "structural": {"gdp_growth_pct": 2.4, "cpi_inflation_pct": 1.4,
-                   "unemployment_pct": 3.8, "gov_debt_pct_gdp": 41.2},
-    "vintages": {"weo_edition": "2019-04"},
+# These were canned dicts -- four structural fields, two articles, no full text
+# -- and the reason given was that "an anchor costs a database, a harvest and a
+# digest pass, and none of that is what the gate measures". The first half was
+# true and the conclusion did not follow. Measured on 2026-08-30, the canned
+# payloads rendered at 2,962 / 2,980 / 2,987 tokens against a dispatched prompt
+# of 11,264 / 12,734 / 13,459: the gate certified a request a fifth the size of
+# the one that runs. For a hosted endpoint that mostly does not matter. For a
+# self-served model it is exactly backwards -- grammar-constrained decoding gets
+# harder with context, and determinism under batching and KV-cache pressure is a
+# different question at 13k than at 3k -- so gates 1 and 2, the two the
+# acceptance bar says to stop on, were deciding admission on the easy end.
+# See `docs/pipeline-audit.md` section 4, blocker 4.
+#
+# The anchor costs nothing after all: everything is cache-served, exactly as
+# `rebuild_snapshot` is. What it costs is a database, which `smoke` needs rather
+# less than it already needs an API key.
+#
+# Pinned rather than chosen per run, and named with the reason, because they are
+# part of what the gate means: a later session that swaps them casually moves
+# every determinism figure the acceptance bar is written against.
+_SMOKE_ANCHORS: Dict[str, Tuple[str, datetime.date, str]] = {
+    # The only band below Moderate anywhere in the stored series -- four PT
+    # anchors at 0.35. Also the fingerprint probe in `pilot.score`, so the two
+    # pinned anchors in this repo are deliberately the same one.
+    "calm": ("PT", datetime.date(2019, 6, 3),
+             "0.35, Low-Moderate; the calmest evidence the pilot has scored"),
+    # The ambiguous window, where every gpt-4o arm puts all 52 anchors in one
+    # band. This week is that year's own maximum and the anchor six models
+    # independently agreed on, so it is the most-examined week in the project.
+    "moderate": ("US", datetime.date(2019, 3, 11),
+                 "0.70, Moderate; the flat-band year's own maximum"),
+    # The lira collapse at its peak, tied for the highest score in the series.
+    "stressed": ("TR", datetime.date(2018, 8, 13),
+                 "0.82, High; the peak of the currency crisis"),
 }
-_CALM_ARTICLES = [
-    {"id": "a1", "source": "a national daily", "published_at": "2019-06-03",
-     "title": "Budget surplus widens on stronger receipts",
-     "digest": {"what_happened": "The finance ministry reported a wider budget "
-                                 "surplus after receipts beat forecasts.",
-                "actors": "the finance ministry, the audit office",
-                "numbers": "1.2% of GDP, third consecutive quarter",
-                "transmission": "fiscal space, issuance plans",
-                "directly_about_country": True, "stage1_severity": 10}},
-    {"id": "a2", "source": "a news agency", "published_at": "2019-06-05",
-     "title": "Regulator approves cross-border rail concession",
-     "digest": {"what_happened": "The transport regulator approved a rail "
-                                 "concession after a routine consultation.",
-                "actors": "the transport regulator, two bidding consortia",
-                "numbers": "30-year term, four bidders",
-                "transmission": "infrastructure investment",
-                "directly_about_country": True, "stage1_severity": 8}},
-]
 
-_STRESSED_EVIDENCE = {
-    "structural": {"gdp_growth_pct": -4.8, "cpi_inflation_pct": 61.3,
-                   "unemployment_pct": 14.9, "gov_debt_pct_gdp": 152.6},
-    "vintages": {"weo_edition": "2019-04"},
-}
-_STRESSED_ARTICLES = [
-    {"id": "a1", "source": "a national daily", "published_at": "2019-06-03",
-     "title": "Currency falls a further fifth as reserves are drawn down",
-     "digest": {"what_happened": "The currency fell sharply for a second week "
-                                 "while the central bank sold reserves to slow "
-                                 "the decline.",
-                "actors": "the central bank, foreign creditors",
-                "numbers": "-21% in two weeks, reserves down 34%",
-                "transmission": "import costs, external debt service",
-                "directly_about_country": True, "stage1_severity": 88}},
-    {"id": "a2", "source": "a news agency", "published_at": "2019-06-05",
-     "title": "Emergency powers extended as protests spread to third city",
-     "digest": {"what_happened": "The government extended emergency powers by "
-                                 "decree after protests spread and several "
-                                 "journalists were detained.",
-                "actors": "the government, the interior ministry, protest "
-                          "organisers",
-                "numbers": "90-day extension, 11 detained, 3 cities",
-                "transmission": "rule of law, press freedom, investment climate",
-                "directly_about_country": True, "stage1_severity": 92}},
-]
+# Three countries rather than one, on purpose: a gate measured on a single
+# country's prose would report that country's evidence texture as the
+# instrument's.
+_SMOKE_BANDS = _SMOKE_ANCHORS
 
-_SMOKE_BANDS = {
-    "calm": (_CALM_EVIDENCE, _CALM_ARTICLES),
-    "moderate": (_SMOKE_EVIDENCE, _SMOKE_ARTICLES),
-    "stressed": (_STRESSED_EVIDENCE, _STRESSED_ARTICLES),
-}
+
+class SmokePayloadUnavailable(RuntimeError):
+    """The gate cannot assemble a real payload, so it does not run.
+
+    Deliberately fatal and deliberately without a fallback. A gate that quietly
+    drops to a canned payload when the database is unreachable reports a pass
+    for a request the candidate was never asked to satisfy -- and on disk that
+    pass is indistinguishable from a real one. Which is the failure this whole
+    change is about.
+    """
+
+
+@functools.lru_cache(maxsize=None)
+def _assemble_band(band: str) -> Tuple[Dict[str, Any], List[Dict[str, Any]],
+                                       Tuple[str, ...]]:
+    """One band's real payload, assembled from its pinned anchor for nothing.
+
+    The path `rebuild_snapshot` walks, with the same guarantee: digests and
+    rewritten bodies come from `llm_artifact`, content-addressed, so nothing
+    here calls a model. Coverage is checked *before* the digests are asked for,
+    so a cache miss refuses the gate instead of quietly buying prose the stored
+    row never had.
+
+    Cached per band because `smoke` renders each once and the tests render them
+    again, and the read is a database round trip rather than arithmetic.
+
+    Returns:
+        ``(evidence, scored_articles, fulltext_ids)``.
+
+    Raises:
+        SmokePayloadUnavailable: no anchor, no articles, or an uncached digest.
+    """
+    from backend.data_upsert import data_push, store
+    from backend.news_fetching import snapshot_select
+    from backend.util import pipeline
+    from backend.llm import digest_engine, gazetteer, langchain_llm, rewrite
+    from backend.llm import payload as llm_payload
+    from backend.data_fetching import curated_loader
+
+    iso2, as_of, _why = _SMOKE_ANCHORS[band]
+    try:
+        items = snapshot_select.select(iso2, as_of)
+    except Exception as exc:  # noqa: BLE001
+        raise SmokePayloadUnavailable(
+            f"{band} ({iso2} {as_of}): the corpus is unreadable -- {exc}") from exc
+    if not items:
+        raise SmokePayloadUnavailable(
+            f"{band} ({iso2} {as_of}): no articles in the window. The anchor is "
+            f"pinned to this database's corpus; see `_SMOKE_ANCHORS`.")
+    for i, item in enumerate(items, start=1):
+        item["id"] = f"a{i}"
+
+    masked = rewrite.mask_items(items, iso2)
+    missing = digest_engine.digest_coverage(
+        masked, iso2=iso2, as_of=as_of, masked=True, content_cache=store)
+    if missing:
+        raise SmokePayloadUnavailable(
+            f"{band} ({iso2} {as_of}): {len(missing)} of {len(items)} digests "
+            f"are not in the cache, so assembling this payload would call the "
+            f"model. The gate does not spend to measure itself. Digests key on "
+            f"masked:{gazetteer.MASK_MAP_VERSION}:{rewrite.SWEEP_VERSION}, so a "
+            f"gazetteer or sweep bump invalidates every one of them.")
+
+    scored = digest_engine.digest_articles(
+        masked, country_display=langchain_llm.MASKED_COUNTRY_LABEL, iso2=iso2,
+        as_of=as_of, masked=True, content_cache=store)
+    fulltext_ids = digest_engine.select_fulltext_ids(scored)
+    pipeline._rewrite_fulltext(scored, fulltext_ids, iso2, cache=store)
+
+    series = data_push.read_indicator_series(iso2)
+    evidence = llm_payload.build_evidence_payload(
+        iso2, as_of=as_of, series=series,
+        fx_regimes=constants.FX_REGIMES, elections=constants.ELECTIONS,
+        structural=curated_loader.load_structural_facts(),
+        vintage_as_of=as_of)
+    return evidence, scored, tuple(fulltext_ids)
+
+
+def _token_count(text: str) -> Tuple[int, str]:
+    """Tokens in `text`, and how they were counted.
+
+    `tiktoken` is pinned and its encoding is cached locally, but a fresh clone
+    downloads a BPE file on first use -- and a gate that reaches the network to
+    measure itself is a gate that fails offline. So the estimate is the
+    fallback, and the answer says which it is rather than leaving a reader to
+    assume the precise one.
+    """
+    try:
+        import tiktoken
+        return len(tiktoken.encoding_for_model("gpt-4o").encode(text)), "tiktoken"
+    except Exception:  # noqa: BLE001
+        return len(text) // 4, "chars/4 estimate"
+
+
+def smoke_payload_report() -> Dict[str, Any]:
+    """What each band's assembled payload actually holds.
+
+    Recorded on the gate result so payload size drifting away from what the gate
+    exercises shows up in the next gate run rather than needing an audit to
+    find. That is how the 2,980-against-13,459 gap survived: neither number was
+    ever written down next to the other.
+    """
+    from backend.llm import payload as llm_payload
+
+    out: Dict[str, Any] = {}
+    for band, (iso2, as_of, why) in _SMOKE_ANCHORS.items():
+        evidence, articles, fulltext_ids = _assemble_band(band)
+        prompt = smoke_prompt(band)
+        tokens, how = _token_count(prompt)
+        # `series` only classifies why an indicator is *missing*, which nothing
+        # here reads; `resolved` and the fingerprint come from the payload
+        # itself. Passing an empty one keeps this report to a single source --
+        # the band that was already assembled -- rather than a second store read
+        # that could disagree with it.
+        health = llm_payload.payload_health(evidence, {}, as_of)["indicators"]
+        out[band] = {
+            "anchor": f"{iso2} {as_of.isoformat()}",
+            "why": why,
+            "prompt_tokens": tokens,
+            "counted_by": how,
+            "prompt_chars": len(prompt),
+            "articles": len(articles),
+            "fulltext_ids": list(fulltext_ids),
+            "indicators_resolved": health["resolved"],
+            "payload_fingerprint": health["fingerprint"],
+        }
+    return out
 
 
 def smoke_prompt(band: str = "moderate") -> str:
-    """The real prompt, on canned evidence. Not a toy schema and not a toy prompt.
+    """The prompt the run would send at this band's anchor, byte for byte.
 
-    A candidate that satisfies a three-field schema says nothing about one that
-    has to satisfy `RISK_SCHEMA_V3` — ten required fields, two nested arrays and
-    `additionalProperties: false` at every level. So the gate runs the thing
-    that will actually be sent.
+    Not a toy schema, not a toy prompt, and since 2026-08-30 not a toy payload
+    either. A candidate that satisfies a three-field schema says nothing about
+    one that has to satisfy `RISK_SCHEMA_V3` — ten required fields, two nested
+    arrays and `additionalProperties: false` throughout — and a candidate that
+    satisfies it at 3k tokens says rather less than it looks about the same
+    schema at 13k. Every block the scoring call assembles is assembled here,
+    through the same functions, including the full-text block that used to read
+    "(no full-text articles supplied)" and was three quarters of the difference.
+
+    Masked, because the run is: the evidence and the articles both go through
+    `rewrite.mask_payload` / `mask_items` exactly as `country_llm_score` does,
+    and the same `assert_clean` gate runs over the serialized blocks. A gate
+    rendering unmasked prose would be measuring a prompt production never sends.
 
     Args:
-        band: which of `_SMOKE_BANDS` to render. `moderate` is the original
-            single payload, kept as the default so every caller that predates
-            the other two keeps its meaning.
-    """
-    from backend.llm import langchain_llm
+        band: which of `_SMOKE_ANCHORS` to render. `moderate` is the default,
+            kept so every caller that predates the other two keeps its meaning.
 
-    evidence, articles = _SMOKE_BANDS[band]
+    Raises:
+        SmokePayloadUnavailable: the anchor's payload cannot be assembled from
+            cache. There is no canned fallback on purpose.
+    """
+    from backend.llm import langchain_llm, rewrite
+
+    iso2, as_of, _why = _SMOKE_ANCHORS[band]
+    evidence, articles, fulltext_ids = _assemble_band(band)
+
+    # `country_llm_score` masks the payload inside the call, after reading the
+    # real ISO code out of it for the sanctions lookup. Same order here, so the
+    # bytes match.
+    evidence = rewrite.mask_payload(evidence, iso2)
+    articles = rewrite.mask_items(articles, iso2)
+
+    evidence_json = json.dumps(evidence, ensure_ascii=False)
+    articles_json = langchain_llm._digests_to_json(articles)
+    full_text_block = langchain_llm._fulltext_block(articles, list(fulltext_ids))
+    rewrite.assert_clean([evidence_json, articles_json, full_text_block,
+                          langchain_llm.MASKED_COUNTRY_LABEL])
+
     prompt = ai_constants.AI_PROMPT_V3.format(
-        country="the country",
-        as_of_date="2019-06-03",
-        evidence_json=json.dumps(evidence, ensure_ascii=False),
-        articles_json=json.dumps(articles, ensure_ascii=False),
-        full_text_block="(no full-text articles supplied)",
+        country=langchain_llm.MASKED_COUNTRY_LABEL,
+        as_of_date=as_of.isoformat(),
+        evidence_json=evidence_json,
+        articles_json=articles_json,
+        full_text_block=full_text_block if full_text_block != "(none)"
+        else "(no full-text articles supplied)",
     )
     # Including the rule blocks the variant appends, resolved by the same
     # function the scoring call uses. Without this the gate rendered the base
@@ -1451,13 +1558,17 @@ def _answer_via_json_object(chat, prompt, schema) -> Dict[str, Any]:
 
 def smoke(name: str, repeats: int = 3,
           bands: Optional[Tuple[str, ...]] = None) -> Dict[str, Any]:
-    """Schema, then determinism across three bands. No database.
+    """Schema, then determinism across three bands, on real assembled payloads.
+
+    It used to say "no database" here, and that was the defect. The payloads are
+    now assembled from three pinned anchors (`_SMOKE_ANCHORS`) entirely out of
+    cache, so the gate costs no model call and does need a store to read.
 
     Args:
         repeats: samples per band. 3 is enough to see a drifter; 10 is what the
             published noise-floor matrix used.
-        bands: which of `_SMOKE_BANDS` to run. Defaults to all three, because a
-            noise floor measured on one payload is a noise floor for that band
+        bands: which of `_SMOKE_ANCHORS` to run. Defaults to all three, because
+            a noise floor measured on one payload is a noise floor for that band
             and the candidates do not behave alike across the range.
 
     Returns:
@@ -1554,6 +1665,11 @@ def smoke(name: str, repeats: int = 3,
                        "priced": usage.is_priced(ai_client.scoring_model())}
 
     out["determinism"] = _roll_up_bands(by_band)
+    # What the gate actually exercised. Without this the 2,980-token gate and
+    # the 13,459-token run coexisted for months with neither number written down
+    # beside the other, and it took an audit to notice. Now the next gate run
+    # says how big its request was, so drift is visible where the verdict is.
+    out["payload"] = smoke_payload_report()
     return out
 
 

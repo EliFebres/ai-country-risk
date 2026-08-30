@@ -1451,8 +1451,58 @@ def local_endpoint():
         server.close()
 
 
+# Three stand-in payloads for the three pinned anchors. `smoke` assembles the
+# real ones from the corpus, which these tests have no access to and should not
+# need: they are about the harness — routes, retries, seeds, where a gate result
+# lands — and none of that depends on which week the evidence came from.
+#
+# A test double, deliberately not a production fallback. `_assemble_band` raises
+# `SmokePayloadUnavailable` rather than reaching for anything like this, because
+# a gate that silently runs small reports a pass for a request the candidate was
+# never asked to satisfy. Stubbing it here is a test saying what it stands in
+# for; a fallback in the module would be the module lying to its operator.
+_STUB_BANDS = {
+    "calm": ({"structural": {"gdp_growth_pct": 2.4, "gov_debt_pct_gdp": 41.2}},
+             [{"id": "a1", "source": "a national daily",
+               "published_at": "2019-06-03",
+               "title": "Budget surplus widens on stronger receipts",
+               "digest": {"what_happened": "Receipts beat forecasts.",
+                          "actors": "the finance ministry", "numbers": "1.2% of GDP",
+                          "transmission": "fiscal space",
+                          "directly_about_country": True, "stage1_severity": 10}}]),
+    "moderate": ({"structural": {"gdp_growth_pct": 2.1, "gov_debt_pct_gdp": 117.2}},
+                 [{"id": "a1", "source": "a news agency",
+                   "published_at": "2019-03-11",
+                   "title": "Regulator approves cross-border rail concession",
+                   "digest": {"what_happened": "A concession was approved.",
+                              "actors": "the transport regulator",
+                              "numbers": "30-year term",
+                              "transmission": "infrastructure investment",
+                              "directly_about_country": True,
+                              "stage1_severity": 40}}]),
+    "stressed": ({"structural": {"gdp_growth_pct": -4.8, "cpi_inflation_pct": 61.3}},
+                 [{"id": "a1", "source": "a national daily",
+                   "published_at": "2018-08-13",
+                   "title": "Currency falls a further fifth as reserves are drawn down",
+                   "digest": {"what_happened": "The currency fell sharply.",
+                              "actors": "the central bank", "numbers": "-21%",
+                              "transmission": "import costs",
+                              "directly_about_country": True,
+                              "stage1_severity": 88}}]),
+}
+
+
 @pytest.fixture
-def local_candidate(monkeypatch, local_endpoint):
+def stub_bands(monkeypatch):
+    """`_assemble_band` without a corpus behind it."""
+    monkeypatch.setattr(
+        bakeoff, "_assemble_band",
+        lambda band: (_STUB_BANDS[band][0], _STUB_BANDS[band][1], ()))
+    return _STUB_BANDS
+
+
+@pytest.fixture
+def local_candidate(monkeypatch, local_endpoint, stub_bands):
     """`local-template` pointed at the stub, registered the way a real one would be."""
     monkeypatch.setenv("SCORING_LOCAL_KEY", "not-a-real-key")
     monkeypatch.setitem(bakeoff.CANDIDATES, "local-stub", {
@@ -1536,18 +1586,96 @@ class TestTheSchemaGateAgainstAnEndpointWithNoStrictMode:
 
     def test_all_three_bands_run_and_are_kept_separately(self, local_candidate):
         got = bakeoff.smoke("local-stub", repeats=2)
-        assert set(got["determinism"]["by_band"]) == set(bakeoff._SMOKE_BANDS)
+        assert set(got["determinism"]["by_band"]) == set(bakeoff._SMOKE_ANCHORS)
         assert got["determinism"]["bands"] == 3
         # Per-repeat scores, not just a spread. A canary has to say what moved.
         for band in got["determinism"]["by_band"].values():
             assert band["scores"] == [43, 43]
 
-    def test_the_three_payloads_are_different_evidence(self):
+    def test_the_three_payloads_are_different_evidence(self, stub_bands):
         """Three payloads that scored alike would measure one band three times."""
-        rendered = {b: bakeoff.smoke_prompt(b) for b in bakeoff._SMOKE_BANDS}
+        rendered = {b: bakeoff.smoke_prompt(b) for b in bakeoff._SMOKE_ANCHORS}
         assert len(set(rendered.values())) == 3
         assert "61.3" in rendered["stressed"]      # the stressed inflation print
         assert "41.2" in rendered["calm"]          # the calm debt ratio
+
+    def test_the_gate_records_how_big_its_own_request_was(self, local_candidate):
+        """The number whose absence let a 2,980-token gate certify a 13,459-token
+        run for months. Neither figure was ever written beside the other."""
+        got = bakeoff.smoke("local-stub", repeats=1, bands=("moderate",))
+        report = got["payload"]
+        assert set(report) == set(bakeoff._SMOKE_ANCHORS), (
+            "the report covers every band, not only the ones just run — a band "
+            "that was skipped still has a size worth stating")
+        moderate = report["moderate"]
+        assert moderate["anchor"] == "US 2019-03-11"
+        assert moderate["why"], "an anchor with no stated reason invites a swap"
+        assert moderate["prompt_tokens"] > 0
+        assert moderate["counted_by"] in ("tiktoken", "chars/4 estimate")
+
+
+class TestTheGateAssemblesARealPayload:
+    """The gate sends what the run sends, or it does not run.
+
+    Measured 2026-08-30: the canned payloads rendered at 2,962 / 2,980 / 2,987
+    tokens against a dispatched prompt of 11,264 / 12,734 / 13,459. Gates 1 and
+    2 are the two the acceptance bar says to stop on, so a candidate was being
+    admitted or rejected on a request a fifth the size of the real one — and for
+    a self-served model that is the wrong end of the range to test.
+    """
+
+    def test_the_anchors_are_pinned_and_each_says_why(self):
+        """They are part of the gate's meaning, not an implementation detail."""
+        assert set(bakeoff._SMOKE_ANCHORS) == {"calm", "moderate", "stressed"}
+        for band, (iso2, as_of, why) in bakeoff._SMOKE_ANCHORS.items():
+            assert len(iso2) == 2 and iso2.isupper(), band
+            assert isinstance(as_of, _dt.date), band
+            assert why and len(why) > 20, f"{band} does not say why it was chosen"
+        # Three countries, so the gate does not report one country's evidence
+        # texture as the instrument's.
+        assert len({a[0] for a in bakeoff._SMOKE_ANCHORS.values()}) == 3
+
+    def test_an_unavailable_payload_refuses_rather_than_running_small(
+            self, monkeypatch):
+        """No canned fallback. A gate that quietly runs small reports a pass for
+        a request the candidate was never asked to satisfy, and on disk that
+        pass is indistinguishable from a real one."""
+        monkeypatch.setattr(bakeoff, "_assemble_band",
+                            lambda band: (_ for _ in ()).throw(
+                                bakeoff.SmokePayloadUnavailable("no corpus")))
+        with pytest.raises(bakeoff.SmokePayloadUnavailable):
+            bakeoff.smoke_prompt("moderate")
+
+    def test_the_full_text_block_is_rendered_not_stubbed_out(self, monkeypatch):
+        """Three quarters of the gap was this one line."""
+        article = {"id": "a1", "source": "x", "published_at": "2019-03-11",
+                   "title": "A title",
+                   "text": "BODYMARKER " * 400,
+                   "digest": {"what_happened": "something", "actors": "someone",
+                              "numbers": "1", "transmission": "a channel",
+                              "directly_about_country": True,
+                              "stage1_severity": 10}}
+        monkeypatch.setattr(bakeoff, "_assemble_band",
+                            lambda band: ({"structural": {}}, [article], ("a1",)))
+        rendered = bakeoff.smoke_prompt("moderate")
+        assert "BODYMARKER" in rendered, "the full text never reached the prompt"
+        assert "(no full-text articles supplied)" not in rendered
+
+    def test_the_prompt_is_masked_the_way_the_run_masks_it(self, monkeypatch):
+        """A gate rendering unmasked prose measures a prompt production never
+        sends -- and `assert_clean` is the gate the run itself relies on."""
+        leaky = {"id": "a1", "source": "x", "published_at": "2018-08-13",
+                 "title": "Turkey raises rates as the lira falls",
+                 "digest": {"what_happened": "Ankara acted", "actors": "Erdogan",
+                            "numbers": "1", "transmission": "a channel",
+                            "directly_about_country": True, "stage1_severity": 50}}
+        monkeypatch.setattr(bakeoff, "_assemble_band",
+                            lambda band: ({"structural": {}}, [leaky], ()))
+        monkeypatch.setitem(bakeoff._SMOKE_ANCHORS, "stressed",
+                            ("TR", _dt.date(2018, 8, 13), "the masking check"))
+        rendered = bakeoff.smoke_prompt("stressed")
+        for term in ("Turkey", "Ankara", "lira"):
+            assert term not in rendered, f"{term} survived into the gate prompt"
 
 
 class TestAnUnpricedModelReportsTokensAndNotDollars:
