@@ -26,6 +26,22 @@ are kept in a separate list on purpose.
 
 ---
 
+> ## Status — updated 2026-08-30, later the same day
+>
+> **All five blockers in §4 are closed** (commits `bd69dee` … `34eef79`), and
+> both references have been re-captured on the fixed payload. **Phase 1 is still
+> not clear**, for a reason this audit did not find: closing blocker 4 — the
+> smoke gate that ran at a fifth of production context — revealed that the
+> determinism figures the acceptance bar was written against were measured on
+> the wrong instrument. The production scorer's real repeat spread is **17
+> points** against a published 2 and a line of 3.
+>
+> **§7 is the record of what changed.** Sections 0–6 are left exactly as written
+> so the before state survives; where this audit was wrong or under-called,
+> §7C says so rather than editing the finding.
+
+---
+
 ## 0. Scope, and which database is which
 
 | | `PROD_DATABASE_URL` — the corpus | `DEV_DATABASE_URL` — the pilot |
@@ -181,7 +197,7 @@ A ledger resolving zero today would be caught.
 **The probe's identifiability baseline is current, not superseded**: all 25
 stored probe rows carry variant `g5:9f4aee55:gpt-4o-mini-2024-07-18:d089c696`,
 and this tree is `MASK_MAP_VERSION=g5`, `SWEEP_VERSION=9f4aee55`.
-**Country masking holds.** Scanning the three dispatched prompts in §7 for
+**Country masking holds.** Scanning the three dispatched prompts in §8 for
 names, demonyms, capitals, cities, currencies, statutes and named operations
 across the roster returned nothing: no `Turkey`/`Turkish`/`Ankara`/`Istanbul`/
 `Erdoğan`/`lira`, no `America`/`Washington`, no `Olive Branch`/`Afrin`.
@@ -336,7 +352,7 @@ hard gates are measured at a quarter of production context**: `smoke_prompt`
 renders `full_text_block="(no full-text articles supplied)"` unconditionally, so
 the gate prompt is **2,962 / 2,980 / 2,987 tokens** for calm / moderate /
 stressed. The prompt the run actually dispatches is **11,264 / 12,734 / 13,459
-tokens** (measured, §7). Gates 1 and 2 — the two the acceptance doc says to
+tokens** (measured, §8). Gates 1 and 2 — the two the acceptance doc says to
 *stop on* — exercise ~23% of the context a candidate will really be asked for.
 
 **Unverified.** Whether `max_retries = 0` is right for a self-served endpoint.
@@ -583,7 +599,7 @@ Kept separate on purpose. Each is labelled with the gate it actually blocks.
 | 4 | **The dev corpus has no `PILOT_START` lead-in.** The 30-day window below 2016-08-03 holds 1–7 articles per country on dev against 55–556 on prod. The first year of anchors would be scored on almost nothing. | the pilot |
 | 5 | **PT is topped up below threshold at 52 of 52 anchors**, median 6 of 20 clearing 0.3, mean selected relevance as low as 0.120 — alongside an **84.6%** round-number share, the worst of the three windows and previously unreported. §34's "the selector tops up with noise" is understated for PT. | the pilot, and any claim about PT |
 | 6 | **Outlet identity reaches the model on every article** — `"source": "guardian"` in every digest entry, plus Guardian letters boilerplate in the US full text. Constant across candidates, so it does not corrupt a comparison; it does mean the identifiability probe is partly reading the newspaper. §7's deleted comparison test is what would catch a regression here. | nothing yet; the masking claim |
-| 7 | **`curated.csv` is still empty** — 13 registry codes with no rows, `information` scoring on one indicator and `edge` on two or three. §3, unchanged, and now visible in the §7 dumps. | the instrument's credibility, not a screen |
+| 7 | **`curated.csv` is still empty** — 13 registry codes with no rows, `information` scoring on one indicator and `edge` on two or three. §3, unchanged, and now visible in the §8 dumps. | the instrument's credibility, not a screen |
 | 8 | **Four unread ledger columns** (`friction_score`, `order_uncertainty_score`, `information_score`, `edge_vitality`), `legal_gate` and `lint` at 0/157, and `trend_1y`/`trend_5y` still unnamed by the prompt. Further instances of the pattern. | nothing |
 | 9 | **`series_shape` does not return `bands`** though §4 of the acceptance doc says it computes it. One line. | nothing |
 | 10 | **`GATE2_BASELINE` was captured pre-fix** (§27) and is now doubly stale: it is PT, the window with the thinnest evidence and the highest round share. | any regression check against it |
@@ -631,7 +647,138 @@ Named explicitly, so the gaps are visible rather than assumed away.
 
 ---
 
-## 7. The payload dumps, verbatim
+## 7. What happened next — the session that acted on this
+
+**Written 2026-08-30, hours after the audit above.** Sections 0–6 are the state
+of the pipeline when the audit ran and are deliberately unedited. This section
+records what changed, what this audit got wrong, and what came out of the work
+that the audit had no way to see.
+
+### 7A. The five blockers, closed
+
+| # | blocker | closed by | how it is now guarded |
+|---|---|---|---|
+| 1 | reference arms stale, on a degraded payload | `34eef79` | `gpt-4.1-postfix` and `p2-rebaseline-postfix`, both windows, on the current payload and prompt |
+| 2 | a payload-content change invisible to the freeze | `e8b7260` | `payload.content_fingerprint` on every row and in `FROZEN_FIELDS`; `compare_one` refuses a cross-fingerprint comparison |
+| 3 | `captured_under` rewritable by a run that scored nothing | `bd69dee` | one write chokepoint holds an existing stamp; the four SHAs restored from `git show b128aad^:` |
+| 4 | the gate ran at ~23% of production context | `f73feca` | three pinned anchors, assembled from cache, **no fallback** — and the gate records its own realised token count |
+| 5 | a schema violation left no record | `ad5a9fb` | `jsonschema` validation after decoding and before the rescale, into `payload_health.schema_violations` |
+
+Each has a consumer-side test. The fingerprint is verified against the restamp's
+own backup rather than asserted: rebuilding PT 2019-06-03 on both sides of the
+vintage fix reproduces §3's numbers exactly — 14 of 38 indicators before, 22
+after, `p2` on both sides, and the fingerprint moves.
+
+Two further blockers named in §4 were prompt hygiene and landed before the
+re-score, in `d604048`: the `"source": "guardian"` field is gone from every
+article entry, and publisher boilerplate is stripped at
+`digest_engine.article_input_text`. `PROMPT_VERSION` moved to
+`v4.5-no-publisher`, which is the point — unlike the vintage fix, this contract
+change is visible to `drift`, to `captured_under` and to `compare_one`.
+
+### 7B. A sixth blocker, and closing the fourth is what found it
+
+The gate now sends what the run sends. Measured at that size, on real assembled
+payloads, ten repeats, `temperature=0`, `seed=42`, scored fields only:
+
+| model | role | canned worst (2,980 tok) | **real worst (~12,570 tok)** | real by band |
+|---|---|---|---|---|
+| `gpt-4o` | **production scorer** | 2 | **17** | 5 / 17 / 0 |
+| `gpt-4.1` | benchmark incumbent | 2 | **9** | 4 / 9 / 0 |
+
+Against `docs/scorer-acceptance.md` §2's line of **≤ 3**. `scored_match_rate` is
+**0.000 on all three bands for both models** — on the payload the pipeline
+actually sends, neither reproduces its own scored output once in ten.
+
+**The per-field draws are the finding, not the spread.** On `gpt-4o`'s stressed
+band the composite is perfectly stable — `score_12m` is 82 in all ten calls —
+while `condition_flags.sovereign_stress` flips `False`/`True`,
+`evidence_coverage` alternates 75/85 and `edge_vitality` 30/40. A spread of 0
+reads as reproducible there, and the instrument is disagreeing with itself about
+whether the country is in sovereign stress. On the moderate band
+`emergency_rule` flips too, `internal_conflict_level` alternates between a level
+and `none`, and all four ledgers move.
+
+`docs/scorer-acceptance.md` §2 is marked **PROVISIONAL** and deliberately not
+re-derived: as written the line disqualifies both the production scorer and the
+benchmark incumbent, and a gate the reference cannot pass disqualifies every
+candidate for a defect the reference shares. `docs/scorer-bakeoff.md` marks
+every determinism number in it as a lower bound measured at 2,980 tokens.
+
+The constraint the re-derivation has to confront is not a threshold choice:
+**17 > 14.9**, the largest crisis response ever measured, so on the composite no
+line admits the signal and excludes the noise.
+
+### 7C. Where this audit was wrong, or right without joining it up
+
+- **§6 item 2 under-called the determinism question, and its reasoning was the
+  problem.** It said the canned three-band matrix "survives" the vintage fix
+  because canned payloads are unaffected by it. True, and beside the point. The
+  same document had already measured the gate at 2,980 tokens against a
+  dispatched 11,264–13,459 (§1 stage 5, §4 blocker 4) — so the determinism
+  numbers in §2 and §6 were taken on an instrument this audit itself had shown
+  to be unrepresentative, and the link was never made. Both halves were on the
+  page; only the join was missing. That is the same shape as the defects this
+  audit was written to find.
+- **§2's criterion table is superseded.** It was computed against the 08-27
+  `gpt-4.1` arm, which §3 then showed to be on a degraded payload. The current
+  computation is against `gpt-4.1-postfix` with `p2-rebaseline-postfix` as
+  baseline; both return `comparable: same`.
+- **§5 item 9 is still open.** `series_shape` still does not return `bands`
+  though §4 of the acceptance doc says it computes it. One line, not done.
+- **§1 stage 3's "zero look-ahead violations" was right about what it checked
+  and did not check enough.** It compared `published_at` against the anchor,
+  which is clean across all 157 snapshots. It could not see text *inside* a body
+  that postdates the anchor — see 7D.
+
+### 7D. Findings the audit did not have
+
+- **Removing one constant field from the prompt moved the incumbent more than
+  predicted.** `"source": "guardian"` was identical on every article of every
+  anchor, so the expectation was that removing it could not move a ranking. The
+  ranking held (ρ 0.799 US, 0.811 TR) and the magnitude did not: **27 of 52** US
+  anchors and **28 of 53** TR anchors changed score, mean 2.5–2.9 points, max
+  **15**. That is at or above the instrument's own noise floor, and it is why
+  re-scoring A′ rather than documenting the gap was the right call.
+- **A look-ahead vector inside article bodies.** `snapshot_select.usable_body`
+  returns `api-native` bodies unconditionally — 53,361 of 53,368 on the pilot DB
+  — on the premise that the body "arrived inside the search response, as the
+  article itself". The Guardian Content API serves the *current* version:
+  **2,405 bodies carry a `This article was amended on <date>` footer**, and in a
+  400-row sample 284 postdate their own publication. Measured against the
+  anchor: **0 of 53** TR 2018 anchors, **0 of 52** US 2019, **6 of 52** PT 2019,
+  two of those in the top-3 full-text slots. Zero on both Phase 1 windows.
+  Filed as `deferred.md` §36; the part-5 strip removes the symptom, not the
+  mechanism.
+- **The letters block had siblings, and the one nobody looked for is nine times
+  larger.** Amendment/correction footers on 2,405 bodies (2.97%) against the
+  letters template's 253 (0.31%). Found by searching, after the first was found
+  by reading a dump.
+- **PT 2019's round-number share is 84.6%**, the worst of the three windows and
+  previously unreported (US 69.2%, TR 18.9% both reproduce §3 of the acceptance
+  doc exactly). Filed as `deferred.md` §35 with the GATE2 baseline consequence.
+
+### 7E. The Phase 1 verdict, revised
+
+**Still not clear, and for a different reason than this audit gave.**
+
+The reason in §3 — a stale reference nothing could detect — is closed. Both
+references are current, both carry fingerprints, and a comparison across a
+payload or prompt change is now refused rather than silently performed.
+
+What blocks Phase 1 now is that **the acceptance bar's own determinism criterion
+was calibrated on measurements taken at a quarter of production context**, and
+re-measured honestly it fails the production scorer and the benchmark incumbent
+alike. A candidate cannot be judged against a line that the references do not
+clear. Re-deriving that line — cold, with both numbers in hand — is the
+remaining work, and it is a question about what the instrument *is* rather than
+about where to put a threshold.
+
+**Spend: $7.56 against an $8 cap for the re-score, plus $0.68 of a separate $2
+for the incumbent's re-measurement. 210 anchors scored, zero errors, zero schema
+violations.**
+
+## 8. The payload dumps, verbatim
 
 Three anchors, all from stored rows, assembled at $0 through the production code
 path: `snapshot_select.select` → `rewrite.mask_items` → `digest_engine`
