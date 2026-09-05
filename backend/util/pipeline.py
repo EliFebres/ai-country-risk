@@ -324,7 +324,8 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
                      items: Optional[List[Dict]] = None,
                      scoring_mode: str = "masked",
                      upsert: bool = True,
-                     digest_content_cache: Optional[Any] = None) -> tuple:
+                     digest_content_cache: Optional[Any] = None,
+                     fulltext_k: int = 3) -> tuple:
     """Run the full pipeline for one country: macro payload → news → LLM score
     → Top-3 selection/enrichment → DB upsert. Appends the country's Top-3 to
     ``global_alert_pool`` for the post-loop global alert ranking.
@@ -364,6 +365,12 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             consecutive anchors. Forwarded rather than imported: this module sits
             above the layers, and reaching down into the backfill package to find
             a cache would invert that.
+        fulltext_k: how many of the highest-severity bodies the scorer reads end
+            to end, forwarded to ``digest_engine.select_fulltext_ids``. Three is
+            the production value and every caller in this tree uses it; the
+            parameter exists so one anchor can be rendered at several evidence
+            sizes without editing this function. Zero is legitimate and means the
+            scorer reads digests only.
 
     Returns:
         ``(llm_output, input_manifest)``, so a caller that suppressed the upsert
@@ -432,7 +439,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         masked=masked,
         content_cache=digest_content_cache,
     )
-    fulltext_ids = digest_engine.select_fulltext_ids(scored)
+    fulltext_ids = digest_engine.select_fulltext_ids(scored, fulltext_k)
     logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)
 
     if masked:
