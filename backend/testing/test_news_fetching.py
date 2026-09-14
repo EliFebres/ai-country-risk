@@ -545,6 +545,58 @@ class TestSelectionMatchesTheLiveRun:
 
 
 # ---------------------------------------------------------------------------
+# Sport is excluded in the request, not scored down afterwards
+# ---------------------------------------------------------------------------
+
+class TestTheSectionFilter:
+    """45% of the stored PT 2019 Guardian corpus is football or sport, and the
+    relevance scorer cannot catch it: `_NOISE_KEYWORDS` only fires if the words
+    appear in the window read, while a match report's headline names the country
+    and so escapes `_BODY_MENTION_CAP`. It has to go at retrieval."""
+
+    def test_the_request_carries_the_section_filter(self, monkeypatch):
+        seen = {}
+
+        class Resp:
+            status_code = 200
+            headers: dict = {}
+            def json(self):
+                return {"response": {"status": "ok", "pages": 1, "results": []}}
+            def raise_for_status(self):
+                pass
+
+        monkeypatch.setattr(guardian, "_api_key", lambda: "k")
+        monkeypatch.setattr(guardian.requests, "get",
+                            lambda url, params=None, **kw: (seen.update(params or {}), Resp())[1])
+        guardian._page('"Portugal"', datetime.date(2019, 1, 1),
+                       datetime.date(2019, 12, 31), 1)
+        assert seen["section"] == guardian.SECTION_FILTER
+
+    @pytest.mark.parametrize("section", ["football", "sport"])
+    def test_the_sport_sections_are_excluded(self, section):
+        assert f"-{section}" in guardian.SECTION_FILTER.split("|")
+
+    def test_every_entry_is_an_exclusion(self):
+        # `section=world` would be an allowlist, which silently discards every
+        # section nobody enumerated. Same reasoning as `nyt._SKIP_DESKS`.
+        assert all(part.startswith("-")
+                   for part in guardian.SECTION_FILTER.split("|"))
+
+    def test_comment_is_kept(self):
+        # `nyt._SKIP_DESKS` keeps Opinion; the two sources must agree on what
+        # counts as evidence or the corpora are not comparable.
+        assert "-commentisfree" not in guardian.SECTION_FILTER
+        assert "Opinion" not in nyt._SKIP_DESKS
+
+    def test_the_two_sources_skip_the_same_kinds_of_thing(self):
+        for guardian_name, nyt_desk in (("sport", "Sports"), ("travel", "Travel"),
+                                        ("books", "Books"), ("fashion", "Fashion"),
+                                        ("food", "Food"), ("film", "Movies")):
+            assert f"-{guardian_name}" in guardian.SECTION_FILTER
+            assert nyt_desk in nyt._SKIP_DESKS
+
+
+# ---------------------------------------------------------------------------
 # The quota wall has to arrive as a quota, not as a mystery
 # ---------------------------------------------------------------------------
 

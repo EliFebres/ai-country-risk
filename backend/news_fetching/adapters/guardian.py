@@ -15,6 +15,15 @@ The US triggers that; Portugal does not. Results are ordered by date rather than
 relevance, because relevance ordering plus a page cap silently truncates the
 tail of a window and nothing anywhere reports it.
 
+Retrieval is filtered by section as well as by query. The themed queries ask
+the right question and still return sport, because `broad` is a bare country
+name and the Guardian's coverage of a small country is largely its football:
+45% of the stored PT 2019 corpus. `SECTION_FILTER` excludes those sections in
+the request, which is the only place it can be done -- the relevance scorer
+cannot catch a match report whose headline names the country. **Windows already
+checkpointed `done` are skipped on resume, so this reaches them only after
+their `run_ledger` rows are cleared.**
+
 The six per-theme queries are kept rather than collapsed into one OR'd query.
 Collapsing would be cheaper and would break the point: the historical corpus has
 to be retrieved the same way the live run retrieves, or the per-theme floor in
@@ -41,6 +50,36 @@ logger = logging.getLogger(__name__)
 
 SOURCE_SYSTEM = "guardian"
 _ENDPOINT = "https://content.guardianapis.com/search"
+
+# Sections that do not carry country-risk news, excluded in the request rather
+# than scored down afterwards.
+#
+# The direct counterpart of `nyt._SKIP_DESKS`, and a denylist for the same
+# reason that one is: an allowlist silently discards every section nobody
+# thought to enumerate, and the Guardian adds them. Measured cost of not having
+# this: of 642 stored PT 2019 Guardian articles, 290 are football or sport --
+# 45% of the corpus for that country-year, and 241 of them from `football`
+# alone. A British paper's Portugal coverage is mostly match reports.
+#
+# Sport is also the one genre that defeats the relevance scorer rather than
+# being caught by it. `_NOISE_KEYWORDS` only fires if the words "football" or
+# "sport" appear in the window read, and a match report often says neither --
+# while its headline ("Portugal 3-1 Switzerland") names the country, which is
+# what `_BODY_MENTION_CAP` rewards. So this has to happen at retrieval.
+_SKIP_SECTIONS = (
+    "football", "sport", "travel", "food", "lifeandstyle", "books", "music",
+    "film", "tv-and-radio", "artanddesign", "stage", "games", "fashion",
+    "culture", "crosswords",
+)
+
+# Guardian filter syntax: `-section` excludes, `|` joins. Verified against the
+# live API on the PT 2019 broad query -- 676 results unfiltered, 426 with
+# `-football`, 376 with `-football|-sport`.
+#
+# `commentisfree` is deliberately NOT excluded, matching `nyt._SKIP_DESKS`,
+# which keeps Opinion. Comment on a country's politics is evidence about it.
+SECTION_FILTER = "|".join(f"-{name}" for name in _SKIP_SECTIONS)
+
 
 # Guardian reports the remaining daily allowance on every response. Read rather
 # than assumed: the documented free-tier number has changed more than once, and
@@ -262,6 +301,7 @@ def _page(query: str, start: datetime.date, end: datetime.date, page: int) -> Di
     try:
         resp = _get({
             "q": query,
+            "section": SECTION_FILTER,
             "from-date": start.isoformat(),
             "to-date": end.isoformat(),
             "show-fields": "bodyText",
