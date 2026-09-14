@@ -1,0 +1,173 @@
+
+
+====================================================================================================
+QUIET  (fewest clearing the bar)   anchor 2019-01-07   window [2019-01-07 - 30d, 2019-01-07)
+====================================================================================================
+
+--- OLD: 20 articles, 2 clearing 0.3 ---
+  #   rel  section        src       title
+  1 0.300  books          nyt       Michelle Obama’s Book Is No. 1 Here — and No. 1 in Finland, Singapore and 
+  2 0.300  food           guardian  Christmas spirit: sweet and fortified wines for festive afters
+  3 0.100  lifeandstyle   guardian  Seven stages of January | Eva Wiseman
+  4 0.100  world          guardian  Is the tide at last on the turn for the world’s ‘strongman’ leaders?
+  5 0.100* travel         guardian  Healthy holidays and a sunscreen rethink: top five travel trends for 2019
+  6 0.100  books          nyt       Back to the Bayou: James Lee Burke’s Latest Novel
+  7 0.100  books          guardian  Mr Five Per Cent by Jonathan Conlin review – the world's richest man
+  8 0.100  global         guardian  From showbiz to spaceships, what we can expect in 2019
+  9 0.100* sport          guardian  The alternative sport review of 2018, from Kanté’s curry to Salah’s statue
+ 10 0.100  books          guardian  Resistance by Julián Fuks review – battling with the past
+ 11 0.100  world          guardian  Shared goals: Blyth Spartans football team partners with Visit North Korea
+ 12 0.100* football       guardian  Flashpoints of 2018: Julen Lopetegui sacked by Spain on eve of World Cup
+ 13 0.100  business       guardian  World stocks volatile as Wall Street boom fades - as it happened
+ 14 0.100  business       guardian  Gatwick airport: majority stake sold to French group
+ 15 0.100  books          nyt       James Lee Burke: By the Book
+ 16 0.100  world          guardian  Japan shrinking as birthrate falls to lowest level in history
+ 17 0.100  food           guardian  The best supermarket wines for under £10
+ 18 0.100* football       guardian  Moussa Sissoko: ‘I never wanted to quit Spurs. I knew I could succeed’
+ 19 0.100  business       nyt       Unrest in France Hinders Macron’s Push to Revive Economy
+ 20 0.100* football       guardian  Lucas Digne rescues point for Everton after Watford’s crazy five minutes
+
+--- NEW+topup: 16 articles, 1 clearing 0.3 ---
+  #   rel  section        src       title
+  1 0.450  business       guardian  Gatwick airport: majority stake sold to French group
+  2 0.100  world          guardian  Is the tide at last on the turn for the world’s ‘strongman’ leaders?
+  3 0.100  global         guardian  From showbiz to spaceships, what we can expect in 2019
+  4 0.100  world          guardian  Shared goals: Blyth Spartans football team partners with Visit North Korea
+  5 0.100  business       guardian  World stocks volatile as Wall Street boom fades - as it happened
+  6 0.100  world          guardian  Japan shrinking as birthrate falls to lowest level in history
+  7 0.100  business       guardian  The fuel tax wars can’t be won without a greener alternative
+  8 0.100  world          nyt       Italy and E.U. Reach a Budget Deal, as Populist Plan Runs Into Reality
+  9 0.100  uk-news        guardian  UK couple who named baby after Hitler jailed for terror group membership
+ 10 0.100  money          guardian  Almost 700,000 UK homes stuck with slow broadband
+ 11 0.100  cities         guardian  The fallen metropolis: the collapse of Caracas, the jewel of Latin America
+ 12 0.100  theguardian    guardian  Are you Waddle in disguise? | Letters
+ 13 0.100  business       nyt       Europe’s Central Bank Ends One of the Biggest Money-Printing Programs Ever
+ 14 0.100  business       nyt       Unrest in France Hinders Macron’s Push to Revive Economy
+ 15 0.100  world          guardian  UK man accused of importing 1.3 tonnes of cocaine goes on trial in Paris
+ 16 0.100  politics       guardian  Brexit: May's cabinet splits over second referendum on deal
+
+--- NEW+floor: 1 articles, 1 clearing 0.3 ---
+  #   rel  section        src       title
+  1 0.450  business       guardian  Gatwick airport: majority stake sold to French group
+
+
+====================================================================================================
+EVENT  (6 Oct legislative election in window)   anchor 2019-10-14   window [2019-10-14 - 30d, 2019-10-14)
+====================================================================================================
+
+--- OLD: 20 articles, 11 clearing 0.3 ---
+  #   rel  section        src       title
+  1 0.980  world          nyt       Portugal Prime Minister Is Re-Elected as Socialists Solidify Position
+  2 0.830  world          guardian  Portugal election result cements modest gains for Europe's centre-left
+  3 0.830  world          guardian  Portugal election: Socialists retain power with increased share of the vot
+  4 0.750  world          guardian  Portugal election: Europe's beacon of social democracy heads to the polls
+  5 0.750  world          guardian  Kent couple jailed for eight years in Portugal for cocaine smuggling
+  6 0.550* football       guardian  Jordan Nobbs gets England recall as Neville begins Olympic preparations
+  7 0.300* football       guardian  Phil Neville says he can handle the criticism – but he can’t | Suzanne Wra
+  8 0.300* football       guardian  Beth Mead snatches win for England after Morais’s goalkeeping howler
+  9 0.300* football       guardian  Portugal game a reminder how close England came to losing Lucy Bronze
+ 10 0.300  world          guardian  Portugal: British pair drown as man attempts to save woman in difficulty
+ 11 0.300  world          nyt       Hurricane Lorenzo Has Broken Records in the Atlantic
+ 12 0.250* football       guardian  Portugal 0-1 England: women's international football friendly – as it happ
+ 13 0.100* football       guardian  Gareth Southgate’s constant revolution leaves England in a spin
+ 14 0.100  business       guardian  Georgieva’s brave new agenda at IMF threatened by economic storm clouds
+ 15 0.100* football       guardian  Marco Silva shuffles towards the Everton abyss despite spending big
+ 16 0.100* football       guardian  Czech Republic 2-1 England: Euro 2020 qualifier – as it happened
+ 17 0.100  tv-and-radio   guardian  TV tonight: murderous monks on the loose
+ 18 0.100* football       guardian  Netherlands 3-1 Northern Ireland, Russia 4-0 Scotland, Slovakia 1-1 Wales 
+ 19 0.100* football       guardian  Phil Neville’s son Harvey called into Republic of Ireland Under-19 squad
+ 20 0.100* sport          guardian  What the All Blacks can hope to gain from their remaining World Cup pool m
+
+--- NEW+topup: 16 articles, 9 clearing 0.3 ---
+  #   rel  section        src       title
+  1 1.000  world          guardian  Portugal election result cements modest gains for Europe's centre-left
+  2 1.000  world          guardian  Portugal election: Socialists retain power with increased share of the vot
+  3 1.000  world          guardian  Portugal election: Europe's beacon of social democracy heads to the polls
+  4 0.980  world          nyt       Portugal Prime Minister Is Re-Elected as Socialists Solidify Position
+  5 0.980  world          guardian  Kent couple jailed for eight years in Portugal for cocaine smuggling
+  6 0.550  world          guardian  Greece, the eurozone crisis and the case against fiscal discipline | Lette
+  7 0.550  world          guardian  First migrants land in Italy under post-Salvini coalition deal with EU
+  8 0.300  world          guardian  Portugal: British pair drown as man attempts to save woman in difficulty
+  9 0.300  world          nyt       Hurricane Lorenzo Has Broken Records in the Atlantic
+ 10 0.100  business       guardian  Georgieva’s brave new agenda at IMF threatened by economic storm clouds
+ 11 0.100  environment    guardian  Climate crisis: 6 million people join latest wave of global protests
+ 12 0.100  business       guardian  How secret plans saved customers of Thomas Cook from being stranded
+ 13 0.100  world          nyt       Who First Circled the Globe? Not Magellan, Spain Wants You to Know
+ 14 0.100  cities         guardian  Balfron 2.0: how Goldfinger's utopian tower became luxury flats
+ 15 0.100  politics       guardian  'It just snowballed': the viral stars of Brexit Britain on what happened n
+ 16 0.100  money          guardian  Slow digital services are marginalising rural areas, MPs warn
+
+--- NEW+floor: 9 articles, 9 clearing 0.3 ---
+  #   rel  section        src       title
+  1 1.000  world          guardian  Portugal election result cements modest gains for Europe's centre-left
+  2 1.000  world          guardian  Portugal election: Socialists retain power with increased share of the vot
+  3 1.000  world          guardian  Portugal election: Europe's beacon of social democracy heads to the polls
+  4 0.980  world          nyt       Portugal Prime Minister Is Re-Elected as Socialists Solidify Position
+  5 0.980  world          guardian  Kent couple jailed for eight years in Portugal for cocaine smuggling
+  6 0.550  world          guardian  Greece, the eurozone crisis and the case against fiscal discipline | Lette
+  7 0.550  world          guardian  First migrants land in Italy under post-Salvini coalition deal with EU
+  8 0.300  world          guardian  Portugal: British pair drown as man attempts to save woman in difficulty
+  9 0.300  world          nyt       Hurricane Lorenzo Has Broken Records in the Atlantic
+
+
+====================================================================================================
+RANDOM (seed 42)   anchor 2019-10-28   window [2019-10-28 - 30d, 2019-10-28)
+====================================================================================================
+
+--- OLD: 20 articles, 11 clearing 0.3 ---
+  #   rel  section        src       title
+  1 0.980  world          nyt       Portugal Prime Minister Is Re-Elected as Socialists Solidify Position
+  2 0.830  world          guardian  Portugal election result cements modest gains for Europe's centre-left
+  3 0.830  world          guardian  Portugal election: Socialists retain power with increased share of the vot
+  4 0.750  world          guardian  Portugal election: Europe's beacon of social democracy heads to the polls
+  5 0.550  world          guardian  Mozambique election is ‘test for democracy’ in wake of peace deal
+  6 0.300  news           guardian  Weatherwatch: miracle of the dancing sun may be a meteorological event
+  7 0.300* football       guardian  Phil Neville says he can handle the criticism – but he can’t | Suzanne Wra
+  8 0.300* football       guardian  Beth Mead snatches win for England after Morais’s goalkeeping howler
+  9 0.300* football       guardian  Portugal game a reminder how close England came to losing Lucy Bronze
+ 10 0.300  world          guardian  Portugal: British pair drown as man attempts to save woman in difficulty
+ 11 0.300  world          nyt       Hurricane Lorenzo Has Broken Records in the Atlantic
+ 12 0.250* football       guardian  Portugal 0-1 England: women's international football friendly – as it happ
+ 13 0.100  politics       guardian  Government's empty-chair policy in EU branded 'another silly gesture'
+ 14 0.100* travel         guardian  20 of the best vegan and vegetarian hotels and B&Bs in Europe
+ 15 0.100  business       guardian  Mario Draghi leaves ECB with gloomy economic warning - as it happened
+ 16 0.100* football       guardian  Vitória’s João Teixeira: ‘Facing Arsenal on the big stage is going to be a
+ 17 0.100* football       guardian  Partizan coach calls for no repeat of racist chants against Manchester Uni
+ 18 0.100  world          guardian  Winds of change: the sailing ships cleaning up sea transport
+ 19 0.100  politics       guardian  Decriminalise drug possession to stop rising deaths, say MPs
+ 20 0.100* sport          guardian  What the All Blacks can hope to gain from their remaining World Cup pool m
+
+--- NEW+topup: 20 articles, 9 clearing 0.3 ---
+  #   rel  section        src       title
+  1 1.000  world          guardian  Portugal election result cements modest gains for Europe's centre-left
+  2 1.000  world          guardian  Portugal election: Socialists retain power with increased share of the vot
+  3 1.000  world          guardian  Portugal election: Europe's beacon of social democracy heads to the polls
+  4 0.980  world          nyt       Portugal Prime Minister Is Re-Elected as Socialists Solidify Position
+  5 0.550  politics       guardian  Government's empty-chair policy in EU branded 'another silly gesture'
+  6 0.550  world          guardian  Mozambique election is ‘test for democracy’ in wake of peace deal
+  7 0.550  world          guardian  Greece, the eurozone crisis and the case against fiscal discipline | Lette
+  8 0.300  world          guardian  Portugal: British pair drown as man attempts to save woman in difficulty
+  9 0.300  world          nyt       Hurricane Lorenzo Has Broken Records in the Atlantic
+ 10 0.100  business       guardian  Mario Draghi leaves ECB with gloomy economic warning - as it happened
+ 11 0.100  world          guardian  Winds of change: the sailing ships cleaning up sea transport
+ 12 0.100  politics       guardian  Decriminalise drug possession to stop rising deaths, say MPs
+ 13 0.100  uk-news        guardian  Family of man who died after police restraint call for better training
+ 14 0.100  politics       guardian  ‘Curb drink culture’ says drugs expert David Nutt
+ 15 0.100  environment    guardian  Why we're rethinking the images we use for our climate journalism
+ 16 0.100  media          guardian  Robert Elphick obituary
+ 17 0.100  business       guardian  Domino's to pull out of Nordic countries and Switzerland
+ 18 0.100  cities         guardian  Gyula Remes died on parliament's doorstep. Was the outcry of MPs just for 
+ 19 0.100  business       guardian  Georgieva’s brave new agenda at IMF threatened by economic storm clouds
+ 20 0.100  news           guardian  Weatherwatch: miracle of the dancing sun may be a meteorological event
+
+--- NEW+floor: 9 articles, 9 clearing 0.3 ---
+  #   rel  section        src       title
+  1 1.000  world          guardian  Portugal election result cements modest gains for Europe's centre-left
+  2 1.000  world          guardian  Portugal election: Socialists retain power with increased share of the vot
+  3 1.000  world          guardian  Portugal election: Europe's beacon of social democracy heads to the polls
+  4 0.980  world          nyt       Portugal Prime Minister Is Re-Elected as Socialists Solidify Position
+  5 0.550  politics       guardian  Government's empty-chair policy in EU branded 'another silly gesture'
+  6 0.550  world          guardian  Mozambique election is ‘test for democracy’ in wake of peace deal
+  7 0.550  world          guardian  Greece, the eurozone crisis and the case against fiscal discipline | Lette
+  8 0.300  world          guardian  Portugal: British pair drown as man attempts to save woman in difficulty
+  9 0.300  world          nyt       Hurricane Lorenzo Has Broken Records in the Atlantic
