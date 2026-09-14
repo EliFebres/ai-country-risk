@@ -545,6 +545,68 @@ class TestSelectionMatchesTheLiveRun:
 
 
 # ---------------------------------------------------------------------------
+# One threshold rule, and a floor that is off until the pool is worth keeping
+# ---------------------------------------------------------------------------
+
+class TestTheThresholdIsOneRule:
+    """`article_enrichment` and `snapshot_select` each carried a copy of the
+    top-up. They agreed, which is not the same thing as agreeing: two readings
+    of "the 20 articles" is two instruments, and the backfill is only worth
+    anything if it is the live run with `as_of` pinned."""
+
+    @staticmethod
+    def _items(scores):
+        return [{"relevance_score": s, "published": None, "_theme": "broad"}
+                for s in scores]
+
+    def test_neither_path_keeps_its_own_copy(self):
+        for module in (ae, sel):
+            source = inspect.getsource(module)
+            assert "core.apply_threshold" in source, module.__name__
+            assert ">= _RELEVANCE_THRESHOLD" not in source
+            assert "_RELEVANCE_THRESHOLD]" not in source
+
+    def test_the_top_up_fills_the_budget_from_below_the_bar(self):
+        got = core.apply_threshold(self._items([0.9, 0.8, 0.1, 0.1]), 0.3, 4,
+                                   enforce_floor=False)
+        assert [i["relevance_score"] for i in got] == [0.9, 0.8, 0.1, 0.1]
+
+    def test_the_floor_stops_at_the_bar(self):
+        got = core.apply_threshold(self._items([0.9, 0.8, 0.1, 0.1]), 0.3, 4,
+                                   enforce_floor=True)
+        assert [i["relevance_score"] for i in got] == [0.9, 0.8]
+
+    def test_the_discontinuity_the_top_up_was_added_to_fix_stays_fixed(self):
+        # Read as a cap, the threshold gave a week with two cleared articles a
+        # full twenty by rank and a week with three exactly three. Evidence
+        # falling as relevance rose. Neither setting may reintroduce that.
+        for enforce in (False, True):
+            two = core.apply_threshold(self._items([0.9, 0.8] + [0.1] * 18),
+                                       0.3, 20, enforce_floor=enforce)
+            three = core.apply_threshold(self._items([0.9, 0.8, 0.7] + [0.1] * 17),
+                                         0.3, 20, enforce_floor=enforce)
+            assert len(three) >= len(two), (
+                f"enforce_floor={enforce}: one more relevant article lost "
+                f"{len(two) - len(three)} articles of evidence")
+
+    def test_the_floor_is_off_by_default_and_shared(self):
+        assert config.RELEVANCE_FLOOR_ENFORCED is False
+        # Both paths read the same constant, so they can never be on one side
+        # only — a floor on the backfill alone makes it incomparable to live.
+        assert "config.RELEVANCE_FLOOR_ENFORCED" in inspect.getsource(core.apply_threshold)
+
+    def test_default_matches_an_explicit_off(self):
+        items = self._items([0.9, 0.1, 0.1])
+        assert ([i["relevance_score"] for i in core.apply_threshold(items, 0.3, 3)]
+                == [i["relevance_score"] for i in
+                    core.apply_threshold(items, 0.3, 3, enforce_floor=False)])
+
+    def test_an_empty_window_stays_empty(self):
+        assert core.apply_threshold([], 0.3, 20) == []
+        assert core.apply_threshold([], 0.3, 20, enforce_floor=True) == []
+
+
+# ---------------------------------------------------------------------------
 # Sport is excluded in the request, not scored down afterwards
 # ---------------------------------------------------------------------------
 

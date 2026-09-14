@@ -314,6 +314,22 @@ SNAPSHOT_WINDOW_DAYS: int = 30
 # rather than the cap failing.
 ABSTRACT_TIER_SHARE: float = 0.4
 
+# Stop at the relevance bar instead of topping a snapshot up to the budget.
+#
+# Off by default, and applied to the shared selector so the live and historical
+# paths change together -- a floor on one side only would make the backfill
+# incomparable to the live run, which is the property the whole History Machine
+# is built on.
+#
+# The question this answers is not "top-up or no top-up". The top-up fixed a
+# real discontinuity and still does. It is whether the pool being topped up
+# from is worth drawing on: padding twenty slots from a pool that is 45% sport
+# puts fourteen match reports in front of the model with nothing to mark them
+# as padding. Turn this on once the retrieval fixes have been measured, not
+# before -- with a broken scorer it would have cut the evidence and kept the
+# football.
+RELEVANCE_FLOOR_ENFORCED: bool = False
+
 
 def country_name(iso2: str) -> str:
     """Display name for a pilot country, from the live roster.

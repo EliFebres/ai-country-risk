@@ -29,6 +29,7 @@ from typing import Dict, List, Optional
 
 import trafilatura
 
+from backend.util import config
 from backend.util.dates import parse_date_for_sort
 
 logger = logging.getLogger(__name__)
@@ -341,6 +342,61 @@ def by_relevance(items: List[Dict]) -> List[Dict]:
         key=lambda x: (x.get("relevance_score", 0.0), parse_date_for_sort(x.get("published"))),
         reverse=True,
     )
+
+
+def apply_threshold(items: List[Dict], threshold: float, max_articles: int,
+                    *, enforce_floor: Optional[bool] = None) -> List[Dict]:
+    """Relevant articles first, then top up by rank -- or stop at the bar.
+
+    One copy of a rule that was written twice, in `article_enrichment` and in
+    `snapshot_select`. They agreed when this was extracted, and agreeing is the
+    whole requirement: two readings of "the 20 articles" is two instruments, and
+    the historical series is only worth anything if it is the live one with
+    ``as_of`` pinned.
+
+    The default behavior is the top-up, and it is deliberate. Read as a *cap*,
+    the threshold produced a discontinuity exactly where a country's coverage is
+    most likely to sit: two articles over the bar meant the bar came off and the
+    country got a full twenty by rank, three meant it got only those three.
+    Evidence falling as relevance rose. Filling from the cleared items first and
+    topping up by rank keeps what the threshold was for and drops what it was
+    never for.
+
+    What the top-up cannot do is tell padding from evidence, and neither can the
+    model reading the result. When the pool it draws on is mostly noise, twenty
+    articles of which fourteen are below the bar is worse than six honest ones,
+    because nothing downstream can see the difference -- which is what
+    ``enforce_floor`` is for. It is off by default: the answer to a bad pool is
+    to fix the pool, and the floor is the meter that says whether that worked.
+
+    Args:
+        items: scored articles, each carrying ``relevance_score``.
+        threshold: the relevance bar.
+        max_articles: the budget the caller intends to spend.
+        enforce_floor: stop at the bar instead of topping up. ``None`` reads
+            :data:`config.RELEVANCE_FLOOR_ENFORCED`, so both paths change
+            together or not at all.
+
+    Returns:
+        Candidates in rank order, cleared first. May be shorter than
+        ``max_articles``; may be empty, which is a legitimate answer for a thin
+        week and must stay one.
+    """
+    if enforce_floor is None:
+        enforce_floor = config.RELEVANCE_FLOOR_ENFORCED
+    ranked = by_relevance(items)
+    cleared = [i for i in ranked if i.get("relevance_score", 0) >= threshold]
+    if enforce_floor:
+        if len(cleared) < max_articles:
+            logger.info("thin window: %d of %d over the %.1f bar, scoring on %d",
+                        len(cleared), len(items), threshold, len(cleared))
+        return cleared
+    if len(cleared) >= max_articles:
+        return cleared
+    logger.info("%d of %d item(s) over the %.1f bar; topping up to %d by rank.",
+                len(cleared), len(items), threshold, max_articles)
+    seen = {id(i) for i in cleared}
+    return cleared + [i for i in ranked if id(i) not in seen]
 
 
 def select_with_theme_floor(items: List[Dict], max_articles: int, per_theme: int) -> List[Dict]:

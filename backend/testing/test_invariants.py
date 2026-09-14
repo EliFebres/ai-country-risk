@@ -489,6 +489,28 @@ class TestSurvivesTheVintageBound:
         health = payload.payload_health(evidence, {}, anchor)
         assert health["indicators"]["dropped"]["GOV_WGI_GE.EST"] == "no row"
 
+    def test_the_health_says_how_much_of_the_payload_cleared_the_bar(self):
+        """Padding and evidence are indistinguishable once they are in a payload.
+
+        `apply_threshold` fills the budget from below the relevance bar when too
+        few articles clear it, and nothing downstream can see which is which --
+        not the prompt, not the model, not `evidence_coverage`. PT 2019 was
+        topped up at 52 of 52 anchors with a median of six articles over the bar
+        out of twenty, and every stored manifest recorded "20 articles".
+        """
+        anchor_date = datetime.date(2019, 6, 1)
+        evidence = payload.build_evidence_payload(
+            "PT", as_of=anchor_date, series={}, vintage_as_of=anchor_date)
+        items = [{"_theme": "order", "relevance_score": 0.9, "tier": "full"},
+                 {"_theme": "order", "relevance_score": 0.4, "tier": "full"},
+                 {"_theme": "broad", "relevance_score": 0.1, "tier": "full"},
+                 {"_theme": "broad", "relevance_score": 0.1, "tier": "full"}]
+        health = payload.payload_health(evidence, {}, anchor_date, items)
+        assert health["articles"]["articles"] == 4
+        assert health["articles"]["cleared_threshold"] == 2
+        assert health["articles"]["relevance_threshold"] == 0.3
+        assert health["articles"]["floor_enforced"] is False
+
     def test_the_manifest_records_the_census_and_the_corpus(self):
         """A run must write down what its payload held and what it read.
 

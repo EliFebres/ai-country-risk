@@ -256,20 +256,12 @@ def select(iso2: str, as_of: datetime.date,
     for item in items:
         item["relevance_score"] = article_ranking.score_relevance(item, country_name)
 
-    # The live rule: the threshold orders the pool, it does not cap it. Articles
-    # over the bar come first, then the rest by rank until the budget is full.
-    # See the note in `article_enrichment.fetch_relevant_news` — read as a cap
-    # this produced three-article weeks next to twenty-article ones for a
-    # one-article difference in how many cleared 0.3.
-    pool = sorted(items, key=lambda i: -i["relevance_score"])
-    clearing = [i for i in pool
-                if i["relevance_score"] >= article_enrichment._RELEVANCE_THRESHOLD]
-    if len(clearing) < max_articles:
-        logger.info("[%s %s] %d of %d cleared the relevance threshold; "
-                    "topping up to %d by rank", iso2, as_of, len(clearing),
-                    len(items), max_articles)
-        seen = {id(i) for i in clearing}
-        clearing = clearing + [i for i in pool if id(i) not in seen]
+    # Literally the live rule: one function, in `core`, called by both paths.
+    # These were two copies that happened to agree, which is not the same thing
+    # as agreeing — and "the 20 articles" meaning two things is exactly what
+    # stops the backfill being the live run with `as_of` pinned.
+    clearing = core.apply_threshold(
+        items, article_enrichment._RELEVANCE_THRESHOLD, max_articles)
 
     return core.select_with_theme_floor(
         ration_abstracts(clearing, max_articles),

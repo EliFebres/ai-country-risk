@@ -653,12 +653,25 @@ def _article_health(items: List[dict]) -> Dict[str, Any]:
     value out of the selection.
     """
     from backend.news_fetching import article_enrichment, core
+    from backend.util import config
 
     items = [i for i in (items or []) if isinstance(i, dict)]
     themes = collections.Counter(str(i.get("_theme")) for i in items)
     floor = article_enrichment._PER_THEME_FLOOR
+    bar = article_enrichment._RELEVANCE_THRESHOLD
     return {
         "articles": len(items),
+        # How much of what the model was handed is evidence and how much is
+        # padding. `apply_threshold` fills the budget from below the bar when
+        # too few clear it, and nothing downstream -- not the prompt, not the
+        # model, not `evidence_coverage` -- can tell the two apart once they are
+        # in the payload. A snapshot of 20 with 6 over the bar and one of 20
+        # with 19 over it are different evidence and were, until this line,
+        # indistinguishable in every stored manifest.
+        "cleared_threshold": sum(1 for i in items
+                                 if i.get("relevance_score", 0) >= bar),
+        "relevance_threshold": bar,
+        "floor_enforced": config.RELEVANCE_FLOOR_ENFORCED,
         "by_theme": {t: themes.get(t, 0) for t in core.THEME_QUERIES},
         "thin_themes": sorted(t for t in core.THEME_QUERIES
                               if themes.get(t, 0) < floor),
