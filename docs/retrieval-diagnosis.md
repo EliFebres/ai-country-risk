@@ -236,6 +236,65 @@ under the narrow window. NYT rows are unaffected by the widening — they carry 
 no body, so the `or` short-circuits, correctly — and sit much higher (23–79%) because an NYT
 abstract names its subject.
 
+### Corpus-wide, PROD, all 48 countries
+
+The question the DEV table cannot answer: is this universal? Census over the whole live corpus,
+**526,220 articles, 893 country-year-source buckets** (buckets of >=50 articles):
+
+| source | buckets | articles | old median | old min | old max | new median |
+|---|---|---|---|---|---|---|
+| guardian | 316 | 394,227 | **16.4%** | 3.6% | 56.6% | **34.5%** |
+| nyt | 376 | 126,827 | 44.6% | 0.0% | 99.2% | 44.6% |
+
+Top sections in the stored corpus:
+
+```
+guardian (293,572 rows)  world:21.4% australia-news:15.6% sport:12.6% football:12.1%
+                         commentisfree:9.7% us-news:6.0% business:5.7%
+nyt      (108,501 rows)  world:43.4% us:12.6% opinion:11.8% business:11.3% briefing:3.1%
+```
+
+**Guardian corpus-wide, football + sport + travel is 73,374 of 293,572 rows — 25.0%.** PT is the
+extreme case at 45%, not the only one. The widening more than doubles the Guardian median (16.4%
+to 34.5%) and leaves NYT untouched, exactly as expected.
+
+### A third defect, found by this census and not fixed here
+
+The worst country-years in the entire corpus are not the small countries. They are:
+
+| iso | `country_name` the scorer matches on | median share clearing |
+|---|---|---|
+| GB | United Kingdom | **6.6%** |
+| CH | Switzerland | 9.8% |
+| US | United States | **10.4%** |
+| PT | Portugal | 11.1% |
+| ... | | |
+| IL | Israel | 35.4% |
+| AU | Australia | 35.5% |
+| NZ | New Zealand | 35.8% |
+| CL | Chile | 45.6% |
+
+`score_relevance` tests `if country_lower not in text` — an exact lowercase substring match on
+`config.country_name(iso2)`. **The press does not call these countries by their formal names.**
+The Guardian writes "Britain", "the UK", "America", "Washington"; it rarely writes "United
+Kingdom" or "United States". So the two highest-volume countries in the corpus floor at 0.1 for a
+naming mismatch, while Chile and New Zealand — which the press calls by name — clear at 35–46%.
+
+This is live-affecting: `score_relevance` is called with the same `country_name` on both paths.
+
+**The fix already exists in this repo and is not wired up.** `gazetteer.mentions(text, iso2)`
+resolves every surface form — names, demonyms, cities, institutions — and is already used to find
+NYT articles in a bulk archive and to prove a masked payload no longer names a country:
+
+```python
+>>> gazetteer.mentions("Britain raised taxes", "GB")     # True
+>>> gazetteer.mentions("America raised taxes", "US")     # True
+```
+
+Not done here because it changes `score_relevance`'s signature from `country_name` to `iso2`,
+touches both paths and every test that calls it, and would move live scores materially. It wants
+its own change and its own measurement. It is the single highest-value item left in this area.
+
 ### Guardian vs NYT
 
 They fail differently and both were already partly mitigated:
@@ -478,11 +537,19 @@ median 7 articles per anchor, 13 of 52 under six, none empty — but whether 7 r
 better than 20 padded ones is an empirical question, and `cleared_threshold` in `payload_health`
 is the meter that will answer it.
 
-One thing worth deciding separately: `classify_themes` tagging match reports as `information` and
-`edge` is a live-path defect too, and the section filter does not fix it — it only removes the
-articles that were tripping it at the Guardian. A country whose live feed carries sport will still
-have its ledger floors filled by substring matches on "attack" and "war". That is the next thing
-in this area worth an hour.
+### Two things left, both live-affecting, neither done here
+
+**1. The scorer should ask the gazetteer, not do a substring match.** See §4. GB clears at 6.6%
+and US at 10.4% because the press says "Britain" and "America"; `gazetteer.mentions(text, iso2)`
+already resolves both and is already used elsewhere in this repo. This is the highest-value item
+left in this area and it affects the two highest-volume countries in the corpus — on both paths.
+
+**2. `classify_themes` tags match reports as `information` and `edge`.** The section filter
+removes the articles that were tripping it at the Guardian; it does not fix the classifier. A
+country whose live feed carries sport will still have its ledger floors filled by substring
+matches on "attack" and "war" — and `information` and `edge` are the two ledgers with the least
+macro data behind them, so a wrong tag there costs the most. `classify_themes` already documents
+its own `ponytail:` note about word-boundary matching; this is the evidence that it now matters.
 
 ## What is not claimed
 
