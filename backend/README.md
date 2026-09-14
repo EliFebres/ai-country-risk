@@ -133,6 +133,25 @@ reads. Use `backend/util/tools/live_country_check.py` when you want the snapshot
 verification, and cleanup. It hits the network, and costs one cheap digest call
 per uncached article plus one scoring call per run.
 
+`backend/notebooks/historical_rating_walkthrough.ipynb` scores a Monday in 2018
+instead of today, and is about the two ends that differ: `snapshot_select`, the
+line that keeps the future out, and the anonymizer that lets the scorer judge a
+country it cannot name. It never calls `_process_country` and never scores.
+
+`backend/notebooks/random_snapshot_prompt.ipynb` draws a `(country, week)` at
+random from whatever the `article` table holds — no roster is hardcoded, so it
+picks up new countries as the harvest reaches them — and lays out the whole
+footprint behind one snapshot: the window and which bodies were refused as
+hindsight, the indicator series, the evidence payload with `payload_health`'s
+account of what is *missing* from it, the digests, and then the prompt verbatim
+via `langchain_llm.build_prompt` (the same function `country_llm_score` calls, so
+it is the prompt rather than a copy of the lines that build it). `RUN_SCORER` is
+off by default; on, it makes the real scoring call and prints the entire
+response. Run All costs about $0.05 in digests, plus $0.02 for the score, and
+writes only `llm_artifact` cache rows.
+
+Pin an anchor with `PIN = ("PT", "2019-06-03")` when you want the same one twice.
+
 ```bash
 pip install ipykernel
 ```

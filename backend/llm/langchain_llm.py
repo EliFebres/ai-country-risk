@@ -403,6 +403,124 @@ def _failure_result(payload: object = None) -> Dict[str, object]:
 # -------------------------
 # Main entry — the model judges, and nothing here edits what it said
 # -------------------------
+def build_prompt(
+    *,
+    country_display: str,
+    payload: Dict,
+    articles: List[Dict],
+    as_of: date,
+    fulltext_ids: Optional[List[str]] = None,
+    mask_iso2: Optional[str] = None,
+) -> Dict[str, object]:
+    """Every byte the scorer receives, and the pieces it was assembled from.
+
+    Lifted out of :func:`country_llm_score` so a notebook can show the real
+    prompt instead of a copy of the lines that build it. There was already one
+    such copy, in ``country_rating_walkthrough.ipynb``, reproducing the template
+    fill and the rule append by hand — and nothing would have said so if the two
+    drifted. The notebook would simply have been printing a prompt the model
+    never saw, which is the failure mode a walkthrough exists to rule out.
+
+    Masking and the integrity gate live in here rather than in the caller,
+    because the post-gate strings are the only version of them that is true:
+    anything rendering the pre-mask blocks is showing bytes that never left the
+    process.
+
+    Args:
+        country_display: country name as it should appear in the prompt.
+            Replaced by :data:`MASKED_COUNTRY_LABEL` when ``mask_iso2`` is set.
+        payload: the three-ledger evidence from ``payload.build_evidence_payload``.
+        articles: recent articles, annotated by ``digest_engine.digest_articles``.
+        as_of: the date being scored — the prompt's "treat this as today" anchor.
+        fulltext_ids: ids whose full text the model should read (from
+            ``digest_engine.select_fulltext_ids``); empty/None means no
+            FULL_TEXT section.
+        mask_iso2: mask this country out of everything before it is rendered.
+            None is the named behaviour.
+
+    Returns:
+        ``{prompt, prompt_version, rules, country_display, payload, articles,
+        evidence_json, articles_json, fulltext_block}``. ``payload``,
+        ``articles`` and ``country_display`` come back **masked** under
+        ``mask_iso2``, so a caller that needs what was actually sent does not
+        have to mask a second time and risk getting a second answer.
+
+    Raises:
+        rewrite.MaskLeak: a roster country's name survived into one of the
+            blocks. A masked snapshot that names its country is not a degraded
+            result, it is a wrong one, so this stops rather than warns.
+    """
+    # For the fallback log line below only, and read before the masking for the
+    # same reason `country_llm_score` reads it before the masking: afterwards
+    # there is no country code left to report.
+    iso2 = _extract_iso2(payload)
+
+    if mask_iso2:
+        # After `_extract_iso2`, so a caller's sanctions lookup keeps the real
+        # code while the prompt never learns it.
+        payload = rewrite.mask_payload(payload, mask_iso2)
+        articles = rewrite.mask_items(articles, mask_iso2)
+        country_display = MASKED_COUNTRY_LABEL
+
+    evidence_json = json.dumps(payload, ensure_ascii=False)
+    article_digests_json = _digests_to_json(articles)
+    has_digests = any(isinstance(it.get("digest"), dict) for it in articles if isinstance(it, dict))
+    if has_digests or not articles:
+        # No articles at all is not a stage-1 failure — it serializes to an
+        # empty list and an empty FULL_TEXT block, same as it always did.
+        fulltext_block = _fulltext_block(articles, fulltext_ids or [])
+    else:
+        # Country-level fallback: articles exist but stage 1 produced nothing
+        # (stage down, no API key). `prompt_entries` has already degraded the
+        # digest block to the legacy title+summary shape; there is no digest to
+        # pick full-text reading from either, so skip that block — one country's
+        # scoring must never die because stage 1 did.
+        logger.error("[%s] no stage-1 digests for %d articles; falling back to the legacy prompt",
+                     iso2 or country_display, len(articles))
+        fulltext_block = "(none)"
+    prompt = ai_constants.AI_PROMPT_V3.format(
+        country=country_display,
+        as_of_date=as_of.isoformat(),
+        evidence_json=evidence_json,
+        articles_json=article_digests_json,
+        full_text_block=fulltext_block if fulltext_block != "(none)"
+        else "(no full-text articles supplied)",
+    )
+
+    # Which rules are appended and which version is stamped, resolved in one
+    # place so the failure path cannot disagree with this one about what was
+    # rendered. See `_prompt_rules_and_version`.
+    rules, prompt_version = _prompt_rules_and_version(payload)
+    prompt += rules
+
+    if mask_iso2:
+        # The gate, on the serialized blocks rather than on the objects they
+        # came from. Those objects carry fields the model never sees — the
+        # article URLs, which name the country in their paths and mask into
+        # nonsense if touched — so scanning them means either a gate that cries
+        # wolf on every snapshot or an allow-list of what to scan, which is the
+        # same allow-list that already let `content` and `summary` through.
+        #
+        # Not the whole prompt either: the template's own worked examples name
+        # Australia and China, and they are instructions rather than evidence
+        # about anyone. These four strings are every byte the prompt carries
+        # that came from this country's data.
+        rewrite.assert_clean([evidence_json, article_digests_json,
+                              fulltext_block, country_display])
+
+    return {
+        "prompt": prompt,
+        "prompt_version": prompt_version,
+        "rules": rules,
+        "country_display": country_display,
+        "payload": payload,
+        "articles": articles,
+        "evidence_json": evidence_json,
+        "articles_json": article_digests_json,
+        "fulltext_block": fulltext_block,
+    }
+
+
 def country_llm_score(
     *,
     country_display: str,
@@ -490,58 +608,16 @@ def country_llm_score(
     # date gets that date's rules.
     iso2 = _extract_iso2(payload)
 
-    if mask_iso2:
-        # After `_extract_iso2`, so the sanctions lookup keeps the real code
-        # while the prompt never learns it.
-        payload = rewrite.mask_payload(payload, mask_iso2)
-        articles = rewrite.mask_items(articles, mask_iso2)
-        country_display = MASKED_COUNTRY_LABEL
-
-    evidence_json = json.dumps(payload, ensure_ascii=False)
-    article_digests_json = _digests_to_json(articles)
-    has_digests = any(isinstance(it.get("digest"), dict) for it in articles if isinstance(it, dict))
-    if has_digests or not articles:
-        # No articles at all is not a stage-1 failure — it serializes to an
-        # empty list and an empty FULL_TEXT block, same as it always did.
-        fulltext_block = _fulltext_block(articles, fulltext_ids or [])
-    else:
-        # Country-level fallback: articles exist but stage 1 produced nothing
-        # (stage down, no API key). `prompt_entries` has already degraded the
-        # digest block to the legacy title+summary shape; there is no digest to
-        # pick full-text reading from either, so skip that block — one country's
-        # scoring must never die because stage 1 did.
-        logger.error("[%s] no stage-1 digests for %d articles; falling back to the legacy prompt",
-                     iso2 or country_display, len(articles))
-        fulltext_block = "(none)"
-    prompt = ai_constants.AI_PROMPT_V3.format(
-        country=country_display,
-        as_of_date=as_of.isoformat(),
-        evidence_json=evidence_json,
-        articles_json=article_digests_json,
-        full_text_block=fulltext_block if fulltext_block != "(none)"
-        else "(no full-text articles supplied)",
+    built = build_prompt(
+        country_display=country_display, payload=payload, articles=articles,
+        as_of=as_of, fulltext_ids=fulltext_ids, mask_iso2=mask_iso2,
     )
-
-    # Which rules are appended and which version is stamped, resolved in one
-    # place so the failure path cannot disagree with this one about what was
-    # rendered. See `_prompt_rules_and_version`.
-    rules, prompt_version = _prompt_rules_and_version(payload)
-    prompt += rules
-
-    if mask_iso2:
-        # The gate, on the serialized blocks rather than on the objects they
-        # came from. Those objects carry fields the model never sees — the
-        # article URLs, which name the country in their paths and mask into
-        # nonsense if touched — so scanning them means either a gate that cries
-        # wolf on every snapshot or an allow-list of what to scan, which is the
-        # same allow-list that already let `content` and `summary` through.
-        #
-        # Not the whole prompt either: the template's own worked examples name
-        # Australia and China, and they are instructions rather than evidence
-        # about anyone. These four strings are every byte the prompt carries
-        # that came from this country's data.
-        rewrite.assert_clean([evidence_json, article_digests_json,
-                              fulltext_block, country_display])
+    prompt, prompt_version = built["prompt"], built["prompt_version"]
+    # The masked pair, rebound so everything below this line sees what was
+    # actually sent rather than what the caller passed in. `_failure_result`
+    # reads the payload for its version stamps, and under masking the two are
+    # different objects.
+    payload, country_display = built["payload"], built["country_display"]
 
     # Client construction is inside the guard, not just the call: a malformed
     # key or a langchain init error is as much a "this country did not score" as

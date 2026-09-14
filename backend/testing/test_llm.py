@@ -77,6 +77,30 @@ class FakeChat:
         return self._structured
 
 
+def score_kwargs(**over) -> dict:
+    """One country worth of scoring arguments, named and unmasked.
+
+    Module level rather than inline in `prompt_of` so that
+    `TestTheBuilderIsWhatIsSent` scores the same bundle the rest of this file
+    does. A drift test comparing two calls made on different arguments would
+    pass for the wrong reason.
+    """
+    kwargs = dict(
+        country_display="Portugal",
+        payload={"_meta": {"country": "PT", "as_of": AS_OF.isoformat()},
+                 "note": "Portugal's deficit narrowed in Lisbon's own figures."},
+        articles=[{"id": "a1",
+                   "title": "Portugal cuts rates as Germany stalls",
+                   "text": "Lisbon acted after the Bundesbank held. "
+                           "The Portuguese finance minister spoke.",
+                   "digest": {"what": "The capital cut rates."}}],
+        as_of=AS_OF,
+        fulltext_ids=["a1"],
+    )
+    kwargs.update(over)
+    return kwargs
+
+
 @pytest.fixture
 def prompt_of(monkeypatch):
     """Score something and hand back the prompt string the model was sent."""
@@ -86,20 +110,7 @@ def prompt_of(monkeypatch):
         sink = []
         monkeypatch.setattr(llm.ai_client, "build_chat",
                             lambda _key: FakeChat(MODEL_REPLY, sink))
-        kwargs = dict(
-            country_display="Portugal",
-            payload={"_meta": {"country": "PT", "as_of": AS_OF.isoformat()},
-                     "note": "Portugal's deficit narrowed in Lisbon's own figures."},
-            articles=[{"id": "a1",
-                       "title": "Portugal cuts rates as Germany stalls",
-                       "text": "Lisbon acted after the Bundesbank held. "
-                               "The Portuguese finance minister spoke.",
-                       "digest": {"what": "The capital cut rates."}}],
-            as_of=AS_OF,
-            fulltext_ids=["a1"],
-        )
-        kwargs.update(over)
-        out = llm.country_llm_score(**kwargs)
+        out = llm.country_llm_score(**score_kwargs(**over))
         return sink[0], out
 
     return run
@@ -108,6 +119,58 @@ def prompt_of(monkeypatch):
 # ---------------------------------------------------------------------------
 # What actually leaves for the API
 # ---------------------------------------------------------------------------
+
+class TestTheBuilderIsWhatIsSent:
+    """`build_prompt` renders the bytes `country_llm_score` sends. Byte for byte.
+
+    The reason the function was extracted at all. Before it, the prompt was
+    assembled inline in `country_llm_score` and reproduced by hand in
+    `country_rating_walkthrough.ipynb`, and a walkthrough printing a prompt the
+    model never saw would look exactly like one printing the prompt it did. Two
+    notebooks now read the builder instead of copying it, and this is what makes
+    that reading worth anything: if the two ever diverge, they diverge here
+    first and loudly, rather than in a notebook nobody is diffing.
+
+    Run on both arms. Masking is where the two could most plausibly drift —
+    it rebinds the payload, the articles and the country label — and an
+    equality that only held for the named arm would miss production entirely.
+    """
+
+    @pytest.mark.parametrize("mask_iso2", [None, "PT"])
+    def test_the_builder_and_the_call_render_the_same_prompt(self, prompt_of, mask_iso2):
+        sent, _ = prompt_of(mask_iso2=mask_iso2)
+        built = llm.build_prompt(**score_kwargs(mask_iso2=mask_iso2))
+        assert built["prompt"] == sent
+
+    def test_the_builder_hands_back_what_the_gate_actually_scanned(self):
+        """The four blocks come back masked, so a caller need not mask twice."""
+        built = llm.build_prompt(**score_kwargs(mask_iso2="PT"))
+        assert built["country_display"] == llm.MASKED_COUNTRY_LABEL
+        for form in ("Portugal", "Portuguese", "Lisbon"):
+            assert form not in built["evidence_json"]
+            assert form not in built["articles_json"]
+            assert form not in built["fulltext_block"]
+
+    def test_a_leak_stops_the_builder_rather_than_the_call(self, monkeypatch):
+        """`assert_clean` travelled with the block it guards.
+
+        A builder that rendered a leaking prompt and left the raising to its
+        caller would be a builder a notebook could use to print one — and the
+        whole reason the notebooks call it is to see the bytes that were
+        cleared, not the bytes that were offered.
+
+        The leak is made by disabling the masker rather than by writing text it
+        cannot reach, because there is no such text to write by this route:
+        `mask_payload` walks keys as well as values. Stubbing it is the honest
+        way to ask "if masking failed, would the gate still fire here?" — and
+        `mask_item` calls it too, so one stub takes out both layers and the
+        articles arrive naming Portugal as well.
+        """
+        monkeypatch.setattr(rewrite, "mask_payload",
+                            lambda payload, _iso2, _roster=None: payload)
+        with pytest.raises(rewrite.MaskLeak):
+            llm.build_prompt(**score_kwargs(mask_iso2="PT"))
+
 
 class TestTheMaskedPromptNamesNobody:
     def test_the_country_is_gone_from_the_whole_prompt(self, prompt_of):
@@ -279,7 +342,8 @@ class TestThePipelineMasksBeforeItDigests:
 
     @staticmethod
     def _wire(monkeypatch, *, evidence=None, score=None, upsert=None):
-        monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids", lambda _i: [])
+        monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids",
+                            lambda _i, _k=3: [])
         monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
                             lambda **_k: {"_meta": {"country": "PT",
                                                     "generated_at": AS_OF.isoformat()}})
@@ -1463,7 +1527,8 @@ class TestOnlyProductionWritesLint:
 
     @staticmethod
     def _wire(monkeypatch, written):
-        monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids", lambda _i: [])
+        monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids",
+                            lambda _i, _k=3: [])
         monkeypatch.setattr(pipeline.digest_engine, "digest_articles",
                             lambda items, **_k: items)
         monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
