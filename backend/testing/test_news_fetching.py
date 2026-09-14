@@ -470,15 +470,73 @@ class TestSelectionMatchesTheLiveRun:
                  + [{"tier": "abstract-only", "relevance_score": 9, "published": None}])
         assert len(sel.ration_abstracts(items, max_articles=20)) == 31
 
-    def test_the_snippet_is_the_lede_and_only_the_lede(self):
-        """Choosing the snippet to beat the body-mention ceiling is how a
-        snapshot fills up with articles that merely mention the country."""
-        body = "Nothing about the country here. " * 20 + "Portugal appears late."
+    def test_the_snippet_is_a_fixed_window_from_the_top(self):
+        """It may be widened; it may never be *chosen* to find the country.
+
+        Excerpting from wherever the body first names the country lifts every
+        incidental mention to the body-mention ceiling, which is how a Portugal
+        snapshot fills up with articles about the Dutch government. The window
+        is read from the top and its size is the only thing that varies.
+        """
+        body = "Nothing about the country here. " * 400 + "Portugal appears late."
         got = sel.relevance_snippet({"abstract": None}, body, "Portugal")
-        assert got == body[:sel._SNIPPET_CHARS]
-        assert "Portugal" not in got, (
-            "excerpting from the first country mention lifts every incidental "
-            "article to the body-mention ceiling")
+        assert got == core.clip_words(body, core.RELEVANCE_SUMMARY_WORDS)
+        assert "Portugal" not in got
+
+    def test_both_halves_read_the_same_window(self):
+        """The live path and the historical one must score one article alike.
+
+        `score_relevance` reads `summary or snippet`. The live path fills
+        `summary` with `RELEVANCE_SUMMARY_WORDS` words of the body; this asserts
+        the historical `snippet` is the same text, because for nine months it
+        was a fifth of it and the same article scored 0.1 here and 1.0 there.
+        """
+        body = ("The finance ministry said the budget deficit would narrow as "
+                "the central bank held interest rates. " * 30) + " Portugal."
+        live = core.clip_words(body, core.RELEVANCE_SUMMARY_WORDS)
+        historical = sel.relevance_snippet({"abstract": None}, body, "Portugal")
+        assert historical == live
+        assert (article_ranking.score_relevance({"title": "Deficit narrows",
+                                                 "summary": live}, "Portugal")
+                == article_ranking.score_relevance({"title": "Deficit narrows",
+                                                    "snippet": historical}, "Portugal"))
+
+    def test_sport_does_not_outrank_policy(self):
+        """The inversion this whole change exists to correct.
+
+        A British paper does not name Portugal in the headline of a eurozone
+        story, so `_BODY_MENTION_CAP` capped it; a match report *is* headlined
+        "Portugal 3-1 Switzerland", so the cap never applied. Sport scored 0.450
+        and policy 0.100 for the same country in the same window.
+        """
+        # The country is named at character 504, past the old 300-char window
+        # and inside the new one. That is the measured shape of the corpus:
+        # "Portugal" is in 59 of 63 Guardian bodies and 6 of 63 ledes.
+        policy_body = (
+            "The last of the eurozone rescue programmes formally ended on "
+            "Thursday, closing a chapter that began nearly a decade ago and "
+            "reshaped the politics of southern Europe. The bailout, agreed at "
+            "the height of the sovereign debt crisis, imposed years of "
+            "austerity on a continent that had not seen anything like it in a "
+            "generation. Wages were cut, pensions frozen and public payrolls "
+            "thinned. Economists still argue over how much of the subsequent "
+            "recovery was the medicine and how much was the passage of time. "
+            "Portugal exited its own programme in 2014, and the government has "
+            "since agreed a budget with the IMF while the central bank held "
+            "interest rates steady.")
+        assert policy_body.index("Portugal") > 300, "fixture no longer discriminates"
+        sport_body = (
+            "Cristiano Ronaldo scored a hat-trick as the hosts swept into the "
+            "final in Porto on a warm evening at the Estadio do Dragao.")
+        score = lambda title, body: article_ranking.score_relevance(
+            {"title": title,
+             "snippet": sel.relevance_snippet({"abstract": None}, body, "Portugal")},
+            "Portugal")
+        policy = score("Eurozone bailout era draws to a close", policy_body)
+        sport = score("Portugal 3-1 Switzerland: Nations League semi-final", sport_body)
+        assert policy > sport, (
+            f"policy={policy} sport={sport}: the relevance ordering is inverted, "
+            "so the sub-threshold top-up pads snapshots with match reports")
 
     def test_an_abstract_is_preferred_when_there_is_one(self):
         assert sel.relevance_snippet(

@@ -47,14 +47,9 @@ def _strip_html(s: str) -> str:
     return " ".join(s.split())                                 # collapse whitespace
 
 
-def _clip_words(s: str, max_words: int) -> str:
-    """Return the first max_words of s (by whitespace)."""
-    if not s or max_words <= 0:
-        return ""
-    parts = s.split()
-    if len(parts) <= max_words:
-        return s.strip()
-    return " ".join(parts[:max_words]).strip()
+# The window the relevance scorer reads is one number, shared with the
+# historical path. See `core.clip_words`.
+_clip_words = core.clip_words
 
 
 async def _fetch_text_async(url: str, client: httpx.AsyncClient, max_chars: int = 3000) -> str:

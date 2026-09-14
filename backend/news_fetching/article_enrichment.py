@@ -87,7 +87,7 @@ def fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict]
             query=template.format(c=country_name),
             max_results=_PER_QUERY_RESULTS,
             extract_chars=_MAX_CONTENT_CHARS,
-            summary_words=240,
+            summary_words=core.RELEVANCE_SUMMARY_WORDS,
         )
 
         for item in items:

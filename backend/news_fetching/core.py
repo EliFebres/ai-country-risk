@@ -81,6 +81,38 @@ BROAD_THEME = "broad"
 # instrument, which is the whole thing the History Machine is trying not to do.
 MAX_BODY_CHARS = 24000
 
+# How many words of an article the *relevance scorer* reads, as against the
+# 24,000 characters the model is given. One number, because `score_relevance`
+# was calibrated on this window and is only meaningful when fed it.
+#
+# It used to be two numbers, and that was the bug. The live path passed 240
+# words (`gnews_rss(summary_words=...)`); the historical path fed
+# `body[:300]` — a fifth as much — and `score_relevance` reads
+# `summary or snippet`, so the same article scored differently depending on
+# which half of the pipeline was asking. Three failures stacked on that one
+# cut: the country name fell outside the window and the article took the 0.1
+# "never mentions the country" floor, the HIGH-keyword counts had too little
+# text to accumulate in, and `_BODY_MENTION_CAP` then capped whatever survived.
+# Measured on PT 2019 Guardian: 11.5% of stored articles cleared the 0.3 bar
+# under 300 characters, 29.9% under 240 words. Same articles, same scorer.
+RELEVANCE_SUMMARY_WORDS = 240
+
+
+def clip_words(text: str, max_words: int) -> str:
+    """The first ``max_words`` whitespace-separated words of ``text``.
+
+    Lives here rather than in ``fetch_links`` because both paths now clip to the
+    same budget before scoring, and a second copy is how the two windows drifted
+    apart in the first place. ``fetch_links._clip_words`` is an alias.
+    """
+    if not text or max_words <= 0:
+        return ""
+    parts = text.split()
+    if len(parts) <= max_words:
+        return text.strip()
+    return " ".join(parts[:max_words]).strip()
+
+
 
 def _terms_of(template: str) -> tuple[str, ...]:
     """The OR-terms inside one theme's query template, lowercased.

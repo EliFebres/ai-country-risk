@@ -43,43 +43,56 @@ from backend.news_fetching import article_enrichment, article_ranking, core
 
 logger = logging.getLogger(__name__)
 
-# How much of a body stands in for the feed blurb when an article has no
-# abstract. `score_relevance` reads title + snippet, and the historical sources
-# do not all carry one: Guardian rows have a full body and no abstract, NYT rows
-# an abstract and no body. Feeding a whole body to a function tuned on one-line
-# blurbs would inflate its keyword counts and score historical articles on a
-# different curve than live ones — so the length stays fixed, and only *which*
-# 300 characters changes.
-_SNIPPET_CHARS = 300
-
 def relevance_snippet(row: Dict[str, Any], body: Optional[str],
                       country_name: str) -> str:
-    """The short summary `score_relevance` reads: the abstract, or the lede.
+    """The summary `score_relevance` reads: the abstract, or the article's head.
 
     ``country_name`` is accepted and deliberately unused, and this is the
     interesting part of the module.
 
-    A measured PT window (2018-05-05 → 2018-06-04, 63 Guardian articles) has
-    "Portugal" in 0 titles, 6 ledes and 59 bodies, so scoring on the lede
-    selects only 6 articles where the live run would select 20. The obvious fix
-    — excerpt from wherever the body first names the country — was tried, and it
-    is wrong. It lifts every article that mentions Portugal in passing to the
-    body-mention ceiling, and the resulting "Portugal" snapshot is twenty
-    articles about the Dutch government, UK farmers, Venezuela and José
-    Mourinho. That is precisely the failure ``_BODY_MENTION_CAP`` exists to
-    prevent, defeated by feeding the scorer a snippet chosen to beat it.
+    This used to clip the body to 300 characters, on the stated reasoning that
+    `score_relevance` was "tuned on one-line blurbs" and a whole body would
+    inflate its keyword counts. The premise was wrong. The live path does not
+    feed it a blurb: `fetch_links.gnews_rss` builds a ``summary`` of
+    ``core.RELEVANCE_SUMMARY_WORDS`` (240) words of the extracted body, and
+    `score_relevance` reads ``summary or snippet``. So the two halves were
+    scoring the same article on windows a fifth apart, and the narrow one was
+    here.
 
-    Both readings agree on the actual fact: the Guardian, a British paper,
-    barely covers Portugal. Zero titles is not a scoring artefact. The thinness
-    is real, and the honest response is a thin week plus a loud report, not a
-    heuristic tuned until the number looks like the live one.
+    Three failures stacked on that, and all three are artefacts of the cut
+    rather than statements about the article:
 
-    It is also a symptom of an unfinished harvest rather than of selection:
-    GDELT and the NYT are the sources meant to carry non-Anglophone coverage of
-    smaller countries, and neither has landed yet. Re-measure once they have —
-    if PT is still thin then, the corpus is telling the truth about Portugal.
+    1. ``score_relevance`` returns a flat 0.1 for an article whose text never
+       names the country. Measured on a PT window (2018-05-05 -> 2018-06-04, 63
+       Guardian articles): "Portugal" appears in 0 titles, 6 ledes and 59
+       bodies. At 300 characters most of the corpus took the floor.
+    2. The HIGH-keyword bonus needs roughly four matches to saturate, and 300
+       characters of lede rarely holds two.
+    3. ``_BODY_MENTION_CAP`` then capped whatever survived, because a British
+       paper does not put "Portugal" in the headline of a eurozone story --
+       while a match report is headlined "Portugal 3-1 Switzerland" and escapes
+       the cap entirely. The guard against incidental mentions was suppressing
+       the evidence and exempting the sport.
+
+    Widening to the live window is not the excerpt-from-the-mention heuristic a
+    previous version of this docstring tried and correctly rejected. That one
+    chose *which* characters to read so as to find the country name, which lifts
+    every passing mention to the ceiling; this reads a fixed window from the
+    top, so ``_BODY_MENTION_CAP`` still does its job on a story that merely
+    happens in the country. What it stops doing is starving the scorer.
+
+    Measured over PT 2019 Guardian (642 stored articles), share clearing 0.3:
+    11.5% at 300 characters, 29.9% at 240 words. The same articles and the same
+    scorer -- so the old figure was measuring the window, not the corpus.
+
+    Note what this does **not** fix. Widening lifts sport and non-sport almost
+    equally (11.0% -> 26.6% against 11.9% -> 32.7%), so sport's share of
+    everything clearing the bar barely moves: 43.2% to 40.1%. What removes sport
+    is the section filter in the Guardian adapter, not this. This buys the
+    selector a pool worth ranking; it does not clean the pool.
     """
-    return row.get("abstract") or (body or "")[:_SNIPPET_CHARS]
+    return row.get("abstract") or core.clip_words(body or "",
+                                                  core.RELEVANCE_SUMMARY_WORDS)
 
 
 def window(as_of: datetime.date) -> tuple:
