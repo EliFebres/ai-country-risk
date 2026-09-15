@@ -30,7 +30,7 @@ which is late by up to seven months for those three indices and safe by
 construction. That is the trade this module keeps making.
 
 Where a source exposes a **real release date**, prefer it over anything here.
-The WEO editions do, and ``vintage/weo.py`` uses it: an edition-dated ``as_of``
+The WEO editions do, and ``weo.py`` uses it: an edition-dated ``as_of``
 is a fact, and these constants are an estimate standing in for one.
 """
 

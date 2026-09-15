@@ -1,3 +1,5 @@
+Superseded 2026-09-15: evidence for docs/historical-ratings-postmortem.md. The selector and corpus it lists are retired.
+
 
 
 ====================================================================================================

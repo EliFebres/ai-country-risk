@@ -1,5 +1,7 @@
 # The instrument: four experiments, and what actually moved it
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). Measured on the retired corpus; the elicitation variants are removed from the code. The noise and determinism findings it cites are summarised in the postmortem §3.
+
 Six interventions across four sessions tried to make this scorer discriminate on
 an ambiguous window. Three changed the evidence, three changed the question. All
 six failed the same criterion. The seventh thing tried — changing the model,

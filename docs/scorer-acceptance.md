@@ -1,5 +1,7 @@
 # The scorer acceptance bar
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). The bake-off harness this bar was written for is removed (`bakeoff.py`, the reference arms). The `SCORING_*` endpoint override in `backend/llm/client.py` that the local-endpoint walkthrough relies on is still in place; the walkthrough's `bakeoff` steps are not.
+
 **What a candidate scorer has to clear to be adopted, and what is merely
 reported about it.** Applies to any candidate — hosted, local, a different
 vendor, or a new version of the incumbent behind the same model id.

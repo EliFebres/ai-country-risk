@@ -1,5 +1,7 @@
 # News source evaluation — newsapi.ai (Event Registry)
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). newsapi.ai stays rejected. The durable test — a source must be retrievable per theme — is carried into the paid-archive section of the postmortem.
+
 **Decision: not adopted. Evaluated 2026-08-28, code removed 2026-08-29.**
 
 Half the corpus has no bodies. NYT contributes ~27,000 articles that are

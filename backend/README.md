@@ -128,29 +128,10 @@ the scoring model receives.
 
 It writes no snapshot — the last step builds the payload
 `data_push.upsert_snapshot` would take and prints it instead. The one thing it
-does write is the stage-1 digest cache (`llm_artifact`), which nothing else
-reads. Use `backend/util/tools/live_country_check.py` when you want the snapshot write,
+does write is the stage-1 digest cache (`llm_artifact`), which the weekly run
+reads too. Use `backend/util/tools/live_country_check.py` when you want the snapshot write,
 verification, and cleanup. It hits the network, and costs one cheap digest call
 per uncached article plus one scoring call per run.
-
-`backend/notebooks/historical_rating_walkthrough.ipynb` scores a Monday in 2018
-instead of today, and is about the two ends that differ: `snapshot_select`, the
-line that keeps the future out, and the anonymizer that lets the scorer judge a
-country it cannot name. It never calls `_process_country` and never scores.
-
-`backend/notebooks/random_snapshot_prompt.ipynb` draws a `(country, week)` at
-random from whatever the `article` table holds — no roster is hardcoded, so it
-picks up new countries as the harvest reaches them — and lays out the whole
-footprint behind one snapshot: the window and which bodies were refused as
-hindsight, the indicator series, the evidence payload with `payload_health`'s
-account of what is *missing* from it, the digests, and then the prompt verbatim
-via `langchain_llm.build_prompt` (the same function `country_llm_score` calls, so
-it is the prompt rather than a copy of the lines that build it). `RUN_SCORER` is
-off by default; on, it makes the real scoring call and prints the entire
-response. Run All costs about $0.05 in digests, plus $0.02 for the score, and
-writes only `llm_artifact` cache rows.
-
-Pin an anchor with `PIN = ("PT", "2019-06-03")` when you want the same one twice.
 
 ```bash
 pip install ipykernel
@@ -172,12 +153,12 @@ for. The overview, and what absorbed what in the twenty-to-ten rebuild, is in
 | Table | Holds |
 |---|---|
 | `country` | ISO-2, name, map coordinates, and the structural facts masking cannot replace |
-| `article` | Every article from every source; `source_system` separates google-news / guardian / gdelt / nyt |
-| `llm_artifact` | Content-addressed model output — digests and mask rewrites, keyed on a hash of the text |
+| `article` | The retired historical corpus (Guardian, NYT, GDELT); nothing writes it now |
+| `llm_artifact` | Content-addressed model output — the digest cache, keyed on a hash of the text; retired rewrite/context rows |
 | `indicator_series` | Every macro observation at any frequency, one key, one vintage rule |
 | `risk_snapshot` | The product: score, summary, ledgers, flags, Top-3, lint, input manifest |
-| `snapshot_diagnostic` | Probes and diagnostic arms — everything measuring the instrument, not the country |
-| `run_ledger` | One row per unit of work: scheduler jobs, harvest windows, scored anchors |
+| `snapshot_diagnostic` | Live identifiability probes (read by nothing yet), plus retired diagnostic arms |
+| `run_ledger` | One row per unit of work: scheduler jobs, plus retired harvest and pilot rows |
 | `market_price` | Live prices plus their quarter/year-start reference closes |
 | `news_alert` | The globally ranked alerts feed, replaced whole each run |
 | `economic_calendar_event` | Upcoming events with an AI importance score |

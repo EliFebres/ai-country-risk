@@ -1,21 +1,127 @@
 # Deferred
 
 Decisions taken and deliberately not acted on, with the reasoning attached so the
-next session does not re-derive it. Nothing here is a bug; each is a real choice
-waiting for the right moment — except the frontend section at the bottom, which
-is work that is genuinely owed.
+next session does not re-derive it. Items marked HIGH or broken are owed rather
+than elective.
 
 Resolved items are removed rather than annotated. If it is here, it is still
 true.
 
+**Rewritten 2026-09-15 for the live product**, when the historical backfill was
+scrapped. The items that pivot made moot are listed, with their old numbers, at
+the end of [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md).
+The old list is in git at `6cd18dd`.
+
 ---
 
-## The frontend rewrite map
+## 1. HIGH — the published score is not repeatable
 
-**This is the one item that is broken rather than deferred.** The ten-table
-rebuild dissolved the tables three frontend queries read, and nothing under
+**The top open issue.** A live rating that reads 58 this week and 75 on a re-run
+of the same week, from the same evidence, is a product defect. The measurement
+says that can happen.
+
+Ten repeats of the production call — `gpt-4o-2024-08-06`, `temperature=0`,
+`seed=42`, strict schema — on real assembled payloads of 11–13k tokens:
+
+| model | worst `score_12m` spread | by band (calm / moderate / stressed) | reproduced its own scored output |
+|---|---|---|---|
+| `gpt-4o` (production) | **17 points** | 5 / 17 / 0 | 0 of 10, every band |
+| `gpt-4.1` | 9 points | 4 / 9 / 0 | 0 of 10, every band |
+
+These are max-minus-min spreads, not ±. The weekly move the instrument exists to
+detect is about 5 points. The composite also hides movement: on the stressed band
+`score_12m` was 82 ten times while `sovereign_stress` flipped and
+`evidence_coverage` alternated 75/85.
+See `docs/historical-ratings-postmortem.md` §3.
+
+**Caveat on the number, not the problem.** It was measured on payloads built from
+the retired historical corpus. Repeat-spread on identical input should not depend
+much on what the input says, so the direction is expected to hold. Re-take the
+value on live payloads before quoting it. That re-measurement is the first step
+whichever option is chosen, and costs a few dollars: ten repeats × three live
+countries × two models.
+
+**Options, as already identified:**
+
+- **(a) Repeat and average.** Score N times and publish the mean or median.
+  - Noise falls roughly as 1/√N, so five repeats take a 17-point spread to about
+    7–8.
+  - Cost and latency scale by N on the scoring call only; digests are cached, and
+    the mask rewrite could be cached too.
+  - Median rather than mean, because the draws are integer and bunch.
+  - Also yields a per-week spread that can be published as its own uncertainty.
+- **(b) Change the reported unit.**
+  - **Bands:** Low / Low-Moderate / Moderate / High / Extreme, which the prompt
+    already defines. A 17-point spread still crosses band edges, so bands alone
+    do not solve it and probably want (a) underneath.
+  - **Ledger direction:** improving / holding / decaying per ledger, week on week.
+    Coarseness damages a direction far less than a level, and the stressed-band
+    example above is the composite being stable while a flag was not. Direction
+    of what moved may be the more honest unit.
+- **(c) Change scorer.** `gpt-4.1` measured 9 points. It is cheaper per snapshot,
+  and nine points is still above the weekly move. It changes the instrument
+  rather than fixing its noise, so it wants (a) or (b) anyway.
+
+**What must not happen** is publishing the integer as it stands while this is
+open.
+
+**Absorbs:** the old determinism canary (§10) and "report with an uncertainty
+band" (§30). A canary — one stored live payload re-scored on a schedule,
+comparing scored fields only — is how option (a) or (b) would stay honest after
+it ships. Determinism is a property of how the model is served, so it can move
+with no change on our side.
+
+## 2. DECISION — masking is now a choice, not a necessity
+
+**Not changed. Written down so it is decided rather than inherited.**
+
+Scoring runs masked: every name, city, person, party, currency and institution
+becomes the role it plays; every number is kept (`docs/pipeline.md` §7). It was
+built because a **backfill** must not leak hindsight — a model scoring Türkiye in
+2018 remembers how 2018 went — and because a series must be one instrument from
+end to end. With no backfill, the hindsight reason is gone.
+
+**The case for keeping it.** Masking also stops the model scoring a country from
+its stored *reputation* rather than from this week's evidence. "Turkey" carries a
+prior; "the country, with these numbers and these events" does not. The claim the
+product rests on — this rating reflects this week's evidence — is arguably only
+true under masking. Dropping it would make the rating partly an opinion about the
+country's name.
+
+**The case against.**
+
+- It costs money and latency on every run: a model sweep over every fresh digest,
+  and three body rewrites per country per run, which live does not cache.
+- The rewrite fails closed, so a failed rewrite silently costs the scorer one of
+  its three full texts.
+- Masking removes legitimate priors along with illegitimate ones. Only 5 of 48
+  countries have the `structural_facts.yaml` block that states them back.
+- `assert_clean` raising `MaskLeak` costs a country its whole weekly score.
+
+**What the decision needs, and does not have.**
+
+- **Evidence masking works live.** The identifiability probe runs on about one
+  country in six per run and writes `snapshot_diagnostic`, and **nothing reads
+  it**. Its only reader, `probe_bundles`, went with the backfill. So there is
+  currently no evidence either way. Before deciding, write the query: guess rate
+  per country over the live rows, against the null-bundle prior. The prior
+  function is recoverable from `6cd18dd:backend/llm/probe.py`. If masking stays,
+  that query becomes a report; if it goes, the probe goes with it.
+- **What masking changes about a live score.** Never measured on live evidence.
+  The old masked-vs-named divergence (7.2 points on PT) was on the historical
+  corpus.
+
+Absorbs the old two-run masking comparison test (§7).
+
+## 3. Broken — the frontend rewrite map
+
+**This is broken rather than deferred.** The ten-table rebuild dissolved the tables three frontend queries read, and nothing under
 `frontend/` was touched. There are no compatibility views. Every query lives in
 one file, `frontend/app/lib/risk-server.ts`.
+
+The deployed dashboard reads a third database that neither backend target is and
+that still has the old tables, so whether a route breaks depends on which
+database it points at.
 
 ### Survives untouched
 
@@ -25,6 +131,11 @@ one file, `frontend/app/lib/risk-server.ts`.
 | `/api/risk-summary` | `fetchLatestSummaries` | `risk_snapshot.bullet_summary` only |
 | `/api/prices` | `fetchMarketPrices` | `market_price` keeps its name and gains columns |
 | `/api/econ-calendar` | `fetchEconCalendarEvents` | the declined merge — table unchanged |
+
+`fetchJoinedLatestRisks` reads **every** `risk_snapshot` row per country into its
+history arrays, so the 157 historical rows scored on the retired corpus would
+appear as history on any database that holds them. The query to find them is in
+the postmortem, §5.
 
 ### Breaks loudly — 500s
 
@@ -43,7 +154,7 @@ throws uncaught. Do not read the `try` as protection.
 | Method | Effect |
 |---|---|
 | `fetchIndicatorAverageTrends` | `catch → {}`; the trend rail renders no lines |
-| `fetchChannels` | already empty — `live_tv_channel` **has never existed** in the database, in a schema that ran for months. `terminal-seed.ts` has always been the real source for that pane. Either create the table and write to it, or delete the query and the fallback dance with it |
+| `fetchChannels` | already empty — `live_tv_channel` **has never existed** in the database. `terminal-seed.ts` has always been the real source for that pane. Either create the table and write to it, or delete the query and the fallback dance with it |
 
 ### The rewrites, concretely
 
@@ -82,69 +193,63 @@ array, ordered by rank. The `rank BETWEEN 1 AND 3` CHECK is gone, so
 **`fetchIndicatorAverageTrends`** — the same table swap, grouped by `period`,
 filtered to `freq = 'A'`.
 
----
+## 4. HIGH — the relevance scorer cannot name Britain or America
 
-## 1. Persist the live run's articles
+Found by the corpus census (`docs/retrieval-diagnosis.md` §4), **live-affecting**.
 
-The daily run still discards every article it fetches once the snapshot is
-scored; only the top three survive, as JSONB on the row.
+`article_ranking.score_relevance` tests `if country_lower not in text` — a
+substring match on the roster's formal name. The press writes "Britain", "the
+UK", "America", "Washington". Across the stored corpus, the median share of
+articles clearing the relevance bar was:
 
-**Why it matters.** The series has a seam. The backfill's articles are stored
-forever; articles the daily run fetches after the pilot's window are thrown away.
-So today's news becomes tomorrow's unrecoverable history, and continuing the
-series past the pilot would mean re-harvesting a period already read. Persisting
-live articles is what closes that seam.
+- GB **6.6%** and US **10.4%**, the two highest-volume countries
+- Chile 45.6% and New Zealand 35.8%, which the press calls by name
 
-**Why not yet.** `article.source_system` already distinguishes google-news /
-guardian / gdelt / nyt whenever it is turned on, so this is a new write path
-rather than a schema change. Roughly 50–100 rows per country per week.
+Live, Google News pre-ranks the pool, so this does not currently show. Live is
+protected by the vendor, not by the scorer.
 
-There is a general lesson underneath this one, learned the expensive way: a cost
-estimate that depends on stored data should say *which* data, because the data
-can be deleted by work that has no idea the estimate exists.
+**The fix exists and is not wired.** `gazetteer.mentions(text, iso2)` resolves
+every surface form. It lost its only caller, the NYT adapter, in the backfill
+removal and is kept for this. It changes `score_relevance`'s signature from name
+to ISO2, touches every caller and test, and will move live scores — so it wants
+its own change and a before/after on a live week.
 
-## 2. An API layer between the two halves
+## 5. Persist the live run's articles
 
-A backend refactor breaks frontend routes only because the frontend queries
-Postgres directly, which makes column names the contract between the halves. The
-section at the top of this file is what that costs.
+The weekly run discards every article it fetches once the snapshot is scored;
+only the top three survive, as JSONB on the row. Nothing writes the `article`
+table any more.
 
-`frontend/app/lib/risk-server.ts` is the single file holding every query, so an
-API would have exactly one caller to replace. Worth deciding later whether it
-belongs; explicitly out of scope so far.
+**Why it matters now.** Two reasons:
 
-## 3. HIGH — thirteen indicators have no source, and one ledger runs on a single one
+- **Scoring can be re-run.** §1's re-measurement, and any change to the prompt or
+  the scorer, needs last week's evidence as it stood. Without stored articles, a
+  re-run is a re-fetch of a different week.
+- **The route back to history needs an overlap.** If a paid archive is ever
+  bought, the backfill has to be shown to be the same instrument as live on weeks
+  where both exist. Those weeks are being thrown away every Monday
+  (postmortem §4).
 
-**Raised 2026-08-29 from a footnote to the top of this list.** The count was
-never the point. The distribution is: of the `information` ledger's four
-registry codes, three are curated (`RSF.PRESS.SCORE`, `OBS.SCORE`, `UN.EGDI`)
-and `curated.csv` has never held a data row, so that ledger scores on **one**
-indicator — `IQ.SPI.OVRL`, and only since the vintage fix made it visible at
-all. Before that fix it scored on **none**, at every backfilled anchor, for the
-length of the pilot. `edge` is second thinnest at 2.7 of 4.
+**Why not yet.** `article.source_system` already has `google-news`, so this is a
+new write path rather than a schema change. Roughly 50–100 rows per country per
+week. The removed `store.upsert_articles` (body beats stub, idempotent) is
+recoverable from `6cd18dd`.
 
-`friction` and `uncertainty` resolve about ten each. So two of the four ledgers
-the whole instrument is built on are carrying an order of magnitude less
-evidence than the other two, and nothing in the output said so until
-`payload_health` started counting.
+## 6. HIGH — thirteen indicators have no source, and one ledger runs on a single one
 
-That is a hole in the instrument rather than a missing input to any one
-experiment, and it may bear on why the ledgers behave oddly — `edge_vitality`
-resolving a whole year into three distinct values (`docs/scorer-bakeoff.md`)
-reads differently once you know it had at most three indicators underneath it.
+The count was never the point. The distribution is: of the `information`
+ledger's four registry codes, three are curated (`RSF.PRESS.SCORE`, `OBS.SCORE`,
+`UN.EGDI`) and `curated.csv` has never held a data row, so that ledger scores on
+**one** indicator, `IQ.SPI.OVRL`. `edge` is second thinnest at 2.7 of 4.
+`friction` and `uncertainty` resolve about ten each.
 
-Filling `curated.csv` is a research task with sources to cite, not a coding one,
-and is deliberately not squeezed into a session that was doing something else.
-The ranked fill order with per-source instructions is `backend/README.md:217`;
+So two of the four ledgers the whole instrument is built on carry an order of
+magnitude less evidence than the other two, and `payload_health` in every live
+manifest now says so.
+
+Filling `curated.csv` is a research task with sources to cite, not a coding one.
+The ranked fill order with per-source instructions is in `backend/README.md`;
 `RESERVES.USD` and `STAT.TAX.TOP.RATE` first, `RSF.PRESS.SCORE` third.
-
-### The original item
-
-
-
-`bootstrap` builds 25 of the 38 codes in `INDICATOR_REGISTRY`. The other thirteen
-are all curated-source, and `backend/data/curated.csv` ships with a header and
-**zero data rows**:
 
 ```
 GOV.DEBT.DOMESTIC.SHARE   National debt agencies / IMF Article IV
@@ -162,1087 +267,143 @@ UNWPP.DPND.OL.PROJ        UN WPP medium variant
 WUI.INDEX                 World Uncertainty Index
 ```
 
-Each is either a manual entry into `curated.csv` or a fetcher nobody has written.
-The ledgers score on the 25 that do arrive, and an absent indicator is absent
-from the payload rather than zeroed — so this degrades honestly. But it does
-degrade.
-
 The empty CSV is deliberate: a template with plausible-looking sample rows loads
 silently, reaches the model as evidence, and produces a confident score built on
-invented numbers.
-
-`python backend/main.py census PT` shows this per country. The ranked fill order,
-with the source for each, is in `backend/README.md`.
-
-## 4. A fresh clone has no WEO archive at all
-
-**Half closed 2026-08-30, and the surviving half is worse than this item said.**
-
-**Closed:** the *loaded* archive is complete. `indicator_series` on both
-databases carries **21 editions, 2016-04 through 2026-04**, each stamped with
-its own edition date — verified by query, not by counting files
-(`docs/pipeline-audit.md` §1, stage 1). Nothing in a payload is reading a stale
-vintage because an edition is missing from the store. The old wording, "the
-WEO fetch recovers 13 of 19 editions", described a *re-fetch* and was read as a
-statement about coverage; the coverage half is now answered.
-
-**Still open, and re-measured:** what a fresh clone gets, which is **nothing**.
-`backend/data/curated/weo_vintages/*.xls` is gitignored (`.gitignore:94`), so a
-clone starts with an empty folder and `fetch_editions` has to recover all 21.
-The last measurement of that recovery was 13 of 19 — 2016-04 → 2019-10 complete
-plus 2020-04, 2021-04, 2021-10, 2022-04, 2023-04, all byte-identical to the
-originals by SHA-256, with 2020-10, 2022-10, 2023-10, 2024-04, 2024-10 and
-2025-04 not recovered.
-
-Two things have changed since, both in the wrong direction:
-
-- **2025-10 and 2026-04 cannot be fetched at all.** The WEO database moved to
-  `data.imf.org` in October 2025 and `fetch_editions.py` still points at the
-  legacy path (it says so itself, `fetch_editions.py:265`). Those two were
-  downloaded by hand.
-- **And they are no longer on disk here.** The folder holds 19 `.xls` files;
-  `2025-10.xls` and `2026-04.xls` are absent. They reached the database and then
-  the files went. So the only copy of the two newest editions is the loaded rows
-  — nothing on this machine or in the repo can rebuild them.
-
-The gaps are *scattered*, which is worse than a clean cut-off: the vintage rule
-picks the newest edition not after the anchor, so a missing 2023-10 means every
-anchor from October 2023 to April 2024 reads April-2023 macro instead. Honest —
-the stamps say so — and staler than intended, and invisible unless somebody
-diffs the edition list against the store.
-
-**What it would take.** Point `fetch_editions` at `data.imf.org` (item 5 is the
-related question of whether the SDMX vintage dataflows retire the folder
-entirely), and re-run the clone-and-run test against the current 21 rather than
-the old 19. Until then the acceptance test passes for the schema, the roster,
-the World Bank panels, the BIS and IMF series and the curated files, and is
-**partial for WEO** — not because the archive has holes, but because the
-recovery path does.
-
-## 5. WEO vintage dataflows may retire `weo_vintages/` entirely
-
-Two vintage-specific SDMX dataflows are known. If they exist for older editions
-too, all nineteen `.xls` files become fetchable and the folder can go.
-
-**One query answers it — report, do not act.** The hard condition if it is ever
-wired up: it must be the *vintage* dataflow. Reaching only the current edition is
-not a substitute — stamping today's values as an October-2025 vintage injects
-present knowledge into past anchors, which is the exact failure the vintage store
-exists to prevent, and it would be invisible in the data.
-
-Verify against ground truth: TUR `NGDP_RPCH` must read 2024 = 3.328 and
-2025 = 3.494 with a last-actual-year marker of 2024. If the SDMX response carries
-no last-actual-year field at all, stop — the projection-exclusion logic has
-nothing to key on.
-
-## 6. `data_upsert` and `news_fetching` form a package-level cycle
-
-`data_upsert.store.article_row` calls `news_fetching.core.classify_themes` so a
-row with no query provenance still gets themed; the three adapters in
-`news_fetching` import `data_upsert.store` to write.
-
-The module graph itself is acyclic, so Python is happy. Inlining the classifier
-into `store` would break the cycle and also fork the shared core, which
-`test_news_fetching.TestNoAdapterForksTheCore` forbids by name. The alternative is
-moving `classify_themes` somewhere both can depend on. Not worth a move on its
-own; revisit if a third module needs it.
-
-## 7. The two-run masking comparison test is due
-
-Deleted in the test cut, with the note "re-add before the next masking change,
-not before the pilot".
-
-**Was:** `TestComparingTwoMaskingBehaviours` — the consumer of stored probe
-results behind `probe_bundles`. A bundle the sweep fixed reports as fixed, one
-that got worse reports as regressed, and a bundle only one run covered is kept
-rather than dropped. Plus outlet fingerprinting: whether the probe is reading the
-evidence or the newspaper.
-
-**Still guarded:** the probe's own scoring, restored in full.
-
-**Risk:** the probe can still be verified as correct; what is no longer checked is
-whether a *change* to masking made things better or worse across two runs. That
-comparison is how the 2026-08-03 sweep was validated.
-
-The bake-off moves the digest model into both masking version hashes, which is a
-masking change. This is due now.
-
-## 8. `SCORING_MODES` and the schema disagree about how many modes there are
-
-`config.SCORING_MODES` lists three — `masked`, `named`, `masked_nostructural` —
-but `risk_snapshot.scoring_mode`'s CHECK admits only two. The third arm never
-writes to `risk_snapshot`, so nothing is broken, but it is why the bake-off has to
-write its candidates to a file rather than to a third variant.
-
-Either widen the CHECK or say in the schema comment that the third mode is
-ledger-only by construction.
-
-## 9. `testing/test_llm.py` is past 1,000 lines
-
-1,270 lines. The agreed rule is to split only when a file passes ~1,000 lines
-*and* has a genuine seam. There is one — the probe measures the instrument rather
-than the country, the same line the schema draws for `snapshot_diagnostic` — but
-six folder files plus one invariants file is the agreed shape, so it stays whole
-for now.
-
-## 10. HIGH — a determinism canary, because the freeze cannot see behind a model id
-
-**Promoted 2026-08-29, and the reason changed.** This item argued that
-`gpt-4o`'s determinism could move without notice because it is a property of how
-the model is served. Measured across three payloads instead of one, it does not
-hold *now*: `gpt-4o` is exact on the Moderate payload it was measured on, and on
-neither the calm nor the stressed one — `edge_vitality` alternates between `60`
-and `null` across ten identical calls, and `score_12m` returns 90 once in ten on
-the stressed payload. Worst-band spread is 2 points, the same as `gpt-4.1`'s.
-See `docs/scorer-bakeoff.md`, *Determinism is payload-specific*, and §11.
-
-Two of the three things this item lists as load-bearing are therefore already
-weaker than assumed, on the model currently in production. The canary is no
-longer insurance against a future vendor change; it is instrumentation for a
-property that is known to be conditional.
-
-**What is now cheap that was not.** The blocking work this item described is
-done: `bakeoff._SMOKE_BANDS` holds the three payloads, per-repeat draws are
-persisted, and `_moved_fields` records *what* moved rather than only that
-something did — which is what this item asked for and could not have got from a
-match rate. What remains is the schedule, and `pytest` staying network-free is
-still worth more than putting it in the suite.
-
-### The original item
-
-
-
-`score.FROZEN_FIELDS` pins `SCORING_MODEL` and refuses to resume when it moves.
-That catches *us* changing the scorer. It cannot catch the scorer changing
-underneath a stable id.
-
-**Why it matters.** The bake-off established that `gpt-4o` is the only tested
-model that reproduces its own scored output at `temperature=0`, `seed=42`, and
-that this is very likely a property of **how it is served** rather than of
-anything in this repository — the same model went non-deterministic when only its
-schema grammar was weakened, and five other OpenAI models with the identical
-grammar vary anyway. See `docs/scorer-bakeoff.md`.
-
-So the reproducibility claim this project rests on depends on a property of a
-remote system that we do not control, cannot inspect, and have no notification
-for. If OpenAI re-tunes, re-quantises, reroutes or rebatches `gpt-4o` behind the
-id `gpt-4o-2024-08-06`, three things silently stop being true — the byte-for-byte
-rebuild check, a gate-2 repeat that measures an effect rather than noise, and a
-resumed pilot whose second half matches its first — and **nothing in the codebase
-notices**. Every version stamp still agrees, because every version stamp is about
-us.
-
-That is the same shape as the six defects already found here: a stamp that
-records what somebody wrote down rather than what actually happened.
-
-**What it would be.** One stored payload, re-scored a handful of times on a
-schedule, asserting the scored fields still match a committed expectation and
-failing loudly when they do not.
-
-- One canned payload, committed — `bakeoff._SMOKE_EVIDENCE` already is one, and
-  the three-anchor noise-floor set gives calm/moderate/stressed coverage across
-  three bands for a few cents.
-- Five repeats, `temperature=0`, `seed=42`, through the production wrapper.
-- Compare on **scored fields only** — `bullet_summary` and `subscore_evidence`
-  are not deterministic even on `gpt-4o` and would make the canary cry wolf on
-  its first run. `bakeoff._scored_only` already draws exactly this line.
-- Fail loudly, and record *what* moved. "The scorer changed" is a different
-  finding from "the scorer drifted by one point on one ledger".
-
-**Why not yet.** It is cheap but it is not free, and it wants a schedule rather
-than a test run — `pytest` must stay network-free, which is enforced and worth
-more than this. The natural home is a `util/tools/` command run on a cron beside
-whatever else gets scheduled, not a sixth file in `testing/`.
-
-**The honest caveat.** A canary that fires tells you the instrument moved; it
-does not tell you the stored series was wrong, and it cannot repair anything
-already written. Its value is that the next claim made about reproducibility is
-made knowingly. That is worth having and it is not worth over-building.
-
-## 11. Closed — production stays on `gpt-4o`; the benchmark incumbent is `gpt-4.1`
-
-**Resolved 2026-08-29**, after the evidence that reopened it was re-measured and
-one half of it turned out to be an artifact. Kept in full because the fork was
-live for a day and the reasoning on both sides is worth not re-deriving.
-
-### The decision
-
-| role | model | why |
-|---|---|---|
-| **Production scorer** | `gpt-4o-2024-08-06`, unchanged | below |
-| **Benchmark incumbent** — the discrimination and prompt-compliance reference a candidate is measured against | **`gpt-4.1`**, the stored `US-2019/gpt-4.1.json` and `TR-2018/gpt-4.1.json` arms | it is the best-resolving arm anyone has measured, and a bar set by what we happen to ship is not a bar |
-| **ρ disaster detector** | A′ — `p2-rebaseline`, `gpt-4o` on the current payload | an inversion matters against the series actually stored, which is what A′ is |
-
-Two different questions were being answered with one model name. Splitting them
-is what let the fork close: nothing about screening a local candidate requires
-production to migrate first, which was the sequencing claim in
-`docs/elicitation-ab.md`, and it is withdrawn.
-
-### Why production stays
-
-**The reason to move was discrimination, and the two correctness proxies that
-now exist both favour the incumbent.** Neither is adverse to `gpt-4.1` — see §29
-for the retraction of the number that was — but neither supports paying $747
-for the finer output:
-
-| measure | `gpt-4o` | `gpt-4.1` |
-|---|---|---|
-| crisis response, quiet-baseline (TR 2018) | **+0.115** (A′ +0.149) | +0.073 |
-| ρ, score vs mean selected relevance (TR 2018) | **+0.242** | +0.046 |
-| repeat spread on `score_12m`, worst of three payloads | **2 points** | **2 points** |
-
-**The third row was going to be the one that decided it, and then it was
-measured properly and stopped deciding anything.** The published 0-against-1 was
-taken on a single Moderate payload, the only one that existed. Re-run on three,
-`gpt-4o` is exact on that payload and on neither of the others — a whole ledger
-appears and disappears between identical calls on the calm one — and the two
-candidates are **level at 2 points**. See `docs/scorer-bakeoff.md`,
-*Determinism is payload-specific*.
-
-So the decision now rests on the first two rows and on cost, and it is a weaker
-decision than it would have been an hour earlier. Stated plainly because the
-temptation is to leave the determinism argument standing: it was the cleanest
-one, it is the one the 2026-08-27 decision was made on, and it is no longer
-true as stated.
-
-Determinism is still load-bearing for three things — the byte-for-byte
-`rebuild_snapshot` check, a gate-2 repeat that measures an effect rather than
-noise, and a resumed pilot whose halves match. What has changed is that **none
-of the three is as safe as they were believed to be**, on either model. §10 is
-therefore promoted from elective to owed, and its rationale is no longer
-speculative: the property it would watch is already known not to hold on two
-payloads out of three.
-
-**And the resolution problem has a cheaper answer that is certainly correct.**
-§30 — publish a band rather than a point — costs nothing and is right whichever
-scorer runs. §31 — predict changes rather than levels — is the modelling
-consequence, and coarseness damages a direction model far less than a level one.
-Buying ten distinct values for $747 addresses a symptom that §30 addresses for
-free.
-
-### What would reopen it
-
-The event study in §29, run to its new specification, showing `gpt-4.1` clusters
-score moves on dated events better than the incumbent. That is the one result
-that would make the finer output demonstrably the more correct output. Absent
-it, resolution and correctness remain different properties and only one of them
-has ever been measured.
-
-### The original item, as it stood on 2026-08-29
-
-**The 2026-08-27 decision was to stay on `gpt-4o-2024-08-06`, and on the axes it
-weighed it was right.** Migration cost ~$747, rank agreement 0.708, no constant
-offset to remove. Nothing below overturns any of those numbers.
-
-**What changed on 2026-08-29 is that a third axis got measured.** The scorer
-bake-off compared candidates on determinism, rank correlation and price. It never
-compared them on *discrimination* — how many distinct values the instrument can
-produce on a window where the evidence does not decide — because at the time
-nobody had a reason to think the scorer was what limited it. Four experiments
-then spent $25.72 looking for that limit in the payload and the prompt, and the
-answer was in `backend/bakeoff/US-2019/gpt-4.1.json` the whole time.
-
-`docs/elicitation-ab.md` has the full arc. The one comparison, on byte-identical
-payload, prompt, digest model, gazetteer, sweep, seed and `git_sha`:
-
-| US 2019 | distinct | round share | bands occupied | longest run |
-|---|---|---|---|---|
-| `gpt-4o` (A′) | 8 | 76.9% | `Moderate` **52 of 52** | 4 |
-| `gpt-4.1` | **18** | **5.8%** | LowMod 6 · Mod 43 · High 3 | 2 |
-
-This is a fork, not a recommendation. Both sides, stated as fairly as the
-evidence allows:
-
-**For moving.** Eighteen distinct values against eight, and thirteen against nine
-on TR. A round-number share of 5.8% against 76.9%, on a prompt that instructs
-against rounding. Three bands used against one — the incumbent has never, in any
-arm, put a single US 2019 anchor outside `Moderate`. And it is **~22% cheaper per
-snapshot on tokens sent** ($0.0309 against $0.0397, cache-neutral). Six
-interventions on payload and prompt could not buy any of that; one model swap
-bought all of it at no prompt cost.
-
-**Against moving.** Repeat-stability of ±1 point where `gpt-4o` is exactly 0. A
-re-score of ~$747 rather than a recalibration, because there is no constant
-offset to remove — `score.FROZEN_FIELDS` will refuse the resume, correctly. And
-the one that actually decides it:
-
-**No evidence yet that the finer output is the more correct output.** *(The
-paragraph that follows is the retracted one. Its baseline period contained the
-Afrin offensive; see §29 and `docs/elicitation-ab.md`.)* On TR 2018,
-which contains a large unambiguous crisis, every `gpt-4o` cell rises into
-August–September (+0.078, +0.051, +0.047) and both `gpt-4.1` cells drift *down*
-through it (−0.019, −0.014). `gpt-4.1` opens the year above where the incumbent
-peaks and never distinguishes the lira collapse from January. Its five largest
-weekly moves land in January, April and late December; the incumbent's largest
-lands on the week of 2018-08-13.
-
-That check is weak — one country, one crisis, article count as a crude proxy for
-evidence movement, and near-zero |Δscore| correlations for *both* models, which
-may indict the proxy. It is not a reason to reject `gpt-4.1`. **It is the reason
-not to spend $747 before item 29 is done.** Resolution and correctness are
-different properties, and only one of them has been measured. A model that
-spreads noise across thirty buckets scores better on discrimination than one that
-is coarse and right.
-
-**Sequencing, which this changes.** *(Withdrawn — see the decision at the top of
-this item. Naming a benchmark incumbent separately from the production scorer
-removes the dependency; the local-model screen is not blocked on a migration.)*
-The scorer choice must now settle **before**
-the local-model screen. Payload and prompt were already required to be final
-first, so that a candidate is measured against a fixed instrument; the scorer is
-now on that list, because whichever model is chosen defines the bar, and the two
-candidates set it ten distinct values apart on US 2019.
-
-**Related:** item 10, the determinism canary — `gpt-4o`'s determinism appears to
-be a property of how it is served, so it can move without notice and turn this
-from elective into urgent. Item 29, the event study that unblocks the fork.
-
-## 12. Closed — within-band discrimination was run, and the elicitation was not the constraint
-
-**Run 2026-08-29, both variants rejected.** Kept as a pointer because this item
-drove four sessions of work and the conclusion is the opposite of what it argued.
-
-`docs/elicitation-ab.md` is the write-up; `docs/payload-ab.md` attempt 3 has the
-pre-registered criteria and the verdicts.
-
-The test this item specified was run almost exactly as written — an explicit
-within-band instruction, same two windows, same criteria, pre-registration
-written cold. It failed, and *how* it failed is the finding:
-
-**The model obeyed.** It named a band and placed its score inside it on all 105
-anchors, coherently: measured as position within the band it itself named,
-`lower-middle` averages 0.38, `middle` 0.57 and `upper-middle` 0.88 of the way
-through. Only 2 of 52 US rows fall outside the band they named.
-
-**And the instrument did not resolve.** Distinct values stayed at 8, and all 52
-US anchors stayed in `Moderate` — because across fifty-two weeks the model used
-three placement buckets inside one band. Asked to split one coarse judgement into
-two decisions, it made two coarse decisions. This item's hypothesis was that
-"nothing in the prompt asks the model to separate two weeks inside one band";
-something now does, and the separation is not there to be asked for.
-
-The round-number share did fall, 76.9% → 67.3%, the first drop in six
-interventions. So the instruction reached the *snapping* without reaching the
-*resolution* underneath it, and cost a month of lag on TR doing it.
-
-**The diagnosis in this item needs one correction.** It states as a general
-finding that "an instruction is followed where the evidence is determinate and
-ignored where it is not", measured twice. Both measurements are real and both are
-`gpt-4o`'s. Across six scorers on the identical prompt, only the incumbent shows
-a large window-dependent gap in round-number share (50.3 points); `gpt-4.1-nano`
-and `gpt-4.1-mini` show it *reversed*, and `gpt-4.1` barely rounds on either
-window. It is a property of this model, not a law about models under ambiguity,
-and the difference matters because the second reading points at the scorer while
-the first points at the task.
-
-**What it argued for instead.** This item also proposed the cheaper answer —
-*report the series with an uncertainty band and stop claiming resolution the
-instrument does not have.* That is now the live option, and it is item 30.
-
-The two variants stay in the tree behind `PROMPT_VARIANT`, unset. See item 11 for
-where the discrimination question actually went.
+invented numbers. `python backend/main.py census PT` shows the gap per country.
+
+## 7. The theme classifier and the relevance heuristic both mistake noise for evidence
+
+Two shared-code defects the historical corpus made loud. Both are live-reachable.
+
+**`core.classify_themes` tags match reports as `information` and `edge`.** It does
+substring matching, and a match report is full of "attack", "defence" and "war".
+On the old corpus "Southampton 2-1 Watford" was tagged `information`. Live items
+are tagged by the query that found them, so the classifier is the fallback — but
+the Google News query itself matches "war" inside "tug-of-war". A World Cup hosting
+story scored 0.550 under `security` in a measured live week. Its own `ponytail:`
+note names the word-boundary upgrade.
+
+**`score_relevance` saturates on large countries and ties at the bar.**
+
+- `score = 0.3` for mentioning the country is identical to the 0.3 threshold, so
+  "clears the bar" means "the name appears".
+- `_BODY_MENTION_CAP = 0.55` caps any article whose title does not name the
+  country, which is most policy coverage and almost no sport.
+- On a big country the pool ties at the cap and recency breaks the tie.
+
+**`RELEVANCE_FLOOR_ENFORCED`** (off, `news_fetching/core.py`) stops the top-up at
+the bar instead of padding to twenty. Turn it on only after measuring what live
+weeks look like with it: `payload_health.articles.cleared_threshold` is already
+recorded on every snapshot, so that measurement is a query.
+
+## 8. `live_country_check.py` is broken against the current schema
+
+`backend/util/tools/live_country_check.py` runs the real `_process_country` and
+then verifies the write. Its `CORE_SCHEMA` still creates `indicator`,
+`yearly_value` and `risk_snapshot_article`, and its checks query them — the same
+dissolved tables as §3. So its checks fail against a database `bootstrap` built.
+The README still points at it as the way to test a snapshot write.
+
+Either rewrite its checks against `risk_snapshot` and `indicator_series`, or delete
+it. It is not a `main.py` subcommand.
+
+## 9. The `as_of` rules were built for a backfill, and live inherits them
+
+`indicator_series.as_of` means "when this number became public".
+`data_fetching/lags.py` re-dates rows from fetch date to period end plus a
+publication lag, and `upsert_indicator_series` enforces that on every write. That
+rule existed so a *historical* anchor could not read a number published after it.
+
+Live, it still decides what `staleness_days` reports to the model. **Every lag
+errs long**, so a live payload can call a reading older than it is.
+`country_data_fetch.panel_rows` goes the other way: it stamps 31 December of the
+value's own year, earlier than WDI/WGI actually publish. That was a leak for a
+backtest and is harmless live.
+
+**Decide:** keep the publication-date semantics, which is the better provenance
+and costs a little staleness accuracy, or stamp fetch dates live and drop the
+guard. Doing nothing is defensible; not knowing which is not. Absorbs the old
+fourth-fetcher item (§24).
+
+## 10. A fresh clone has no WEO archive
+
+`backend/data/curated/weo_vintages/*.xls` is gitignored, so a clone starts with an
+empty folder and `weo_fetch` has to recover the editions.
+
+- The last recovery measured 13 of 19.
+- **2025-10 and 2026-04 cannot be fetched at all**: the WEO database moved to
+  `data.imf.org` in October 2025 and `weo_fetch.py` still points at the legacy
+  path. Those two were downloaded by hand.
+- The folder here holds 19 files; the two newest exist only as loaded rows.
+
+The four `WEO.*` indicators in every live payload come only from these files.
+Live reads only the newest edition, so the scattered gaps that mattered for a
+backfill do not matter any more. **What matters is the next edition**, October
+2026, which nothing can fetch.
+
+**What it would take.** Point `weo_fetch` at `data.imf.org`, or check whether an
+IMF SDMX dataflow serves the current WEO directly. For live the latest edition is
+enough, which is much simpler than the vintage dataflow the old item wanted.
+
+## 11. Nothing reports what a fetch failed to get
+
+The weekly ETL reports what it wrote ("12,439 monthly row(s) written"), and that
+number is dominated by BIS. A week where the IMF CPI endpoint answered 7 of 48
+countries looks the same as a week where it answered all of them. That happened
+on 2026-08-28 and converged on its own by 2026-08-30.
+
+A coverage line per source — countries that got a print, out of 48 — is the
+missing habit. `payload_health` covers the model's side of it; nothing covers the
+fetch side.
+
+## 12. An API layer between the two halves
+
+A backend refactor breaks frontend routes only because the frontend queries
+Postgres directly, which makes column names the contract between the halves. §3 is
+what that costs.
+
+`frontend/app/lib/risk-server.ts` is the single file holding every query, so an
+API would have exactly one caller to replace. Worth deciding later whether it
+belongs.
 
 ## 13. A real migration mechanism, once there is a pattern
 
-`schema.create_all` now does double duty — creation and forward migration — via
-the `MIGRATIONS` tuple added for `llm_artifact.kind`. That is deliberate and
-documented at the block, and it is one constraint.
-
-Adopt a versioned mechanism when there are two or three and there is something to
-generalise, not a framework for a single CHECK. The thing to watch for: a
-migration that is not idempotent, or one that must run in a specific order
-relative to another, is the signal that the tuple has outgrown itself.
-
-## 14. The Guardian daily allowance is not a constant
-
-`docs/scorer-bakeoff.md` carries a roster estimate derived from one measurement:
-1,461 page-calls before `X-RateLimit-Remaining-Day` reached zero on 2026-08-15.
-On 2026-08-28 the wall arrived after **328**.
-
-So the remaining harvest — KR 2023–2026, all of BR, US 2024–2026, reported by the
-harness as 18 country-years and ~774 calls — is **two to three days, not one**,
-and any estimate quoting 1,461 should be re-derived from observed daily rates
-rather than from a single day's ceiling. The harness already reports what it
-spent and what is left every time it stops, which is the right place to read this
-from.
-
-## 15. Closed — the fetchers date their own rows, and the upsert enforces it
-
-Kept as a pointer because the diagnosis here was right and the cost it named
-turned out to be larger than it estimated.
-
-This item said three of four macro fetchers stamped `as_of` with the fetch date,
-that `restamp.py` existed to correct exactly that and nothing called it, and that
-the leak was *starvation* rather than contamination — a 2019 payload reading no
-number rather than a wrong one. All correct.
-
-What it under-counted was the damage. Measured on 2026-08-29 at a 2019 anchor,
-the pilot corpus resolved **14.7 of 38 indicators per country**, and the
-**information and edge ledgers resolved zero** — not thin, empty, at every
-backfilled anchor for the length of the pilot. After the fix: 23.3 of 38, with
-information at 1.0 and edge at 2.7. Everything measured on a backfilled anchor
-was measured through that, the p2 reference and the GATE2 baseline included.
-
-`restamp` also could not have run: `read_all()` called
-`data_push._INDICATOR_SERIES_DDL`, deleted in the ten-table rebuild, so every
-path into the module raised `AttributeError` before touching a row. And its
-`apply()` upserted re-dated rows without deleting the originals — `as_of` is in
-the primary key, so it would have *duplicated* every row and left the fetch-dated
-copy, which carries the later date, still winning `_resolve`'s freshest-wins
-tie-break. It would have reported success and changed nothing anybody reads.
-
-Both fixed, the migration run against both databases, and the root cause closed
-at the chokepoint: `upsert_indicator_series` now re-dates any row whose `as_of`
-is implausibly late for its period, so the next fetcher added is not the fourth
-instance. See `git show fd3fa8d`, `d4a1017`, `f8db7d7`.
-
-**What is still owed** is item 24 below: the fourth fetcher, which stamps too
-*early* and leaks in the other direction.
-
-## 16. `util/pilot/` holds a harvest CLI that belongs under `news_fetching/`
-
-The folder rule is that code lives where its use lives, and `backend/util/` is
-not a drawer for the awkward. `backend/util/pilot/run.py` is a 492-line CLI whose
-subcommands span four packages: `guardian`/`nyt`/`gdelt`/`wayback` are
-`news_fetching`, `weo`/`monthly`/`restamp` are `data_fetching.vintage`,
-`score`/`diagnostic` are LLM-driven, and `report`/`pilot-report` are read-only
-reporting. Only the harvest half has an obvious home elsewhere.
-
-Splitting it is a wide, mechanical change across every doc and docstring that
-names `backend.util.pilot.run`, and it was deliberately not done in the same
-session that put the harvest on a cron — a rename landing at the same time as
-new automation makes both harder to bisect. Worth doing once the harvest has
-converged and the CLI is not being invoked four times a day.
-
-## 17. Closed — the IMF CPI endpoint converged on its own
-
-**Closed 2026-08-30.** This item recorded 919 rows across **7 of 48 countries**
-on 2026-08-28, with 41 countries returning nothing: 15 read timeouts at the 40s
-ceiling, 15 HTTP 503, 11 HTTP 500. It predicted its own resolution — "it half
-converges: `indicator_series` upserts are idempotent and the job is weekly, so a
-country that timed out this week may land next week" — and that is what
-happened.
-
-Measured on prod: **6,769 rows across 46 of 48 countries**, latest period
-`2026-07` (`docs/pipeline-audit.md` §1, stage 1). The endpoint was unreliable
-per request rather than rate-limiting a wide roster, which is why patience
-worked and why the diagnosis in this item was right.
-
-**What is worth keeping from it**, and is not fixed: nothing reports the
-shortfall. The run says "12,439 monthly row(s) written" and that number is
-dominated by BIS, so a week where CPI fetched almost nothing looks identical to
-a week where it fetched everything. A coverage line naming how many of the
-roster actually got a CPI print is the durable version of what this item was
-noticing, and it belongs with §20a — eleven consecutive failed Guardian
-checkpoints produced no summary line either. Both are the same missing habit:
-the harvest reports what it did and not what it failed to do.
-
-## 18. `source_system` carries two facts, and a merge overwrites one of them
-
-**Sized, and dormant again.** It is not a bug today because only one source has
-ever supplied a body for a given URL — Guardian writes bodies, NYT never does,
-so the branch below has never fired. It becomes one the moment a second body
-source exists, and the corruption is silent and irreversible.
-
-The third source that made this urgent was evaluated and rejected
-(`docs/news-source-evaluation.md`), so this is back to latent. Left here at full
-size because the sizing is the expensive part and it will be wanted verbatim the
-day another source is considered.
-
-`store.upsert_articles` resolves a URL collision with `ON CONFLICT (url) DO
-UPDATE`, and one branch of that update reads:
-
-```sql
-source_system = CASE WHEN EXCLUDED.body IS NOT NULL
-                     THEN EXCLUDED.source_system
-                     ELSE article.source_system END,
-```
-
-So the column answers "who discovered this row" until somebody supplies a body,
-and "who supplied the body" afterwards. With Guardian and NYT that never fires —
-NYT never writes a body. With newsapi.ai in the mix, a newsapi.ai body landing
-on a URL the Guardian already discovered **rebrands the Guardian's row**, and
-every count keyed on `source_system` moves with it: `counts_by_year`,
-`recovery_curve`, `reports.evidence_texture`, and `probe.source_mix_caveat`,
-which reads `nyt_share` to say whether an identifiability result is confounded
-by the source blend. All of those are measured against a Gate-2 baseline that
-assumed a fixed mix.
-
-**The fix is two columns.** `source_system` for discovery, immutable, set once by
-whoever first inserted the row; `body_source` for whoever supplied the body
-currently stored, mutable, following the existing CASE.
-
-**Estimated ~6 files, ~30 lines**, and it is *not* only a column plus a backfill
-— that is why it was estimated rather than done:
-
-| Site | Change |
-|---|---|
-| `schema.py` TABLES | `body_source TEXT` on `article` |
-| `schema.py` MIGRATIONS | `ADD COLUMN IF NOT EXISTS`, then `UPDATE article SET body_source = source_system WHERE body_source IS NULL AND body IS NOT NULL` — correct precisely because today's column already means "who supplied the body" for rows that have one |
-| `store.article_row` + `_ROW_COLUMNS` | set and carry it |
-| `store.upsert_articles` | drop the `source_system` CASE, add it on `body_source` |
-| `store.recovery_curve` | group by `body_source`; it is a body-outcome curve |
-| `snapshot_select.to_item` | decide which fact `source` means — the probe reads it |
-| `reports.py:238,545` | the per-source bucket |
-
-**Why it waits.** It rewrites the merge semantics of every existing row, which
-does not belong in the same commit as a new adapter. And its correctness lives
-entirely in the DB-gated tests (`TestBodyBeatsStub`,
-`TestBodyStatusTransitions`), which skip unless `HISTORY_TEST_DATABASE_URL` is
-set — so doing it without standing up a test database first would be changing
-the most dangerous SQL in the codebase unverified.
-
-**Do it before the first write from any second body source**, not on a
-schedule. Nothing is at risk while Guardian is the only source writing bodies.
-
----
-
-## 19. The Guardian adapter has no body-length floor, and now we know what that cost
-
-**Measured 2026-08-28: almost nothing, and that is the finding.**
-
-`adapters.guardian` decides a body is a body with `if item.get("text")` — bare
-truthiness, so a one-character string is stored as `body_status='recovered'` and
-nothing downstream re-checks it. No adapter in the tree applies a length floor.
-
-The obvious worry was that the corpus's headline body-coverage number had never
-been validated, and that Gate 2's evidence quality and the p3 context blocks
-were built on stubs. Audited over all 51,872 Guardian rows marked `recovered`:
-
-| below 1,000 chars | below 400 | null | mean | median | min |
-|---|---|---|---|---|---|
-| 131 (0.25%) | 6 | 0 | 8,234 | 5,599 | 206 |
-
-So the missing check is a **latent** risk, not a realised one: the Guardian
-returns whole articles, and 0.25% of rows sitting under a floor it never
-promised to clear is not a corpus problem. Gate 2 was not overstated.
-
-Two things follow. First, the floor is not worth retrofitting to Guardian for
-data-quality reasons — 131 rows. Second, the distribution is **continuous, not
-bimodal** (206→390: 6 rows, 800→997: 72, 1,600→1,799: 329, rising smoothly), so
-there is no natural cut to read off it. Any floor is a judgement call rather
-than something the data hands over, which is worth knowing before the same
-question is asked of a source that aggregates 150,000 publishers.
-
-The query is one `SELECT` over `article WHERE body_status = 'recovered'`
-grouped by `source_system`, counting rows under the floor. Read-only.
-
----
-
-## 20a. BR's Guardian harvest failed eleven times and nothing retried it
-
-**Found 2026-08-28 while pricing a paid news API to fix a gap BR did not have.**
-
-`run_ledger` holds eleven `status='failed', note='request error'` rows for
-`variant='guardian', country_iso2='BR'` — every attempted window, zero articles,
-one call and ~20 seconds each — and two windows never attempted at all. BR has
-**zero** Guardian rows in `article`; its entire corpus is NYT abstract-only,
-which is why it fails all five theme floors where every other harvested country
-passes.
-
-The Guardian answers BR fine: one live call returned `pages=15, total=1421` for
-2019 alone. This is a transient failure that was checkpointed and forgotten.
-
-**It resumed on its own** — only `done` is skipped, so `run guardian --country BR`
-retried all eleven. BR 2019 alone came back with 1,421 rows in 65 calls and now
-passes every theme floor at 0% short. The remaining ten BR years are ~300 calls,
-comfortably inside a day's allowance, and are still owed.
-
-The real deferred item is not the retry, it is that **nothing reports this**.
-Eleven consecutive failed checkpoints on one country produced no summary line
-anybody read, and the gap surfaced only because a purchase decision went looking
-for it. `reports.harvest_pacing` already reads the ledger; a line naming
-countries whose windows are mostly `failed` would have caught it months ago.
-
----
-
-## 20. No harvest subcommand takes `--until`, so a single country-year is inexpressible
-
-`run.py` gives `--since` and `--country` to every harvest and `--until` to none
-of them, so a harvest always runs from its floor to today and **a single
-country-year cannot be expressed**.
-
-That cost real time during the 2026-08 source evaluation: comparing one
-country-year across sources meant calling `guardian.harvest_window` directly and
-hand-writing the checkpoint, because the CLI had no way to say "just 2019".
-Adding `--until` to the shared `for name in (...)` loop and threading an `until`
-parameter through `guardian.harvest` and `nyt.harvest` is a small change and it
-is the difference between a one-line comparison and a scratch script.
-
-
----
-
-## 21. Closed — newsapi.ai was evaluated and rejected
-
-Kept as a pointer rather than deleted, because the next person to notice that
-half the corpus has no bodies will have the same idea.
-
-The keyword top-up this item used to describe is moot: the adapter is removed
-(`git show 458140a`, `d707a8e`, `4d97c63`). The measurement that killed it is in
-**`docs/news-source-evaluation.md`** — a broad concept query against an index of
-~150,000 general-news publishers returns sport, so the source supplied twice the
-Guardian's volume and a worse fit to the ledgers, and the remedy cost more than
-the scoring it fed.
-
-The one durable requirement, if a body source is ever sought again: **it has to
-be retrievable per theme, or its volume is worth nothing.**
-
----
-
-## 22. The 2015–2016 lead-in was never harvested — a p3 prerequisite
-
-`config.HARVEST_FLOOR` is `2015-01-01`, but the earliest checkpoint in
-`run_ledger` anywhere is **2016-08-03**. Every country is missing its 2015 and
-2016-to-August windows: they are not `failed`, they were never attempted, so
-nothing retries them and `completed_windows` cannot tell them from windows that
-do not exist.
-
-Something moved the floor after those runs and no migration went back for the
-lead-in.
-
-**Why it is a prerequisite rather than a nice-to-have.** The trailing-context
-work (p3) reads a quarter of history behind each anchor, and `PILOT_START` is
-2016-08-03 — the *same date* as the earliest checkpoint. So the first anchors in
-the series have no lead-in behind them at all, and a context block built there is
-reading an absence it cannot distinguish from a quiet quarter. Any p3 rebuild
-should either harvest the lead-in first or refuse to build context for anchors
-whose window predates the corpus.
-
-Cheap to check, cheap to fix: `run guardian --since 2015-01-01` re-derives the
-windows and skips everything already `done`.
-
----
-
-## 23. 11.6% of Guardian bodies are clipped at `core.MAX_BODY_CHARS`
-
-Measured 2026-08-28: **6,165 of 53,377 Guardian rows have a body of exactly
-24,000 characters**, which is `core.MAX_BODY_CHARS`. 6,175 sit in the top 100
-characters below it. That is not the API's limit, it is ours — applied in
-`guardian.to_item` and in `wayback` before anything downstream sees the text.
-
-It is very probably fine and it has never been checked. The scoring stage reads
-`FULL_TEXT` for only the top two or three articles at 12k characters each, so a
-24k clip is twice what the prompt uses and the truncation is invisible to the
-score. What it does touch is `content_sha256`, which hashes the clipped body —
-so the provenance hash identifies "the first 24k of this article", not the
-article, and a future change to `MAX_BODY_CHARS` would silently re-hash 6,165
-rows into apparent changes.
-
-Worth one decision rather than one investigation: either the cap is part of the
-provenance contract and should be recorded next to the hash, or bodies should be
-stored whole and clipped at read time. Doing nothing is defensible; not knowing
-which is not.
-
-## 24. The fourth fetcher stamps too *early*, and that leaks
-
-`country_data_fetch.panel_rows` (`country_data_fetch.py:101,119`) escaped the
-fetch-date bug by stamping `as_of = min(31 December of the value's own year,
-today)`. That is why it was the one annual path that always worked, and it is
-also wrong in the opposite direction.
-
-WDI and WGI annuals land **9–18 months** after the year they describe — WGI
-publishes around September of year+1, which is why `lags._DEFAULT_BY_FREQ["A"]`
-is a full 365 days. Stamping 31-Dec-2018 on a WGI 2018 score claims it was
-public on a date when it did not exist, so an anchor between January and
-September 2019 reads a number nobody had. That is **leakage**, and it is the
-quiet direction: starvation makes a payload visibly thin, while leakage makes a
-backtest look good.
-
-Its current-year row is also capped at `today`, giving an `as_of` *earlier* than
-its own period end — a shape `lags.within_bounds` rejects. Deliberate, and
-pinned by `test_invariants.py:485`.
-
-Not fixed here, and deliberately outside the chokepoint guard added in
-`fd3fa8d`, which only re-dates rows stamped implausibly *late*. Re-dating these
-would move every backfilled annual by up to a year and change every historical
-score, so it wants its own session, its own before/after measurement, and its
-own re-baseline — the same treatment the late-stamping bug just got. The
-guard's test asserts it is left alone, so the exemption is recorded rather than
-accidental.
-
-## 25. The trend fields were computed, serialized, and read by nobody
-
-`_stamp` has emitted `trend_1y` and `trend_5y` on every indicator since p1 —
-38 indicators per country, every snapshot, in the JSON the prompt carries. On
-the fixed payload they are populated on 22 of 23 resolved indicators for US.
-
-Nothing reads them. No consumer, no test, no report, and `AI_PROMPT_V3`, which
-explains `as_of` and `staleness_days` in the same breath, never mentions them.
-`docs/pipeline.md:184` lists the stamped fields and omits them. `payload.py:15`
-states the intent plainly — *"a couple of change horizons are included, enough
-for the model to reason about trend and level"* — so the data was put there for
-exactly this and the instruction was never written.
-
-Another instance of the write-a-thing-nobody-reads pattern (item 15 numbered it
-at nine before this session added two more), and the first where the unread
-artifact was the exact thing a later session set out to build from scratch: a
-brief arrived proposing a computed trend block, and most of it was already in
-the payload, unmentioned.
-
-It is being measured rather than left — arm C of `docs/payload-ab.md` attempt 2
-is one prompt paragraph pointing at these two fields and nothing else. The
-standing rule this argues for: **every writer needs a consumer-side test**, and
-`payload_health` now counts these two fields for exactly that reason.
-
-## 26. The notebook writes clock-stamped rows to the real table
-
-`notebooks/country_rating_walkthrough.ipynb:459-471` upserts fetched rows
-straight into `indicator_series` with `as_of=AS_OF`, the snapshot anchor. Better
-than `date.today()` — it cannot leak into the anchor being scored — but it is
-still not a publication date, and it writes to production.
-
-The chokepoint guard in `upsert_indicator_series` now catches it, so this is
-closed in effect. Left recorded because a notebook that writes to the real
-database is worth knowing about independently of what it stamps.
-
-## 27. GATE2_BASELINE was captured on the degraded payload
-
-`GATE2_BASELINE.md` / `.json` (PT 2019, 52 masked anchors) were captured before
-the vintage fix, so every number in them was produced with the information and
-edge ledgers resolving zero indicators. The file's "Captured under" block
-records nine version stamps and none of them moved, which is precisely the
-problem: the contract looks identical and the evidence underneath it is not.
-
-Re-capturing is ~$2.20 and was not in this session's budget. Until it happens,
-the baseline is a regression check against a run that cannot be reproduced —
-comparing a post-fix run to it will show a difference on every meter, and that
-difference is the bug fix rather than a regression.
-
-The durable fix is the one now in place: `input_manifest.payload_health` records
-how many indicators each run actually resolved, so a future baseline states its
-own evidence depth instead of leaving it to be inferred from a version tuple.
-
-## 28. A criterion pre-registered against a field nothing writes
-
-Attempt 2 of the payload A/B pre-registered criterion (d) as *"share of
-`bullet_summary` outputs referencing direction"* — the diagnostic p3 lacked, and
-the one meant to tell an *ignored* block apart from a *diluting* one.
-
-Bake-off arm rows carry every number a run produced and none of its prose. So
-the field the criterion reads does not exist on the arm it was written for, and
-(d) went unmeasured on the run it existed to serve. It was noticed only when the
-verdicts were computed — after both arms had been paid for.
-
-The thirteenth instance of the write-a-thing-nobody-reads pattern, and the first
-that this project caused in its own instrumentation rather than found in its
-code: not a writer without a consumer, but a *consumer* specified without a
-writer. Recorded here rather than quietly dropped, because a session spent
-building `payload_health` to catch exactly this shape and then committing the
-mirror image of it is the most useful kind of example.
-
-`bullet_summary` is now captured on every arm row *scored after that commit*
-(`git show c788470`) -- which turned out to be one of the three arms it was
-added for, because A-prime and C had already run. See item 33. The durable lesson is narrower than
-"add a test": **a pre-registered criterion should be computed once against a
-dry-run or a stored row before the arms are paid for.** A criterion that cannot
-be evaluated is indistinguishable, at write time, from one that can.
-
-## 29. The event study — no longer a blocker, still worth doing
-
-**Raised 2026-08-29. Downgraded from HIGH the same day**, because the cheap first
-step it proposed was taken and it dissolved the blocker rather than confirming
-it. The crisis-response evidence that pointed away from `gpt-4.1` was wrong, and
-the Q1 peak is not a payload artifact. `docs/elicitation-ab.md` has the full
-rewrite; the summary:
-
-**The baseline period contained an undetected crisis.** Jan–Feb 2018 was assumed
-quiet. **Operation Olive Branch ran 20 January to 24 March 2018** and dominates
-the selected twenty at every February and March anchor. Against a period checked
-to be quiet (7 May – 18 June), every arm rises into the lira crisis:
-`gpt-4.1` +0.073, `gpt-4o` +0.115, A′ +0.149. The published −0.019 and −0.014
-were an artifact of the baseline. `gpt-4o` still responds more; it is no longer
-the case that `gpt-4.1` responds *backwards*.
-
-**The measure also failed a negative control** it was never given: the same
-statistic on US 2019, which contains no crisis, returns a mean |Δ| of 0.039
-against TR 2018's 0.054.
-
-**And the evidence proxy had no variance.** `snapshot_select.select` tops up to
-twenty by rank, so `articles` is **20 at all 676 stored US rows**. The ρ of
-−0.068 / −0.114 against |Δarticle count| was computed against a constant.
-Replaced by mean selected relevance, which varies: on TR 2018 `gpt-4o` is +0.242
-and `gpt-4.1` +0.046, so the incumbent tracks evidence weight and the candidate
-largely does not. That is the surviving point against `gpt-4.1`, and it is
-better founded than the one it replaces.
-
-**The Q1 peak, resolved.** Two different things: on TR an argmax artifact of a
-nine-value series (A′ ties its maximum at ten anchors, five in Q1 and five in
-Aug–Sep) over a real event-driven plateau; on US a genuine six-model agreement on
-`2019-03-11` / `2019-03-18` with article volume, macro vintage, theme mix and
-evidence relevance all ruled out read-only. It contaminates nothing.
-
-**Why the study is still worth doing.** Everything above is still one country,
-one year, and a level comparison between hand-picked periods. A dated event list
-for two or three countries, built from a source independent of the scoring
-payload, with score moves checked against events per scorer on the same anchors,
-is the real test. What it must now include, learned the expensive way:
-
-- a control period **verified quiet**, not assumed — the defect that produced a
-  published sign error;
-- a **negative-control window** with no crisis, which the measure must
-  distinguish;
-- an **evidence proxy with variance**, which `articles` is not.
-
-Those three are pre-registered in `docs/scorer-acceptance.md` as the condition
-for the event-validity criterion leaving provisional status.
-
-**Related:** §34, the relevance heuristic that saturates on US.
-
-## 30. Report the series with an uncertainty band, and stop claiming resolution
-
-**Raised 2026-08-29**, promoted out of the old item 12, where it was the
-"cheaper answer" that four sessions of instrument work kept deferring. It is now
-the only option on the table that costs nothing and is certainly correct.
-
-Whatever the scorer choice, the stored series has less information than its row
-count suggests. On US 2019, `gpt-4o` produces nine distinct values across
-fifty-two weeks, a third of weeks are identical to their neighbour, and every
-anchor sits in one band. That is not fifty-two independent observations.
-
-Two things follow, and neither needs the fork resolved first:
-
-- **Publish a band, not a point.** The instrument's own repeat noise (±1 point
-  for `gpt-4.1`, 0 for `gpt-4o`) is the wrong width; the right one is closer to
-  the granularity it actually uses, which on the ambiguous window is nearer five
-  points than one.
-- **Say which weeks are indistinguishable.** A run of identical scores is
-  information — it means the instrument could not separate those weeks — and
-  presenting it as a flat line implies a stability nobody measured.
-
-**Related:** item 31, which is the modelling consequence.
-
-## 31. Phase C inherits a sample-size question, not a modelling one
-
-**Raised 2026-08-29.** Recorded so it is not rediscovered as a modelling failure.
-
-A series with ~9 distinct values across 52 weeks, a third of weeks unchanged, and
-every anchor in one band has an effective sample size far below its row count.
-Fitting a level model to it will produce fit statistics computed against a
-quantised target, and they will look better than the instrument deserves.
-
-This argues for **predicting rating changes rather than levels** — a change of
-zero is a real observation, and the coarseness that ruins a level model is much
-less damaging to a direction model.
-
-**It is deliberately not decided here.** It should be decided against whichever
-scorer item 11 settles on, because the candidates differ by roughly a factor of
-two in exactly the quantity that decides it: 8 distinct values against 18 on the
-same window.
-
-## 32. Criterion (e) was measuring the provider's prompt cache
-
-**Found 2026-08-29, fixed, and three published verdicts are corrected.**
-
-`cost_summary` reports realised spend, which is the right number for a budget and
-the wrong one for a comparison: realised spend depends on the prompt cache, and
-the cache depends on which arm ran immediately before on the same anchors.
-
-V2 made it unmissable — it ran straight after V1, hit a **90.8% cache share
-against A′'s 3.9%**, and reported −36% per snapshot while sending *more* tokens
-than A′ in both directions. On tokens it is +2%.
-
-`bakeoff.cache_neutral_per_snapshot` now prices the tokens each arm sent, at
-list, so run order cannot move the number. Repriced:
-
-| arm | published | cache-neutral |
-|---|---|---|
-| B — trend block, TR | +17.0%, recorded as **(e) FAIL** | **+14.9%**, inside the line |
-| C — trend-prompt, TR | −10.2% (cheaper) | **+1.5%** (dearer) |
-| p3-context, TR | −3.9% (cheaper) | **+37.1%** (dearer — 3.53 calls/snapshot against 1.15) |
-
-No rejection reverses; all three were rejected on (a). But arm B's recorded
-reason for failing (e) was wrong, and two arms were described as cheaper than the
-baseline when they were dearer.
-
-**The durable lesson**, and it is the same shape as §28: a criterion should be
-computed against a stored row *and* checked for what else could move it. (e) was
-computable from day one, which is why the §28 dry-run rule did not catch this —
-it returned a real number every time, and the number was measuring something
-nobody named.
-
-## 33. `bullet_summary` is captured on one arm of the three it was added for
-
-**Recorded 2026-08-29**, the tail of §28.
-
-The §28 fix — capturing `bullet_summary` on bake-off arm rows — landed with arm
-B. A′ and C had already been scored, so the field exists on `p4-trend.json`
-(52/52 US, 53/53 TR) and on neither of the other two. Any future criterion
-reading it can baseline against B only.
-
-Not worth a re-score on its own. Worth knowing before someone pre-registers
-against it a second time and discovers it after paying.
-
-## 34. The relevance heuristic saturates, and the selector tops up with noise
-
-**Found 2026-08-29** while establishing that the Q1 peak was not a selection
-artifact. It is not one. But the selection has two properties nobody has
-written down, and both bear on how much any scorer can be blamed for.
-
-**It saturates on a large corpus.** `article_ranking.score_relevance` caps at
-`_BODY_MENTION_CAP = 0.55` whenever the country name is absent from the *title*,
-which is most of the time. On US 2019 the mean relevance of the selected twenty
-spans **0.47–0.55 across the whole year**; on TR 2018 it spans 0.30–0.75. So on
-the ambiguous window the selector is choosing twenty from a pool of 52–98
-articles that are almost all tied at the cap, and the tie is broken by
-`read_window`'s `published_at DESC, url ASC`. Which twenty articles a US anchor
-sees is close to arbitrary.
-
-That is a candidate explanation for a finding this project has attributed to the
-scorer: the round-number share is 69.2% on US and 18.9% on TR for the same model
-on the same prompt. Evidence that is genuinely less determinate and evidence
-that has been *flattened by a saturated heuristic* look identical from inside the
-prompt.
-
-**It tops up with noise.** `snapshot_select.select` fills to twenty by rank when
-fewer than twenty clear the 0.3 threshold. At thin TR anchors that admits
-articles matching the bird rather than the country — *"Going TV cold turkey"*,
-*"turkey meatballs gave an Oregon baby salmonella poisoning"* — at five of
-twenty slots on 2018-03-05. They arrive as evidence with a digest each.
-
-**Why it is deferred rather than fixed.** Changing either changes every stored
-score, so it invalidates the bake-off corpus, the GATE2 baseline and the p2
-reference simultaneously — the same treatment §24 is waiting for. And the fix is
-a judgement call rather than a bug fix: a floor that refuses to fill to twenty
-would make thin anchors visibly thin, which is more honest and is a different
-instrument.
-
-**Cheap and worth doing first:** record the selected set's mean relevance and
-the count clearing the threshold in `input_manifest.payload_health`, alongside
-the indicator counts it already carries. Both are computed during selection and
-thrown away, and having them stored is what let the §29 correction be made from
-disk rather than by re-scoring. Same lesson as §25 — every writer needs a
-consumer — pointed at the evidence side.
-
-
----
-
-## 35. HIGH — the pilot's regression baseline was measured on starved evidence
-
-**Raised 2026-08-30 from `docs/pipeline-audit.md`.** Not a Phase 1 blocker —
-Phase 1 runs US 2019 and TR 2018 — but it is a pilot blocker, and it should not
-stay in a paragraph of an audit.
-
-**PT 2019 is topped up below the relevance threshold at 52 of 52 anchors.**
-Measured by re-running the real selection path over every anchor of each window:
-
-```
-                candidate pool     clearing 0.3     SELECTED   topped up    mean selected relevance
-TR 2018 (53)   88 / 125 / 243    11 /  32 /  69    18-20      10 of 53    0.304 - 0.750
-US 2019 (52)  321 / 402 / 465    52 /  76 /  98    20 always   0 of 52    0.471 - 0.552
-PT 2019 (52)   39 /  56 /  96     2 /   6 /  16    20 always  52 of 52    0.120 - 0.394
-                min/med/max        min/med/max
-```
-
-The median PT anchor has **six** articles clearing 0.3 and is filled to twenty
-with fourteen that do not. At the worst anchor the mean relevance of the twenty
-the model scores is **0.120**, well under the bar. This is §34's "tops up with
-noise", and §34 understates it: on PT it is not a thin-week edge case, it is
-every week of the year.
-
-**Three things sit on top of that window.**
-
-1. **The highest round-number share of any window measured: 84.6%**, against
-   US 69.2% and TR 18.9% (recomputed from the stored rows, and the latter two
-   reproduce `docs/scorer-acceptance.md` §3 exactly). PT has never been
-   reported. Evidence that is genuinely indeterminate and evidence flattened by
-   a saturated selector look identical from inside the prompt, and PT is the
-   strongest case for the second reading anyone has measured.
-2. **`GATE2_BASELINE` was captured on it** — PT 2019, 52 masked anchors. So the
-   baseline the pilot regression-checks against was measured on the thinnest
-   evidence in the corpus. §27 already says it was captured before the vintage
-   fix; this is the second, independent reason it does not describe a run
-   anybody would want to reproduce.
-3. **It is the only window with measured look-ahead** — see §36.
-
-**What it would take, as three separable questions.** Do not conflate them.
-
-- **Is PT's Guardian coverage for 2019 complete?** The ledger says 13 of 13
-  windows `done` with no failures, and the candidate pool is 39–96 articles per
-  anchor. So this is very probably **selector-bound rather than corpus-bound** —
-  but confirm it from the ledger before acting, because the BR lesson (§20a) is
-  that a coverage gap and a forgotten failure are indistinguishable from row
-  counts.
-- **Is the shortfall corpus or selector?** If the pool genuinely holds only six
-  relevant articles a week for a small open economy, then twenty is the wrong
-  budget for PT and a floor that refuses to fill would be more honest — a
-  different instrument, and a better one. If instead
-  `article_ranking.score_relevance` is saturating the way it does on US
-  (`_BODY_MENTION_CAP = 0.55` whenever the country name is absent from the
-  title), the fix is in the heuristic and PT is simply where it shows worst.
-- **Does the baseline need re-capturing on a different window?** Probably yes,
-  and the question is which. TR 2018 is the only window with evidence weight
-  that actually varies (relevance spread 0.446 against US's 0.081), which makes
-  it the better regression subject and the worse *calm* one.
-
-**Deliberately not fixed here.** Changing either the threshold or the cap
-changes every stored score, invalidating the bake-off corpus, the GATE2 baseline
-and the p2 reference simultaneously — the same treatment §24 is waiting for. And
-it is a judgement call rather than a bug fix.
-
-**Cheap and worth doing first**, unchanged from §34: record the selected set's
-mean relevance and the count clearing the threshold in
-`input_manifest.payload_health`. Both are computed during selection and thrown
-away. The part-2 fingerprint now records what the *indicators* were; this is the
-same idea pointed at the evidence, and it is what would let the next version of
-this item be answered from disk instead of by re-scoring.
-
----
-
-## 36. `usable_body` trusts `api-native` unconditionally, and the Guardian is not a fixture
-
-**Raised 2026-08-30.** The mechanism behind §35's third bullet, and larger than
-the symptom that found it.
-
-`snapshot_select.usable_body` is where the no-future rule bites on bodies. It
-refuses a `wayback-` body captured on or after the anchor, and it returns an
-`api-native` body **unconditionally**, on this reasoning: *"the body arrived
-inside the search response, as the article itself."*
-
-**53,361 of 53,368 bodies on the pilot database are `api-native`** (7 are
-`live-refetch`; zero are `wayback-`). So the rule does not run on bodies at all,
-in practice.
-
-The premise is false for the Guardian. Its Content API serves the **current**
-version of an article, not the version that was published — and the proof is
-already in the corpus: **2,405 bodies carry a `This article was amended on
-<date>` footer**, and in a 400-row sample **284 of them are dated after their
-own `published_at`**. That text did not exist when the article was published.
-
-**Measured against the anchor**, which is the question that matters, by
-re-running the real selection path across all 157 stored anchors:
-
-| window | anchors affected | selected articles | of those, in the top-3 full-text slots |
-|---|---|---|---|
-| TR 2018 | **0 of 53** | 0 of 1,051 | 0 |
-| US 2019 | **0 of 52** | 0 of 1,040 | 0 |
-| PT 2019 | **6 of 52** | 6 of 1,040 (0.58%) | **2** |
-
-Furthest reach: a footer dated 2019-08-06 inside a body served at the 2019-07-29
-anchor, eight days past it. The two full-text hits are rank 1 at 2019-05-27 and
-rank 2 at 2019-01-14, both one day past — the two slots the scorer reads end to
-end rather than as a digest.
-
-**Zero on both Phase 1 windows, which is why this is not a Phase 1 blocker.**
-
-**The symptom is fixed and the mechanism is not.** The 2026-08-30 boilerplate
-strip removes amendment footers at `digest_engine.article_input_text`, so no
-footer of that shape reaches a payload any more. That closes the leak this
-particular text opened. It does not close the hole: any *other* post-publication
-edit the Guardian makes — a corrected figure, a rewritten paragraph, a headline
-change — arrives silently, carries no marker, and the guard waves it through.
-The footer was detectable precisely because it announced itself.
-
-**What a real fix looks like**, and why it is its own session:
-
-- **A per-source policy.** `api-native` is a statement about *transport*, not
-  about vintage, and it is being read as both. The Guardian serves current; a
-  source that serves as-published could keep the fast path.
-- **Or treat the amendment footer's date as the body's vintage** where one
-  exists, which is the cheap 90% and is honest about what it cannot see.
-- Either changes what every stored row was scored on, so it wants its own
-  before/after measurement and its own re-baseline — the same treatment §24 is
-  waiting for, and for the same reason.
-
-**Related:** §23, which notes `content_sha256` hashes a clipped body and so
-identifies "the first 24k of this article" rather than the article. Same family:
-a provenance field describing something narrower than its name suggests.
+`schema.create_all` does double duty — creation and forward migration — via the
+`MIGRATIONS` tuple added for `llm_artifact.kind`. That is deliberate and it is one
+constraint.
+
+Adopt a versioned mechanism when there are two or three and something to
+generalise, not a framework for a single CHECK. The signal it has outgrown the
+tuple: a migration that is not idempotent, or one that must run in order relative
+to another.
+
+The CHECK constraints still admit the retired values — `run_ledger` job types
+`harvest` and `snapshot`, `llm_artifact` kinds `rewrite` and `context`,
+`snapshot_diagnostic` kind `arm` — because stored rows carry them. Narrowing them
+means deleting those rows first.
+
+## 14. The trend fields are computed, serialized, and read by nobody
+
+`payload._stamp` emits `trend_1y` and `trend_5y` on every indicator — 38 per
+country, every snapshot, in the JSON the prompt carries. `AI_PROMPT_V3` explains
+`as_of` and `staleness_days` and never mentions them.
+
+The two arms that tested telling the model about them (trend-prompt, p4-trend)
+were measured on the retired corpus and are gone. So the question is open again,
+and cheaper than it was: either name them in the prompt (a prompt version bump,
+measured against §1's noise) or stop sending tokens nobody reads.
+
+## 15. The walkthrough notebook writes to the real database
+
+`notebooks/country_rating_walkthrough.ipynb` upserts fetched rows into
+`indicator_series` with `as_of=AS_OF`, and writes the digest cache. The chokepoint
+guard in `upsert_indicator_series` re-dates anything implausible, so this is
+closed in effect. Recorded because a notebook that writes to production is worth
+knowing about independently of what it stamps.
+
+## 16. `testing/test_llm.py` is past 1,000 lines
+
+1,348 lines. The agreed rule is to split only when a file passes ~1,000 lines
+*and* has a genuine seam. There is one — the masking tests measure the instrument
+rather than the country — but six folder files plus one invariants file is the
+agreed shape, so it stays whole for now.

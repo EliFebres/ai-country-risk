@@ -1,5 +1,7 @@
 # Pipeline audit — is the pipeline ready for a new scorer?
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). Written to ready the pipeline for a candidate scorer, which is no longer the plan. Still live: the unread `risk_snapshot` ledger columns (§1, stage 2). The payload dumps in §8 are from the retired corpus.
+
 **Run 2026-08-30. Read-only, $0 spent, no model call, and no request to any
 upstream source** — not to the Guardian, NYT, IMF, World Bank, BIS, FMP or
 OpenAI, so no rate limit was consumed and nothing was written anywhere. The only

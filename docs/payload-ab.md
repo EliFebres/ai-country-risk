@@ -1,5 +1,7 @@
 # The payload: what has to be in it before the model can discriminate?
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). Every arm here (p3-context, A′, arm B p4-trend, arm C, V1, V2) was measured on the retired corpus, and the variants are removed from the code.
+
 Two attempts, against the same criteria, recorded together so they can be read
 against each other. The scorer is settled at `gpt-4o`; this is the other half of
 the instrument.

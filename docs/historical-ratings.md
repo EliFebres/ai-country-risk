@@ -1,5 +1,7 @@
 # The History Machine: how a historical rating gets made
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). The backfill this describes was scrapped and its code removed. The masking description (§4) now lives in [`pipeline.md`](pipeline.md) §7; the commands in §11 no longer exist.
+
 Scoring a decade one week at a time, on the live code path. This document covers
 what the historical process anonymizes, what it excludes, what it costs, and how
 it is measured.

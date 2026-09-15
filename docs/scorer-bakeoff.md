@@ -1,5 +1,7 @@
 # Which scorer
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). The harness is removed and every real-payload number here was taken on the retired corpus. What survives as a finding — determinism belongs to serving and grammar, the noise floor, the price/noise inversion — is summarised in the postmortem §3. The 17-point noise is [`deferred.md`](deferred.md) §1.
+
 Whether a cheaper model can replace `gpt-4o-2024-08-06` as the pilot's scorer,
 measured rather than argued. Three rounds, 2026-08-27.
 

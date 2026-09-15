@@ -1,5 +1,7 @@
 # Two findings: an empty instrument, and an instruction that stops working
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). The historical payloads these findings were measured on are gone. §4, the tooling built to make them visible (`payload_health`, `article_set_sha256`, `RISK_DB_TARGET`), is live.
+
 Written 2026-08-29. Read this if you are trying to understand why the
 backfilled scores look the way they do, or why `docs/payload-ab.md` has two
 attempts in it.

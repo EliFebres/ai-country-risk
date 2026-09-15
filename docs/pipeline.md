@@ -1,8 +1,8 @@
 # How a country gets a risk score
 
-From raw data to a number on the map, end to end. Companion to
-[`historical-ratings.md`](historical-ratings.md), which covers the same pipeline
-pointed at the past.
+From raw data to a number on the map, end to end. The historical backfill that
+once shared this pipeline was retired on 2026-09-15; see
+[`historical-ratings-postmortem.md`](historical-ratings-postmortem.md).
 
 The authoritative sources are the code: `backend/util/pipeline.py` orchestrates,
 `backend/data_upsert/schema.py` defines every table, `backend/llm/constants.py`
@@ -49,15 +49,12 @@ python backend/main.py            # run forever — this is what production runs
 python backend/main.py --once     # one pass over every due job, then exit
 ```
 
-Six subcommands share the same executable. Each dispatches to a module that owns
+Three subcommands share the same executable. Each dispatches to a module that owns
 its own arguments, so `--help` after a subcommand is that module's own help.
 
 | Command | What it is for |
 |---|---|
 | `bootstrap` | build an empty database into a working one — six idempotent steps |
-| `backfill` | the History Machine CLI (see the companion doc) |
-| `rebuild PT 2019-06-03` | re-derive a stored snapshot and diff it against the stored row |
-| `probe --recorded` | re-probe stored bundles for identifiability |
 | `census PT` | every registry indicator against what actually arrives |
 | `weo-fetch` | download IMF WEO editions |
 
@@ -89,7 +86,7 @@ current in another.
 |---|---|---|---|
 | **World Bank** | none | `data_fetching/country_data_fetch.py`, `wb_series_fetch.py` | the annual macro panel plus the extra WDI/WGI/SPI/HCI registry codes |
 | **IMF SDMX 2.1** | none | `data_fetching/imf_macro_fetch.py` | monthly/quarterly prints, so a fast-moving economy is not stuck on a year-old annual |
-| **IMF WEO** | files on disk | `data_fetching/vintage/weo.py` | 21 per-edition vintages of inflation, growth, debt, net lending, current account |
+| **IMF WEO** | files on disk | `data_fetching/weo.py`, `weo_fetch.py` | 21 per-edition vintages of inflation, growth, debt, net lending, current account |
 | **BIS bulk** | none | `data_fetching/bis_bulk_fetch.py` | policy rates (`WS_CBPOL`) and USD exchange rates (`WS_XRU`) |
 | **Our World in Data / V-Dem** | none | `data_fetching/political_corruption_fetch.py` | the political-corruption index |
 | **Financial Modeling Prep** | `FMP_API_KEY` | `fmp_calendar_fetch.py`, `fmp_prices_fetch.py` | the ~14-day economic calendar, live quotes, treasury yields |
@@ -110,14 +107,13 @@ reachable source today, which is recorded in [`deferred.md`](deferred.md).
 ### `as_of` is when it became public, not what period it covers
 
 `indicator_series.as_of` is the day a reader could first have seen a number. It
-is a different fact from `period`, which is what the value describes, and the
-whole no-future rule rests on this column being honest.
+is a different fact from `period`, which is what the value describes.
 
-For the daily run the two are easy: every observation genuinely did arrive today.
-For anything historical they are not, and `data_fetching/vintage/lags.py` holds
-the per-indicator publication lags that re-date a row from "when we fetched it"
-to "when it was published". **Every lag errs long**, and is floored at period end
-so an observation can never predate the period it describes. Where a source
+A fetch stamps today, and `data_fetching/lags.py` holds the per-indicator
+publication lags that re-date a row from "when we fetched it" to "when it was
+published" — enforced in `upsert_indicator_series` on every write. The rule was
+built for the retired backfill; whether live wants it is `deferred.md` §9.
+**Every lag errs long**, and is floored at period end so an observation can never predate the period it describes. Where a source
 publishes a real release date — the WEO editions do — that date wins over the
 estimate, and the row is stamped `vintage_scheme = 'as-published-edition'` rather
 than `'publication-lag-estimate'`.
@@ -195,27 +191,129 @@ input yields `None` rather than a fabricated zero** — a metric absent from the
 payload is a statement about our evidence, not about the country.
 
 Everything is passed *into* the builder rather than read inside it, so the
-builder is pure and re-runnable over history, and each read degrades on its own.
+builder is pure and testable, and each read degrades on its own.
 No database, or no curated rows, costs the country that evidence and not its
 score.
 
 ## 7. The country is not named
 
-**Masking is the production regime, not an experiment.** `scoring_mode` defaults
-to `'masked'` and `PROMPT_VERSION` is `v4.5-no-publisher`. Before the
-payload is sent, every country name, city, person, party, currency and
-institution is replaced by the role it plays — "the country", "the capital", "the
-central bank" — while **every number is left exactly as written**.
+**Masking is the production regime.** Before the payload is sent, every country
+name, city, person, party, currency and institution is replaced by the role it
+plays — "the country", "the capital", "the central bank" — while **every number
+is left exactly as written**. `PROMPT_VERSION` is `v4.5-no-publisher`.
 
-The reason is the historical series: a model asked to rate Türkiye in 2018 may
-simply remember 2018. Scoring on evidence rather than on recall is what makes a
-2016 backfill and tomorrow's live run the same instrument, and doing it only in
-the backfill would defeat the point.
+It was built so a historical backfill could not score a country on the model's
+memory of how that year went. The backfill is gone
+([`historical-ratings-postmortem.md`](historical-ratings-postmortem.md)), and
+whether live scoring should keep masking is an open decision in
+[`deferred.md`](deferred.md) §2. The case for keeping it is that it makes the
+model score this week's evidence rather than the country's stored reputation.
+Nothing here changes until that is decided.
 
-The priors a name would have carried are supplied instead, by the `structural`
-block. The three masking layers, the gate that refuses to send a leaky payload,
-and the meter that measures whether any of it works are covered in
-[`historical-ratings.md`](historical-ratings.md).
+Two layers, one gate, and a meter, in the order they run:
+
+| | What it is | What it catches | What it cannot |
+|---|---|---|---|
+| **1** | `llm/gazetteer.py` — a hand-written list, deterministic and offline | names, demonyms, currencies, capitals, central banks, statistics offices, regions — and identification by elimination | anything nobody wrote down |
+| **2** | `llm/rewrite.py` — two model passes, one over digests + headlines, one over the bodies read end to end | this year's finance minister, this year's party, a named law, a named crisis | anything the model misses |
+| **gate** | `rewrite.assert_clean` — scans the outbound evidence, keys as well as values, against the whole roster | a leak either layer missed | nothing. It raises `MaskLeak` and the country is not scored |
+| **meter** | `llm/probe.py` — asks a cheap model to name the country, on about one country in six | how identifiable the bundle is | it never acts on what it finds, and nothing reads it yet |
+
+### Layer 1 — the gazetteer
+
+Every surface form that identifies a roster country is mapped to the functional
+role it plays: names become "the country", currency "the local currency", the
+central bank "the central bank", neighbours "a neighbouring country", and every
+*other* roster country "another country". Three properties the replacements are
+chosen for:
+
+- **Numbers survive.** A masked run that lost the magnitudes would be measuring
+  something else.
+- **Roles survive.** The scorer still needs to know a central bank did the thing.
+- **Region stays coarse.** "North Korea" becoming "the country" would be both
+  wrong and a giveaway.
+
+**Two passes, and the order is load-bearing:** `mask()` first, so the scored
+country's central bank survives as a role, then `mask_foreign()`. **Longest form
+first**, because "Bank of Korea" and "North Korea" both contain "Korea". **Two
+tiers**: five countries (US, TR, BR, PT, KR) are hand-curated down to statistics
+offices and wine regions; the other forty-three get name, demonym, capital and
+currency from the roster and `babel`.
+
+**Payload as well as prose.** `rewrite.mask_payload` masks dict keys as well as
+values, since the evidence carries labels like `"Exchange rate vs USD"`.
+`mask_item` masks every article field *except* an explicit short list — the
+polarity matters, because an allow-list once let two text fields through
+unmasked. A field whose whole value is a roster ISO2 code is masked; ISO2 inside
+prose is not, because "IT", "NO", "IN" and "AT" are words.
+
+**Deliberately not masked**, because each is ordinary English far more often than
+it is identifying: "real" and "won" (the unambiguous "Brazilian real", "KRW" and
+"R$" are masked), ambiguous currency codes (`PEN`, `COP`, `CAD`), bare "Amazon",
+and region phrases like "the South". The rule behind all of them: **a corpus that
+reads as damaged tells the scorer something was removed**, which is a worse leak
+than the word.
+
+### Layer 2 — what a list cannot know
+
+A model replaces what the list missed, under one shared rule block:
+
+1. keep every number exactly as written;
+2. every proper noun becomes the role it plays;
+3. for every country, not only the one being described;
+4. keep the region coarse — never a continent, bloc, currency, language or
+   demonym;
+5. named *things* count: laws, treaties, events, buildings, sports teams,
+   scandals;
+6. change nothing else.
+
+Rules 3 and 5 exist because the probe found "the Help America Vote Act", "the
+White House Situation Room" and "as bad as Brexit" identifying bundles the list
+had cleared.
+
+| pass | runs on | on failure |
+|---|---|---|
+| `sweep_digest` | every fresh digest, plus its headline | **fails open** — keeps the unswept digest |
+| `rewrite_body` | the three bodies the scorer reads in full | **fails closed** — the article degrades to its masked title |
+
+The digest prompt also runs in mask mode, because `actors: who did what to whom`
+reads as an instruction to name people. `SWEEP_VERSION` hashes the sweep prompt
+and the digest model, so a model swap changes the digest cache key.
+
+### The gate, and what it does not scan
+
+The whole roster, not just the scored country, because naming a different roster
+country lets a reader rule countries out by elimination. It scans the four
+serialized evidence strings, not the prompt template, whose worked examples name
+real countries as instructions.
+
+**Publishers are not countries**, so the gate cannot see them. Two leaks through
+that gap were removed:
+
+- the `source` field on every article entry;
+- publisher boilerplate in bodies — amendment footers, "Support the Guardian",
+  letters blocks — stripped at `digest_engine.article_input_text`.
+
+Publisher names in ordinary prose ("told the Guardian") were measured and left
+alone.
+
+### What replaces identity
+
+Masking removes legitimate priors with the illegitimate recall: a debt burden
+means one thing for a country that borrows in a currency it issues and another
+for one that cannot. Those priors are stated instead, in
+`backend/data/curated/structural_facts.yaml` — region, income group, commodity
+dependence, monetary sovereignty, reserve-currency status — each cited. Only 5 of
+48 countries have a block, and `input_manifest.masking.structural_fields` counts
+it per row.
+
+### What is not masked
+
+- **Stored text and the dashboard.** Masking is a transform at the scoring
+  boundary; the database and the frontend show real headlines.
+- **The sanctions lookup**, which runs on the real ISO2 before masking.
+- **URLs, ids, dates and scores.** URLs are never sent; `prompt_entries` carries
+  ids, because a slug like `.../turkey-lira-crisis` would hand over the answer.
 
 ## 8. The score
 
@@ -280,13 +378,12 @@ carried. Plus the macro vintage, the model id, the prompt version, the policy
 version, the seed, and under masking the five masking version stamps and the
 identifiability probe's answer.
 
-Hashes rather than copies: the point is to *detect* that an input changed.
+Hashes rather than copies: the point is to *detect* that an input changed. The
+manifest also carries `payload_health` — the registry's promised indicators
+against what reached the model, and how many articles cleared the relevance bar.
 
 Provenance is metadata, not the product. The whole assembly is wrapped — a bug in
 building the manifest degrades it to `NULL` and the snapshot still writes.
-
-`python backend/main.py rebuild PT 2019-06-03` re-derives a stored snapshot and
-diffs it against the row.
 
 ## 11. Where it all lands — ten tables
 
@@ -298,12 +395,12 @@ restarts.
 | Table | Holds |
 |---|---|
 | `country` | ISO2, name, map coordinates, and the `structural` facts masking cannot replace |
-| `article` | every article from every source; `source_system` separates google-news / guardian / gdelt / nyt |
-| `llm_artifact` | content-addressed model output — `kind` is digest or rewrite, `mode` is masked or named |
+| `article` | the retired historical corpus (Guardian, NYT, GDELT); nothing writes it now |
+| `llm_artifact` | content-addressed model output — the live digest cache, plus retired rewrite/context rows |
 | `indicator_series` | **every** macro observation at any frequency, one key, one vintage rule |
 | `risk_snapshot` | the product: score, summary, ledgers, flags, top articles, lint, manifest |
-| `snapshot_diagnostic` | everything measuring the *instrument* rather than the country — probes and diagnostic arms |
-| `run_ledger` | one row per unit of work: scheduler jobs, harvest windows, scored anchors |
+| `snapshot_diagnostic` | measurements of the *instrument* — live identifiability probes, plus retired diagnostic arms |
+| `run_ledger` | one row per unit of work: scheduler jobs, plus the retired harvest and pilot rows |
 | `market_price` | live prices plus their quarter/year-start reference closes |
 | `news_alert` | the globally ranked alerts feed, replaced whole each run |
 | `economic_calendar_event` | upcoming events with an AI importance score |

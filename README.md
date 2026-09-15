@@ -29,7 +29,7 @@ The **AI Country Risk Dashboard** is an open‑source web application that quan
 ## How the score is made
 
 A single structured-output call per country, under a versioned prompt
-(`backend/llm/constants.py`, currently `v4.0-masked-production`). There is no
+(`backend/llm/constants.py`, currently `v4.5-no-publisher`). There is no
 trained model and no weighted formula — the deterministic arithmetic in the
 pipeline is *input* to the model's judgement, never applied on top of it.
 
@@ -51,12 +51,18 @@ Two rules run through the whole thing:
   `util/lint.py` and corrected by nobody.
 * **The country is not named.** Scoring runs with the identity masked — names,
   cities, people, parties, currencies and institutions replaced by the roles they
-  play, every number left exactly as written. That is what makes a 2016 backfill
-  and tomorrow's live run the same instrument.
+  play, every number left exactly as written, so the model scores this week's
+  evidence rather than the country's reputation. Whether live scoring keeps it is
+  an open decision in [`docs/deferred.md`](docs/deferred.md).
 
-The full walkthrough is in [`docs/pipeline.md`](docs/pipeline.md); the masking
-layers, the exclusions and the measurement are in
-[`docs/historical-ratings.md`](docs/historical-ratings.md).
+**The score is a live instrument.** A historical backfill was built, measured and
+scrapped: the free news archives it drew on carry mostly sport for most countries.
+What it found, and what a paid-archive attempt would need, is in
+[`docs/historical-ratings-postmortem.md`](docs/historical-ratings-postmortem.md).
+The top open issue is that the score is not yet repeatable on a re-run
+([`docs/deferred.md`](docs/deferred.md) §1).
+
+The full walkthrough, masking included, is in [`docs/pipeline.md`](docs/pipeline.md).
 
 ## Getting Started
 
@@ -113,7 +119,7 @@ The `backend/.env` file is read by the ETL pipeline and the database upsert rout
  | `etl` | first tick of a new ISO week | Roster, econ calendar, IMF indicators, ledger sources, then a risk score for all 48 countries and the global alerts |
  | `panels` | every 30 days | Rebuilds every `wb_panel_wide` partition so World Bank revisions land |
 
- "When did this last run" lives in the `job_run` table, not in memory, so a restart or redeploy picks up where it left off — a box that was down for ten days comes back and immediately catches up on the week it missed. A job is stamped only when it succeeds, so a failure retries next tick. The weekly run takes several minutes because the news fetcher throttles requests to stay under Google's anonymous quota; prices do not refresh while it runs.
+ "When did this last run" lives in the `run_ledger` table, not in memory, so a restart or redeploy picks up where it left off — a box that was down for ten days comes back and immediately catches up on the week it missed. A job is stamped only when it succeeds, so a failure retries next tick. The weekly run takes several minutes because the news fetcher throttles requests to stay under Google's anonymous quota; prices do not refresh while it runs.
 
 ### Frontend setup
 
@@ -141,9 +147,7 @@ AI-Country-Risk-Dashboard/
 │   ├── main.py                 # The one executable: scheduler loop, plus subcommands
 │   ├── test.py                 # The one test executable
 │   ├── data_fetching/          # Any non-article data, from any source
-│   │   └── vintage/            # Per-edition IMF WEO, publication-lag dating
-│   ├── news_fetching/          # Any article, live or historical
-│   │   └── adapters/           # Guardian, GDELT, NYT harvesters
+│   ├── news_fetching/          # Google News articles: fetch, rank, enrich
 │   ├── data_upsert/            # Everything that reads or writes Postgres
 │   ├── llm/                    # Prompts, schemas, model clients, masking, digests
 │   ├── util/                   # Orchestration, and helpers belonging to no one folder
@@ -158,7 +162,7 @@ AI-Country-Risk-Dashboard/
 │   └── README.md               # Detailed frontend instructions
 ├── docs/                       # How the pipeline works, end to end
 │   ├── pipeline.md             # Country data -> risk score
-│   ├── historical-ratings.md   # The History Machine: masking, exclusions, meters
+│   ├── historical-ratings-postmortem.md  # Why the backfill was scrapped, what survives
 │   └── deferred.md             # Deliberate non-actions, with the reasoning
 ├── assets/                     # Screenshots / demo media
 ├── LICENSE                     # MIT license
@@ -174,12 +178,12 @@ absorbed what in the twenty-to-ten rebuild, is in
 | Table | Description |
 |-------|-------------|
 | `country` | ISO-2 code, name, map coordinates, and the structural facts masking cannot replace |
-| `article` | Every article from every source, live and historical |
-| `llm_artifact` | Content-addressed model output — digests and mask rewrites |
+| `article` | The retired historical corpus; nothing writes it now |
+| `llm_artifact` | Content-addressed model output — the digest cache |
 | `indicator_series` | Every macro observation at any frequency, from every source |
 | `risk_snapshot` | The product: 0–1 score, bullet summary, ledgers, flags, Top-3, provenance |
 | `snapshot_diagnostic` | Everything measuring the instrument rather than the country |
-| `run_ledger` | One row per unit of work — scheduler jobs, harvest windows, scored anchors |
+| `run_ledger` | One row per unit of work — scheduler jobs, plus retired harvest rows |
 | `market_price` | Live prices plus their quarter/year-start reference closes |
 | `news_alert` | The globally AI-ranked alerts feed |
 | `economic_calendar_event` | Upcoming economic events with an AI importance score |

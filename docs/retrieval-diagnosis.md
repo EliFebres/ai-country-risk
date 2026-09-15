@@ -1,5 +1,7 @@
 # The historical corpus was retrieved correctly and selected wrong
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). The historical programme this diagnosed was scrapped. Still live: §2 *Is the live path affected?* and §8 *Two things left* — both are in [`deferred.md`](deferred.md) §4 and §7. The recommendation in §8 to re-harvest is withdrawn.
+
 A spot-check found 90%+ of the stored historical articles irrelevant to country risk — sport
 and human interest, almost nothing on war, economics, trade or politics — against a live weekly
 feed that looks completely different. The hypothesis under investigation was that the historical

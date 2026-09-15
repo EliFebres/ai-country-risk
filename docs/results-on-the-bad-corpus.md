@@ -1,5 +1,7 @@
 # Results computed on the unfiltered corpus
 
+> **Superseded 2026-09-15** — see [`historical-ratings-postmortem.md`](historical-ratings-postmortem.md). Every result listed here was removed with the historical programme. The list stands as the record of what not to quote.
+
 **Read this before quoting any number from the pilot, the bake-off, or the A/B arms.**
 
 Every historical snapshot this project has ever assembled was selected by a relevance
