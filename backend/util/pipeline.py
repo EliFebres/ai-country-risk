@@ -32,9 +32,7 @@ from backend.llm import client as ai_client
 from backend.data_fetching import (
     bis_bulk_fetch, curated_loader, fmp_calendar_fetch, imf_macro_fetch, wb_series_fetch,
 )
-from backend.data_upsert import data_push, store
-from backend.llm import context as llm_context
-from backend.llm import trend as llm_trend
+from backend.data_upsert import data_push
 from backend.llm import gazetteer, probe, rewrite
 from backend.news_fetching import article_enrichment, article_ranking
 
@@ -480,29 +478,6 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         # None and behaves exactly as before — handing it today's date would
         # drop the current year's annual figures, whose period ends in December.
         vintage_as_of=as_of if historical else None,
-        # Only under the p3 contract, and only for a historical run: the block is
-        # four quarters *before* the anchor, which is a question a live run with
-        # no anchor cannot ask. Additive and non-fatal — `context.build` returns
-        # what it managed and the payload omits an empty block entirely, on the
-        # same reasoning as `structural`: an empty one reads to the model as
-        # "this country has no history", which is false and worse than silence.
-        trailing_context=(
-            llm_context.build(iso2, as_of, masked=masked,
-                              cache=digest_content_cache)
-            if historical and provenance.payload_variant() == "p3-context" else None),
-        # p4. Unlike p3 this needs no model call and no cache, so it is cheap
-        # enough to build inline -- and unlike p3 it is not restricted to
-        # historical runs: a live snapshot has an anchor too, and the trajectory
-        # of its own indicators is as true today as it is for a backfill. Kept
-        # behind the variant anyway, because the pilot's contract is p2 and an
-        # A/B must not be able to move the production payload by existing.
-        trend_block=(
-            _safe(lambda: llm_trend.build(
-                series, as_of,
-                theme_counts=store.counts_by_theme_quarter(
-                    iso2, as_of - timedelta(days=365 * 2 + 90), as_of)),
-                iso2, "trend")
-            if provenance.payload_variant() == "p4-trend" else None),
     )
 
     # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it anchors
@@ -583,7 +558,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             # cannot say which of them was thinner, and that is the whole of why
             # ten missing indicators went unnoticed for the length of a pilot.
             # Taken here rather than from `payload_census.census`, which rebuilds
-            # a payload without the structural and trailing-context blocks and
+            # a payload without the structural block and
             # would therefore record a number about a payload nobody sent.
             # The scorer's own violations ride in the same block, because the
             # question they answer is the same one: what did this run actually

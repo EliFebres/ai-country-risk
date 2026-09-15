@@ -25,14 +25,14 @@ import os
 import json
 import logging
 from datetime import date
-from typing import Any, List, Dict, Optional, Set, Tuple
+from typing import Any, List, Dict, Optional, Set
 
 from langchain_core.messages import SystemMessage
 
 import backend.llm.constants as ai_constants
 from backend.llm import client as ai_client
 from backend.llm import digest_engine
-from backend.util import policy, provenance
+from backend.util import policy
 from backend.llm import rewrite
 
 logger = logging.getLogger(__name__)
@@ -308,66 +308,7 @@ def _from_100(value: Any) -> Optional[float]:
         return None
 
 
-def _prompt_rules_and_version(payload: object) -> Tuple[str, str]:
-    """The rule blocks to append and the version to stamp, resolved together.
-
-    One function because they are one decision, and splitting them is how the
-    failure path came to disagree with the success path: `_failure_result` stamped
-    the module literal, so an arm running under `PROMPT_VARIANT` wrote `unscored`
-    rows claiming a prompt the run never rendered. That is the defect `2bd63a2`
-    fixed in `score.versions()`, one file over and still open here until now, and
-    it matters more since `e3dc94c` started recording unscored rows rather than
-    calling them complete.
-
-    Precedence is explicit rather than incidental. It used to be whichever branch
-    happened to assign last; a payload carrying the trailing-context block under
-    `PROMPT_VARIANT=trend` appended both rule blocks and stamped only the trend
-    version. The bake-off's one-axis test makes that unreachable from the harness,
-    but not from a hand-run, and a version that is wrong only when someone is
-    experimenting is wrong exactly when it is being relied on.
-    """
-    rules = ""
-    # Payload-derived first: the instruction follows the data. If the payload
-    # carries the block the prompt explains it; if it does not, the template
-    # renders byte-for-byte as it always has.
-    version = ai_constants.PROMPT_VERSION
-    if isinstance(payload, dict) and payload.get("trailing_context"):
-        rules += ai_constants.TRAILING_CONTEXT_RULE
-        version = ai_constants.PROMPT_VERSION_CONTEXT
-    if isinstance(payload, dict) and payload.get("trend"):
-        rules += ai_constants.TREND_BLOCK_RULE
-        version = ai_constants.PROMPT_VERSION_TREND_BLOCK
-
-    # Then the environment axis, which wins. These variants cannot follow the
-    # data because they add no data to follow -- `trend_1y`/`trend_5y` are in
-    # every payload told about or not, and the elicitation variants change only
-    # what is asked for. So this axis is env-selected and stamped, which is what
-    # keeps "told" and "not told" apart in the results.
-    variant = provenance.prompt_variant()
-    rules += {
-        "trend": ai_constants.TREND_FIELDS_RULE,
-        "within-band": ai_constants.WITHIN_BAND_RULE,
-        "vs-typical": ai_constants.VS_TYPICAL_RULE,
-    }.get(variant, "")
-    if variant:
-        version = provenance.prompt_version()
-    return rules, version
-
-
-# The schema each elicitation variant asks for. Absent from this map means the
-# base schema, which is every arm but two.
-_SCHEMA_BY_PROMPT_VARIANT = {
-    "within-band": ai_constants.RISK_SCHEMA_V3_WITHIN_BAND,
-    "vs-typical": ai_constants.RISK_SCHEMA_V3_VS_TYPICAL,
-}
-
-# What each variant asks the model to decide before it reaches a horizon. Kept
-# for the arm rows: the whole claim of these arms is that the extra decision is
-# made and not skipped, and that is only checkable if the answer is recorded.
-_ELICITATION_FIELDS = ("band", "band_placement", "typical_week", "delta_vs_typical")
-
-
-def _failure_result(payload: object = None) -> Dict[str, object]:
+def _failure_result() -> Dict[str, object]:
     """The no-score return shape, used by every failure path.
 
     Same keys as a successful call — the caller reads several of them
@@ -390,13 +331,12 @@ def _failure_result(payload: object = None) -> Dict[str, object]:
         "legal_gate": None,
         "non_investable": False,
         "model_id": ai_client.scoring_model(),
-        "prompt_version": _prompt_rules_and_version(payload)[1],
+        "prompt_version": ai_constants.PROMPT_VERSION,
         "policy_version": policy.POLICY_VERSION,
         # Same keys as a success, per this function's own contract: a caller
         # counting violations must not have to ask whether the call succeeded.
         # Empty rather than None -- nothing was validated, and nothing broke.
         "schema_violations": [],
-        "elicitation": {},
     }
 
 
@@ -439,7 +379,7 @@ def build_prompt(
             None is the named behaviour.
 
     Returns:
-        ``{prompt, prompt_version, rules, country_display, payload, articles,
+        ``{prompt, prompt_version, country_display, payload, articles,
         evidence_json, articles_json, fulltext_block}``. ``payload``,
         ``articles`` and ``country_display`` come back **masked** under
         ``mask_iso2``, so a caller that needs what was actually sent does not
@@ -487,11 +427,7 @@ def build_prompt(
         else "(no full-text articles supplied)",
     )
 
-    # Which rules are appended and which version is stamped, resolved in one
-    # place so the failure path cannot disagree with this one about what was
-    # rendered. See `_prompt_rules_and_version`.
-    rules, prompt_version = _prompt_rules_and_version(payload)
-    prompt += rules
+    prompt_version = ai_constants.PROMPT_VERSION
 
     if mask_iso2:
         # The gate, on the serialized blocks rather than on the objects they
@@ -511,7 +447,6 @@ def build_prompt(
     return {
         "prompt": prompt,
         "prompt_version": prompt_version,
-        "rules": rules,
         "country_display": country_display,
         "payload": payload,
         "articles": articles,
@@ -613,34 +548,26 @@ def country_llm_score(
         as_of=as_of, fulltext_ids=fulltext_ids, mask_iso2=mask_iso2,
     )
     prompt, prompt_version = built["prompt"], built["prompt_version"]
-    # The masked pair, rebound so everything below this line sees what was
-    # actually sent rather than what the caller passed in. `_failure_result`
-    # reads the payload for its version stamps, and under masking the two are
-    # different objects.
-    payload, country_display = built["payload"], built["country_display"]
 
     # Client construction is inside the guard, not just the call: a malformed
     # key or a langchain init error is as much a "this country did not score" as
     # a network timeout, and letting it propagate would contradict this module's
     # promise that a failure returns the no-score shape.
     try:
-        # The elicitation variants ask for two extra fields ahead of the
-        # horizons; every other arm gets the base schema unchanged.
-        schema = _SCHEMA_BY_PROMPT_VARIANT.get(
-            provenance.prompt_variant(), ai_constants.RISK_SCHEMA_V3)
+        schema = ai_constants.RISK_SCHEMA_V3
         structured_llm = ai_client.build_chat(api_key).with_structured_output(
             schema=schema, strict=True
         )
         data = structured_llm.invoke([SystemMessage(content=prompt)])
     except Exception as exc:
         logger.error("LangChain structured output error: %s", exc)
-        return _failure_result(payload)
+        return _failure_result()
 
     # Validate shape minimally
     if (not isinstance(data, dict) or "score_12m" not in data
             or "ledger_scores" not in data or "news_article_scores" not in data):
         logger.error("Model returned invalid structure: %s", str(data)[:300])
-        return _failure_result(payload)
+        return _failure_result()
 
     # Before the rescale, because the rescale is what destroys the evidence. A
     # `score_12m` of 250 is a model that misunderstood the scale; one line later
@@ -702,8 +629,4 @@ def country_llm_score(
         # clean answer, which is nearly always -- the point is that "nearly" is
         # now countable.
         "schema_violations": violations,
-        # Empty on every arm but the two elicitation ones. Reported, never read
-        # back into a score: `delta_vs_typical` is how the model reached its
-        # number, not a number anything here recomputes from.
-        "elicitation": {k: data[k] for k in _ELICITATION_FIELDS if k in data},
     }

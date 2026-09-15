@@ -42,30 +42,7 @@ _SCHEMA_VERSION = 1
 #   p1  the registry as it stood through the masked cutover
 #   p2  adds the IMF WEO block — aggregate real GDP growth, gross debt, net
 #       lending and the current account, all edition-vintaged
-#   p3-context  adds the trailing-context block: one masked paragraph per
-#       calendar quarter for the four completed quarters before the live window
-#   p4-trend  adds the computed trend block: five annual points and a stated
-#       direction per macro series, 1/3/5-year directions per ledger
-#       constituent, and article counts per theme per quarter. No model call
-#       inside it, unlike p3 -- so no cache, no nondeterminism, and it rebuilds
-#       byte-for-byte from `indicator_series` and `article`.
 PAYLOAD_VERSION = "p2"
-
-# The variants this build knows about, and the environment that selects one.
-# Unset is `p2`, which is byte-identical to the daily run — the same contract
-# `client.scoring_model()` holds for the model, and for the same reason: an A/B
-# must not be able to change what the pilot does by existing.
-PAYLOAD_VARIANTS = ("p2", "p3-context", "p4-trend")
-
-
-def payload_variant() -> str:
-    """Which evidence contract this process builds. Defaults to today's."""
-    variant = os.getenv("PAYLOAD_VARIANT") or PAYLOAD_VERSION
-    if variant not in PAYLOAD_VARIANTS:
-        raise ValueError(f"PAYLOAD_VARIANT must be one of {PAYLOAD_VARIANTS}, "
-                         f"got {variant!r}")
-    return variant
-
 
 # What `payload_fingerprint` says before any payload has been built. A real
 # value or this — never a plausible-looking empty string, which would compare
@@ -98,12 +75,8 @@ def payload_fingerprint() -> str:
 
 
 def payload_version() -> str:
-    """The version stamped on a row, environment override included.
-
-    Read rather than imported by anything that records a version, so a manifest
-    and a freeze say what the run actually built and not what the file says.
-    """
-    return payload_variant()
+    """The payload contract version stamped on a row."""
+    return PAYLOAD_VERSION
 
 # How the macro panel this snapshot consumed relates to real point-in-time data.
 # "as-published-latest" means: latest published values, silently revised by the
@@ -311,58 +284,11 @@ def macro_vintages(payload: Dict) -> Dict[str, Any]:
     }
 
 
-# The prompt axis, alongside the payload one. A variant here changes what the
-# model is *told*, never what it is given -- which is the only reason it can sit
-# beside `PAYLOAD_VARIANT` without the two becoming one experiment with two
-# causes.
-#
-#   ""       the template as it stands
-#   trend    adds a paragraph naming `trend_1y` / `trend_5y`, which every
-#            indicator has carried since p1 and nothing has ever read
-#
-# The two elicitation variants below change neither the evidence nor what the
-# model is told *about* the evidence. They change what it is asked to decide,
-# and in what order, because five payload and prompt interventions moved the
-# round-number share the wrong way and none moved the distinct-value count off
-# nine. See the schema comment in `llm/constants.py`.
-#
-#   within-band  name the band, place the score inside it, justify the placement
-#   vs-typical   describe this country's ordinary week, then score the departure
-PROMPT_VARIANTS = ("", "trend", "within-band", "vs-typical")
-
-
-def prompt_variant() -> str:
-    """Which prompt this process renders. Unset is today's, byte-for-byte."""
-    variant = (os.getenv("PROMPT_VARIANT") or "").strip().lower()
-    if variant not in PROMPT_VARIANTS:
-        raise ValueError(f"PROMPT_VARIANT must be one of {PROMPT_VARIANTS}, "
-                         f"got {variant!r}")
-    return variant
-
-
 def prompt_version() -> str:
-    """The prompt version this process would stamp, environment included.
-
-    The same defect `payload_version` was written to fix, in the sibling axis
-    and found the same way. `score.versions()` read `PROMPT_VERSION` as a module
-    literal while `langchain_llm` swapped in the context version at render time,
-    so `backend/bakeoff/US-2019/p3-context.json` records
-    `captured_under.PROMPT_VERSION = "v4.0-masked-production"` while every one
-    of its own rows says `v4.1-trailing-context`. A freeze that cannot see the
-    prompt its run used is not a freeze.
-
-    Only the environment-selected axis is resolvable here. The trailing-context
-    version is chosen from the payload's contents at render time and is recorded
-    per row in `prompt_version`, which is the honest place for a value that
-    depends on data this function cannot see.
-    """
+    """The prompt version stamped on a row."""
     from backend.llm import constants as ai_constants
 
-    return {
-        "trend": ai_constants.PROMPT_VERSION_TREND,
-        "within-band": ai_constants.PROMPT_VERSION_WITHIN_BAND,
-        "vs-typical": ai_constants.PROMPT_VERSION_VS_TYPICAL,
-    }.get(prompt_variant(), ai_constants.PROMPT_VERSION)
+    return ai_constants.PROMPT_VERSION
 
 
 def build_input_manifest(*,
@@ -421,8 +347,7 @@ def build_input_manifest(*,
         "prompt_version": prompt_version,
         "policy_version": policy_version,
         "payload_version": payload_version(),
-        # The bytes the model actually reasoned over, which nothing hashed until
-        # the trailing-context block made the omission expensive. `payload` above
+        # The bytes the model actually reasoned over. `payload` above
         # is the *panel* payload — the DB-facing one — and only `macro_vintages`
         # reads it; the evidence payload reached the prompt and left no trace, so
         # `payload_version` recorded which contract was used and never which

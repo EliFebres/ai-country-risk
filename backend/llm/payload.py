@@ -698,8 +698,6 @@ def build_evidence_payload(
     elections: Optional[Dict[str, List[dict]]] = None,
     vintage_as_of: Optional[date] = None,
     structural: Optional[Dict[str, Dict[str, Any]]] = None,
-    trailing_context: Optional[List[Dict[str, str]]] = None,
-    trend_block: Optional[Dict[str, Any]] = None,
 ) -> dict:
     """Build the three-ledger evidence payload the scoring model receives.
 
@@ -904,28 +902,6 @@ def build_evidence_payload(
     # indicator with no observation is omitted: an empty `structural` key would
     # read to the model as "this country has no structure", which is false and
     # is worse than silence.
-    # Older than the live window, and inside the evidence payload on purpose.
-    # Here it is masked by `rewrite.mask_payload` and gated by `assert_clean` via
-    # `evidence_json`, both of which already run over this dict whole. As its own
-    # prompt placeholder it would need masking by hand and a fifth string added
-    # to the gate, and the gate's comment — "these four strings are every byte
-    # the prompt carries that came from this country's data" — would quietly
-    # stop being true.
-    if trend_block:
-        # Inside the evidence dict for the same reason the context block is:
-        # `mask_payload` masks this whole object and `assert_clean` gates it via
-        # `evidence_json`, so a fifth prompt placeholder would need both wired by
-        # hand and would break the gate's "these four strings are every byte the
-        # prompt carries that came from this country's data".
-        payload["trend"] = trend_block
-
-    if trailing_context:
-        payload["trailing_context"] = {
-            "note": ("Older than the live window and non-overlapping with it. "
-                     "Evidence about trajectory, not prior assessments."),
-            "quarters": list(trailing_context),
-        }
-
     country_structural = (structural or {}).get(country_iso2)
     if country_structural:
         payload["structural"] = {
