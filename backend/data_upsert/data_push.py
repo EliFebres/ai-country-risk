@@ -1472,52 +1472,6 @@ def upsert_probe_result(
                          country_iso2, as_of)
 
 
-def read_probe_results(country_iso2: Optional[str] = None,
-                       mask_map_version: Optional[str] = None,
-                       sweep_version: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Stored probe results, newest bundle first.
-
-    What makes a re-probe a diff against a table rather than against a commit
-    message. Filters are optional and compose: no arguments returns everything,
-    a version pair returns one masking behaviour's baseline.
-    """
-    where, params = ["kind = 'probe'"], []
-    if country_iso2:
-        where.append("country_iso2 = %s")
-        params.append(country_iso2)
-    # The versions live inside `detail` now, so they are filtered as JSONB
-    # rather than as columns. Same selectivity at this scale — the whole table
-    # is tens of rows — and it keeps the key one string instead of four.
-    for field, value in (("mask_map_version", mask_map_version),
-                         ("sweep_version", sweep_version)):
-        if value:
-            where.append(f"detail ->> '{field}' = %s")
-            params.append(value)
-    with _transaction() as cur:
-        cur.execute(f"""
-            SELECT country_iso2, as_of,
-                   detail ->> 'mask_map_version'  AS mask_map_version,
-                   detail ->> 'sweep_version'     AS sweep_version,
-                   detail ->> 'probe_model'       AS probe_model,
-                   detail ->> 'probe_version'     AS probe_version,
-                   detail ->> 'guess'             AS guess,
-                   (detail ->> 'confidence')::float8 AS confidence,
-                   detail ->> 'evidence'          AS evidence,
-                   (detail ->> 'identified')::boolean AS identified,
-                   detail -> 'alternatives'       AS alternatives,
-                   (detail ->> 'insufficient_information')::boolean
-                       AS insufficient_information,
-                   (detail ->> 'n_articles')::int AS n_articles,
-                   detail ->> 'git_sha'           AS git_sha,
-                   created_at                     AS probed_at
-              FROM snapshot_diagnostic
-             WHERE {' AND '.join(where)}
-             ORDER BY as_of DESC, country_iso2
-        """, tuple(params))
-        cols = [d[0] for d in cur.description]
-        return [dict(zip(cols, row)) for row in cur.fetchall()]
-
-
 # --- Scheduler bookkeeping ---------------------------------------------------
 # The one place the process records "this job finished". main.py reads it on
 # every tick to decide what is overdue, so a restart or a week of downtime

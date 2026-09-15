@@ -33,8 +33,6 @@ Usage:
     python backend/main.py                       # run forever
     python backend/main.py --once                # one pass over every due job
     python backend/main.py backfill score --help # the pilot CLI
-    python backend/main.py rebuild PT 2019-06-03 # re-derive a stored snapshot
-    python backend/main.py probe --recorded      # re-probe stored bundles
     python backend/main.py census PT             # registry vs what arrives
     python backend/main.py weo-fetch             # download WEO editions
 """
@@ -80,8 +78,6 @@ STOP = threading.Event()
 SUBCOMMANDS = {
     "bootstrap": ("backend.util.tools.bootstrap", "build an empty database into a working one"),
     "backfill":  ("backend.util.pilot.run", "harvest, score and report the backfill"),
-    "rebuild":   ("backend.util.tools.rebuild_snapshot", "re-derive a stored snapshot and diff it"),
-    "probe":     ("backend.util.tools.probe_bundles", "re-probe stored bundles for identifiability"),
     "census":    ("backend.util.tools.payload_census", "every registry indicator vs what arrives"),
     "weo-fetch": ("backend.data_fetching.vintage.fetch_editions", "download IMF WEO editions"),
 }

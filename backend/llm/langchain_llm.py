@@ -224,7 +224,7 @@ def schema_violations(data: Any, schema: Dict[str, Any], *,
                       model_id: Optional[str] = None) -> List[Dict[str, Any]]:
     """Every constraint the answer broke, after decoding and before rescaling.
 
-    `bakeoff.grammar_risks(RISK_SCHEMA_V3)` names 21 constraints no
+    `RISK_SCHEMA_V3` carries 21 constraints no
     context-free grammar can express -- every ``minimum``/``maximum`` on the
     four ledgers, on ``impact``, ``score_3m``, ``score_12m`` and
     ``evidence_coverage``, the four ``["integer", "null"]`` unions, and

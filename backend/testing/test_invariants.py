@@ -1177,107 +1177,25 @@ class TestTheTokenCapsAreSetWhereTheyWereBreached:
         assert config.LEAKAGE_SCAN_BUDGET_USD == 3.0
 
 
-class TestARebuildKnowsWhetherItIsFree:
-    """`rebuild_snapshot` advertises itself as costing nothing, and the guard
-    that made that true was checking the wrong half of the cache key.
+class TestTheDigestCacheKeyCarriesTheMask:
+    """The masked digest key is `masked:{mask_map_version}:{sweep_version}`.
 
-    The masked digest key is `masked:{mask_map_version}:{sweep_version}`. The
-    guard compared the stored sweep against this tree's and let the row through
-    when they matched — so a gazetteer bump alone invalidated every digest while
-    the check reported clean, and a row with no sweep recorded passed
-    unconditionally. The row that surfaced it was stamped `g3` against a `g5`
-    tree with no sweep at all: the guard passed it and the "free" rebuild would
-    have bought twenty digests.
+    A guard that compared only the sweep let a `g3` row through against a `g5`
+    tree: a gazetteer bump alone must move every masked key, and a named digest
+    must never be served to a masked run -- it would put a president's name in
+    the prompt with every gate reporting clean.
     """
 
-    ITEMS = [{"id": "a1", "title": "T", "text": "body one",
-              "link": "https://e.test/1"},
-             {"id": "a2", "title": "U", "text": "body two",
-              "link": "https://e.test/2"}]
+    TEXT = "Central bank raises rates as inflation climbs"
 
-    def _shas(self, masked=True):
-        return [digest_engine._content_sha(digest_engine.article_input_text(i), masked)
-                for i in self.ITEMS]
-
-    def _cache(self, seeded=()):
-        class _Content:
-            rows = set(seeded)
-
-            def read_digest_cache(self, hashes, model, mode):
-                return {h: {"digest": {"what": "x"}} for h in hashes if h in self.rows}
-
-        return _Content()
-
-    def test_a_fully_cached_snapshot_reports_no_missing_digests(self):
-        assert digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
-            content_cache=self._cache(self._shas())) == []
-
-    def test_an_uncached_snapshot_reports_every_article(self):
-        assert digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
-            content_cache=self._cache()) == self._shas()
-
-    def test_a_mask_map_bump_alone_invalidates_every_masked_digest(self, monkeypatch):
-        """The case the sweep-only guard could not see: the cache key is
-        `masked:{mask_map_version}:{sweep_version}`, so a gazetteer bump moves
-        every hash even though the article text is untouched."""
-        cache = self._cache(self._shas())
+    def test_a_mask_map_bump_alone_moves_the_masked_key(self, monkeypatch):
+        before = digest_engine._content_sha(self.TEXT, True)
         monkeypatch.setattr(gz, "MASK_MAP_VERSION", "g99")
-        missing = digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True, content_cache=cache)
-        assert len(missing) == 2, "a gazetteer bump must miss every masked digest"
-        assert set(missing).isdisjoint(cache.rows)
+        assert digest_engine._content_sha(self.TEXT, True) != before
 
     def test_a_named_digest_is_not_served_to_a_masked_run(self):
-        """Both halves of the same article, and they must not collide: a named
-        digest reaching a masked prompt puts a president's name in it with every
-        gate reporting clean."""
-        cache = self._cache(self._shas(masked=False))
-        assert digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
-            content_cache=cache) == self._shas(masked=True)
-
-    def test_an_unreadable_cache_counts_as_no_coverage(self):
-        """Fails in the direction that refuses to spend, not the one that does."""
-        class _Boom:
-            def read_digest_cache(self, *a, **k):
-                raise RuntimeError("db down")
-
-        assert len(digest_engine.digest_coverage(
-            self.ITEMS, iso2="PT", as_of=AS_OF, masked=True,
-            content_cache=_Boom())) == 2
-
-    def test_the_rebuild_asks_before_it_spends(self):
-        """The seam: the guard has to be the coverage call, not a version compare."""
-        import inspect
-
-        from backend.util.tools import rebuild_snapshot
-
-        source = inspect.getsource(rebuild_snapshot.main)
-        assert "digest_coverage" in source
-        assert "sweep_version !=" not in source, \
-            "the sweep compare was the proxy this replaced"
-
-
-# ---------------------------------------------------------------------------
-# Byte-for-byte rebuild
-# ---------------------------------------------------------------------------
-
-class TestTheRebuildScriptReadsTheSamePayloadTheScorerWrote:
-    """`rebuild_snapshot` is `input_manifest`'s only consumer, and it was
-    comparing a manifest built from the panel payload against one built from the
-    evidence payload. Every rebuild reported `macro_vintages DIFFERS`, on every
-    row, for a reason that had nothing to do with the row."""
-
-    def test_it_builds_the_panel_payload(self):
-        import inspect
-
-        from backend.util.tools import rebuild_snapshot
-
-        source = inspect.getsource(rebuild_snapshot.rebuild)
-        assert "prepare_llm_payload_pretty" in source
-        assert "payload=panel" in source, "the manifest must get the panel"
+        assert (digest_engine._content_sha(self.TEXT, False)
+                != digest_engine._content_sha(self.TEXT, True))
 
 
 # ---------------------------------------------------------------------------

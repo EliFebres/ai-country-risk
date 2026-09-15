@@ -681,7 +681,7 @@ def scored(monkeypatch):
 class TestAClampLeavesARecord:
     """`_from_100` is a good safety net and was a terrible record.
 
-    `bakeoff.grammar_risks` names 21 constraints no grammar enforces -- every
+    `RISK_SCHEMA_V3` carries 21 constraints no grammar enforces -- every
     numeric bound, `maxLength`, and the four `["integer", "null"]` unions.
     LangChain forwards them under `strict: true` and they are not in the
     enforced subset, so production has the hole too. What stood in for

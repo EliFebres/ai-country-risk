@@ -78,9 +78,8 @@ from typing import Dict
 #
 # The version moves because the contract moved, and that is the point: unlike
 # the vintage fix, which changed nine indicators inside an unchanged `p2`, this
-# change is visible to `score.drift`, to `captured_under` and to
-# `bakeoff.compare_one`. An arm scored under v4.0 and one scored under v4.5 are
-# not comparable and now say so.
+# change is visible in every snapshot's `input_manifest`. A row scored under
+# v4.0 and one scored under v4.5 are not comparable and now say so.
 PROMPT_VERSION = "v4.5-no-publisher"
 
 # The prompt as it stands when the payload carries a trailing-context block.

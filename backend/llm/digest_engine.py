@@ -231,47 +231,6 @@ def _default_cache():
         return None
 
 
-def digest_coverage(
-    items: List[Dict],
-    *,
-    iso2: str,
-    as_of: datetime.date,
-    masked: bool = False,
-    content_cache: Optional["ContentCache"] = None,
-) -> List[str]:
-    """The content hashes ``digest_articles`` would have to generate. Free.
-
-    Both caches are consulted in the same order and by the same keys the real
-    call uses, and nothing is written. An empty list means digesting these items
-    costs nothing; anything else is the number of model calls it would buy.
-
-    This exists because "will this be free" was being answered by a proxy.
-    ``rebuild_snapshot`` compared the stored ``sweep_version`` against this
-    tree's and proceeded when they matched — but the cache key is
-    ``masked:{mask_map_version}:{sweep_version}``, so a gazetteer bump alone
-    invalidates every masked digest while the sweep check reports clean. The row
-    that surfaced it was stamped ``g3`` against a ``g5`` tree with no sweep
-    recorded at all, so the guard passed it and a "free" rebuild would have
-    bought twenty digests. Asking the cache is the only answer that cannot drift
-    from the key.
-    """
-    if content_cache is None:
-        content_cache = _default_cache()
-    if content_cache is None:
-        return [_content_sha(article_input_text(item), masked) for item in items]
-
-    missing = [_content_sha(article_input_text(item), masked) for item in items]
-    mode = "masked" if masked else "named"
-    try:
-        hits = content_cache.read_digest_cache(
-            sorted(set(missing)), ai_client.digest_model(), mode)
-    except Exception as exc:  # noqa: BLE001 - an unreadable cache is a full miss
-        logger.warning("[%s] digest cache read failed (%s); assuming no coverage",
-                       iso2, exc)
-        hits = {}
-    return [sha for sha in missing if sha not in hits]
-
-
 def digest_articles(
     items: List[Dict],
     *,
