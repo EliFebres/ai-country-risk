@@ -54,11 +54,8 @@ _MONTHLY_PERIOD = re.compile(r"^\d{4}-\d{2}$")
 
 # Only the recent tail matters for the daily run: 24 months of returns for FX
 # volatility, and a current level for the policy rate. Keeping five years bounds
-# the write while leaving room for a longer window later.
-#
-# That longer window is now the History Machine's, and it is a parameter rather
-# than a bigger default: the backfill wants a decade, the daily run wants a
-# small write, and the flat CSV holds the whole history either way.
+# the write; `keep_months` widens it, and the flat CSV holds the whole history
+# either way.
 _KEEP_MONTHS = 60
 
 # A series whose newest observation is older than this is discontinued, not
@@ -191,8 +188,8 @@ def fetch_dataset_rows(code: str, *, as_of: Optional[_dt.date] = None,
         code: registry id, either ``'BIS.POLICY.RATE'`` or ``'BIS.FX.USD'``.
         as_of: date to stamp values with. Defaults to today.
         keep_months: how much history to keep per country. Defaults to
-            :data:`_KEEP_MONTHS`; the historical backfill passes a decade. The
-            download is the same either way — this only bounds what is written.
+            :data:`_KEEP_MONTHS`. The download is the same either way — this
+            only bounds what is written.
 
     Returns:
         Rows ready for ``data_push.upsert_indicator_series``, restricted to the

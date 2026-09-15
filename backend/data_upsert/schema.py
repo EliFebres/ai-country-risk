@@ -78,6 +78,11 @@ CREATE TABLE IF NOT EXISTS country (
 
 
 # --- Articles --------------------------------------------------------------
+# Kept for the stored corpus. Nothing writes it since the historical programme
+# was retired; the functions these comments name (`read_pending`, the harvest
+# adapters) are recoverable from git, see docs/historical-ratings-postmortem.md.
+# The `harvest` and `snapshot` run_ledger rows and the `rewrite`/`context`
+# llm_artifact kinds are the same: stored rows, no live writer.
 
 ARTICLE = f"""
 CREATE TABLE IF NOT EXISTS article (

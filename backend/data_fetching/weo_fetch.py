@@ -1,8 +1,7 @@
-"""Download every IMF WEO edition the pilot window needs, live or from the archive.
+"""Download every IMF WEO edition since ``START_YEAR``, live or from the archive.
 
-A one-off script, not a runtime import: nothing in the backend imports this. It
-adds no dependency — ``requests`` is already pinned, and the Wayback constants
-and user agent come from the modules that already talk to those services.
+Called by ``bootstrap`` when ``weo_vintages/`` is empty, and runnable as
+``main.py weo-fetch``. It adds no dependency — ``requests`` is already pinned.
 
 **The IMF moved the WEO archive and did not leave forwarding addresses.** Three
 things are true at once as of 2026-08:
@@ -17,11 +16,9 @@ things are true at once as of 2026-08:
 * everything else is on the **Wayback Machine**, which captured the ``.ashx``
   files while they were live and serves the original bytes back.
 
-So this tries live URLs first and falls back to the archive. Reaching for
-web.archive.org for a *macro dataset* looks odd until you notice it is the same
-move ``history/wayback.py`` already makes for article bodies, for the same
-reason: the vintage matters more than the source, and a 2018 edition is a
-historical artefact whether the IMF still hosts it or not.
+So this tries live URLs first and falls back to the archive: the vintage
+matters more than the source, and a 2018 edition is a historical artefact
+whether the IMF still hosts it or not.
 
 **Validation is the point.** imf.org answers a dead path with 200 and an HTML
 page often enough that "the download succeeded" means nothing. A file is kept
@@ -30,9 +27,9 @@ rows from it. Everything else is deleted, and the editions still missing are
 printed at the end.
 
 Usage:
-    python -m backend.data_fetching.vintage.fetch_editions
-    python -m backend.data_fetching.vintage.fetch_editions --force      # re-fetch what exists
-    python -m backend.data_fetching.vintage.fetch_editions --no-archive # live URLs only
+    python backend/main.py weo-fetch
+    python backend/main.py weo-fetch --force      # re-fetch what exists
+    python backend/main.py weo-fetch --no-archive # live URLs only
 """
 
 import argparse
@@ -46,12 +43,17 @@ if str(PROJECT_ROOT) not in sys.path:
 
 import requests  # noqa: E402
 
-from backend.util import http  # noqa: E402
-from backend.news_fetching import wayback  # noqa: E402
-from backend.util import config  # noqa: E402
-from backend.data_fetching.vintage import weo  # noqa: E402
+from backend.util import constants, http  # noqa: E402
+from backend.data_fetching import weo  # noqa: E402
 
 logger = logging.getLogger(__name__)
+
+# The first edition kept. The archive on disk starts here, and every live
+# payload reads the newest edition, so nothing needs one older.
+START_YEAR = 2016
+
+_CDX = "https://web.archive.org/cdx/search/cdx"
+_CAPTURE = "https://web.archive.org/web/{timestamp}id_/{url}"
 
 _MONTHS = {4: "Apr", 10: "Oct"}
 
@@ -96,12 +98,7 @@ def urls(year: int, month: int) -> list:
 
 
 def editions(start_year: int, end_year: int) -> list:
-    """Every (year, month) the pilot window needs, oldest first.
-
-    Starts at the April before ``PILOT_START``'s year: the selection rule is
-    "newest vintage not after the anchor", so the earliest anchors need an
-    edition that precedes them or they have no vintage at all.
-    """
+    """Every (year, month) from ``start_year`` to ``end_year``, oldest first."""
     return [(year, month)
             for year in range(start_year, end_year + 1)
             for month in (4, 10)]
@@ -121,7 +118,7 @@ def valid(path: pathlib.Path) -> bool:
     the archive as corrupt.
     """
     try:
-        return bool(weo.read_edition(path, config.PILOT_ROSTER))
+        return bool(weo.read_edition(path, [c["iso2"] for c in constants.COUNTRY_ROSTER]))
     except Exception:  # noqa: BLE001
         return False
 
@@ -167,7 +164,7 @@ def _archived(url: str) -> bytes:
     one is the closest thing to the edition as published.
     """
     try:
-        rows = requests.get(wayback._CDX, timeout=_TIMEOUT, headers={"User-Agent": http.PROJECT_UA},
+        rows = requests.get(_CDX, timeout=_TIMEOUT, headers={"User-Agent": http.PROJECT_UA},
                             params={"url": url, "output": "json", "limit": 20,
                                     "filter": "statuscode:200"}).json()
     except (requests.RequestException, ValueError):
@@ -181,7 +178,7 @@ def _archived(url: str) -> bytes:
              if int(r[length] or 0) >= _MIN_BYTES]
     for row in sound[:_MAX_CAPTURE_TRIES]:
         try:
-            response = requests.get(wayback._CAPTURE.format(timestamp=row[stamp], url=url),
+            response = requests.get(_CAPTURE.format(timestamp=row[stamp], url=url),
                                     headers={"User-Agent": http.PROJECT_UA}, timeout=_TIMEOUT)
         except requests.RequestException:
             continue
@@ -220,12 +217,12 @@ def fetch_all(directory: pathlib.Path = None, *, force: bool = False,
 
     The callable half of ``main``, so the bootstrap can fetch editions without
     shelling out to a CLI and parsing its printed output. Missing editions are
-    logged rather than raised: the pilot can run without a vintage, it just
-    runs on as-published-latest macro and its stamps have to say so.
+    logged rather than raised: a missing edition costs the payload its WEO
+    block, not the run.
     """
     directory = directory or weo.VINTAGE_DIR
     directory.mkdir(parents=True, exist_ok=True)
-    start, end = int(config.PILOT_START[:4]), 2026
+    start, end = START_YEAR, 2026
 
     landed = 0
     missing = []
@@ -250,7 +247,7 @@ def main() -> None:
     args = parser.parse_args()
 
     args.dir.mkdir(parents=True, exist_ok=True)
-    start, end = int(config.PILOT_START[:4]), 2026
+    start, end = START_YEAR, 2026
 
     print(f"WEO editions {start}-04 .. {end}-10 -> {args.dir}\n")
     missing = [(y, m) for y, m in editions(start, end)
@@ -266,7 +263,7 @@ def main() -> None:
               "media path now 403s. Download from\n"
               "  https://www.imf.org/en/Publications/SPROLLS/world-economic-outlook-databases\n"
               f"in a browser and save each as YYYY-MM.xls in {args.dir}")
-    print("\nThen: python backend/main.py backfill weo")
+    print("\nThen: python backend/main.py bootstrap")
 
 
 if __name__ == "__main__":

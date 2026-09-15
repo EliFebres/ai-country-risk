@@ -1,14 +1,11 @@
 # WEO vintages — drop the editions here
 
-Each file is one IMF *World Economic Outlook* edition, kept as its own vintage
-so a historical snapshot is scored on the numbers that existed at the time.
-
-This matters more than it looks. A future-dated news article is obvious the
-moment anybody checks. A **revised** GDP figure is not: the IMF's estimate of
-2017 growth published in April 2018 differs from the one published in October
-2018, and from today's, and all three are the same-looking number in the same
-column. Without these files a 2018 snapshot is scored on 2026's revisions of
-2018, and nothing in the output would ever reveal it.
+Each file is one IMF *World Economic Outlook* edition, kept as its own vintage.
+They are the only source of the live payload's four `WEO.*` indicators; the
+live run reads the newest edition, and the older ones keep the revision history
+in `indicator_series`. They were collected for the retired historical backfill
+(`docs/historical-ratings-postmortem.md`), which read the edition that existed
+at each past date.
 
 ## Naming
 
@@ -19,8 +16,7 @@ vintage from the filename and ignores everything else about the file, so a
 misnamed file is a silently wrong vintage — the one mistake here that does real
 damage.
 
-WEO publishes twice a year, in **April** and **October**. For the pilot window
-that is:
+WEO publishes twice a year, in **April** and **October**. On disk:
 
     2016-04  2016-10  2017-04  2017-10  2018-04  2018-10  2019-04  2019-10
     2020-04  2020-10  2021-04  2021-10  2022-04  2022-10  2023-04  2023-10
@@ -29,13 +25,9 @@ that is:
 **All twenty-one are present**, and all twenty-one are loaded. The last two
 (`2025-10`, `2026-04`) had to be fetched by hand: the WEO database moved to
 data.imf.org in October 2025 and the legacy path the fetch script uses was never
-backfilled, so `fetch_editions.py` still cannot reach them. If a future edition
+backfilled, so `weo_fetch.py` still cannot reach them. If a future edition
 is likewise unreachable, download it from the site and drop it here under the
 naming rule above — the loader neither knows nor cares how the file arrived.
-
-`2016-04` is here because the pilot starts 2016-08-03 and the rule is "newest
-vintage not after the anchor": without it the first two months of the window
-would have no macro vintage at all.
 
 ## Where to download
 
@@ -63,7 +55,7 @@ loader tries both, so no conversion is needed.
 ## What gets loaded
 
 Only a handful of series — the ones where the *revision* is the story rather
-than the level. See `SUBJECTS` in `backend/data_fetching/vintage/weo.py`.
+than the level. See `SUBJECTS` in `backend/data_fetching/weo.py`.
 
 All five now map onto a key of `constants.INDICATOR_REGISTRY` and therefore
 reach a score: inflation on `CPI.YOY`, and real GDP growth, gross government
@@ -96,7 +88,8 @@ evidence payload as if it were an observation.
 
 ## Running it
 
-    python -m backend.util.pilot.run weo
+    python backend/main.py bootstrap        # loads every edition here
+    python backend/main.py weo-fetch        # fetches what the IMF still serves
 
 Idempotent — `indicator_series` is keyed on
 `(country_iso2, indicator_code, freq, period, as_of)`, so every edition's copy of
@@ -105,7 +98,6 @@ a year coexists with the others instead of the newest load overwriting them all.
 
 ## If this folder is empty
 
-The pilot still runs. Every historical payload then uses as-published-latest
-annual macro, which the row's own `vintage_scheme` stamp confesses, and the
-run logs a warning saying so. It is a real degradation, not a blocker — but it
-is the degradation that is hardest to see later, so prefer dropping the files.
+The run still scores. Every payload then lacks the four `WEO.*` indicators,
+the run logs a warning saying so, and `payload_health` records them as
+`no row`.

@@ -32,7 +32,6 @@ subcommand here, so there is one executable rather than five.
 Usage:
     python backend/main.py                       # run forever
     python backend/main.py --once                # one pass over every due job
-    python backend/main.py backfill score --help # the pilot CLI
     python backend/main.py census PT             # registry vs what arrives
     python backend/main.py weo-fetch             # download WEO editions
 """
@@ -77,9 +76,8 @@ STOP = threading.Event()
 # re-declaring them; --help on a subcommand is that module's own help.
 SUBCOMMANDS = {
     "bootstrap": ("backend.util.tools.bootstrap", "build an empty database into a working one"),
-    "backfill":  ("backend.util.pilot.run", "harvest, score and report the backfill"),
     "census":    ("backend.util.tools.payload_census", "every registry indicator vs what arrives"),
-    "weo-fetch": ("backend.data_fetching.vintage.fetch_editions", "download IMF WEO editions"),
+    "weo-fetch": ("backend.data_fetching.weo_fetch", "download IMF WEO editions"),
 }
 
 

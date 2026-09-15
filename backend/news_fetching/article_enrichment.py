@@ -37,14 +37,10 @@ logger = logging.getLogger(__name__)
 _RELEVANCE_THRESHOLD = 0.3
 
 # Body text stored per article; also the cap requested from the feed expander.
-# Shared with the historical harvesters, so both paths hold the same size of
-# evidence per article.
 _MAX_CONTENT_CHARS = core.MAX_BODY_CHARS
 
-# The query themes, the theme-floor selection, and the two dedupe keys now live
-# in `news_fetching.core`, because the historical harvesters need exactly the
-# same behavior and a second copy would be a silent disagreement about what
-# "the 20 articles" means. These aliases keep this module's own vocabulary.
+# The query themes, the theme-floor selection, and the two dedupe keys live in
+# `news_fetching.core`. These aliases keep this module's own vocabulary.
 _QUERY_THEMES = core.THEME_QUERIES
 _headline_key = core.headline_key
 _by_relevance = core.by_relevance
@@ -113,8 +109,7 @@ def fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict]
     for item in all_items:
         item["relevance_score"] = article_ranking.score_relevance(item, country_name)
 
-    # The threshold orders the pool, it does not cap it — and the rule lives in
-    # `core` because `snapshot_select` had its own copy of these same lines.
+    # The threshold orders the pool, it does not cap it.
     filtered = core.apply_threshold(all_items, _RELEVANCE_THRESHOLD, max_articles)
 
     selected = _select_with_theme_floor(filtered, max_articles, _PER_THEME_FLOOR)

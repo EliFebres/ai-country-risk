@@ -23,7 +23,7 @@ from backend.llm import payload
 from backend.data_fetching import curated_loader as cl
 from backend.data_fetching import imf_macro_fetch as imf
 from backend.data_upsert import data_push
-from backend.data_fetching.vintage import lags, monthly, restamp, weo
+from backend.data_fetching import lags, weo
 
 HEADER = ("WEO Country Code\tISO\tWEO Subject Code\tCountry\tSubject Descriptor\t"
           "Units\tScale\t2016\t2017\t2018\t2019\t2020\tEstimates Start After")
@@ -139,7 +139,7 @@ class TestReadingAnEdition:
             assert payload._period_to_date(row["period"], row["freq"]) is not None
 
     def test_a_revision_actually_reaches_the_resolver(self, tmp_path):
-        """End to end: two vintages of one year, resolved at two anchors.
+        """End to end: two vintages of one year, and the newer one is read.
 
         The unit tests above all pass with a period the payload builder cannot
         read. This one fails unless the row survives `_resolve`.
@@ -153,10 +153,7 @@ class TestReadingAnEdition:
                 as_of=r["as_of"], source="IMF WEO")
             for r in april + october if r["period"] == "2017"
         ]
-        assert [o.value for o in payload._resolve(
-            observations, datetime.date(2018, 6, 4))] == [2.7]
-        assert [o.value for o in payload._resolve(
-            observations, datetime.date(2018, 12, 1))] == [2.8]
+        assert [o.value for o in payload._resolve(observations)] == [2.8]
 
     def test_countries_outside_the_roster_are_dropped(self, tmp_path):
         spain = ("184\tESP\tPCPIPCH\tSpain\tInflation, average consumer prices\t"
@@ -187,9 +184,9 @@ class TestReadingAnEdition:
         assert weo.read_edition(path, ["PT"]) == []
 
     def test_a_missing_directory_is_a_warning_not_a_crash(self, tmp_path, caplog):
-        # The pilot can run without vintages; it just has to say so.
+        # The run goes on without the WEO block; it just has to say so.
         assert weo.load_all(["PT"], tmp_path / "nope") == []
-        assert "as-published-latest" in caplog.text
+        assert "WEO.* indicators" in caplog.text
 
     def test_every_edition_is_loaded(self, tmp_path):
         edition(tmp_path, "2018-04.xls", [PT_APR2018])
@@ -197,51 +194,6 @@ class TestReadingAnEdition:
         rows = weo.load_all(["PT"], tmp_path)
         assert {r["as_of"] for r in rows} == {datetime.date(2018, 4, 1),
                                               datetime.date(2018, 10, 1)}
-
-
-class TestAProjectionNeverReachesAConsumer:
-    """The producer-side tests above all pass on a loader nothing reads.
-
-    That is the shape of every bug this module has had, so this asserts the
-    consumer: a forecast row must not come back out of `_resolve` at an anchor
-    that would otherwise admit it.
-    """
-
-    def observation(self, year, vintage, value):
-        return payload._Observation(
-            value=value, period=str(year), freq="A",
-            period_end=payload._period_to_date(str(year), "A"),
-            as_of=vintage, source=f"IMF WEO {vintage:%Y-%m}")
-
-    def test_the_tail_anchor_reads_the_last_actual_not_the_forecast(self, tmp_path):
-        """The 6.1% case, end to end.
-
-        With no edition later than 2018-04 on disk, an anchor in 2019 wants the
-        2018 figure — and 2018 in that edition is a forecast. Loading it meant
-        the payload served the IMF's April-2018 guess at 2018 as an observation,
-        with nothing on the row to say so. Dropped at load, the anchor falls back
-        to the 2017 actual: staleness the payload reports honestly, rather than
-        freshness it made up.
-        """
-        rows = weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
-        observations = [self.observation(int(r["period"]), r["as_of"], r["value"])
-                        for r in rows]
-        resolved = payload._resolve(observations, as_of=datetime.date(2019, 6, 3))
-        # `_stamp` reports the last of these as the value; 2018 must not be it.
-        assert "2018" not in {o.period for o in resolved}
-        assert resolved[-1].period == "2017" and resolved[-1].value == 2.7
-
-    def test_a_later_edition_supplies_the_actual_when_it_exists(self, tmp_path):
-        """Why this was survivable until the archive ran out of tail: with the
-        next edition present, the same anchor gets 2018 as a real actual."""
-        apr2019 = ("182\tPRT\tPCPIPCH\tPortugal\tInflation, average consumer "
-                   "prices\tPercent change\tUnits\t1.9\t2.7\t2.4\t2.0\t1.8\t2018")
-        rows = (weo.read_edition(edition(tmp_path, "2018-04.xls", [PT_APR2018]), ["PT"])
-                + weo.read_edition(edition(tmp_path, "2019-04.xls", [apr2019]), ["PT"]))
-        observations = [self.observation(int(r["period"]), r["as_of"], r["value"])
-                        for r in rows]
-        resolved = payload._resolve(observations, as_of=datetime.date(2019, 6, 3))
-        assert resolved[-1].period == "2018" and resolved[-1].value == 2.4
 
 
 # ---------------------------------------------------------------------------
@@ -339,138 +291,10 @@ class TestTheUpsertRefusesAClockStampedRow:
         """The CSV's `as_of` was typed by someone holding the publication.
 
         Left undeclared it filed under the name that means "stamped off the
-        clock", which both this guard and `restamp.plan` read as permission.
+        clock", which this guard reads as permission.
         """
         assert (cl.CURATED_VINTAGE_SCHEME
                 != data_push._UNDECLARED_VINTAGE)
-        _, skipped = restamp.plan([stored_row(
-            vintage_scheme=cl.CURATED_VINTAGE_SCHEME)])
-        assert "as-published-curated" in skipped[0]["skip_reason"]
-
-
-class TestRestampingIsAMoveAndNotACopy:
-    """`as_of` is in the primary key, so an upsert cannot re-date anything.
-
-    The migration read as if it worked: it reported every fetch-dated row
-    changed, and the correctly-dated rows really did appear. They appeared
-    *beside* the originals, which carry the later date and therefore go on
-    winning `_resolve`'s freshest-wins tie-break — so the live path read exactly
-    what it read before and the table doubled. Insert then delete, in that
-    order: a failure between the two leaves a duplicate, and the other order
-    loses the row.
-    """
-
-    def test_the_plan_carries_the_date_it_is_moving_from(self):
-        changed, _ = restamp.plan([stored_row()])
-        assert changed[0]["_prior_as_of"] == FETCHED
-        assert changed[0]["as_of"] != FETCHED
-
-    def test_apply_deletes_the_row_it_replaced(self, monkeypatch):
-        deleted, inserted = [], []
-        monkeypatch.setattr(restamp, "read_all", lambda: [stored_row()])
-        monkeypatch.setattr(restamp, "dump", lambda rows, directory=None: "dump.csv")
-        monkeypatch.setattr(restamp.data_push, "upsert_indicator_series",
-                            lambda rows: inserted.extend(rows))
-        monkeypatch.setattr(restamp.data_push, "delete_series_rows",
-                            lambda keys: deleted.extend(keys) or len(keys))
-
-        result = restamp.apply()
-
-        assert result["changed"] == 1
-        assert inserted[0]["as_of"] == lags.published_on("2018-03", "M", "CPI.YOY")
-        assert deleted == [("PT", "CPI.YOY", "M", "2018-03", FETCHED)], (
-            "the fetch-dated row survived, so nothing was actually re-dated")
-
-    def test_the_insert_happens_before_the_delete(self, monkeypatch):
-        """Losing a row is worse than briefly holding two."""
-        order = []
-        monkeypatch.setattr(restamp, "read_all", lambda: [stored_row()])
-        monkeypatch.setattr(restamp, "dump", lambda rows, directory=None: "dump.csv")
-        monkeypatch.setattr(restamp.data_push, "upsert_indicator_series",
-                            lambda rows: order.append("insert"))
-        monkeypatch.setattr(restamp.data_push, "delete_series_rows",
-                            lambda keys: order.append("delete") or 0)
-        restamp.apply()
-        assert order == ["insert", "delete"]
-
-    def test_a_dry_run_writes_nothing(self, monkeypatch):
-        monkeypatch.setattr(restamp, "read_all", lambda: [stored_row()])
-        monkeypatch.setattr(restamp.data_push, "upsert_indicator_series",
-                            lambda rows: pytest.fail("dry run wrote rows"))
-        monkeypatch.setattr(restamp.data_push, "delete_series_rows",
-                            lambda keys: pytest.fail("dry run deleted rows"))
-        assert restamp.apply(dry_run=True)["changed"] == 1
-
-
-class TestTheRestampPlan:
-    def test_a_fetch_dated_row_is_re_dated_to_its_publication(self):
-        changed, _ = restamp.plan([stored_row()])
-        assert changed[0]["as_of"] == lags.published_on("2018-03", "M", "CPI.YOY")
-        assert changed[0]["vintage_scheme"] == lags.SCHEME
-
-    def test_a_weo_edition_keeps_the_date_its_publisher_gave_it(self):
-        """An edition date is a fact; this module's table is an estimate."""
-        _, skipped = restamp.plan([stored_row(vintage_scheme="as-published-edition")])
-        assert "as-published-edition" in skipped[0]["skip_reason"]
-
-    def test_the_fetch_date_caps_the_estimate(self):
-        """The fetch date is proof the value was public by then.
-
-        Without this the annual default pushes a 2025 figure to 2025-12-31 + 365,
-        i.e. months into the future — a row claiming to have been published after
-        the day it was demonstrably already in the table, which reads as negative
-        staleness in the live payload.
-        """
-        recent = stored_row(indicator_code="SL.TLF.CACT.ZS", freq="A", period="2025")
-        changed, skipped = restamp.plan([recent])
-        assert not changed
-        assert skipped[0]["skip_reason"] == "already dated"
-
-    def test_an_undatable_period_is_reported_not_guessed(self):
-        _, skipped = restamp.plan([stored_row(period="garbage")])
-        assert skipped[0]["skip_reason"] == "unparseable period"
-
-    def test_a_row_already_correctly_dated_is_left_alone(self):
-        dated = stored_row(as_of=lags.published_on("2018-03", "M", "CPI.YOY"))
-        changed, skipped = restamp.plan([dated])
-        assert not changed and skipped[0]["skip_reason"] == "already dated"
-
-
-class TestMonthlyRestamping:
-    """A backfilled monthly print has to be dated when it landed, not today."""
-
-    def test_a_period_ends_on_its_last_day(self):
-        assert lags.period_end("2018-02", "M") == datetime.date(2018, 2, 28)
-        assert lags.period_end("2020-02", "M") == datetime.date(2020, 2, 29)
-        assert lags.period_end("2018Q1", "Q") == datetime.date(2018, 3, 31)
-        assert lags.period_end("2018", "A") == datetime.date(2018, 12, 31)
-
-    def test_restamping_replaces_today_with_the_publication_date(self):
-        rows = monthly.restamp([{
-            "country_iso2": "PT", "indicator_code": "CPI.YOY", "freq": "M",
-            "period": "2018-03", "value": 1.2, "as_of": datetime.date.today(),
-        }])
-        # With the indicator code, because the lag is CPI's own 25 days rather
-        # than the monthly default — the table stopped being one number per
-        # frequency when it started dating market rates too.
-        assert rows[0]["as_of"] == lags.published_on("2018-03", "M", "CPI.YOY")
-        assert rows[0]["vintage_scheme"] == "publication-lag-estimate"
-
-    def test_an_undatable_row_is_dropped_not_misdated(self):
-        assert monthly.restamp([{"period": "garbage", "freq": "M"}]) == []
-
-    def test_a_restamped_row_survives_its_own_vintage_filter(self):
-        """The bug this module exists to prevent: rows stamped 'today' are
-        discarded by the vintage bound, so a 2018 snapshot silently loses all
-        of its monthly macro."""
-        stamp = lags.published_on("2018-03", "M")
-        obs = payload._Observation(
-            value=1.2, period="2018-03", freq="M",
-            period_end=lags.period_end("2018-03", "M"),
-            as_of=stamp, source="IMF")
-        assert payload._resolve([obs], as_of=datetime.date(2018, 9, 3)) == [obs]
-        # …and is correctly refused before it was published.
-        assert payload._resolve([obs], as_of=datetime.date(2018, 4, 1)) == []
 
 
 # ---------------------------------------------------------------------------

@@ -1,30 +1,16 @@
-"""The article path, live and historical, and the rule that keeps them one path.
+"""The article path: relevance, the per-theme floor, dedupe, theme classification.
 
-Historical and live differ only in where article items come from. Everything
-downstream — relevance, the per-theme floor, dedupe, theme classification — is
-one implementation, and the tests that matter most here assert that by
-*identity*: if someone re-inlines a shared function into an adapter, they fail.
-An adapter that grew its own ranking would produce a corpus retrieved by
-different rules than the live run, which is drift that looks fine in every count.
-
-The other half is the leak. A 2018 page refetched today can carry a correction
-added years later — future text wearing a past date, the subtlest failure in the
-machine, invisible in any count. So the wayback tests pin the *policy*: a scan
-that errors counts as a leak, and the dollar cap stops the drain.
+Shared functions are asserted by *identity*: if someone re-inlines one into
+`article_enrichment`, the tests fail.
 
 No network, no model: every boundary is monkeypatched.
 """
 
 import datetime
-import logging
 import inspect
-import re
 
 import pytest
 
-from backend.news_fetching import snapshot_select as sel, wayback
-from backend.util import config
-from backend.news_fetching.adapters import gdelt, guardian, nyt
 from backend.news_fetching import article_enrichment as ae
 from backend.news_fetching import article_ranking, core, source_filter
 
@@ -62,56 +48,6 @@ class TestNoSecondCopy:
         # 6 themes x the floor must leave room for the open fill, or the
         # relevance ranking stops mattering at all.
         assert len(core.THEME_QUERIES) * ae._PER_THEME_FLOOR < 20
-
-
-class TestNoAdapterForksTheCore:
-    """An adapter that grew its own ranking or selection would produce a corpus
-    retrieved by different rules than the live run — exactly the drift the
-    shared core exists to prevent, and exactly the kind that looks fine in every
-    count."""
-
-    MODULES = (guardian, gdelt, nyt)
-    FORBIDDEN = ("_HIGH_KEYWORDS", "score_relevance", "select_with_theme_floor",
-                 "_select_with_theme_floor", "headline_key", "_by_relevance")
-    THEME_QUERYING = (guardian, gdelt)
-
-    @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)
-    def test_no_adapter_defines_a_shared_name(self, module):
-        for name in self.FORBIDDEN:
-            assert name not in vars(module), f"{module.__name__} defines {name}"
-
-    @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)
-    def test_no_adapter_reimplements_a_shared_function(self, module):
-        source = inspect.getsource(module)
-        for name in self.FORBIDDEN:
-            assert not re.search(
-                rf"^\s*(def|{re.escape(name)}\s*=)\s*{re.escape(name)}\b",
-                source, re.M), f"{module.__name__} redefines {name}"
-
-    @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)
-    def test_no_adapter_carries_its_own_theme_queries(self, module):
-        # NYT is exempt from the second half: the archive endpoint takes a year
-        # and a month and returns the whole paper, so its themes come from
-        # `store.article_row`'s classifier. It is still forbidden a theme list.
-        source = inspect.getsource(module)
-        assert "THEME_QUERIES: dict" not in source
-        if module in self.THEME_QUERYING:
-            assert "core.THEME_QUERIES" in source
-
-    def test_an_adapter_with_no_query_still_gets_themed(self):
-        # The exemption above must not become a silently untagged corpus: rows
-        # with no `_theme` are classified from their text at the store boundary,
-        # which is what fills the same per-theme floor the live run uses.
-        from backend.data_upsert import store
-        assert "core.classify_themes" in inspect.getsource(store.article_row)
-
-    @pytest.mark.parametrize("module", MODULES, ids=lambda m: m.__name__)
-    def test_no_adapter_extracts_bodies_or_opens_a_transaction(self, module):
-        source = inspect.getsource(module)
-        assert "trafilatura" not in source
-        # Every write goes through store.upsert_articles, which is where the
-        # body-wins rule lives.
-        assert "_transaction" not in source
 
 
 # ---------------------------------------------------------------------------
@@ -349,169 +285,19 @@ class TestTheDenylist:
 
 
 # ---------------------------------------------------------------------------
-# Body recovery — the policy, not the model
+# Relevance reads the same window it always has
 # ---------------------------------------------------------------------------
 
-@pytest.fixture()
-def marked(monkeypatch):
-    """Capture what recover_one writes instead of writing it."""
-    calls = []
-    monkeypatch.setattr(wayback.store, "mark_body",
-                        lambda url, **kw: calls.append({"url": url, **kw}))
-    return calls
-
-
-def wayback_row():
-    return {"url": URL, "published_at": PUBLISHED, "country_iso2": "TR",
-            "source_system": "gdelt", "title": "Lira slides"}
-
-
-class TestLeakageScanPolicy:
-    def test_a_scan_that_errors_counts_as_a_leak(self, monkeypatch):
-        # Fails closed. A body nobody could verify must not be scored as if it
-        # had been: being short one article costs a week a little evidence, one
-        # leaked body costs the series its honesty.
-        class Boom:
-            def with_structured_output(self, **_):
-                raise RuntimeError("no key")
-        monkeypatch.setattr(wayback.ai_client, "build_digest_chat", lambda k: Boom())
-        assert wayback.references_future("text", PUBLISHED, "sk-test") is True
-
-    def test_a_malformed_answer_counts_as_a_leak(self, monkeypatch):
-        class Chain:
-            def with_structured_output(self, **_):
-                return self
-
-            def invoke(self, _):
-                return "not a dict"
-        monkeypatch.setattr(wayback.ai_client, "build_digest_chat", lambda k: Chain())
-        assert wayback.references_future("text", PUBLISHED, "sk-test") is True
-
-    def test_a_clean_answer_passes_and_carries_the_publication_date(self, monkeypatch):
-        seen = {}
-
-        class Chain:
-            def with_structured_output(self, **_):
-                return self
-
-            def invoke(self, prompt):
-                seen["prompt"] = prompt
-                return {"references_future": False, "evidence": ""}
-        monkeypatch.setattr(wayback.ai_client, "build_digest_chat", lambda k: Chain())
-        assert wayback.references_future("body text", PUBLISHED, "sk-test") is False
-        assert "2018-03-14" in seen["prompt"] and "body text" in seen["prompt"]
-
-    def test_it_uses_the_cheap_model(self):
-        # The scan runs over thousands of bodies. The scoring model would be an
-        # order of magnitude more expensive for a boolean.
-        from backend.llm import client as ai_client
-        assert wayback.ai_client.build_digest_chat is ai_client.build_digest_chat
-
-
-class TestTheScanBudget:
-    def test_the_cap_stops_the_drain_rather_than_being_exceeded(self, monkeypatch, marked):
-        monkeypatch.setattr(wayback, "find_capture", lambda *a: None)
-        monkeypatch.setattr(wayback, "fetch_live", lambda *a: "x" * 24000)
-        monkeypatch.setattr(wayback, "references_future", lambda *a: False)
-        with pytest.raises(wayback.BudgetExhausted):
-            wayback.recover_one(wayback_row(), "sk-test",
-                                [config.LEAKAGE_SCAN_BUDGET_USD])
-        assert marked == [], "nothing may be written once the budget is gone"
-
-    def test_spend_accumulates_across_articles(self, monkeypatch, marked):
-        monkeypatch.setattr(wayback, "find_capture", lambda *a: None)
-        monkeypatch.setattr(wayback, "fetch_live", lambda *a: "x" * 24000)
-        monkeypatch.setattr(wayback, "references_future", lambda *a: False)
-        spent = [0.0]
-        wayback.recover_one(wayback_row(), "sk-test", spent)
-        first = spent[0]
-        wayback.recover_one(wayback_row(), "sk-test", spent)
-        assert spent[0] == pytest.approx(2 * first) and first > 0
-
-    def test_a_capture_costs_nothing(self, monkeypatch, marked):
-        monkeypatch.setattr(wayback, "find_capture", lambda *a: "20180314181500")
-        monkeypatch.setattr(wayback, "fetch_capture", lambda *a: "Archived text.")
-        spent = [0.0]
-        wayback.recover_one(wayback_row(), "sk-test", spent)
-        assert spent[0] == 0.0
-
-    def test_the_projection_scales_with_volume(self):
-        one = wayback.scan_cost_usd(["x" * 24000])
-        assert one > 0
-        assert wayback.scan_cost_usd(["x" * 24000] * 10) == pytest.approx(10 * one)
-
-
-# ---------------------------------------------------------------------------
-# Snapshot assembly reuses the live selection rather than forking it
-# ---------------------------------------------------------------------------
-
-class TestSelectionMatchesTheLiveRun:
-    def test_it_reuses_the_live_relevance_and_floor(self):
-        # Two copies of "the 20 articles" would be a silent disagreement about
-        # what the historical series is comparable to.
-        source = inspect.getsource(sel)
-        assert "article_ranking.score_relevance" in source
-        assert "core.select_with_theme_floor" in source
-        assert "article_enrichment._PER_THEME_FLOOR" in source
-
-    def test_the_ration_keeps_the_most_relevant_abstracts(self):
-        """The NYT archive returns no bodies and is overwhelmingly about the US.
-        Left uncapped, a US snapshot fills with two-sentence abstracts while a
-        Portugal one keeps full Guardian bodies — and every cross-country
-        comparison the pilot exists to make becomes partly a comparison of
-        evidence texture."""
-        items = [{"tier": "abstract-only", "relevance_score": s, "published": None}
-                 for s in (1, 9, 5, 7, 3)]
-        kept = sel.ration_abstracts(items, max_articles=5)   # cap = 2
-        assert [i["relevance_score"] for i in kept] == [9, 7]
-
-    def test_the_ration_leaves_full_bodied_articles_alone(self):
-        items = ([{"tier": "full", "relevance_score": 0.1, "published": None}] * 30
-                 + [{"tier": "abstract-only", "relevance_score": 9, "published": None}])
-        assert len(sel.ration_abstracts(items, max_articles=20)) == 31
-
-    def test_the_snippet_is_a_fixed_window_from_the_top(self):
-        """It may be widened; it may never be *chosen* to find the country.
-
-        Excerpting from wherever the body first names the country lifts every
-        incidental mention to the body-mention ceiling, which is how a Portugal
-        snapshot fills up with articles about the Dutch government. The window
-        is read from the top and its size is the only thing that varies.
-        """
-        body = "Nothing about the country here. " * 400 + "Portugal appears late."
-        got = sel.relevance_snippet({"abstract": None}, body, "Portugal")
-        assert got == core.clip_words(body, core.RELEVANCE_SUMMARY_WORDS)
-        assert "Portugal" not in got
-
-    def test_both_halves_read_the_same_window(self):
-        """The live path and the historical one must score one article alike.
-
-        `score_relevance` reads `summary or snippet`. The live path fills
-        `summary` with `RELEVANCE_SUMMARY_WORDS` words of the body; this asserts
-        the historical `snippet` is the same text, because for nine months it
-        was a fifth of it and the same article scored 0.1 here and 1.0 there.
-        """
-        body = ("The finance ministry said the budget deficit would narrow as "
-                "the central bank held interest rates. " * 30) + " Portugal."
-        live = core.clip_words(body, core.RELEVANCE_SUMMARY_WORDS)
-        historical = sel.relevance_snippet({"abstract": None}, body, "Portugal")
-        assert historical == live
-        assert (article_ranking.score_relevance({"title": "Deficit narrows",
-                                                 "summary": live}, "Portugal")
-                == article_ranking.score_relevance({"title": "Deficit narrows",
-                                                    "snippet": historical}, "Portugal"))
-
+class TestSportDoesNotOutrankPolicy:
     def test_sport_does_not_outrank_policy(self):
-        """The inversion this whole change exists to correct.
-
-        A British paper does not name Portugal in the headline of a eurozone
+        """A British paper does not name Portugal in the headline of a eurozone
         story, so `_BODY_MENTION_CAP` capped it; a match report *is* headlined
-        "Portugal 3-1 Switzerland", so the cap never applied. Sport scored 0.450
-        and policy 0.100 for the same country in the same window.
+        "Portugal 3-1 Switzerland", so the cap never applied. Fed 300 characters
+        of lede, sport scored 0.450 and policy 0.100; fed the
+        `RELEVANCE_SUMMARY_WORDS` window the live path uses, the order is right.
         """
-        # The country is named at character 504, past the old 300-char window
-        # and inside the new one. That is the measured shape of the corpus:
-        # "Portugal" is in 59 of 63 Guardian bodies and 6 of 63 ledes.
+        # The country is named at character 504, past a 300-char window and
+        # inside the live one.
         policy_body = (
             "The last of the eurozone rescue programmes formally ended on "
             "Thursday, closing a chapter that began nearly a decade ago and "
@@ -530,18 +316,11 @@ class TestSelectionMatchesTheLiveRun:
             "final in Porto on a warm evening at the Estadio do Dragao.")
         score = lambda title, body: article_ranking.score_relevance(
             {"title": title,
-             "snippet": sel.relevance_snippet({"abstract": None}, body, "Portugal")},
+             "summary": core.clip_words(body, core.RELEVANCE_SUMMARY_WORDS)},
             "Portugal")
         policy = score("Eurozone bailout era draws to a close", policy_body)
         sport = score("Portugal 3-1 Switzerland: Nations League semi-final", sport_body)
-        assert policy > sport, (
-            f"policy={policy} sport={sport}: the relevance ordering is inverted, "
-            "so the sub-threshold top-up pads snapshots with match reports")
-
-    def test_an_abstract_is_preferred_when_there_is_one(self):
-        assert sel.relevance_snippet(
-            {"abstract": "Lawmakers met on Friday."}, "body text",
-            "Portugal") == "Lawmakers met on Friday."
+        assert policy > sport, f"policy={policy} sport={sport}: the ordering is inverted"
 
 
 # ---------------------------------------------------------------------------
@@ -549,22 +328,18 @@ class TestSelectionMatchesTheLiveRun:
 # ---------------------------------------------------------------------------
 
 class TestTheThresholdIsOneRule:
-    """`article_enrichment` and `snapshot_select` each carried a copy of the
-    top-up. They agreed, which is not the same thing as agreeing: two readings
-    of "the 20 articles" is two instruments, and the backfill is only worth
-    anything if it is the live run with `as_of` pinned."""
+    """The top-up lives once, in `core.apply_threshold`."""
 
     @staticmethod
     def _items(scores):
         return [{"relevance_score": s, "published": None, "_theme": "broad"}
                 for s in scores]
 
-    def test_neither_path_keeps_its_own_copy(self):
-        for module in (ae, sel):
-            source = inspect.getsource(module)
-            assert "core.apply_threshold" in source, module.__name__
-            assert ">= _RELEVANCE_THRESHOLD" not in source
-            assert "_RELEVANCE_THRESHOLD]" not in source
+    def test_the_live_path_keeps_no_copy_of_its_own(self):
+        source = inspect.getsource(ae)
+        assert "core.apply_threshold" in source
+        assert ">= _RELEVANCE_THRESHOLD" not in source
+        assert "_RELEVANCE_THRESHOLD]" not in source
 
     def test_the_top_up_fills_the_budget_from_below_the_bar(self):
         got = core.apply_threshold(self._items([0.9, 0.8, 0.1, 0.1]), 0.3, 4,
@@ -589,11 +364,9 @@ class TestTheThresholdIsOneRule:
                 f"enforce_floor={enforce}: one more relevant article lost "
                 f"{len(two) - len(three)} articles of evidence")
 
-    def test_the_floor_is_off_by_default_and_shared(self):
-        assert config.RELEVANCE_FLOOR_ENFORCED is False
-        # Both paths read the same constant, so they can never be on one side
-        # only — a floor on the backfill alone makes it incomparable to live.
-        assert "config.RELEVANCE_FLOOR_ENFORCED" in inspect.getsource(core.apply_threshold)
+    def test_the_floor_is_off_by_default(self):
+        assert core.RELEVANCE_FLOOR_ENFORCED is False
+        assert "RELEVANCE_FLOOR_ENFORCED" in inspect.getsource(core.apply_threshold)
 
     def test_default_matches_an_explicit_off(self):
         items = self._items([0.9, 0.1, 0.1])
@@ -606,413 +379,3 @@ class TestTheThresholdIsOneRule:
         assert core.apply_threshold([], 0.3, 20, enforce_floor=True) == []
 
 
-# ---------------------------------------------------------------------------
-# Sport is excluded in the request, not scored down afterwards
-# ---------------------------------------------------------------------------
-
-class TestTheSectionFilter:
-    """45% of the stored PT 2019 Guardian corpus is football or sport, and the
-    relevance scorer cannot catch it: `_NOISE_KEYWORDS` only fires if the words
-    appear in the window read, while a match report's headline names the country
-    and so escapes `_BODY_MENTION_CAP`. It has to go at retrieval."""
-
-    def test_the_request_carries_the_section_filter(self, monkeypatch):
-        seen = {}
-
-        class Resp:
-            status_code = 200
-            headers: dict = {}
-            def json(self):
-                return {"response": {"status": "ok", "pages": 1, "results": []}}
-            def raise_for_status(self):
-                pass
-
-        monkeypatch.setattr(guardian, "_api_key", lambda: "k")
-        monkeypatch.setattr(guardian.requests, "get",
-                            lambda url, params=None, **kw: (seen.update(params or {}), Resp())[1])
-        guardian._page('"Portugal"', datetime.date(2019, 1, 1),
-                       datetime.date(2019, 12, 31), 1)
-        assert seen["section"] == guardian.SECTION_FILTER
-
-    @pytest.mark.parametrize("section", ["football", "sport"])
-    def test_the_sport_sections_are_excluded(self, section):
-        assert f"-{section}" in guardian.SECTION_FILTER.split("|")
-
-    def test_every_entry_is_an_exclusion(self):
-        # `section=world` would be an allowlist, which silently discards every
-        # section nobody enumerated. Same reasoning as `nyt._SKIP_DESKS`.
-        assert all(part.startswith("-")
-                   for part in guardian.SECTION_FILTER.split("|"))
-
-    def test_comment_is_kept(self):
-        # `nyt._SKIP_DESKS` keeps Opinion; the two sources must agree on what
-        # counts as evidence or the corpora are not comparable.
-        assert "-commentisfree" not in guardian.SECTION_FILTER
-        assert "Opinion" not in nyt._SKIP_DESKS
-
-    def test_the_two_sources_skip_the_same_kinds_of_thing(self):
-        for guardian_name, nyt_desk in (("sport", "Sports"), ("travel", "Travel"),
-                                        ("books", "Books"), ("fashion", "Fashion"),
-                                        ("food", "Food"), ("film", "Movies")):
-            assert f"-{guardian_name}" in guardian.SECTION_FILTER
-            assert nyt_desk in nyt._SKIP_DESKS
-
-
-# ---------------------------------------------------------------------------
-# The quota wall has to arrive as a quota, not as a mystery
-# ---------------------------------------------------------------------------
-
-class TestTheQuotaWallIsNamed:
-    """"Come back tomorrow" and "this country-year is broken" take different
-    branches, so a 429 must not be reported as a generic request error.
-
-    On 2026-08-15 it was. `429` is retryable, so `retry_transient` spent five
-    attempts on it and re-raised the `HTTPError`; that sailed past the
-    `remaining <= 0` check — which only ever sees a *successful* response — into
-    the driver's catch-all, which wrote `note='request error'` and moved on to
-    the next country-year. One wall became 46 identical failed checkpoints across
-    four countries in fifteen minutes, and the harvest read as broken rather than
-    as rate-limited.
-    """
-
-    @staticmethod
-    def _raise_429(monkeypatch, calls=None):
-        """Make `_get` fail the way the API does once the day's budget is gone."""
-        import requests
-
-        response = requests.Response()
-        response.status_code = 429
-
-        def boom(_params):
-            if calls is not None:
-                calls.append(_params)
-            raise requests.HTTPError("429 Too Many Requests", response=response)
-
-        monkeypatch.setattr(guardian, "_get", boom)
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-
-    def test_a_429_that_outlives_the_retries_is_a_quota_not_a_request_error(
-            self, monkeypatch):
-        self._raise_429(monkeypatch)
-        with pytest.raises(guardian.QuotaExhausted, match="429"):
-            guardian._page("q", datetime.date(2019, 1, 1),
-                           datetime.date(2019, 12, 31), 1)
-
-    def test_the_harvest_stops_cleanly_instead_of_burning_the_roster(
-            self, monkeypatch):
-        """The whole point of the branch: `QuotaExhausted` returns, so the
-        remaining country-years stay unattempted and resumable rather than being
-        checkpointed `failed` one wasted call at a time."""
-        calls = []
-        self._raise_429(monkeypatch, calls)
-        checkpoints = []
-        monkeypatch.setattr(guardian.store, "completed_windows",
-                            lambda *_a, **_k: set())
-        monkeypatch.setattr(guardian.store, "write_checkpoint",
-                            lambda *a, **k: checkpoints.append(k.get("note", "")))
-
-        written = guardian.harvest(roster=["PT", "TR", "KR"], since="2017-01-01")
-
-        assert written == 0
-        # The wall was actually reached — without this the rest passes vacuously
-        # on an empty work list.
-        assert len(calls) == 1
-        # And it was reached *once*: the run returned rather than spending one
-        # wasted call per remaining country-year, which is the 46-row burst.
-        assert "request error" not in checkpoints
-
-    def test_a_genuine_http_error_is_still_an_error(self, monkeypatch):
-        """Only 429 means quota. A 404 must not be laundered into a wait."""
-        import requests
-
-        response = requests.Response()
-        response.status_code = 404
-
-        def boom(_params):
-            raise requests.HTTPError("404 Not Found", response=response)
-
-        monkeypatch.setattr(guardian, "_get", boom)
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-        with pytest.raises(requests.HTTPError):
-            guardian._page("q", datetime.date(2019, 1, 1),
-                           datetime.date(2019, 12, 31), 1)
-
-
-# ---------------------------------------------------------------------------
-# A 429 is two events wearing one status code
-# ---------------------------------------------------------------------------
-
-class TestTheWallAndTheThrottleTakeDifferentBranches:
-    """The daily wall must cost one attempt; a burst throttle must still retry.
-
-    `_get` used to treat every 429 the same — retryable — so the wall spent five
-    attempts and slept between them before anything recognised it, and those
-    attempts are billed against the budget that had just run out. Telling the
-    two apart needs the response's own `X-RateLimit-Remaining-Day`, which is why
-    headers are now folded in on refusals and not only on success.
-    """
-
-    @staticmethod
-    def _respond(monkeypatch, status, headers, attempts):
-        """Make the wire return one canned response, counting attempts."""
-        import requests
-
-        def fake_get(_url, **kwargs):
-            attempts.append(kwargs.get("params"))
-            resp = requests.Response()
-            resp.status_code = status
-            resp.headers.update(headers)
-            return resp
-
-        monkeypatch.setattr(guardian.requests, "get", fake_get)
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-        # A real backoff would make the throttle case take ~15s of wall clock.
-        monkeypatch.setattr(guardian.time, "sleep", lambda *_a: None)
-
-    def test_a_429_reporting_no_budget_left_is_the_wall_and_costs_one_attempt(
-            self, monkeypatch):
-        attempts = []
-        self._respond(monkeypatch, 429,
-                      {"X-RateLimit-Remaining-Day": "0",
-                       "X-RateLimit-Limit-Day": "500"}, attempts)
-
-        with pytest.raises(guardian.QuotaExhausted):
-            guardian._get({"q": "x"})
-
-        assert len(attempts) == 1, "the wall must not burn the retry budget"
-
-    def test_a_429_with_budget_left_is_a_throttle_and_is_retried(self, monkeypatch):
-        import requests
-
-        attempts = []
-        self._respond(monkeypatch, 429,
-                      {"X-RateLimit-Remaining-Day": "412",
-                       "X-RateLimit-Limit-Day": "500"}, attempts)
-
-        # Not QuotaExhausted: budget remains, so this is a burst limit and
-        # ending the day's harvest over it would cost hours to save seconds.
-        with pytest.raises(requests.HTTPError):
-            guardian._get({"q": "x"})
-
-        assert len(attempts) == 5, "a throttle should exhaust the retry budget"
-
-    def test_a_429_with_no_header_at_all_takes_the_throttle_branch(self, monkeypatch):
-        """The case that must not be guessed.
-
-        A missing header is not evidence of a wall. Reading it as one would let
-        a single unlabelled throttle — or an API that stopped sending headers —
-        end a day's harvesting on no evidence.
-        """
-        import requests
-
-        attempts = []
-        self._respond(monkeypatch, 429, {}, attempts)
-
-        with pytest.raises(requests.HTTPError):
-            guardian._get({"q": "x"})
-
-        assert len(attempts) == 5
-
-    def test_the_wall_reports_the_limit_the_response_stated(self, monkeypatch):
-        attempts = []
-        self._respond(monkeypatch, 429,
-                      {"X-RateLimit-Remaining-Day": "0",
-                       "X-RateLimit-Limit-Day": "328"}, attempts)
-
-        with pytest.raises(guardian.QuotaExhausted) as caught:
-            guardian._get({"q": "x"})
-
-        assert caught.value.daily_limit == 328
-
-    def test_retry_after_is_read_off_the_refusal(self, monkeypatch):
-        """`Retry-After` arrives *with* the 429 and nowhere else.
-
-        Folding headers in only on success meant the one value that says when
-        the quota resets was never seen, and the harvest's "resets in ..." line
-        reported "an unreported time" on every wall.
-        """
-        monkeypatch.setattr(guardian, "_QUOTA",
-                            {"limit": None, "remaining": None,
-                             "reset_seconds": None, "observed_calls": 0})
-        attempts = []
-        self._respond(monkeypatch, 429,
-                      {"X-RateLimit-Remaining-Day": "0", "Retry-After": "29340"},
-                      attempts)
-
-        with pytest.raises(guardian.QuotaExhausted):
-            guardian._get({"q": "x"})
-
-        assert guardian._QUOTA["reset_seconds"] == 29340
-
-
-class TestTheLedgerSaysWhyTheHarvestStopped:
-    """A ledger row nobody can read back is the point of writing one.
-
-    The wall wrote no row at all: the window stayed unattempted, which resumes
-    correctly but leaves a multi-week harvest unable to say whether it stopped
-    on a budget or on a fault.
-    """
-
-    def test_the_wall_writes_a_row_noting_the_quota(self, monkeypatch):
-        rows = []
-        monkeypatch.setattr(guardian.store, "completed_windows",
-                            lambda *_a, **_k: set())
-        monkeypatch.setattr(guardian.store, "write_checkpoint",
-                            lambda *a, **k: rows.append(k))
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-
-        def wall(*_a, **_k):
-            raise guardian.QuotaExhausted("spent", 500)
-
-        monkeypatch.setattr(guardian, "harvest_window", wall)
-        guardian.harvest(roster=["PT", "TR"], since="2017-01-01")
-
-        assert len(rows) == 1, "one row for the window that hit the wall, no more"
-        assert rows[0]["note"] == "quota exhausted"
-
-    def test_that_row_does_not_count_as_harvested(self, monkeypatch):
-        """The row must never make the window look done.
-
-        `completed_windows` skips `status='done'`, so stamping the wall as done
-        would silently drop a country-year from the corpus and nothing
-        downstream would ever ask for it again.
-        """
-        rows = []
-        monkeypatch.setattr(guardian.store, "completed_windows",
-                            lambda *_a, **_k: set())
-        monkeypatch.setattr(guardian.store, "write_checkpoint",
-                            lambda *a, **k: rows.append(k))
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-        monkeypatch.setattr(guardian, "harvest_window",
-                            lambda *_a, **_k: (_ for _ in ()).throw(
-                                guardian.QuotaExhausted("spent", 500)))
-
-        guardian.harvest(roster=["PT"], since="2017-01-01")
-
-        assert rows[0]["status"] == "failed"
-
-
-# ---------------------------------------------------------------------------
-# Harvest order, and knowing when the harvest is done
-# ---------------------------------------------------------------------------
-
-class TestTheHarvestOrderUnblocksTheBlockedWork:
-    """Tier 1 is the pilot five, because everything measured sits on them.
-
-    Order matters here in a way it does not for most loops: the harvest is
-    quota-bound over weeks, so whatever is late in the list is late by days. A
-    bake-off re-run or a Gate-2 re-measure is blocked until the pilot five are
-    banked; the other 43 block nothing.
-    """
-
-    def test_the_pilot_five_come_first(self):
-        assert config.HARVEST_ROSTER[:5] == list(config.HARVEST_TIER_1)
-
-    def test_brazil_is_harvested_even_though_it_is_not_scored(self):
-        """The coupling that lost BR's corpus once already.
-
-        BR is deliberately absent from `PILOT_ROSTER` — harvested, not scored —
-        so defaulting the harvest to the scoring roster drops it.
-        """
-        assert "BR" in config.HARVEST_ROSTER
-        assert "BR" not in config.PILOT_ROSTER
-
-    def test_it_is_the_whole_roster_exactly_once(self):
-        from backend.util import constants
-
-        assert sorted(config.HARVEST_ROSTER) == sorted(
-            e["iso2"] for e in constants.COUNTRY_ROSTER)
-        assert len(config.HARVEST_ROSTER) == len(set(config.HARVEST_ROSTER)) == 48
-
-    def test_the_masking_roster_is_not_the_harvest_roster(self):
-        """`DEFAULT_ROSTER` must stay all 48 whatever is being harvested.
-
-        Masking correctness does not care whose turn it is, and wiring the two
-        together would make the mask map a function of harvest progress.
-        """
-        from backend.llm import gazetteer
-
-        assert set(gazetteer.DEFAULT_ROSTER) == set(config.HARVEST_ROSTER)
-        assert gazetteer.DEFAULT_ROSTER != tuple(config.HARVEST_ROSTER), (
-            "same members, different order — the masking roster is its own thing")
-
-    def test_the_harvesters_default_to_it(self, monkeypatch):
-        """The consumer side: what `harvest()` actually walks with no roster."""
-        seen = []
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-        monkeypatch.setattr(guardian.store, "completed_windows",
-                            lambda _s, iso2: seen.append(iso2) or set())
-        monkeypatch.setattr(guardian, "harvest_window",
-                            lambda *_a, **_k: (_ for _ in ()).throw(
-                                guardian.QuotaExhausted("spent", 500)))
-        monkeypatch.setattr(guardian.store, "write_checkpoint", lambda *a, **k: None)
-
-        guardian.harvest(since="2016-01-01")
-
-        # One lookup per country now, but assert on first-appearance order so
-        # the test survives the loop shape changing again.
-        order = list(dict.fromkeys(seen))
-        assert order[:5] == list(config.HARVEST_TIER_1)
-        assert len(order) == 48
-        assert len(seen) == 48, "one completed_windows query per country, not per window"
-
-
-class TestAConvergedHarvestSaysSo:
-    """A finite job running unattended has to be able to report that it is done.
-
-    Otherwise a converged harvest and a stuck one produce identical silence in
-    the log, and the only choices are killing it early or leaving it for months.
-    """
-
-    def test_guardian_reports_completion_and_does_no_work(self, monkeypatch, caplog):
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-        # Every window already done.
-        monkeypatch.setattr(
-            guardian.store, "completed_windows",
-            lambda _s, _i: {w[0] for w in guardian.year_windows(
-                datetime.date(2016, 1, 1), datetime.date.today())})
-
-        def must_not_run(*_a, **_k):
-            raise AssertionError("a converged harvest must not call the API")
-
-        monkeypatch.setattr(guardian, "harvest_window", must_not_run)
-
-        with caplog.at_level(logging.INFO):
-            assert guardian.harvest(roster=["PT"], since="2016-01-01") == 0
-        assert "nothing to harvest" in caplog.text
-        assert "roster complete through" in caplog.text
-
-    def test_nyt_reports_completion_and_does_no_work(self, monkeypatch, caplog):
-        monkeypatch.setenv("NYT_API_KEY", "k")
-        monkeypatch.setattr(
-            nyt.store, "completed_windows",
-            lambda _s, _i: {nyt.month_bounds(y, m)[0] for y, m in nyt.months(
-                datetime.date(2016, 1, 1), datetime.date.today())})
-
-        def must_not_run(*_a, **_k):
-            raise AssertionError("a converged harvest must not call the API")
-
-        monkeypatch.setattr(nyt, "harvest_month", must_not_run)
-
-        with caplog.at_level(logging.INFO):
-            assert nyt.harvest(roster=["PT"], since="2016-01-01") == 0
-        assert "nothing to harvest" in caplog.text
-
-    def test_an_unfinished_harvest_reports_what_is_left(self, monkeypatch, caplog):
-        """The other half: the number that says how far from done it is."""
-        monkeypatch.setenv("GUARDIAN_API_KEY", "k")
-        monkeypatch.setattr(guardian.store, "completed_windows", lambda *_a: set())
-        monkeypatch.setattr(guardian.store, "write_checkpoint", lambda *a, **k: None)
-        calls = {"n": 0}
-
-        def one_then_wall(*_a, **_k):
-            calls["n"] += 1
-            if calls["n"] > 1:
-                raise guardian.QuotaExhausted("spent", 500)
-            return 3
-
-        monkeypatch.setattr(guardian, "harvest_window", one_then_wall)
-        with caplog.at_level(logging.INFO):
-            guardian.harvest(roster=["PT"], since="2016-01-01")
-
-        assert "country-years left" in caplog.text

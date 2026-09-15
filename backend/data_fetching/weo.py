@@ -1,15 +1,10 @@
-"""Per-edition IMF World Economic Outlook, so a 2018 score sees 2018's numbers.
+"""Per-edition IMF World Economic Outlook, the source of the payload's four WEO.* indicators.
 
-The macro half of the no-future rule, and the quieter half. A future-dated
-article is obvious once anybody looks; a *revised* GDP figure looks exactly like
-an unrevised one. The IMF publishes its estimate of 2017 growth in April 2018,
-revises it in October 2018, and revises it again for years afterwards. Scoring
-April 2018 on today's number is scoring on eight years of hindsight, and nothing
-in the output would ever show it.
-
-Each WEO edition is therefore loaded as its own vintage, stamped with the
-edition's own date, and ``payload._resolve`` picks the newest vintage not
-after the snapshot's anchor.
+The IMF publishes its estimate of 2017 growth in April 2018, revises it in
+October 2018, and revises it again for years afterwards. Each edition is loaded
+as its own vintage, stamped with the edition's own date, and ``payload._resolve``
+picks the newest one — so the revision history is kept in ``indicator_series``
+even though the live payload only ever reads the latest edition.
 
 **The file format is not a spreadsheet.** The IMF ships `WEOOct2018all.xls`, and
 it is a tab-delimited text file with an .xls extension — opening it in a
@@ -33,7 +28,7 @@ from backend.util import constants
 
 logger = logging.getLogger(__name__)
 
-VINTAGE_DIR = (pathlib.Path(__file__).resolve().parents[2]
+VINTAGE_DIR = (pathlib.Path(__file__).resolve().parents[1]
                / "data" / "curated" / "weo_vintages")
 
 # WEO subject codes worth carrying, mapped onto this project's indicator codes.
@@ -228,20 +223,17 @@ def load_all(roster: Optional[List[str]] = None,
     """Every edition in the vintage directory, oldest first.
 
     An empty directory returns an empty list with a loud log rather than
-    raising: the pilot can run without vintages, it just runs on
-    as-published-latest macro and has to say so in its stamps.
+    raising: a missing archive costs the payload its WEO block, not the run.
     """
-    # The whole roster, not the pilot five. These series now carry four of the
-    # registry's indicators, so a country missing from here is a country scored
-    # without its debt ratio, live as well as historically. The files hold every
-    # country in the world; restricting the load saved nothing.
+    # The whole roster. These series carry four of the registry's indicators,
+    # so a country missing from here is a country scored without its debt ratio.
     roster = roster or [entry["iso2"] for entry in constants.COUNTRY_ROSTER]
     directory = directory or VINTAGE_DIR
 
     if not directory.exists():
-        logger.warning("[weo] %s does not exist — no macro vintages will be loaded, "
-                       "and every historical payload will use as-published-latest "
-                       "annual data. See the README in that folder.", directory)
+        logger.warning("[weo] %s does not exist — no WEO editions will be loaded, "
+                       "and every payload will lack the WEO.* indicators. "
+                       "See the README in that folder.", directory)
         return []
 
     files = sorted(p for p in directory.iterdir()

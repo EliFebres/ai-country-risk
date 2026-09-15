@@ -27,7 +27,7 @@ import pandas as pd
 from backend.util import constants
 from backend.data_fetching import fetch_metrics
 from backend.data_upsert import data_push
-from backend.data_fetching.vintage import lags
+from backend.data_fetching import lags
 
 logger = logging.getLogger(__name__)
 
@@ -144,9 +144,7 @@ def refresh_wb_series() -> None:
             # every annual World Bank series invisible to every historical
             # anchor -- `_resolve` drops what was published after the anchor, so
             # ten indicators across four ledgers silently left the payload and
-            # the information and edge ledgers scored on nothing at all. The
-            # monthly path has done this since it was written
-            # (`vintage/monthly.backfill`); this is the same call.
+            # the information and edge ledgers scored on nothing at all.
             rows = lags.restamp(fetch_country_series(iso2, iso3, as_of=stamp))
             if rows:
                 data_push.upsert_indicator_series(rows)

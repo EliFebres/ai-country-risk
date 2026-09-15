@@ -269,9 +269,8 @@ def load_curated_series(path: Optional[pathlib.Path] = None) -> List[Dict[str, A
             # Declared, not defaulted. `as_of` above was typed by someone
             # holding the publication -- it is the best kind of vintage there
             # is -- but leaving the scheme blank filed it under the name that
-            # means "we stamped this off the clock", and both `restamp.plan`
-            # and the guard in `upsert_indicator_series` read that name as
-            # permission to re-date. They would have moved a hand-entered
+            # means "we stamped this off the clock", and the guard in
+            # `upsert_indicator_series` reads that name as permission to re-date. They would have moved a hand-entered
             # release date to a lag estimate, and only ever earlier, which is
             # the direction that leaks.
             "vintage_scheme": CURATED_VINTAGE_SCHEME,

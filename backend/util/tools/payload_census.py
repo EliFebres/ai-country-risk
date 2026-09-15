@@ -33,14 +33,13 @@ _BLOCKS = ("friction_inputs", "uncertainty_inputs",
            "information_inputs", "edge_inputs")
 
 
-def census(iso2: str, as_of: datetime.date, vintage: bool = True) -> dict:
-    """One country at one anchor: expected, stored, delivered."""
+def census(iso2: str, as_of: datetime.date) -> dict:
+    """One country at one date: expected, stored, delivered."""
     panel = dr.query_macro_panel(iso2)
     series = data_push.read_indicator_series(iso2)
     payload = dr.build_evidence_payload(
         iso2, as_of=as_of, series=series,
-        fx_regimes=constants.FX_REGIMES, elections=constants.ELECTIONS,
-        vintage_as_of=as_of if vintage else None)
+        fx_regimes=constants.FX_REGIMES, elections=constants.ELECTIONS)
 
     delivered = {}
     for block in _BLOCKS:

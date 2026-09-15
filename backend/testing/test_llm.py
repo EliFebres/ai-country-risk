@@ -32,7 +32,6 @@ from backend.llm import constants as ai_constants
 from backend.llm import langchain_llm as llm
 from backend.util import policy
 from backend.data_fetching import curated_loader
-from backend.util import config
 from backend.llm import client as ai_client
 from backend.llm import digest_engine, gazetteer, probe, rewrite
 
@@ -303,11 +302,11 @@ class TestTheGateRefusesToSend:
             rewrite.assert_clean({"evidence": ["fine", "Brazil devalued"]})
 
     def test_another_roster_country_is_also_a_leak(self):
-        # Naming a different pilot country lets the probe rule countries out by
-        # elimination — the same leak wearing a hat.
+        # Naming a different roster country lets the probe rule countries out
+        # by elimination — the same leak wearing a hat.
         with pytest.raises(rewrite.MaskLeak):
             rewrite.assert_clean({"text": "Unlike Portugal, it devalued."},
-                                 roster=config.PILOT_ROSTER)
+                                 roster=["US", "TR", "PT", "KR"])
 
     def test_the_error_names_what_leaked(self):
         with pytest.raises(rewrite.MaskLeak, match="Brazil"):
@@ -337,7 +336,14 @@ class TestThePipelineMasksBeforeItDigests:
     """
 
     @staticmethod
-    def _wire(monkeypatch, *, evidence=None, score=None, upsert=None):
+    def _wire(monkeypatch, *, evidence=None, score=None, upsert=None, items=None):
+        items = items or TestThePipelineMasksBeforeItDigests.ITEMS
+        monkeypatch.setattr(pipeline.article_enrichment, "fetch_relevant_news",
+                            lambda *_a, **_k: [dict(i) for i in items])
+        monkeypatch.setattr(pipeline.article_enrichment, "resolve_and_enrich",
+                            lambda found, _iso2: found)
+        monkeypatch.setattr(pipeline.article_enrichment, "enrich_top_images",
+                            lambda *_a: None)
         monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids",
                             lambda _i, _k=3: [])
         monkeypatch.setattr(pipeline.llm_payload, "prepare_llm_payload_pretty",
@@ -357,8 +363,7 @@ class TestThePipelineMasksBeforeItDigests:
     def test_the_digest_prompt_never_sees_the_country(self, monkeypatch):
         seen = {}
 
-        def fake_digest(items, *, country_display, iso2, as_of, masked=False,
-                        content_cache=None):
+        def fake_digest(items, *, country_display, iso2, as_of, masked=False):
             seen["display"] = country_display
             seen["masked"] = masked
             seen["text"] = json.dumps(items)
@@ -366,7 +371,7 @@ class TestThePipelineMasksBeforeItDigests:
 
         monkeypatch.setattr(pipeline.digest_engine, "digest_articles", fake_digest)
         self._wire(monkeypatch)
-        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF, items=self.ITEMS)
+        pipeline._process_country("Portugal", "PT", [])
 
         assert seen["display"] == llm.MASKED_COUNTRY_LABEL
         assert "Portugal" not in seen["text"] and "Lisbon" not in seen["text"]
@@ -385,7 +390,7 @@ class TestThePipelineMasksBeforeItDigests:
                    score={"score": 0.5,
                           "news_article_scores": [{"id": "a1", "impact": 90}]},
                    upsert=lambda payload, country_name: stored.update(payload))
-        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF, items=self.ITEMS)
+        pipeline._process_country("Portugal", "PT", [])
 
         assert stored["scoring_mode"] == "masked"
         assert stored["top_articles"][0]["title"] == "Portugal cuts rates"
@@ -404,7 +409,7 @@ class TestThePipelineMasksBeforeItDigests:
                    upsert=lambda payload, country_name: stored.update(payload))
         # No key, so the probe declines rather than calling out.
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF, items=self.ITEMS)
+        pipeline._process_country("Portugal", "PT", [])
 
         mask = stored["input_manifest"]["masking"]
         assert mask["mask_map_version"] == gazetteer.MASK_MAP_VERSION
@@ -417,99 +422,20 @@ class TestThePipelineMasksBeforeItDigests:
         # what makes that asymmetry visible in the data rather than in a comment.
         assert mask["structural_fields"] == 2
 
-    def test_a_named_run_carries_no_masking_block(self, monkeypatch):
-        """Absent, not a block full of nulls: a named row was never masked, and
-        saying "mask_map_version: null" invites somebody to average over it."""
-        stored = {}
-        monkeypatch.setattr(pipeline.digest_engine, "digest_articles",
-                            lambda items, **_k: items)
-        self._wire(monkeypatch,
-                   score={"score": 0.5, "news_article_scores": []},
-                   upsert=lambda payload, country_name: stored.update(payload))
-        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF,
-                                  items=[{"title": "Portugal cuts rates",
-                                          "link": "https://e.com/a",
-                                          "published": "2024-05-01"}],
-                                  scoring_mode="named")
-        assert "masking" not in stored["input_manifest"]
-
-
-class TestTheFullTextRewriteCache:
-    """The three articles the scorer weights most heavily were the three it
-    could not reproduce.
-
-    `input_manifest` hashes the bytes the model read. For the ids in
-    `fulltext_ids` those bytes are model-generated prose that was kept nowhere,
-    so a rebuild wrote a different sentence and a different hash — and the
-    manifest's whole promise failed on exactly the evidence that mattered most.
-    The cache is what turns that from a caveat into a property.
-    """
-
-    class _Cache:
-        def __init__(self, seeded=None):
-            self.rows = dict(seeded or {})
-            self.reads, self.writes = [], []
-
-        def read_rewrite_cache(self, hashes, version, mode):
-            self.reads.append((sorted(hashes), version, mode))
-            return {h: self.rows[h] for h in hashes if h in self.rows}
-
-        def write_rewrite_cache(self, rows, version, mode):
-            self.writes.append((rows, version, mode))
-            for r in rows:
-                self.rows[r["content_sha256"]] = r["rewritten"]
-            return len(rows)
+class TestTheFullTextRewriteFailsClosed:
+    """A body the mask rewrite could not clear reaches the scorer as its title."""
 
     def items(self):
         return [{"id": "a1", "text": "The minister resigned in the capital."}]
 
-    def test_a_cached_body_is_reused_instead_of_re_rewritten(self, monkeypatch):
-        from backend.util import provenance
-
-        monkeypatch.setenv("OPENAI_API_KEY", "k")
-        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
-                            lambda *_a, **_k: pytest.fail("re-rewrote a cached body"))
-        items = self.items()
-        sha = provenance.text_sha256(items[0]["text"])
-        cache = self._Cache({sha: "the minister resigned in the capital."})
-        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=cache)
-        assert items[0]["text"] == "the minister resigned in the capital."
-
-    def test_a_fresh_rewrite_is_written_back(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "k")
-        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
-                            lambda *_a, **_k: "the minister resigned")
-        cache = self._Cache()
-        pipeline._rewrite_fulltext(self.items(), ["a1"], "PT", cache=cache)
-        rows, version, mode = cache.writes[0]
-        assert rows[0]["rewritten"] == "the minister resigned"
-        assert version == rewrite.REWRITE_VERSION and mode == "masked"
-
-    def test_the_same_body_next_week_costs_nothing(self, monkeypatch):
-        """Weekly anchors over a 30-day window put one article in about four
-        consecutive snapshots, and a top-severity article stays top-severity."""
-        monkeypatch.setenv("OPENAI_API_KEY", "k")
-        calls = []
-        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
-                            lambda *a, **k: calls.append(1) or "masked body")
-        cache = self._Cache()
-        for _ in range(4):
-            pipeline._rewrite_fulltext(self.items(), ["a1"], "PT", cache=cache)
-        assert len(calls) == 1, f"paid {len(calls)} times for one body"
-
-    def test_a_failed_rewrite_is_not_cached(self, monkeypatch):
-        """It fails closed to title-only. Caching that would degrade the article
-        on every future snapshot instead of letting the next run try again."""
+    def test_a_failed_rewrite_degrades_to_title_only(self, monkeypatch):
         monkeypatch.setenv("OPENAI_API_KEY", "k")
         monkeypatch.setattr(pipeline.rewrite, "rewrite_body", lambda *_a, **_k: "")
-        cache = self._Cache()
         items = self.items()
-        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=cache)
+        pipeline._rewrite_fulltext(items, ["a1"], "PT")
         assert items[0]["text"] == ""
-        assert cache.rows == {} and not cache.writes
 
-    def test_no_cache_behaves_exactly_as_before(self, monkeypatch):
-        """The daily run passes None and must be untouched by any of this."""
+    def test_a_rewritten_body_replaces_the_original(self, monkeypatch):
         monkeypatch.setenv("OPENAI_API_KEY", "k")
         monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
                             lambda *_a, **_k: "masked body")
@@ -517,40 +443,11 @@ class TestTheFullTextRewriteCache:
         pipeline._rewrite_fulltext(items, ["a1"], "PT")
         assert items[0]["text"] == "masked body"
 
-    def test_a_broken_cache_degrades_to_rewriting(self, monkeypatch):
-        monkeypatch.setenv("OPENAI_API_KEY", "k")
-        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
-                            lambda *_a, **_k: "masked body")
-
-        class _Boom:
-            def read_rewrite_cache(self, *a, **k): raise RuntimeError("down")
-            def write_rewrite_cache(self, *a, **k): raise RuntimeError("down")
-
-        items = self.items()
-        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=_Boom())
-        assert items[0]["text"] == "masked body"
-
-    def test_a_fully_cached_snapshot_needs_no_api_key(self, monkeypatch):
-        """What makes `rebuild_snapshot` free. A rebuild that had to call the
-        model would be paying to compare a fresh non-deterministic value against
-        a stored one, which is not a comparison."""
-        from backend.util import provenance
-
-        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-        monkeypatch.setattr(pipeline.rewrite, "rewrite_body",
-                            lambda *_a, **_k: pytest.fail("called the model"))
-        items = self.items()
-        sha = provenance.text_sha256(items[0]["text"])
-        cache = self._Cache({sha: "the minister resigned"})
-        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=cache)
-        assert items[0]["text"] == "the minister resigned"
-
-    def test_a_miss_with_no_key_fails_closed(self, monkeypatch):
-        """The rule the key check used to enforce by returning early, kept: an
-        unmasked body must not reach the scorer because there was no key."""
+    def test_no_key_fails_closed(self, monkeypatch):
+        """An unmasked body must not reach the scorer because there was no key."""
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         items = self.items()
-        pipeline._rewrite_fulltext(items, ["a1"], "PT", cache=self._Cache())
+        pipeline._rewrite_fulltext(items, ["a1"], "PT")
         assert items[0]["text"] == ""
 
 
@@ -1265,137 +1162,18 @@ class TestTheProbeReadsAnAnswer:
         assert probe.probe([], "k")["country"] == "ZZ"
 
 
-class TestTheFourOutcomes:
-    """Two buckets misread this corpus in both directions.
-
-    PT on a quiet week came back "GB at 0.70". Counting only correct hits calls
-    that a clean miss and understates what the bundle carried — the text was
-    legible enough to place confidently in Western Europe. Counting confidence
-    alone calls it a leak and overstates it — masking held; the model named the
-    wrong country.
-    """
-
-    def test_a_correct_confident_guess_is_identified(self):
-        assert probe.classify("TR", {"country": "TR", "confidence": 0.85}) == "identified"
-
-    def test_a_wrong_confident_guess_is_its_own_category(self):
-        """PT 2021-07-05, exactly."""
-        assert probe.classify("PT", {"country": "GB", "confidence": 0.70}) == "wrong"
-
-    def test_a_declined_guess_is_no_guess(self):
-        assert probe.classify("PT", {"country": "ZZ", "confidence": 0.0}) == "no_guess"
-
-    def test_insufficient_information_is_no_guess_even_when_named(self):
-        """The model may name a country and say it is guessing from base rates.
-        That is not an identification and must not be counted as one."""
-        assert probe.classify("PT", {"country": "US", "confidence": 0.4,
-                                     "insufficient_information": True}) == "no_guess"
-
-    def test_a_low_confidence_correct_guess_is_uncertain_not_identified(self):
-        assert probe.classify("KR", {"country": "KR", "confidence": 0.2}) == "uncertain"
-
-    def test_the_summary_carries_all_four(self):
-        got = probe.summarize([
-            {"country_iso2": "PT", "guess": {"country": "GB", "confidence": 0.7}},
-            {"country_iso2": "PT", "guess": {"country": "ZZ", "confidence": 0.0}},
-            {"country_iso2": "TR", "guess": {"country": "TR", "confidence": 0.9}},
-        ])
-        assert got["totals"] == {"identified": 1, "wrong": 1,
-                                 "uncertain": 0, "no_guess": 1}
-        # PT was never identified and was placed once: two different facts, and
-        # the old single rate could express only the first.
-        assert got["per_country"]["PT"]["rate"] == 0.0
-        assert got["per_country"]["PT"]["placed_rate"] == 0.5
-
-
-class TestTheSpreadIsTheMeter:
-    def test_hit_rates_are_per_country(self):
-        got = probe.summarize([
-            {"country_iso2": "US", "guess": {"country": "US", "confidence": 0.9}},
-            {"country_iso2": "US", "guess": {"country": "US", "confidence": 0.9}},
-            {"country_iso2": "PT", "guess": {"country": "ZZ", "confidence": 0.1}},
-            {"country_iso2": "PT", "guess": {"country": "ES", "confidence": 0.3}},
-        ])
-        assert got["per_country"]["US"]["rate"] == 1.0
-        assert got["per_country"]["PT"]["rate"] == 0.0
-
-    def test_the_spread_is_the_meter_not_any_single_rate(self):
-        # The US is expected at the ceiling. If every country sits up there
-        # with it, masking is not working.
-        got = probe.summarize([
-            {"country_iso2": "US", "guess": {"country": "US", "confidence": 0.9}},
-            {"country_iso2": "PT", "guess": {"country": "ZZ", "confidence": 0.1}},
-        ])
-        assert got["ceiling"] == 1.0 and got["spread"] == 1.0
-
-    def test_no_results_is_not_a_crash(self):
-        assert probe.summarize([])["spread"] == 0.0
-
-
-class TestTheControlArm:
-    """Every identifiability number is unreadable without this.
-
-    A probe forced to name a country names the one its prior favours, and on a
-    roster containing the United States that is the United States — so "US
-    identified at 0.85" and "the model always says US" produce identical output.
-    The null bundle is the only thing that separates them.
-    """
-
-    def test_the_null_bundle_names_no_country(self):
-        blob = json.dumps(probe.null_bundle(20), ensure_ascii=False)
-        assert gazetteer.scan(blob, list(gazetteer.DEFAULT_ROSTER)) == []
-
-    def test_it_matches_a_real_snapshots_size(self):
-        """A six-article bundle and a twenty-article one are not the same test:
-        volume is itself a signal the probe uses."""
-        assert len(probe.null_bundle(20)) == 20
-        assert len(probe.null_bundle(7)) == 7
-
-    def test_it_keeps_numbers_because_magnitudes_are_the_signal(self):
-        """Stripping the numbers would make the control easier than the thing it
-        is a control for — the probe cites magnitudes when it names the US."""
-        assert any(any(ch.isdigit() for ch in it["digest"]["numbers"])
-                   for it in probe.null_bundle(6))
-
-    def test_it_has_the_shape_the_prompt_builder_expects(self):
-        entries = probe.bundle_text(probe.null_bundle(4))
-        assert entries and "central bank" in entries
-
-    def test_the_distribution_exposes_an_over_named_country(self):
-        results = [{"country_iso2": c, "guess": {"country": "US", "confidence": 0.9}}
-                   for c in ("US", "TR", "BR", "PT")]
-        got = probe.distribution(results)
-        assert got["guessed"]["US"] == 4
-        # Named in 4 of 4 while being the truth in 1 of 4: the prior, visible.
-        assert got["over_representation"]["US"] == 0.75
-
-    def test_a_calibrated_probe_shows_no_over_representation(self):
-        results = [{"country_iso2": c, "guess": {"country": c, "confidence": 0.9}}
-                   for c in ("US", "TR", "BR", "PT")]
-        assert set(probe.distribution(results)["over_representation"].values()) == {0.0}
-
-    def test_insufficient_information_is_counted(self):
-        results = [{"country_iso2": "PT",
-                    "guess": {"country": "US", "insufficient_information": True}},
-                   {"country_iso2": "PT",
-                    "guess": {"country": "PT", "insufficient_information": False}}]
-        assert probe.distribution(results)["insufficient_information"] == 1
-
-
 class TestTheInstrumentIsConfigurableAndVersioned:
     """The scorer can be pointed elsewhere, and nothing can do it quietly.
 
     Two properties, and the second is the one that matters. Pointing the client
     at another vendor is a two-line change anybody could have made by editing a
     constant; what did not exist was anything that *noticed*. The model was
-    absent from `FROZEN_FIELDS`, absent from both cache keys, and stamped into
-    every manifest from the literal rather than from the call — so a swapped
-    scorer resumed over the old rows, read the old rewrites, and signed them
-    with the old name.
+    absent from both cache keys, and stamped into every manifest from the
+    literal rather than from the call — so a swapped scorer read the old digests
+    and signed them with the old name.
 
     The unset-environment case is asserted first and hardest, because the daily
-    run is owed byte-identical behaviour: nobody running `main.py` should be
-    able to tell that a comparison harness exists.
+    run is owed byte-identical behaviour.
     """
 
     def test_unset_environment_is_todays_configuration(self, monkeypatch):
@@ -1465,41 +1243,19 @@ class TestTheInstrumentIsConfigurableAndVersioned:
         chat = ai_client.build_chat("a-key")
         assert chat.extra_body == {"thinking": {"type": "disabled"}}
 
-    def test_both_masking_cache_versions_move_with_the_model(self, monkeypatch):
-        """The cache key said which instructions produced a row, never which model.
-
-        Both versions hashed their own prompt and schema and stopped there, so a
-        stage-1 model swap served every previously rewritten body back as a hit,
-        produced by the old model, with the manifest reporting the same
-        `rewrite_version` either way. Two masking behaviours under one label —
-        the exact defect the comment above those constants was written about,
-        surviving only because the model had never moved.
-        """
-        before = (rewrite.SWEEP_VERSION, rewrite.REWRITE_VERSION)
+    def test_the_sweep_version_moves_with_the_model(self, monkeypatch):
+        """The version said which instructions produced a digest, never which
+        model: a stage-1 model swap would stamp two masking behaviours with one
+        label."""
+        before = rewrite.SWEEP_VERSION
         monkeypatch.setattr(ai_client, "DIGEST_MODEL_NAME", "a-different-model")
         try:
             reloaded = importlib.reload(rewrite)
-            assert reloaded.SWEEP_VERSION != before[0]
-            assert reloaded.REWRITE_VERSION != before[1]
+            assert reloaded.SWEEP_VERSION != before
         finally:
             monkeypatch.undo()
             importlib.reload(rewrite)
-        assert (rewrite.SWEEP_VERSION, rewrite.REWRITE_VERSION) == before
-
-    def test_the_freeze_carries_the_model_and_the_seed(self, monkeypatch):
-        """`FROZEN_FIELDS` versioned the evidence and never the instrument."""
-        from backend.util.pilot import score as pilot_score
-
-        assert {"SCORING_MODEL", "DIGEST_MODEL", "SEED"} <= set(pilot_score.FROZEN_FIELDS)
-
-        monkeypatch.setenv("SCORING_MODEL", "some-candidate")
-        current = pilot_score.versions()
-        assert current["SCORING_MODEL"] == "some-candidate"
-        assert current["SEED"] == str(ai_client.SEED)
-
-        frozen = dict(current, SCORING_MODEL=ai_client.MODEL_NAME)
-        moved = pilot_score.drift(frozen, current)
-        assert moved == {"SCORING_MODEL": (ai_client.MODEL_NAME, "some-candidate")}
+        assert rewrite.SWEEP_VERSION == before
 
     def test_the_manifest_stamps_the_model_that_answered(self, monkeypatch):
         """Not the one the file names. `_failure_result` had the same bug."""
@@ -1507,22 +1263,21 @@ class TestTheInstrumentIsConfigurableAndVersioned:
         assert llm._failure_result()["model_id"] == "some-candidate"
 
 
-class TestOnlyProductionWritesLint:
-    """Lint findings are keyed `(country, as_of, rule)` — no scoring mode.
-
-    So every arm that shares `(country, as_of)` with the masked twin writes over
-    production's rows on its own primary key: the two diagnostic modes, and every
-    bake-off candidate. Invisibly, too — the bake-off reads lint back out of the
-    in-memory manifest while `reports.lint_findings` reads the table, so the two
-    disagree with nothing to say so. The write follows `upsert` for exactly the
-    reason the snapshot does.
-    """
+class TestTheRunWritesItsLint:
+    """`upsert_lint_findings` is called with what lint found."""
 
     ITEMS = [{"title": "Portugal cuts rates", "text": "Lisbon acted.",
               "link": "https://example.com/a", "published": "2024-05-01"}]
 
     @staticmethod
     def _wire(monkeypatch, written):
+        items = TestTheRunWritesItsLint.ITEMS
+        monkeypatch.setattr(pipeline.article_enrichment, "fetch_relevant_news",
+                            lambda *_a, **_k: [dict(i) for i in items])
+        monkeypatch.setattr(pipeline.article_enrichment, "resolve_and_enrich",
+                            lambda found, _iso2: found)
+        monkeypatch.setattr(pipeline.article_enrichment, "enrich_top_images",
+                            lambda *_a: None)
         monkeypatch.setattr(pipeline.digest_engine, "select_fulltext_ids",
                             lambda _i, _k=3: [])
         monkeypatch.setattr(pipeline.digest_engine, "digest_articles",
@@ -1541,20 +1296,11 @@ class TestOnlyProductionWritesLint:
         monkeypatch.setattr(pipeline.data_push, "upsert_lint_findings",
                             lambda findings: written.extend(findings))
 
-    def test_the_production_arm_still_records_its_findings(self, monkeypatch):
+    def test_the_run_records_its_findings(self, monkeypatch):
         written = []
         self._wire(monkeypatch, written)
-        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF,
-                                  items=self.ITEMS, upsert=True)
-        assert written, "the masked production arm must still write lint"
-
-    def test_a_non_production_arm_records_none(self, monkeypatch):
-        written = []
-        self._wire(monkeypatch, written)
-        pipeline._process_country("Portugal", "PT", [], as_of=AS_OF,
-                                  items=self.ITEMS, upsert=False)
-        assert written == []
-
+        pipeline._process_country("Portugal", "PT", [])
+        assert written, "the run must write lint"
 
 class TestTheDigestCacheKeyFollowsTheDigestModel:
     """The key and the chat must resolve through the same accessor.

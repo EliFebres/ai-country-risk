@@ -359,8 +359,7 @@ def _series_observations(rows: List[dict]) -> List[_Observation]:
     return observations
 
 
-def _resolve(observations: List[_Observation],
-             as_of: Optional[date] = None) -> List[_Observation]:
+def _resolve(observations: List[_Observation]) -> List[_Observation]:
     """Merge one indicator's copies from every store, freshest copy winning.
 
     An indicator can live in three places at once — the annual panel, the
@@ -370,26 +369,12 @@ def _resolve(observations: List[_Observation],
 
     This is what puts a monthly CPI print in front of the model instead of an
     annual average up to two years stale.
-
-    Args:
-        as_of: when scoring a past date, the newest vintage that may be used.
-            "Freshest wins" becomes "freshest that existed yet wins", and both
-            observations *published* after the date and periods *covering* time
-            after it are dropped. Without this a 2018 snapshot is scored on
-            2026's revisions of 2018 — the macro twin of reading tomorrow's
-            news, and quieter, because a revised number looks exactly like an
-            unrevised one.
     """
-    if as_of is not None:
-        observations = [o for o in observations
-                        if o.as_of <= as_of and o.period_end <= as_of]
-
     # A real vintage always outranks a synthesized one, whatever the dates say.
     # The panel stamps every annual figure with 31 December of its own year, so
     # between the year end and the next WEO edition — January to March, a
-    # quarter of the anchors — that placeholder was beating the edition that
-    # actually existed, and the snapshot silently read today's revision of last
-    # year instead of the number a reader could have had.
+    # quarter of the year — that placeholder was beating the edition that
+    # actually existed.
     best: Dict[str, _Observation] = {}
     for obs in observations:
         key = f"{obs.freq}:{obs.period}"
@@ -418,8 +403,8 @@ def _trend(observations: List[_Observation], years: int) -> Optional[float]:
     # `relativedelta`, not `.replace(year=...)`: a monthly observation for
     # February ends on the 29th in a leap year, and `date(2020, 2, 29).replace(
     # year=2019)` raises rather than returning anything. It is not hypothetical
-    # — it is every snapshot anchored in the months after a leap February, which
-    # in the pilot window is 2016, 2020 and 2024. `relativedelta` clamps to the
+    # — it is every snapshot anchored in the months after a leap February.
+    # `relativedelta` clamps to the
     # 28th, which is what "a year before this" means for a month-end.
     target = latest.period_end - relativedelta(years=years)
 
@@ -500,21 +485,14 @@ def content_fingerprint(resolved: Dict[str, dict]) -> str:
     """Sixteen hex over what the payload actually delivered. Pure.
 
     ``PAYLOAD_VERSION`` names the evidence *contract* — which blocks exist — and
-    it cannot see the contents. On 2026-08-29 the vintage fix moved nine
-    indicators per country from "published after the anchor" to "published
-    before it", and every one of them appeared inside `p2`. Nine of the nine
-    frozen fields were identical on both sides, so `score.drift()` returned an
-    empty dict, a resume was allowed, and the two arms
-    `docs/scorer-acceptance.md` names as the reference went on being compared
-    against candidates that see a different payload. See
-    `docs/pipeline-audit.md` section 3.
+    it cannot see the contents: nine indicators per country once changed inside
+    an unchanged `p2` (`docs/pipeline-audit.md` section 3).
 
     So: a hash of the delivered set rather than of the contract naming it. Each
     indicator contributes its code, the period it resolved to, the ``as_of``
-    that period was published on, and the source that published it — which is
-    exactly the tuple the vintage fix changed, and exactly the tuple that
-    changes when a loader is rewired, a source is added, or a curated file is
-    finally filled.
+    that period was published on, and the source that published it — the tuple
+    that changes when a loader is rewired, a source is added, or a curated file
+    is finally filled.
 
     Deliberately *not* the values. A World Bank revision to an already-published
     figure is a different fact from a different set of figures reaching the
@@ -548,26 +526,22 @@ def payload_health(evidence: Dict[str, Any],
     """What actually reached the model, against what the registry promised.
 
     The countermeasure to this project's recurring failure, which is not code
-    that crashes but code that runs, writes something, and is read by nobody.
-    The vintage bug is the worst instance so far: ten indicators stopped
-    reaching every historical payload, the information and edge ledgers
-    resolved *nothing* for the entire pilot, and the suite stayed green because
-    no test and no report ever compared what the registry expected against what
-    the payload carried.
+    that crashes but code that runs, writes something, and is read by nobody:
+    ten indicators once stopped reaching every historical payload and the suite
+    stayed green, because nothing compared what the registry expected against
+    what the payload carried.
 
     Lives here rather than in `provenance` for two reasons. `payload` imports
     `provenance`, so the other direction is a cycle; and the question is about
-    this module's own output, resolved through this module's own vintage bound.
+    this module's own output.
     Callers hand it `series` rather than letting it read, for the same reason
     `build_evidence_payload` takes its stores as arguments.
 
     A dropped indicator is classified rather than merely counted, because the
-    three reasons want three different fixes:
+    two reasons want different fixes:
 
     * ``no row``       -- nothing was ever fetched. A source problem.
-    * ``vintage bound`` -- rows exist and every one was published after the
-      anchor. This is the bug that hid, and it is invisible from row counts.
-    * ``unmapped``     -- it resolved and still did not reach the payload. A
+    * ``unmapped``     -- rows exist and still did not reach the payload. A
       wiring problem, and the one `payload_census` was written to catch.
     """
     label_of = {code: str(spec.get("label"))
@@ -590,26 +564,14 @@ def payload_health(evidence: Dict[str, Any],
             if led in by_ledger:
                 by_ledger[led]["resolved"] += 1
             continue
-        rows = series.get(code) or []
-        if not rows:
-            dropped[code] = "no row"
-        elif not _resolve(_series_observations(rows), as_of):
-            dropped[code] = "vintage bound"
-        else:
-            dropped[code] = "unmapped"
+        dropped[code] = "unmapped" if series.get(code) else "no row"
 
     # A ledger at zero is the shape of the failure that hid, so it is named
     # rather than left to be inferred from a count of zero in a table.
     empty = [led for led in _LEDGERS
              if by_ledger[led]["expected"] and not by_ledger[led]["resolved"]]
 
-    # Recorded as well as returned. `score.versions()` has to stay free of a
-    # database read -- `test_every_frozen_field_is_actually_populated` is
-    # parametrised over `FROZEN_FIELDS` with no fixture -- so the freeze reads
-    # the fingerprint of the last payload this process built rather than
-    # building one itself.
     fingerprint = content_fingerprint(resolved)
-    provenance.record_payload_fingerprint(fingerprint)
 
     health: Dict[str, Any] = {
         "indicators": {
@@ -653,7 +615,6 @@ def _article_health(items: List[dict]) -> Dict[str, Any]:
     value out of the selection.
     """
     from backend.news_fetching import article_enrichment, core
-    from backend.util import config
 
     items = [i for i in (items or []) if isinstance(i, dict)]
     themes = collections.Counter(str(i.get("_theme")) for i in items)
@@ -671,7 +632,7 @@ def _article_health(items: List[dict]) -> Dict[str, Any]:
         "cleared_threshold": sum(1 for i in items
                                  if i.get("relevance_score", 0) >= bar),
         "relevance_threshold": bar,
-        "floor_enforced": config.RELEVANCE_FLOOR_ENFORCED,
+        "floor_enforced": core.RELEVANCE_FLOOR_ENFORCED,
         "by_theme": {t: themes.get(t, 0) for t in core.THEME_QUERIES},
         "thin_themes": sorted(t for t in core.THEME_QUERIES
                               if themes.get(t, 0) < floor),
@@ -696,7 +657,6 @@ def build_evidence_payload(
     series: Optional[Dict[str, List[dict]]] = None,
     fx_regimes: Optional[Dict[str, str]] = None,
     elections: Optional[Dict[str, List[dict]]] = None,
-    vintage_as_of: Optional[date] = None,
     structural: Optional[Dict[str, Dict[str, Any]]] = None,
 ) -> dict:
     """Build the three-ledger evidence payload the scoring model receives.
@@ -713,20 +673,12 @@ def build_evidence_payload(
         series: ``indicator_series`` rows, from ``data_push.read_indicator_series``.
         fx_regimes: currency regimes, from ``constants.FX_REGIMES``.
         elections: election calendar, from ``constants.ELECTIONS``.
-        vintage_as_of: for a historical backfill, the newest data vintage this
-            snapshot is allowed to see. Deliberately separate from ``as_of``
-            and defaulting to None, so the daily run is unaffected: passing
-            today's date would drop the current year's annual figures, whose
-            period ends in December. Only a historical run wants that, and a
-            historical run wants it badly — otherwise a 2018 score is built on
-            2026's revisions of 2018.
         structural: static per-country facts, from
             ``curated_loader.load_structural_facts``. Masking removes the
             country's name and with it the priors the name carried; this puts
             the structural ones back as stated evidence. Deliberately not
             time-varying — anything that moves year to year is an
-            ``indicator_series`` row with its own vintage, or it would be a
-            future leak on every historical snapshot.
+            ``indicator_series`` row with its own vintage.
 
     Returns:
         ``{_meta, friction_inputs, uncertainty_inputs, information_inputs,
@@ -741,7 +693,7 @@ def build_evidence_payload(
     resolved: Dict[str, List[_Observation]] = {}
     for code, spec in constants.INDICATOR_REGISTRY.items():
         observations = _series_observations(series.get(code, []))
-        merged = _resolve(observations, vintage_as_of)
+        merged = _resolve(observations)
         if merged:
             resolved[code] = merged
 
@@ -879,12 +831,7 @@ def build_evidence_payload(
         "_meta": {
             "country": country_iso2,
             "as_of": as_of.isoformat(),
-            # Which regime built this payload, not a constant. A vintage-bounded
-            # build is point-in-time; reporting it as "as-published-latest" told
-            # the audit record the exact opposite of what happened, and the
-            # manifest is the only place that difference is ever visible.
-            "vintage_scheme": ("point-in-time" if vintage_as_of is not None
-                               else provenance._VINTAGE_SCHEME),
+            "vintage_scheme": provenance._VINTAGE_SCHEME,
             "staleness_basis": (
                 "staleness_days counts from the end of the period a value describes "
                 "to as_of: how old the reading is. `as_of` on each value is a "

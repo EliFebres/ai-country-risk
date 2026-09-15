@@ -8,11 +8,10 @@ strict-JSON factual digest plus a 0-100 ``stage1_severity``. The scorer then
 reasons over *every* digest and reads only the few highest-severity articles
 in full.
 
-Digests are cached in Postgres (``llm_artifact``, ``kind='digest'``) keyed by
-``(country_iso2, as_of, url)`` with a sha256 of the digested text, so a
-same-day re-run with unchanged articles makes ~zero stage-1 calls. The pilot
-passes a content-addressed cache instead, which is what lets four overlapping
-weekly snapshots share one digest of the same article.
+Digests are cached in Postgres (``llm_artifact``, ``kind='digest'``) keyed on
+a sha256 of the digested text, the digest model and the mask mode, so an
+article still in the window next week, or a same-day re-run, costs no stage-1
+call. ``data_upsert.store`` is the default cache.
 
 This module boundary IS the swappable interface: pointing stage 1 at a local
 model later means editing this module only. Failures never propagate — an
@@ -262,20 +261,9 @@ def digest_articles(
             the cache key, because the same article text digested under the two
             modes produces two different digests and only one of them is safe
             to send.
-        content_cache: an optional second cache keyed on the *content hash*
-            rather than on ``(country, as_of, url)``, consulted before the model
-            and written after it.
-
-            The daily run passes None and behaves exactly as before. A backfill
-            passes one because its anchors overlap: weekly anchors with a 30-day
-            window put the same article in about four consecutive snapshots, and
-            keyed on ``as_of`` each of those is a miss, so the pilot would pay
-            to digest every article four times over for digests that are
-            identical by construction.
-
-            Kept as a parameter rather than an import so this module does not
-            reach into the backfill package — the same layering the masking
-            package was moved out of ``history`` to preserve.
+        content_cache: the content-hash cache, consulted before the model and
+            written after it. None means ``data_upsert.store``, which is what
+            the daily run uses; tests pass a fake.
 
     Returns:
         The same list, mutated. Per-article failures leave ``digest = None``;

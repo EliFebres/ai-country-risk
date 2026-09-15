@@ -44,40 +44,6 @@ _SCHEMA_VERSION = 1
 #       lending and the current account, all edition-vintaged
 PAYLOAD_VERSION = "p2"
 
-# What `payload_fingerprint` says before any payload has been built. A real
-# value or this — never a plausible-looking empty string, which would compare
-# equal to itself forever and drop out of the freeze the way `git_sha` did
-# before anything set it.
-UNRESOLVED_FINGERPRINT = "unresolved"
-
-_payload_fingerprint: str = UNRESOLVED_FINGERPRINT
-
-
-def record_payload_fingerprint(value: Optional[str]) -> None:
-    """Remember the content fingerprint of the payload just built.
-
-    Written by `llm.payload.payload_health`, which is the one place that knows
-    which indicators actually reached the model. Process state, deliberately:
-    `score.versions()` must not read a database (its own test asserts every
-    frozen field is populated with no fixture), and the fingerprint is a fact
-    about data rather than about code, so there is nowhere static to read it
-    from. The seam is narrow — one setter, one getter, and a run that has built
-    no payload reports that it has not.
-    """
-    global _payload_fingerprint
-    if value:
-        _payload_fingerprint = value
-
-
-def payload_fingerprint() -> str:
-    """The content fingerprint of the last payload this process built."""
-    return _payload_fingerprint
-
-
-def payload_version() -> str:
-    """The payload contract version stamped on a row."""
-    return PAYLOAD_VERSION
-
 # How the macro panel this snapshot consumed relates to real point-in-time data.
 # "as-published-latest" means: latest published values, silently revised by the
 # World Bank over time. Phase B's first-release panel writes "first-release"
@@ -284,13 +250,6 @@ def macro_vintages(payload: Dict) -> Dict[str, Any]:
     }
 
 
-def prompt_version() -> str:
-    """The prompt version stamped on a row."""
-    from backend.llm import constants as ai_constants
-
-    return ai_constants.PROMPT_VERSION
-
-
 def build_input_manifest(*,
                          items: List[Dict],
                          prompt_entries: Optional[List[Dict]] = None,
@@ -346,7 +305,7 @@ def build_input_manifest(*,
         "model_id": model_id,
         "prompt_version": prompt_version,
         "policy_version": policy_version,
-        "payload_version": payload_version(),
+        "payload_version": PAYLOAD_VERSION,
         # The bytes the model actually reasoned over. `payload` above
         # is the *panel* payload — the DB-facing one — and only `macro_vintages`
         # reads it; the evidence payload reached the prompt and left no trace, so

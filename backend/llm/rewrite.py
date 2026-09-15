@@ -30,7 +30,6 @@ gate somebody turns off.
 """
 
 import hashlib
-import json
 import logging
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -197,7 +196,7 @@ it a headline.
 # produced by the old model, with the manifest reporting the same
 # `rewrite_version` either way — two masking behaviours under one label, which is
 # the exact defect the paragraphs above were written about. It survived only
-# because the model had never moved, and the bake-off is what would move it.
+# because the model had never moved.
 #
 # `DIGEST_MODEL_NAME` rather than `client.digest_model()`: these two passes are
 # pinned to the constant on purpose (see `client.build_digest_chat`), so hashing
@@ -205,11 +204,6 @@ it a headline.
 # module constant rather than something that can change under a running process.
 SWEEP_VERSION = hashlib.sha256(
     (_DIGEST_SWEEP_PROMPT + "\x00".join(_DIGEST_SWEEP_FIELDS)
-     + "\x00" + ai_client.DIGEST_MODEL_NAME).encode("utf-8")
-).hexdigest()[:8]
-
-REWRITE_VERSION = hashlib.sha256(
-    (_REWRITE_PROMPT + json.dumps(_REWRITE_SCHEMA, sort_keys=True)
      + "\x00" + ai_client.DIGEST_MODEL_NAME).encode("utf-8")
 ).hexdigest()[:8]
 

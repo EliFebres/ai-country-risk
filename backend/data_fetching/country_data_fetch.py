@@ -89,7 +89,7 @@ def panel_rows(panel: pd.DataFrame, iso2: str) -> list:
     carries its own publication date and therefore outranks this at the same
     period, which is exactly what ``payload._resolve`` is for.
 
-    The cap matters and is the same rule ``vintage.restamp`` applies: without
+    The cap matters: without
     it the current year's figure is stamped four months from now, which reads
     as *negative* staleness in the live payload and is plainly false, since the
     value is already in the table.

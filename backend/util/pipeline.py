@@ -3,9 +3,8 @@
 Each folder beside this one owns exactly one concern: ``data_fetching`` talks to
 upstream APIs, ``news_fetching`` gathers and ranks articles, ``llm`` calls the
 model, ``data_upsert`` writes Postgres. Dependencies between them stay one-way
-(``llm.digest_engine`` reaches down into ``data_upsert`` for its digest cache,
-and ``data_upsert.store`` reaches ``news_fetching.core`` to classify a row's
-themes), which is what keeps a change in one from destabilizing the rest.
+(``llm.digest_engine`` reaches down into ``data_upsert`` for its digest cache),
+which is what keeps a change in one from destabilizing the rest.
 
 The work of a run, though, is inherently cross-cutting: "fetch the calendar,
 have the model rank it, store the result" touches three of those domains. That
@@ -71,95 +70,41 @@ def _to_100(value: Optional[float]) -> Optional[int]:
         return None
 
 
-def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str,
-                      cache: Optional[Any] = None) -> None:
+def _rewrite_fulltext(items: List[Dict], fulltext_ids: List[str], iso2: str) -> None:
     """Model-mask the handful of bodies the scorer reads end to end. Mutates.
 
     The gazetteer masks what somebody wrote down. It does not know this week's
     finance minister, this year's ruling party, or the bank that just failed —
     and those are named in the full text far more often than the country is.
 
-    Fails **closed**: a rewrite that errors or comes back empty leaves the
-    article with no body, so it reaches the scorer as its masked title. Being
-    short one body costs a week some evidence; one leaked name costs the whole
-    comparison.
-
-    Args:
-        cache: an optional store keyed on content hash, consulted before the
-            model and written after it. The daily run passes None and behaves
-            exactly as before; a backfill passes one for two reasons.
-
-            The cheap one is overlap: weekly anchors across a 30-day window put
-            the same article in about four consecutive snapshots, and a
-            top-severity article stays top-severity in all four, so the same
-            body was being rewritten four times.
-
-            The one that matters is reproducibility. `input_manifest` hashes the
-            bytes the model read, and for these articles those bytes were
-            generated prose kept nowhere — so a rebuild produced a different
-            sentence and a different hash, and the manifest's promise failed on
-            exactly the three articles the scorer weighted most heavily.
+    Fails **closed**: a rewrite that errors or comes back empty, or a run with no
+    key to rewrite with, leaves the article with no body, so it reaches the
+    scorer as its masked title. Being short one body costs a week some evidence;
+    one leaked name costs the whole claim that the scorer judged the evidence.
     """
     if not fulltext_ids:
         return
     by_id = {it.get("id"): it for it in items if isinstance(it, dict)}
     targets = [(aid, by_id[aid]) for aid in fulltext_ids
                if by_id.get(aid) and by_id[aid].get("text")]
-    if not targets:
-        return
-    # The key is checked per miss rather than up front, so a fully cached
-    # snapshot needs no key at all. That is what lets `rebuild_snapshot` re-derive
-    # a stored row for free — and a miss during a rebuild is the finding, not an
-    # inconvenience.
     api_key = os.getenv("OPENAI_API_KEY")
-
-    # The hash is over the masked body, which is what the model is handed and
-    # what a rebuild will re-derive. A gazetteer change therefore lands in the
-    # key without the gazetteer version being part of it.
-    shas = {aid: provenance.text_sha256(item["text"]) for aid, item in targets}
-    hits: Dict[str, str] = {}
-    if cache is not None:
-        try:
-            hits = cache.read_rewrite_cache(
-                sorted(set(shas.values())), rewrite.REWRITE_VERSION, "masked")
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("[%s] rewrite cache read failed (%s); rewriting all",
-                           iso2, exc)
-
-    fresh: List[Dict[str, str]] = []
     for aid, item in targets:
-        cached = hits.get(shas[aid])
-        if cached:
-            item["text"] = cached
-            continue
         if not api_key:
-            # Same fail-closed rule as a failed rewrite: an unmasked body must
-            # not reach the scorer just because there was no key to mask it.
-            logger.warning("[%s] %s degraded to title-only: no OPENAI_API_KEY "
-                           "and no cached rewrite", iso2, aid)
+            logger.warning("[%s] %s degraded to title-only: no OPENAI_API_KEY", iso2, aid)
             item["text"] = ""
             continue
         item["text"] = rewrite.rewrite_body(item["text"], api_key)
         if not item["text"]:
             logger.warning("[%s] %s degraded to title-only: the mask rewrite "
                            "would not clear its body", iso2, aid)
-            continue
-        fresh.append({"content_sha256": shas[aid], "rewritten": item["text"]})
-
-    logger.info("[%s] full-text rewrites: %d cached, %d fresh",
-                iso2, len(targets) - len(fresh), len(fresh))
-    if fresh and cache is not None:
-        try:
-            cache.write_rewrite_cache(fresh, rewrite.REWRITE_VERSION, "masked")
-        except Exception as exc:  # noqa: BLE001
-            logger.warning("[%s] rewrite cache write failed: %s", iso2, exc)
 
 
 # How often the live run asks the cheap model to guess which country it is
-# looking at. One country in six, so the whole roster is sampled about weekly at
-# a daily cadence, for a few cents a month.
+# looking at: about one country in six per run, for a few cents.
 #
-# It runs in production rather than only in the pilot because identifiability is
+# Nothing reads the stored results back yet; see `docs/deferred.md`.
+#
+# It runs in production because identifiability is
 # not a property of the method, it is a property of *this week's evidence*. A
 # quiet week masks well and a week where the only story is a named central bank
 # governor does not, and the only way to know which kind of week the series is
@@ -317,64 +262,20 @@ def refresh_ledger_sources() -> None:
         logger.exception("[curated] series load ERROR")
 
 
-def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict],
-                     *, as_of: Optional[date] = None,
-                     items: Optional[List[Dict]] = None,
-                     scoring_mode: str = "masked",
-                     upsert: bool = True,
-                     digest_content_cache: Optional[Any] = None,
-                     fulltext_k: int = 3) -> tuple:
+def _process_country(country_name: str, iso2: str,
+                     global_alert_pool: List[Dict]) -> tuple:
     """Run the full pipeline for one country: macro payload → news → LLM score
     → Top-3 selection/enrichment → DB upsert. Appends the country's Top-3 to
     ``global_alert_pool`` for the post-loop global alert ranking.
 
-    Args:
-        as_of: pin the snapshot to a past date instead of today. Every stage
-            below already takes ``as_of`` as a real parameter — digests, the
-            evidence payload, the prompt, the sanctions lookup, the upsert key —
-            so pinning ``_meta.generated_at``, the single place the date is
-            derived from, pins all of them at once.
-        items: pre-assembled articles, from ``history.snapshot_select``. Supplying
-            them is the *only* difference between a historical run and a live
-            one: the article source changes and nothing else does.
-        scoring_mode: which regime scored this row.
-
-            ``'masked'`` is the default and the production regime: the model is
-            shown the evidence with the identity removed and every number
-            intact. Backfilling 2016 and scoring tomorrow have to be the same
-            instrument, and the only way that is true is if the live run and the
-            backfill present the model with the same anonymized structure.
-
-            ``'named'`` is the diagnostic twin, for measuring what identity was
-            worth.
-
-            ``'masked_nostructural'`` is the same masked payload with the
-            ``structural`` block withheld. It exists because divergence between
-            masked and named is ambiguous on its own: a small gap could mean the
-            structural facts recovered what the name carried, or that the name
-            never mattered. Only the third arm separates those.
-        upsert: write to ``risk_snapshot``. False for the diagnostic modes,
-            which land in ``history_run_ledger`` instead — they share
-            ``(country, as_of)`` with their masked twin and would overwrite the
-            production series on its own primary key.
-        digest_content_cache: forwarded to ``digest_engine.digest_articles``. A
-            backfill hands it ``history.store``, whose digest cache is keyed on
-            content instead of on ``as_of`` and so survives the overlap between
-            consecutive anchors. Forwarded rather than imported: this module sits
-            above the layers, and reaching down into the backfill package to find
-            a cache would invert that.
-        fulltext_k: how many of the highest-severity bodies the scorer reads end
-            to end, forwarded to ``digest_engine.select_fulltext_ids``. Three is
-            the production value and every caller in this tree uses it; the
-            parameter exists so one anchor can be rendered at several evidence
-            sizes without editing this function. Zero is legitimate and means the
-            scorer reads digests only.
+    Scored **masked**: the model is shown the evidence with the country's
+    identity removed and every number intact. Whether live scoring should keep
+    doing that is an open decision (`docs/deferred.md`); this function does not
+    make it.
 
     Returns:
-        ``(llm_output, input_manifest)``, so a caller that suppressed the upsert
-        still has something to record.
+        ``(llm_output, input_manifest)``.
     """
-    historical = as_of is not None
 
     # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
     #    the merged non-WB indicators (Political Corruption Index) so they
@@ -387,29 +288,18 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         deltas=_PAYLOAD_DELTA_HORIZONS,
     )
 
-    if historical:
-        # The one pin. `payload_as_of` reads this field and every downstream
-        # stage takes its date from that call, so overwriting it here is what
-        # makes the whole run happen on `as_of` rather than today.
-        payload.setdefault("_meta", {})["generated_at"] = as_of.isoformat()
-
     # 2) Fetch relevant news using multi-query strategy with relevance filtering
-    if items is None:
-        items = article_enrichment.fetch_relevant_news(
-            country_name or iso2, max_articles=_MAX_ARTICLES_PER_COUNTRY
-        )
+    items = article_enrichment.fetch_relevant_news(
+        country_name or iso2, max_articles=_MAX_ARTICLES_PER_COUNTRY
+    )
 
     if items:
         avg_rel = sum(it.get("relevance_score", 0) for it in items) / len(items)
         logger.info("[%s] Fetched %d articles (avg relevance: %.2f)", iso2, len(items), avg_rel)
 
-    if not historical:
-        # Resolution and body extraction are what turn a Google News wrapper
-        # into an article. Historical items arrive already resolved, with the
-        # body the harvest stored, so re-fetching them would replace a
-        # vintage-stamped body with today's copy of the page — the exact
-        # hindsight `snapshot_select` refuses.
-        items = article_enrichment.resolve_and_enrich(items, iso2)
+    # Resolution and body extraction are what turn a Google News wrapper into
+    # an article.
+    items = article_enrichment.resolve_and_enrich(items, iso2)
 
     # Assign stable ids ("a1","a2",...)
     for i, it in enumerate(items, start=1):
@@ -420,10 +310,9 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     #     the article beside it is. Everything from this line to the score reads
     #     `scored`; everything the database and the front end read stays on
     #     `items`, unmasked. Masking is a transform at the scoring boundary and
-    #     nowhere else — the same rule the harvest follows for stored bodies.
-    masked = scoring_mode.startswith("masked")
-    scored = rewrite.mask_items(items, iso2) if masked else items
-    display = langchain_llm.MASKED_COUNTRY_LABEL if masked else country_name
+    #     nowhere else.
+    scored = rewrite.mask_items(items, iso2)
+    display = langchain_llm.MASKED_COUNTRY_LABEL
 
     # 2b) Stage 1: digest every article's full text with the cheap model,
     #     keyed on the same as_of the snapshot upsert will use, then pick
@@ -434,18 +323,16 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         # The text is masked already; this is about what the digest model
         # *writes*. `actors: who did what to whom` reads as an instruction to
         # name people, and people are exactly what the gazetteer cannot know.
-        masked=masked,
-        content_cache=digest_content_cache,
+        masked=True,
     )
-    fulltext_ids = digest_engine.select_fulltext_ids(scored, fulltext_k)
+    fulltext_ids = digest_engine.select_fulltext_ids(scored)
     logger.info("[%s] full-text ids: %s", iso2, fulltext_ids)
 
-    if masked:
-        # The gazetteer is a list somebody wrote; it does not know this week's
-        # ministers, parties or companies. The model pass covers what it missed,
-        # and only on the two or three bodies the scorer reads end to end —
-        # everything else reaches it as a digest of already-masked text.
-        _rewrite_fulltext(scored, fulltext_ids, iso2, cache=digest_content_cache)
+    # The gazetteer is a list somebody wrote; it does not know this week's
+    # ministers, parties or companies. The model pass covers what it missed, and
+    # only on the two or three bodies the scorer reads end to end — everything
+    # else reaches it as a digest of already-masked text.
+    _rewrite_fulltext(scored, fulltext_ids, iso2)
 
     # 2c) The three-ledger evidence the model actually scores on. Separate from
     #     the panel payload above, which stays the DB-facing one: `upsert_snapshot`
@@ -465,19 +352,9 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         series=series,
         fx_regimes=constants.FX_REGIMES,
         elections=constants.ELECTIONS,
-        # Static, so it needs no vintage bound and is read the same way for a
-        # 2016 anchor and for today. Degrades like every other store: a
-        # malformed file costs the structural block, not the score.
-        #
-        # Withheld entirely for the no-structural arm, which is the one thing
-        # that tells "the structural facts worked" apart from "identity never
-        # mattered".
-        structural={} if scoring_mode == "masked_nostructural" else
-        (_safe(curated_loader.load_structural_facts, iso2, "structural") or {}),
-        # Only a historical run restricts the data vintage. The daily run passes
-        # None and behaves exactly as before — handing it today's date would
-        # drop the current year's annual figures, whose period ends in December.
-        vintage_as_of=as_of if historical else None,
+        # Degrades like every other store: a malformed file costs the
+        # structural block, not the score.
+        structural=_safe(curated_loader.load_structural_facts, iso2, "structural") or {},
     )
 
     # 3) LLM scoring. `as_of` is the snapshot's own date, not today's: it anchors
@@ -491,29 +368,13 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
         # The evidence payload names the country too, in its `_meta` and its
         # series labels, and it is serialized whole into the prompt. Masking it
         # inside the call keeps the sanctions lookup on the real code.
-        mask_iso2=iso2 if masked else None,
+        mask_iso2=iso2,
     )
 
     # 3a) Lint: record contradictions between what the model flagged and what it
     #     scored. Advisory and non-blocking — nothing here changes a score, and a
     #     lint failure must not cost the country its snapshot.
-    #
-    #     The *write* follows `upsert` for the same reason the snapshot does, and
-    #     it matters more than it looks. `upsert_lint_findings` writes no side
-    #     table: it INSERTs into `risk_snapshot` itself, keyed `(country, as_of)`
-    #     with ON CONFLICT DO UPDATE, so that lint here in phase 3a and the
-    #     snapshot in phase 7 can land in either order. It sets no `scoring_mode`,
-    #     so the schema's CHECK cannot catch it either.
-    #
-    #     So every non-production arm sharing `(country, as_of)` with the masked
-    #     twin — the two diagnostic modes, and the bake-off's candidates — was
-    #     overwriting production's `lint`, and on an anchor with no row yet was
-    #     *creating a stub production row with a NULL score*. Silently: the
-    #     bake-off reads lint back from the in-memory manifest while `reports`
-    #     reads the table, so the two disagree with nothing to say so.
-    #
-    #     The logging stays unconditional, because a finding is worth seeing
-    #     whoever produced it. Only the row is production's.
+
     try:
         findings = lint.check(
             country_iso2=iso2,
@@ -532,8 +393,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             non_investable=bool(llm_output.get("non_investable")),
         )
         lint.log_findings(findings)
-        if upsert:
-            data_push.upsert_lint_findings(findings)
+        data_push.upsert_lint_findings(findings)
     except Exception:
         logger.exception("[%s] lint pass failed; the snapshot still writes", iso2)
 
@@ -574,7 +434,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
             policy_version=llm_output.get("policy_version"),
             seed=ai_client.SEED,
             masking={
-                "scoring_mode": scoring_mode,
+                "scoring_mode": "masked",
                 # Without the map's version the same articles re-mask
                 # differently and the row cannot be rebuilt, so this is as
                 # load-bearing here as the prompt version.
@@ -601,7 +461,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
                 # only in a comment.
                 "structural_fields": len(evidence.get("structural") or {}),
                 "identifiability": _identifiability(scored, iso2, as_of, fulltext_ids),
-            } if masked else None,
+            },
         )
     except Exception:
         logger.exception("[%s] provenance manifest failed; writing the snapshot without it", iso2)
@@ -613,11 +473,7 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     top_ids = article_ranking.select_top_ids(items_by_id, imp_map, topic_map, iso2)
 
     # 5) Enrich ONLY the Top-3 with missing images using the advanced scraper.
-    #    Skipped for historical runs: an image is decoration, not evidence, and
-    #    scraping three publishers per week per country would be thousands of
-    #    live page fetches to decorate a backfill.
-    if not historical:
-        article_enrichment.enrich_top_images(top_ids, items_by_id)
+    article_enrichment.enrich_top_images(top_ids, items_by_id)
 
     # 6) Build Top-3 payload AFTER enrichment
     top_articles = article_ranking.build_top_articles(top_ids, items_by_id, imp_map)
@@ -626,18 +482,14 @@ def _process_country(country_name: str, iso2: str, global_alert_pool: List[Dict]
     for a in top_articles:
         global_alert_pool.append({**a, "country_iso2": iso2, "country_name": country_name})
 
-    # 7) Upsert to DB — unless this is a diagnostic arm, which shares
-    #    (country, as_of) with its masked twin and would overwrite the
-    #    production series on its own primary key. Those land in
-    #    `history_run_ledger` instead, which the caller writes.
-    if upsert:
-        data_push.upsert_snapshot(
-            {**payload, "llm_output": llm_output, "top_articles": top_articles,
-             "input_manifest": input_manifest, "scoring_mode": scoring_mode},
-            country_name=country_name
-        )
+    # 7) Upsert to DB.
+    data_push.upsert_snapshot(
+        {**payload, "llm_output": llm_output, "top_articles": top_articles,
+         "input_manifest": input_manifest, "scoring_mode": "masked"},
+        country_name=country_name
+    )
 
-    logger.info("[%s] score=%s (%s)", iso2, llm_output.get("score"), scoring_mode)
+    logger.info("[%s] score=%s (masked)", iso2, llm_output.get("score"))
     logger.info("article_url: %s", [a["url"] for a in top_articles])
     logger.info("img_url: %s", [a["image"] for a in top_articles])
     return llm_output, input_manifest

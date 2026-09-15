@@ -29,7 +29,6 @@ from typing import Dict, List, Optional
 
 import trafilatura
 
-from backend.util import config
 from backend.util.dates import parse_date_for_sort
 
 logger = logging.getLogger(__name__)
@@ -38,6 +37,19 @@ logger = logging.getLogger(__name__)
 # only place that calls it.
 logging.getLogger("trafilatura").setLevel(logging.ERROR)
 logging.getLogger("trafilatura.core").setLevel(logging.ERROR)
+
+# Stop at the relevance bar instead of topping a snapshot up to the budget.
+#
+# Off by default.
+#
+# The question this answers is not "top-up or no top-up". The top-up fixed a
+# real discontinuity and still does. It is whether the pool being topped up
+# from is worth drawing on: padding twenty slots from a pool that is 45% sport
+# puts fourteen match reports in front of the model with nothing to mark them
+# as padding. Turn this on once the retrieval fixes have been measured, not
+# before -- with a broken scorer it would have cut the evidence and kept the
+# football.
+RELEVANCE_FLOOR_ENFORCED: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -76,10 +88,7 @@ THEME_QUERIES: dict[str, str] = {
 # answer `classify_themes` gives when no specific theme fires.
 BROAD_THEME = "broad"
 
-# How much of one article's body any path keeps. Shared so a historical body and
-# a live one are the same size of evidence: a harvester storing 100k characters
-# where the daily run stores 24k would be scoring history on a different
-# instrument, which is the whole thing the History Machine is trying not to do.
+# How much of one article's body is kept.
 MAX_BODY_CHARS = 24000
 
 # How many words of an article the *relevance scorer* reads, as against the
@@ -348,11 +357,7 @@ def apply_threshold(items: List[Dict], threshold: float, max_articles: int,
                     *, enforce_floor: Optional[bool] = None) -> List[Dict]:
     """Relevant articles first, then top up by rank -- or stop at the bar.
 
-    One copy of a rule that was written twice, in `article_enrichment` and in
-    `snapshot_select`. They agreed when this was extracted, and agreeing is the
-    whole requirement: two readings of "the 20 articles" is two instruments, and
-    the historical series is only worth anything if it is the live one with
-    ``as_of`` pinned.
+    One copy of a rule that was once written twice.
 
     The default behavior is the top-up, and it is deliberate. Read as a *cap*,
     the threshold produced a discontinuity exactly where a country's coverage is
@@ -374,7 +379,7 @@ def apply_threshold(items: List[Dict], threshold: float, max_articles: int,
         threshold: the relevance bar.
         max_articles: the budget the caller intends to spend.
         enforce_floor: stop at the bar instead of topping up. ``None`` reads
-            :data:`config.RELEVANCE_FLOOR_ENFORCED`, so both paths change
+            :data:`RELEVANCE_FLOOR_ENFORCED`, so both paths change
             together or not at all.
 
     Returns:
@@ -383,7 +388,7 @@ def apply_threshold(items: List[Dict], threshold: float, max_articles: int,
         week and must stay one.
     """
     if enforce_floor is None:
-        enforce_floor = config.RELEVANCE_FLOOR_ENFORCED
+        enforce_floor = RELEVANCE_FLOOR_ENFORCED
     ranked = by_relevance(items)
     cleared = [i for i in ranked if i.get("relevance_score", 0) >= threshold]
     if enforce_floor:

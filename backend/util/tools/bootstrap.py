@@ -39,7 +39,7 @@ from dotenv import load_dotenv  # noqa: E402
 load_dotenv(PROJECT_ROOT / "backend" / ".env")
 
 from backend.data_fetching import country_data_fetch, curated_loader  # noqa: E402
-from backend.data_fetching.vintage import weo  # noqa: E402
+from backend.data_fetching import weo  # noqa: E402
 from backend.data_upsert import data_push, schema  # noqa: E402
 from backend.util import constants, pipeline  # noqa: E402
 
@@ -80,8 +80,8 @@ def step_weo() -> str:
     editions = sorted(weo.VINTAGE_DIR.glob("*.xls")) if weo.VINTAGE_DIR.exists() else []
     fetched = 0
     if not editions:
-        from backend.data_fetching.vintage import fetch_editions
-        fetched = fetch_editions.fetch_all()
+        from backend.data_fetching import weo_fetch
+        fetched = weo_fetch.fetch_all()
         editions = sorted(weo.VINTAGE_DIR.glob("*.xls"))
 
     rows = weo.load_all([c["iso2"] for c in constants.COUNTRY_ROSTER])
