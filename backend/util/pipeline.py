@@ -265,9 +265,35 @@ def ensure_missing_country_panels(root: pathlib.Path,
             print(f"[{iso2}] ERROR while backfilling panel: {e}")
 
 # --- Main -------------------------------------------------------------------
+def seed_roster() -> int:
+    """Write the roster into ``country`` and read it back, returning the row count.
+
+    The readback is the point. A seed that silently wrote nothing would otherwise
+    surface much later as a foreign-key error against a country nobody was
+    looking at, so the run asserts that what the roster promised actually arrived
+    rather than trusting that the write returned without raising.
+
+    Raises:
+        RuntimeError: if any roster country is not readable afterwards.
+    """
+    written = data_push.upsert_countries()
+    seeded = data_push.read_countries()
+    missing = [c["iso2"] for c in constants.COUNTRY_ROSTER if c["iso2"] not in seeded]
+    if missing:
+        raise RuntimeError(
+            f"country seed did not reach the database: {', '.join(missing)}"
+        )
+    print(f"[roster] seeded {written} countries, {len(seeded)} readable")
+    return written
+
+
 def run_etl() -> None:
     """Loop countries → payload → news → LLM score → enrich Top-3 images if missing → DB."""
     print(f"=== AI Country Risk run started at {_to_utc_iso(datetime.now(timezone.utc))} UTC ===")
+
+    # 0a) Seed the roster into `country` — every other table's foreign key
+    #     points here.
+    seed_roster()
 
     # 0) Ensure/Backfill panels per country (incremental, idempotent)
     #    World Bank indicators are fetched per-country; non-WB indicators

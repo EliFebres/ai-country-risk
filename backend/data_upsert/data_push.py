@@ -4,7 +4,7 @@ from typing import Dict, Any, Optional, List, Tuple
 
 import psycopg2
 import psycopg2.extras as extras
-from backend.util import env
+from backend.util import constants, env
 
 env.load()
 
@@ -36,6 +36,104 @@ def _to_ts_or_none(s: Optional[str]) -> Optional[datetime.datetime]:
         return datetime.datetime.fromisoformat(s.replace("Z", "+00:00"))
     except Exception:
         return None
+
+
+_COUNTRY_DDL = """
+CREATE TABLE IF NOT EXISTS country (
+    iso2 CHAR(2) PRIMARY KEY,
+    name TEXT NOT NULL
+);
+ALTER TABLE country ADD COLUMN IF NOT EXISTS tier TEXT;
+ALTER TABLE country ADD COLUMN IF NOT EXISTS lat  DOUBLE PRECISION;
+ALTER TABLE country ADD COLUMN IF NOT EXISTS lng  DOUBLE PRECISION;
+"""
+
+
+def upsert_countries(roster: Optional[List[Dict[str, Any]]] = None) -> int:
+    """Seed the ``country`` table from the roster, and return the row count written.
+
+    ``country`` is the parent every other table's foreign key points at, and until
+    now nothing created or filled it: the DDL lived only in ``backend/README.md``
+    and ``upsert_snapshot`` inserted a bare ``(iso2, name)`` lazily, on conflict do
+    nothing. That meant a fresh database failed on the first snapshot, and a
+    country that never scored never appeared at all.
+
+    Seeding it from ``constants.COUNTRY_ROSTER`` at the top of every run makes the
+    roster the single source of truth in fact and not just in comment: the
+    front-end reads names and map positions from this table, so adding a country
+    to the roster is the whole change.
+
+    ``name``, ``tier``, ``lat`` and ``lng`` are refreshed on conflict — a roster
+    edit is meant to propagate, and a stale display name outliving its roster entry
+    is the kind of drift that goes unnoticed for months.
+
+    Args:
+        roster: Roster entries to write. Defaults to ``constants.COUNTRY_ROSTER``.
+
+    Returns:
+        The number of rows written.
+    """
+    if not DB_URL:
+        raise RuntimeError("DATABASE_URL is not set in the environment")
+
+    if roster is None:
+        roster = constants.COUNTRY_ROSTER
+
+    rows: List[Tuple] = [
+        (c["iso2"], c["name"], c.get("tier"), c.get("lat"), c.get("lng"))
+        for c in roster
+        if c.get("iso2") and c.get("name")
+    ]
+    if not rows:
+        return 0
+
+    conn = psycopg2.connect(DB_URL)
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            cur.execute(_COUNTRY_DDL)
+            extras.execute_values(
+                cur,
+                """
+                INSERT INTO country (iso2, name, tier, lat, lng)
+                VALUES %s
+                ON CONFLICT (iso2) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    tier = EXCLUDED.tier,
+                    lat  = EXCLUDED.lat,
+                    lng  = EXCLUDED.lng
+                """,
+                rows,
+            )
+        conn.commit()
+        return len(rows)
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def read_countries() -> Dict[str, Dict[str, Any]]:
+    """Read the seeded roster back, keyed by ISO-2.
+
+    The consumer side of :func:`upsert_countries`. The run uses it to assert that
+    what the roster promised actually reached the database, rather than trusting
+    that the write returned without raising.
+    """
+    if not DB_URL:
+        raise RuntimeError("DATABASE_URL is not set in the environment")
+
+    conn = psycopg2.connect(DB_URL)
+    try:
+        with conn.cursor() as cur:
+            cur.execute("SELECT iso2, name, tier, lat, lng FROM country")
+            return {
+                r[0]: {"name": r[1], "tier": r[2], "lat": r[3], "lng": r[4]}
+                for r in cur.fetchall()
+            }
+    finally:
+        conn.close()
 
 
 def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
