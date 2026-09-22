@@ -20,9 +20,9 @@ if str(_REPO_ROOT) not in sys.path:
 from backend.util import constants
 from backend.util import paths
 from backend.data_fetching import data_retrieval
-from backend.utils.ai import langchain_llm
-from backend.utils.ai import calendar_ranker
-from backend.utils.ai import alerts_ranker
+from backend.llm import langchain_llm
+from backend.llm import calendar_ranker
+from backend.llm import alerts_ranker
 from backend.data_upsert import data_push
 from backend.news_fetching import fetch_links
 from backend.data_fetching import fetch_metrics

@@ -121,3 +121,30 @@ def test_nothing_rewalks_the_filesystem_for_the_project_root():
         "the project root is resolved in util/paths.py, not rediscovered:\n  "
         + "\n  ".join(offenders)
     )
+
+
+def test_no_module_imports_backend_utils():
+    """utils/ does not survive v2.0, under any spelling.
+
+    This is also the guard against a compatibility shim: a re-export stub is a
+    flag-off branch in disguise, and re-pointing one import back at backend.utils
+    is how one would creep in.
+    """
+    offenders = []
+    for name, path in MODULES.items():
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                targets = [a.name for a in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                targets = [node.module]
+            else:
+                continue
+            for t in targets:
+                if t == "backend.utils" or t.startswith("backend.utils."):
+                    offenders.append(f"{name} (line {node.lineno}): {t}")
+    assert not offenders, "backend.utils is gone; still imported by:\n  " + "\n  ".join(offenders)
+
+
+def test_utils_directory_is_gone():
+    assert not (BACKEND / "utils").exists(), "backend/utils/ should not exist"

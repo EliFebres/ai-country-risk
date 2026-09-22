@@ -68,9 +68,9 @@ python backend/main.py
 * `backend/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
 * `backend/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
 * `backend/data_fetching/fmp_calendar_fetch.py` — FMP ~14-day economic-calendar pull.
-* `backend/utils/ai/langchain_llm.py` — LLM call for risk scoring.
-* `backend/utils/ai/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
-* `backend/utils/ai/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
+* `backend/llm/langchain_llm.py` — LLM call for risk scoring.
+* `backend/llm/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
+* `backend/llm/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
 * `backend/data_upsert/data_push.py` — transactional upserts for every table below.
 
 ---
@@ -247,7 +247,7 @@ Unlike the standalone prices daemon, these two refreshes run **as part of the da
   annual World Bank `yearly_value`, so a country in a fast-moving inflation regime shows
   a current figure instead of a year-old one. The tracked set lives in `constants.IMF_RECENT_INDICATORS`.
 * **Economic calendar.** `data_fetching/fmp_calendar_fetch.py` pulls the upcoming
-  ~14-day calendar from FMP; `utils/ai/calendar_ranker.py` then scores each event's
+  ~14-day calendar from FMP; `llm/calendar_ranker.py` then scores each event's
   investor importance (`ai_importance` / `ai_rationale`) before the rows are upserted into
   `economic_calendar_event`.
 
