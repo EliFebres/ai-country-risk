@@ -30,7 +30,7 @@ from backend.llm import langchain_llm
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
 from backend.data_upsert import data_push, store
-from backend.news_fetching import fetch_links
+from backend.news_fetching import core, fetch_links
 from backend.data_fetching import fetch_metrics
 from backend.data_fetching import country_data_fetch
 from backend.data_fetching import fmp_calendar_fetch
@@ -152,69 +152,42 @@ def _rank_ids_by(
         return (impact, dt, rel)
     return sorted(ids, key=key_fn, reverse=True)
 
-def _fetch_relevant_news(country_name: str, max_articles: int = 20) -> List[Dict]:
+def _fetch_relevant_news(
+    country_name: str, iso2: str, max_articles: int = 20
+) -> Tuple[List[Dict], Dict]:
+    """Fetch one country's candidate pool and order it, newest-and-most-relevant first.
+
+    Retrieval itself now lives in ``news_fetching.core``: six theme queries that
+    match the ledgers the score is built from, ten deep, deduplicated on the
+    resolved publisher link. The four hand-written queries that used to be here
+    asked about the country; these ask about the material.
+
+    The relevance ordering below is the old keyword heuristic, kept for one more
+    commit so the pipeline keeps working. It is replaced by the relevance gate
+    next, and is not a filter here: it orders the pool, and the budget cuts it.
+
+    Returns:
+        ``(items, pool_report)`` — the report is the per-country pool table.
     """
-    Fetch news via 4 queries:
-      - Broad catch-all (country only)
-      - Government/Political
-      - Economic/Central Bank
-      - Security/Military
-    Score by relevance and return up to max_articles. If the filtered set is < 3,
-    relax the threshold and fill from the broader pool to ensure >=3 when possible.
-    """
-    queries = [
-        # NEW: Broad catch-all to maximize recall; noise is filtered by scoring
-        f'"{country_name}"',
+    pool = core.fetch_candidates(country_name, iso2)
+    report = pool["report"]
+    print(core.format_pool_report(report))
 
-        # Government/Political
-        f'"{country_name}" (government OR president OR prime minister OR parliament OR election OR cabinet OR coup OR protest)',
-
-        # Economic/Central Bank
-        f'"{country_name}" (central bank OR interest rate OR inflation OR GDP OR currency OR monetary policy OR IMF OR World Bank)',
-
-        # Security/Military
-        f'"{country_name}" (military OR defense OR conflict OR war OR attack OR sanctions OR security OR terrorism)',
-    ]
-
-    all_items: List[Dict] = []
-    seen_urls = set()
-
-    for query in queries:
-        items = fetch_links.gnews_rss(
-            query=query,
-            max_results=15,           # up to ~60 raw before de-dupe
-            expand=True,
-            extract_chars=24000,
-            build_summary=True,
-            summary_words=240,
-        )
-
-        for item in items:
-            url = item.get("link", "")
-            if url and url not in seen_urls:
-                seen_urls.add(url)
-                all_items.append(item)
-
-    # Score each article
-    for item in all_items:
+    items = pool["items"]
+    for item in items:
         item["relevance_score"] = _score_article_relevance(item, country_name)
+    items.sort(
+        key=lambda x: (
+            x.get("relevance_score", 0.0),
+            _parse_date_for_sort(x.get("published")),
+        ),
+        reverse=True,
+    )
 
-    # High-quality filter first
-    filtered = [it for it in all_items if it.get("relevance_score", 0) >= 0.3]
-    filtered.sort(key=lambda x: (x.get("relevance_score", 0.0), _parse_date_for_sort(x.get("published"))), reverse=True)
+    selected = items[:max_articles]
+    report["selected"] = len(selected)
+    return selected, report
 
-    # If we have very few, relax threshold to ensure >=3 (if possible)
-    if len(filtered) < 3:
-        print(f"[{country_name}] Only {len(filtered)} high-relevance items (>=0.3). Relaxing threshold to ensure 3.")
-        relaxed = sorted(
-            all_items,
-            key=lambda x: (x.get("relevance_score", 0.0), _parse_date_for_sort(x.get("published"))),
-            reverse=True,
-        )
-        # Keep top 'max_articles', but ensure at least 3 if available
-        filtered = relaxed[:max(max_articles, 3)]
-
-    return filtered[:max_articles]
 
 def ensure_missing_country_panels(root: pathlib.Path,
                                   indicators: dict,
@@ -378,7 +351,9 @@ def run_etl() -> None:
             )
 
             # 2) Fetch relevant news using multi-query strategy with relevance filtering (+ BROAD query)
-            items = _fetch_relevant_news(country_name or iso2, max_articles=20)
+            items, pool_report = _fetch_relevant_news(
+                country_name or iso2, iso2, max_articles=20
+            )
 
             if items:
                 avg_rel = sum(it.get("relevance_score", 0) for it in items) / len(items)
