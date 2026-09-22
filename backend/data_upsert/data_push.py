@@ -602,6 +602,57 @@ def read_price_references() -> Dict[str, Dict[str, Any]]:
         conn.close()
 
 
+def read_reference_refreshed_on() -> Optional[datetime.date]:
+    """The newest ``price_reference.reference_refreshed_on``, or None if unset.
+
+    The prices loop asks this instead of consulting a process-local flag, so a
+    restart inherits the day's work instead of redoing it.
+    """
+    if not DB_URL:
+        raise RuntimeError("DATABASE_URL is not set in the environment")
+
+    conn = psycopg2.connect(DB_URL)
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            cur.execute(_PRICE_REFERENCE_DDL)
+            cur.execute("SELECT MAX(reference_refreshed_on) FROM price_reference")
+            row = cur.fetchone()
+        conn.commit()
+        return row[0] if row else None
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def read_yields_updated_at() -> Optional[datetime.datetime]:
+    """The newest ``updated_at`` across the yield rows, or None if there are none.
+
+    Yields have no refreshed-on column of their own, so the row's own timestamp
+    is the record of when they were last refreshed. Returned as the stored
+    timestamptz; the caller decides which calendar day that falls in.
+    """
+    if not DB_URL:
+        raise RuntimeError("DATABASE_URL is not set in the environment")
+
+    conn = psycopg2.connect(DB_URL)
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            cur.execute(_MARKET_PRICE_DDL)
+            cur.execute("SELECT MAX(updated_at) FROM market_price WHERE is_yield")
+            row = cur.fetchone()
+        conn.commit()
+        return row[0] if row else None
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def read_latest_snapshot_date() -> Optional[datetime.date]:
     """The newest ``risk_snapshot.as_of``, or None if there are no ratings yet.
 

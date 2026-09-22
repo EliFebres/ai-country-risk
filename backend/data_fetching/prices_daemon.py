@@ -23,7 +23,7 @@ import signal
 import logging
 import threading
 from datetime import datetime, timezone, date
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from backend.util import constants
 from backend.data_fetching import market_hours
@@ -35,6 +35,10 @@ logging.basicConfig(
     format="%(asctime)s [prices] %(levelname)s %(message)s",
 )
 logger = logging.getLogger("prices_daemon")
+
+#: Per-ET-day cap on each daily refresh, so a down upstream is retried
+#: without being hammered every poll interval.
+MAX_REFRESH_ATTEMPTS_PER_DAY = 3
 
 # --- Precomputed asset lookups ----------------------------------------------
 _FMP_ASSETS: List[Dict[str, Any]] = [a for a in constants.PRICE_ASSETS if a["source"] == "fmp"]
@@ -59,31 +63,67 @@ class PricesDaemon:
     """Holds the small amount of cross-tick state (daily-refresh bookkeeping)."""
 
     def __init__(self) -> None:
-        # internal_symbol -> {ref_q, ref_ytd, ...}
+        # internal_symbol -> {ref_q, ref_ytd, ...}. A cache of values, not of
+        # whether the day's work is done - that question goes to the database.
         self.refs: Dict[str, Dict[str, Any]] = {}
-        self.refs_day: Optional[date] = None
-        self.yields_day: Optional[date] = None
+        self._attempts: Dict[str, Tuple[date, int]] = {}
         self._stop = threading.Event()
+
+    # -- attempt limiting ---------------------------------------------------
+    def _may_attempt(self, job: str, today: date) -> bool:
+        """Cap retries per ET day.
+
+        Asking the data means a failed refresh leaves the stored date stale, so
+        the next tick tries again - correct, but every five minutes forever if
+        the upstream is down. The old code avoided that for references by
+        stamping the day even on total failure, which also meant a transient
+        blip cost a whole day of 1Q/YTD accuracy. A cap keeps the retry and
+        drops the hammering.
+        """
+        day, count = self._attempts.get(job, (today, 0))
+        if day != today:
+            return True
+        return count < MAX_REFRESH_ATTEMPTS_PER_DAY
+
+    def _record_attempt(self, job: str, today: date) -> None:
+        day, count = self._attempts.get(job, (today, 0))
+        self._attempts[job] = (today, count + 1 if day == today else 1)
 
     # -- startup ------------------------------------------------------------
     def load_state(self) -> None:
-        """Hydrate references from the DB so a restart skips a same-day refetch."""
+        """Hydrate reference *values* from the DB so a tick can compute 1Q/YTD.
+
+        Whether today's refresh has already happened is no longer inferred here.
+        It is asked of the database each time it matters, so a restart cannot
+        lose the answer and a partially-written table cannot hide it.
+        """
         try:
             self.refs = data_push.read_price_references()
         except Exception as e:  # noqa: BLE001
             logger.warning("Could not load stored price references: %s", e)
             self.refs = {}
-        # If everything stored shares a refresh date, treat that as today's marker.
-        days = {r.get("reference_refreshed_on") for r in self.refs.values() if r.get("reference_refreshed_on")}
-        self.refs_day = next(iter(days)) if len(days) == 1 else None
-        logger.info("Loaded %d stored references (refs_day=%s).", len(self.refs), self.refs_day)
+        logger.info("Loaded %d stored reference values.", len(self.refs))
 
     # -- daily refreshes ----------------------------------------------------
     def maybe_refresh_references(self, now: datetime) -> None:
         """Once/day: read quarter-/year-start closes for the FMP assets."""
         today = _today_et(now)
-        if self.refs_day == today:
+        try:
+            stored = data_push.read_reference_refreshed_on()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Could not read the stored reference date (%s); skipping refresh.", e)
             return
+        if stored == today:
+            logger.debug("References already refreshed for %s; skipping.", today)
+            return
+        if not self._may_attempt("references", today):
+            logger.warning(
+                "References: attempt cap %d reached today; holding off. Stored date "
+                "is %s, so 1Q/YTD are being computed against stale closes.",
+                MAX_REFRESH_ATTEMPTS_PER_DAY, stored,
+            )
+            return
+        self._record_attempt("references", today)
         symbols = [a["source_symbol"] for a in _FMP_ASSETS]
         fetched = fmp_prices_fetch.fetch_reference_closes(symbols, now_utc=now)
         # Re-key from source symbol to internal symbol for storage + lookups.
@@ -98,15 +138,30 @@ class PricesDaemon:
                 data_push.upsert_price_references(by_internal, today)
             except Exception as e:  # noqa: BLE001
                 logger.warning("Could not persist price references: %s", e)
-        # Stamp the day regardless so we attempt at most once per day.
-        self.refs_day = today
-        logger.info("Reference refresh complete (%d symbols).", len(by_internal))
+        # No day to stamp: the stored rows are the record. A failed fetch leaves
+        # the stored date stale, so the next tick retries until the cap.
+        logger.info("Reference refresh complete (%d symbols, stored date was %s).",
+                    len(by_internal), stored)
 
     def maybe_refresh_yields(self, now: datetime) -> None:
         """Once/day: fetch US Treasury yields from FMP and upsert them."""
         today = _today_et(now)
-        if self.yields_day == today:
+        try:
+            stored_at = data_push.read_yields_updated_at()
+        except Exception as e:  # noqa: BLE001
+            logger.warning("Could not read the stored yield timestamp (%s); skipping refresh.", e)
             return
+        stored_day = _today_et(stored_at) if stored_at else None
+        if stored_day == today:
+            logger.debug("Yields already refreshed for %s; skipping.", today)
+            return
+        if not self._may_attempt("yields", today):
+            logger.warning(
+                "Yields: attempt cap %d reached today; holding off. Stored day is %s.",
+                MAX_REFRESH_ATTEMPTS_PER_DAY, stored_day,
+            )
+            return
+        self._record_attempt("yields", today)
         metrics = fmp_prices_fetch.fetch_treasury_yields(_BOND_ASSETS, now_utc=now)
         rows: List[Dict[str, Any]] = []
         for a in _BOND_ASSETS:
@@ -120,9 +175,9 @@ class PricesDaemon:
             except Exception as e:  # noqa: BLE001
                 logger.warning("Could not upsert yield rows: %s", e)
                 return
-        # Stamp only when at least one yield resolved, so a fully-failed fetch retries.
-        if rows:
-            self.yields_day = today
+        # Nothing to stamp: the upserted rows carry their own updated_at, which is
+        # what the next tick reads. A fully-failed fetch writes nothing and so
+        # retries, up to the cap.
         logger.info("Yield refresh complete (%d/%d symbols).", len(rows), len(_BOND_ASSETS))
 
     # -- live tick ----------------------------------------------------------

@@ -271,7 +271,11 @@ and upserts the latest snapshot into `market_price`.
 * **Cost control.** FMP quote classes are fetched only while their market is open
   (`data_fetching/market_hours.py`: crypto 24/7, US equities on the NYSE session, commodities on
   the Globex window). The yields and the 1Q/YTD reference closes refresh at most once per
-  ET day.
+  ET day, and whether today's refresh already happened is read from the stored
+  rows (`price_reference.reference_refreshed_on`, and the yield rows' own
+  `updated_at`) rather than from a flag held in the process - so a restart
+  inherits the day's work instead of repeating it. A failed refresh leaves the
+  stored date stale and is retried, up to three attempts per day.
 
 ```bash
 # One-shot tick (verification): fetch once, upsert, exit
