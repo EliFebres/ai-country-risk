@@ -14,6 +14,7 @@ into every other folder - data_fetching, news_fetching, llm and data_upsert - so
 it belongs to none of them.
 """
 
+import json
 import os
 import pathlib
 import time
@@ -244,13 +245,20 @@ def seed_roster() -> int:
     return written
 
 
-def run_etl(only: Optional[List[str]] = None) -> None:
+def run_etl(
+    only: Optional[List[str]] = None,
+    dump_dir: Optional[pathlib.Path] = None,
+) -> None:
     """Loop countries → payload → news → gate → digests → score → census → DB.
 
     Args:
         only: ISO-2 codes to run instead of the whole roster. For verification
             and for re-running one country after a failure; the scheduled run
             passes nothing and covers everything.
+        dump_dir: If set, write each country's serialized payload here as it is
+            sent. Verification reads these rather than rebuilding the payload
+            from stored parts — a reconstruction can agree with itself and still
+            differ from what the model actually received.
     """
     roster = [c for c in constants.COUNTRY_ROSTER
               if not only or c["iso2"] in {x.upper() for x in only}]
@@ -538,6 +546,19 @@ def run_etl(only: Optional[List[str]] = None) -> None:
                 body_cap_chars=digest_engine.BODY_CAP_CHARS,
             )
             article_ids = [a["id"] for a in scoring_payload["articles"]]
+
+            if dump_dir is not None:
+                # Exactly the bytes the model is about to be handed.
+                dump_dir.mkdir(parents=True, exist_ok=True)
+                (dump_dir / f"{iso2}-payload.json").write_text(
+                    json.dumps(scoring_payload, indent=2, ensure_ascii=False,
+                               default=str),
+                    encoding="utf-8",
+                )
+                (dump_dir / f"{iso2}-census.json").write_text(
+                    json.dumps(census, indent=2, ensure_ascii=False, default=str),
+                    encoding="utf-8",
+                )
 
             scored = langchain_llm.score_country(
                 iso2=iso2,
