@@ -54,29 +54,27 @@ def test_parse_date_for_sort(case):
     assert _dt_repr(etl._parse_date_for_sort(case["input"])) == case["output"]
 
 
-@pytest.mark.parametrize(
-    "case", FIXTURES["score_article_relevance"], ids=lambda c: c["id"]
-)
-def test_score_article_relevance(case):
-    got = etl._score_article_relevance(ARTICLES_BY_ID[case["id"]], COUNTRY)
-    assert got == case["output"], f"{case['id']}: {got!r} != {case['output']!r}"
+# `_score_article_relevance` was deleted when the relevance gate replaced it.
+# Its own characterization tests went with it — the fixture's recorded outputs
+# are kept below only because `_rank_ids_by` used the score as a tiebreak, and
+# that function's behaviour is still pinned.
 
-
-@pytest.mark.parametrize(
-    "case", FIXTURES["score_article_relevance_other_country"], ids=lambda c: c["id"]
-)
-def test_score_article_relevance_country_not_mentioned(case):
-    """A country that appears in none of the text collapses every score to the floor."""
-    got = etl._score_article_relevance(ARTICLES_BY_ID[case["id"]], "Nowhereland")
-    assert got == case["output"]
+_RECORDED_RELEVANCE = {
+    c["id"]: c["output"] for c in FIXTURES["score_article_relevance"]
+}
 
 
 def _scored_by_id(date_mode: str) -> dict:
-    """Rebuild the ranking input exactly as the baseline generator did."""
+    """Rebuild the ranking input exactly as the baseline generator did.
+
+    The scores are read from the fixture rather than recomputed, because the
+    function that computed them is gone. The recorded numbers are what shipped,
+    which is the only thing `_rank_ids_by`'s characterization needs.
+    """
     out = {}
     for a in FIXTURES["articles"]:
         item = dict(a)
-        item["relevance_score"] = etl._score_article_relevance(a, COUNTRY)
+        item["relevance_score"] = _RECORDED_RELEVANCE[a["id"]]
         if date_mode == "naive":
             p = item.get("published")
             if isinstance(p, str) and "T" in p:

@@ -24,9 +24,12 @@ from datetime import datetime, timezone, timedelta
 
 # --- Internal Imports -------------------------------------------
 from backend.util import constants
+from backend.util import hashing
+from backend.util import usage
 from backend.util import paths
 from backend.data_fetching import data_retrieval
 from backend.llm import langchain_llm
+from backend.llm import relevance
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
 from backend.data_upsert import data_push, store
@@ -82,57 +85,6 @@ def _parse_date_for_sort(date_str: str | None):
     except Exception:
         return datetime(1970, 1, 1)
 
-def _score_article_relevance(article: Dict, country_name: str) -> float:
-    """
-    Score article relevance (0-1) based on title/summary content.
-    Higher = more relevant to geopolitical risk.
-    """
-    title = (article.get("title") or "").lower()
-    summary = (article.get("summary") or article.get("snippet") or "").lower()
-    text = f"{title} {summary}"
-    country_lower = country_name.lower()
-
-    # Must mention country (very small base if not, to allow backfill as absolute last resort)
-    if country_lower not in text:
-        return 0.1
-
-    score = 0.3  # Base score for mentioning country
-
-    # HIGH relevance keywords (government/policy/economy/security)
-    high_keywords = [
-        'government', 'ministry', 'parliament', 'president', 'prime minister',
-        'central bank', 'interest rate', 'monetary policy', 'inflation', 'gdp',
-        'election', 'cabinet', 'policy', 'budget', 'fiscal', 'trade',
-        'military', 'defense', 'conflict', 'sanctions', 'war', 'coup', 'security'
-    ]
-
-    # MEDIUM relevance keywords
-    medium_keywords = [
-        'economy', 'economic', 'finance', 'currency', 'debt', 'growth',
-        'minister', 'official', 'regulation', 'law', 'reform'
-    ]
-
-    # LOW relevance (noise - entertainment/sports)
-    noise_keywords = [
-        'sport', 'football', 'soccer', 'basketball', 'tennis', 'cricket',
-        'music', 'entertainment', 'celebrity', 'festival', 'award',
-        'movie', 'film', 'actor', 'singer', 'concert'
-    ]
-
-    high_count = sum(1 for kw in high_keywords if kw in text)
-    medium_count = sum(1 for kw in medium_keywords if kw in text)
-    noise_count = sum(1 for kw in noise_keywords if kw in text)
-
-    score += min(high_count * 0.15, 0.5)     # Up to +0.5 for high keywords
-    score += min(medium_count * 0.08, 0.2)   # Up to +0.2 for medium keywords
-    score -= noise_count * 0.2               # Penalty for noise
-
-    # Bonus for high keywords in the title
-    if any(kw in title for kw in high_keywords):
-        score += 0.15
-
-    return max(0.0, min(1.0, score))
-
 def _rank_ids_by(
     ids: List[str],
     items_by_id: Dict[str, Dict],
@@ -152,41 +104,49 @@ def _rank_ids_by(
         return (impact, dt, rel)
     return sorted(ids, key=key_fn, reverse=True)
 
-def _fetch_relevant_news(
-    country_name: str, iso2: str, max_articles: int = 20
-) -> Tuple[List[Dict], Dict]:
-    """Fetch one country's candidate pool and order it, newest-and-most-relevant first.
+def _fetch_candidate_pool(country_name: str, iso2: str) -> Tuple[List[Dict], Dict]:
+    """Fetch one country's candidate pool. No ranking, no budget, no filtering.
 
-    Retrieval itself now lives in ``news_fetching.core``: six theme queries that
-    match the ledgers the score is built from, ten deep, deduplicated on the
-    resolved publisher link. The four hand-written queries that used to be here
-    asked about the country; these ask about the material.
-
-    The relevance ordering below is the old keyword heuristic, kept for one more
-    commit so the pipeline keeps working. It is replaced by the relevance gate
-    next, and is not a filter here: it orders the pool, and the budget cuts it.
+    Retrieval lives in ``news_fetching.core``: six theme queries that match the
+    ledgers the score is built from, ten deep, deduplicated on the resolved
+    publisher link. What gets scored is decided afterwards, by the relevance
+    gate — keeping the two apart is the point, because a keyword heuristic
+    deciding what the model was allowed to read is the failure being removed.
 
     Returns:
-        ``(items, pool_report)`` — the report is the per-country pool table.
+        ``(candidates, pool_report)``.
     """
     pool = core.fetch_candidates(country_name, iso2)
-    report = pool["report"]
-    print(core.format_pool_report(report))
+    print(core.format_pool_report(pool["report"]))
+    return pool["items"], pool["report"]
 
-    items = pool["items"]
-    for item in items:
-        item["relevance_score"] = _score_article_relevance(item, country_name)
-    items.sort(
-        key=lambda x: (
-            x.get("relevance_score", 0.0),
-            _parse_date_for_sort(x.get("published")),
-        ),
-        reverse=True,
-    )
 
-    selected = items[:max_articles]
-    report["selected"] = len(selected)
-    return selected, report
+def _article_rows(articles: List[Dict], iso2: str) -> List[Dict]:
+    """Build `article` rows for the evidence store."""
+    rows = []
+    for a in articles:
+        url = a.get("publisher_link") or a.get("link")
+        if not url:
+            continue
+        body = a.get("text") or ""
+        rows.append({
+            "url": url,
+            "wrapper_url": a.get("link"),
+            "country_iso2": iso2,
+            "source_system": "google-news",
+            "publisher": a.get("source"),
+            "published_at": a.get("published"),
+            "page_published_at": a.get("page_published_at"),
+            "title": a.get("title"),
+            "abstract": a.get("snippet"),
+            "body": body or None,
+            "content_sha256": hashing.content_hash(body) if body else None,
+            "body_status": "full" if body else "title-only",
+            "body_chars_original": len(body) or None,
+            "body_clipped": False,
+            "themes": a.get("themes") or [],
+        })
+    return rows
 
 
 def ensure_missing_country_panels(root: pathlib.Path,
@@ -263,6 +223,10 @@ def seed_roster() -> int:
 def run_etl() -> None:
     """Loop countries → payload → news → LLM score → enrich Top-3 images if missing → DB."""
     print(f"=== AI Country Risk run started at {_to_utc_iso(datetime.now(timezone.utc))} UTC ===")
+
+    # Every paid call in this run is metered, so the run can say what it cost
+    # rather than leaving it to the invoice.
+    run_meter = usage.Meter()
 
     # 0a) Seed the roster into `country` — every other table's foreign key
     #     points here.
@@ -351,13 +315,42 @@ def run_etl() -> None:
             )
 
             # 2) Fetch relevant news using multi-query strategy with relevance filtering (+ BROAD query)
-            items, pool_report = _fetch_relevant_news(
-                country_name or iso2, iso2, max_articles=20
-            )
+            candidates, pool_report = _fetch_candidate_pool(country_name or iso2, iso2)
 
-            if items:
-                avg_rel = sum(it.get("relevance_score", 0) for it in items) / len(items)
-                print(f"[{iso2}] Fetched {len(items)} articles (avg relevance: {avg_rel:.2f})")
+            # 2b) The relevance gate. Every candidate is classified once, for
+            #     this country, before anything expensive touches it. Only
+            #     `structural` articles are eligible, and nothing tops up from
+            #     the rest: if six qualify, six are scored.
+            labels = relevance.classify(
+                candidates, country_name or iso2, iso2, meter=run_meter
+            )
+            gate = relevance.select(candidates, labels, iso2)
+            items = gate["selected"]
+            counts = gate["counts"]
+            print(
+                f"[gate] {iso2}: {counts['candidates']} candidates -> "
+                f"{counts['eligible']} structural -> {counts['selected']} selected "
+                f"(budget {counts['budget']}); rejected {counts['rejected_by_label']}"
+            )
+            print(f"[gate] {iso2}: per-ledger {gate['per_ledger']} | per-theme {gate['per_theme']}")
+            dupes = relevance.duplicate_story_report(items)
+            if dupes["duplicated_slots"]:
+                print(
+                    f"[gate] {iso2}: {dupes['duplicated_slots']} of {len(items)} slots "
+                    f"hold a story another selected article also tells"
+                )
+
+            # Keep the evidence. Without it a score is unauditable after the
+            # fact and last week's scoring cannot be re-run on what it saw.
+            try:
+                store.upsert_articles(_article_rows(candidates, iso2))
+            except Exception as e:
+                print(f"[{iso2}] could not store articles: {e}")
+
+            pool_report["gate"] = counts
+            pool_report["per_ledger"] = gate["per_ledger"]
+            pool_report["rejected"] = gate["rejected"]
+            pool_report["duplicate_slots"] = dupes["duplicated_slots"]
 
             # --- Resolve and do light enrichment using ONLY the simple scraper ---
             with requests.Session() as _sess:
@@ -578,4 +571,8 @@ def run_etl() -> None:
     except Exception as e:
         print(f"[alerts] ERROR: {e}")
 
+    # What the run actually cost, from the usage the provider reported rather
+    # than from an estimate. A run that cannot say what it spent is a run whose
+    # budget cap is decoration.
+    print(run_meter.summary())
     print(f"=== Run finished at {_to_utc_iso(datetime.now(timezone.utc))} UTC ===")
