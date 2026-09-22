@@ -160,13 +160,23 @@ python -m backend.main prices        # continuous loop (Ctrl‑C to stop)
 python -m backend.main prices --once # one‑shot tick for verification
  ```
 
+### Running it in production
+
+`run` is the command a deployment starts. One process, started once and left alone: it ticks the prices loop continuously and runs the ETL whenever the ratings in the database get stale.
+
+ ```bash
+python -m backend.main run
+ ```
+
+Whether the ETL is due is read from the data, not from a clock or a marker file — every tick checks the newest `risk_snapshot` date and runs the ETL when it is more than seven days old, or when there are no ratings at all. So an empty database is populated immediately, a restart after a successful run does nothing, a restart after a missed week catches up on the first tick, and a machine that was off for a month runs once rather than four times. The decision is logged on every check.
+
 It reuses `FMP_API_KEY` + `DATABASE_URL`. See `backend/README.md` for details.
 
 ### Directory Structure
 ```bash
 AI-Country-Risk-Dashboard/
 ├── backend/                    # Python ETL, LLM scoring and DB interface
-│   ├── main.py                 # The one executable: `etl`, `prices` subcommands
+│   ├── main.py                 # The one executable: `etl`, `prices`, `run`
 │   ├── test.py                 # The one test executable
 │   ├── data_fetching/          # World Bank, IMF, OWID, FMP fetchers; the panel
 │   │                           #   reader, market‑hours gating and the prices loop

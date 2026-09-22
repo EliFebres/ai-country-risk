@@ -177,6 +177,7 @@ def test_every_module_lives_in_a_known_folder():
 EXPECTED_COMMANDS = {
     "etl": ("backend.util.pipeline", "run_etl"),
     "prices": ("backend.data_fetching.prices_daemon", "run_daemon"),
+    "run": ("backend.util.supervisor", "run_supervisor"),
 }
 
 

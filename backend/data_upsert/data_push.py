@@ -602,6 +602,40 @@ def read_price_references() -> Dict[str, Dict[str, Any]]:
         conn.close()
 
 
+def read_latest_snapshot_date() -> Optional[datetime.date]:
+    """The newest ``risk_snapshot.as_of``, or None if there are no ratings yet.
+
+    This answers "when did we last *produce* ratings", which is the question the
+    supervisor asks to decide whether the ETL is due. It deliberately reads the
+    table the ETL writes rather than any record of when a run was attempted: a
+    run that failed leaves the age growing, which is what should trigger a retry.
+
+    Creates nothing. A database with no risk_snapshot table at all is a database
+    with no ratings, so it returns None and the caller treats that as due -
+    which is what makes a fresh deploy run immediately.
+    """
+    if not DB_URL:
+        raise RuntimeError("DATABASE_URL is not set in the environment")
+
+    conn = psycopg2.connect(DB_URL)
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            cur.execute("SELECT to_regclass('public.risk_snapshot')")
+            if cur.fetchone()[0] is None:
+                conn.commit()
+                return None
+            cur.execute("SELECT MAX(as_of) FROM risk_snapshot")
+            row = cur.fetchone()
+        conn.commit()
+        return row[0] if row else None
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
 def upsert_price_references(refs: Dict[str, Dict[str, Any]], refreshed_on: datetime.date) -> None:
     """Persist the day's 1Q/YTD reference closes, stamping ``refreshed_on``.
 

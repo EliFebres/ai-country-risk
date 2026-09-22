@@ -3,6 +3,7 @@
     python -m backend.main etl              # the weekly ETL
     python -m backend.main prices           # the live-prices poll loop
     python -m backend.main prices --once    # a single tick, for verification
+    python -m backend.main run              # the supervisor: both, one process
 
 This file is argument parsing and dispatch. It holds no business logic: each
 command is a few lines that hand off to a function in the folder that owns the
@@ -53,6 +54,10 @@ COMMANDS: Dict[str, Command] = {
         "backend.data_fetching.prices_daemon", "run_daemon",
         "poll live market prices continuously (--once for a single tick)",
     ),
+    "run": Command(
+        "backend.util.supervisor", "run_supervisor",
+        "the supervisor: prices continuously, the ETL when the data says it is due",
+    ),
 }
 
 
@@ -65,7 +70,7 @@ def _resolve(command: str) -> Callable:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m backend.main",
-        description="AI Country Risk backend. One executable.",
+        description="AI Country Risk backend. One executable, three commands.",
     )
     subparsers = parser.add_subparsers(dest="command", metavar="command", required=True)
     for name, spec in COMMANDS.items():

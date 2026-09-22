@@ -110,3 +110,92 @@ def test_rank_ids_by_mixed_tz_raises():
     with pytest.raises(TypeError) as excinfo:
         etl._rank_ids_by(case["ids"], _scored_by_id("aware"), dict(case["impact"]))
     assert str(excinfo.value) == case["message"]
+
+
+# --- the supervisor's ETL due-check -------------------------------------------
+#
+# Consumer-side tests: they assert that the stored snapshot date is *read* and
+# acted on, not that anything was written. The decision is the whole point of
+# the guard, so the decision is what is pinned.
+
+from datetime import date, timedelta  # noqa: E402
+
+
+def _supervisor(monkeypatch, stored):
+    """A Supervisor whose database returns `stored` (a date, None, or an Exception)."""
+    from backend.data_upsert import data_push
+    from backend.util import supervisor as sup
+
+    def fake_read():
+        if isinstance(stored, Exception):
+            raise stored
+        return stored
+
+    monkeypatch.setattr(data_push, "read_latest_snapshot_date", fake_read)
+    return sup.Supervisor(), sup
+
+
+NOW = datetime(2026, 9, 22, 12, 0, tzinfo=timezone.utc)
+
+
+def test_etl_is_due_when_the_database_is_empty(monkeypatch):
+    """A fresh deploy against an empty database runs immediately."""
+    s, _ = _supervisor(monkeypatch, None)
+    assert s.etl_is_due(NOW) is True
+
+
+@pytest.mark.parametrize(
+    "age_days, expected",
+    [
+        (0, False),   # ran today
+        (1, False),
+        (7, False),   # exactly at the threshold is not yet stale
+        (8, True),    # a missed week
+        (40, True),   # the machine was off for a month
+    ],
+)
+def test_etl_due_follows_the_age_of_the_stored_ratings(monkeypatch, age_days, expected):
+    s, _ = _supervisor(monkeypatch, NOW.date() - timedelta(days=age_days))
+    assert s.etl_is_due(NOW) is expected
+
+
+def test_a_restart_changes_nothing(monkeypatch):
+    """There is no in-memory schedule to lose, so a new process decides the same."""
+    stored = NOW.date() - timedelta(days=2)
+    first, _ = _supervisor(monkeypatch, stored)
+    second, _ = _supervisor(monkeypatch, stored)
+    assert first.etl_is_due(NOW) == second.etl_is_due(NOW) is False
+
+
+def test_a_database_error_skips_the_tick_rather_than_running_the_etl(monkeypatch):
+    """Not knowing the age is not a reason to spend money."""
+    s, _ = _supervisor(monkeypatch, RuntimeError("connection refused"))
+    assert s.etl_is_due(NOW) is False
+
+
+def test_attempts_are_capped_per_day(monkeypatch):
+    """A persistently failing ETL retries, but does not hammer the paid APIs."""
+    s, sup = _supervisor(monkeypatch, None)  # always due
+    for _ in range(sup.MAX_ETL_ATTEMPTS_PER_DAY):
+        assert s.etl_is_due(NOW) is True
+        s._record_attempt(NOW.date())
+    assert s.etl_is_due(NOW) is False, "cap did not engage"
+
+    tomorrow = NOW + timedelta(days=1)
+    assert s.etl_is_due(tomorrow) is True, "cap did not reset the next day"
+
+
+def test_the_decision_is_logged_either_way(monkeypatch, caplog):
+    """A supervisor that silently decides to do nothing looks identical to a stuck one."""
+    import logging
+
+    s, _ = _supervisor(monkeypatch, NOW.date() - timedelta(days=2))
+    with caplog.at_level(logging.INFO, logger="supervisor"):
+        s.etl_is_due(NOW)
+    assert "skip" in caplog.text and "threshold" in caplog.text
+
+    caplog.clear()
+    s2, _ = _supervisor(monkeypatch, NOW.date() - timedelta(days=30))
+    with caplog.at_level(logging.INFO, logger="supervisor"):
+        s2.etl_is_due(NOW)
+    assert "RUN" in caplog.text and "30d old" in caplog.text

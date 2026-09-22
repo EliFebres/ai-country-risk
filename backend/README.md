@@ -64,7 +64,8 @@ python backend/test.py
 
 ## Key modules
 
-* `backend/main.py` — argument parsing and dispatch only: `etl` and `prices`.
+* `backend/main.py` — argument parsing and dispatch only: `etl`, `prices`, `run`.
+* `backend/util/supervisor.py` — the `run` loop: prices every tick, the ETL when the stored ratings go stale.
 * `backend/util/pipeline.py` — orchestrates the ETL: data payload → news → LLM scoring → DB upsert.
 * `backend/util/paths.py` — the one project-root resolver.
 * `backend/util/env.py` — the one place `.env` is read and required keys are validated.
@@ -281,8 +282,10 @@ python -m backend.main prices
 ```
 
 Point a boot-time Task Scheduler entry (or any process supervisor) at
-`python -m backend.main prices` so the feed runs continuously alongside the `etl`
-cron. Reuses `FMP_API_KEY` + `DATABASE_URL` — no other secret needed.
+`python -m backend.main run` instead, and it will keep the prices feed fresh
+*and* run the ETL when the ratings go stale — one process, no cron. Use
+`main.py prices` on its own only when you want the feed without the ETL.
+Reuses `FMP_API_KEY` + `DATABASE_URL` — no other secret needed.
 
 ---
 
