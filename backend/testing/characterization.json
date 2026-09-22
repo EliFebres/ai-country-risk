@@ -1,0 +1,299 @@
+{
+  "_meta": {
+    "country": "Argentina",
+    "purpose": "Characterization baseline recorded from backend/main.py BEFORE the v2.0 folder refactor.",
+    "recorded_from": "backend.main (pre-move); replayed against backend.util.pipeline (post-move)",
+    "rule": "These outputs must not change. A diff here means the refactor changed behaviour."
+  },
+  "articles": [
+    {
+      "id": "a1",
+      "published": "2024-03-15T09:30:00Z",
+      "relevance_score": 0.0,
+      "summary": "The government and the central bank agreed a new monetary policy stance; the ministry said the budget remains on track.",
+      "title": "Argentina central bank raises interest rate as inflation surges"
+    },
+    {
+      "id": "a2",
+      "published": "2024-03-14T18:00:00Z",
+      "relevance_score": 0.0,
+      "summary": "Officials pointed to debt restructuring and regulation of the currency market as drivers of economic growth.",
+      "title": "Argentina economy shows modest growth amid currency reform"
+    },
+    {
+      "id": "a3",
+      "published": "2024-03-13T21:45:00Z",
+      "relevance_score": 0.0,
+      "summary": "The soccer celebration turned into a music festival, with a concert by a famous singer and an award for the actor who starred in the film.",
+      "title": "Argentina wins football final in dramatic penalty shootout"
+    },
+    {
+      "id": "a4",
+      "published": "2024-03-12T08:00:00Z",
+      "relevance_score": 0.0,
+      "summary": "No mention of the country in question anywhere in this text.",
+      "title": "Global markets rally on central bank signals"
+    },
+    {
+      "id": "a5",
+      "published": "2024-03-16T12:00:00Z",
+      "relevance_score": 0.0,
+      "summary": "Parliament debated sanctions while the president addressed the cabinet on defense, security, war risk, trade, fiscal policy, gdp and inflation.",
+      "title": "Election and coup fears grip Argentina as military tension rises"
+    },
+    {
+      "id": "a6",
+      "published": null,
+      "relevance_score": 0.0,
+      "summary": "",
+      "title": ""
+    },
+    {
+      "id": "a7",
+      "published": "2024-03-11",
+      "relevance_score": 0.0,
+      "snippet": "A short snippet used because summary is absent.",
+      "title": "Argentina ministry statement"
+    }
+  ],
+  "country": "Argentina",
+  "date_strings": [
+    "2024-03-15T09:30:00Z",
+    "2024-03-15T09:30:00+00:00",
+    "2024-03-15",
+    "2024-03-15T09:30:00",
+    "15 March 2024",
+    "",
+    null,
+    "not-a-date",
+    "2024-13-45",
+    "2024-03-15T09:30:00.123456Z"
+  ],
+  "parse_date_for_sort": [
+    {
+      "input": "2024-03-15T09:30:00Z",
+      "output": {
+        "iso": "2024-03-15T09:30:00+00:00",
+        "tzinfo": "UTC"
+      }
+    },
+    {
+      "input": "2024-03-15T09:30:00+00:00",
+      "output": {
+        "iso": "2024-03-15T09:30:00+00:00",
+        "tzinfo": "UTC"
+      }
+    },
+    {
+      "input": "2024-03-15",
+      "output": {
+        "iso": "2024-03-15T00:00:00",
+        "tzinfo": null
+      }
+    },
+    {
+      "input": "2024-03-15T09:30:00",
+      "output": {
+        "iso": "2024-03-15T09:30:00",
+        "tzinfo": null
+      }
+    },
+    {
+      "input": "15 March 2024",
+      "output": {
+        "iso": "1970-01-01T00:00:00",
+        "tzinfo": null
+      }
+    },
+    {
+      "input": "",
+      "output": {
+        "iso": "1970-01-01T00:00:00",
+        "tzinfo": null
+      }
+    },
+    {
+      "input": null,
+      "output": {
+        "iso": "1970-01-01T00:00:00",
+        "tzinfo": null
+      }
+    },
+    {
+      "input": "not-a-date",
+      "output": {
+        "iso": "1970-01-01T00:00:00",
+        "tzinfo": null
+      }
+    },
+    {
+      "input": "2024-13-45",
+      "output": {
+        "iso": "1970-01-01T00:00:00",
+        "tzinfo": null
+      }
+    },
+    {
+      "input": "2024-03-15T09:30:00.123456Z",
+      "output": {
+        "iso": "2024-03-15T09:30:00.123456+00:00",
+        "tzinfo": "UTC"
+      }
+    }
+  ],
+  "rank_ids_by_all_aware": {
+    "ids": [
+      "a1",
+      "a2",
+      "a3",
+      "a4",
+      "a5"
+    ],
+    "impact": {
+      "a1": 0.9,
+      "a2": 0.4,
+      "a3": 0.05,
+      "a4": 0.4,
+      "a5": 0.9,
+      "a7": 0.0
+    },
+    "output": [
+      "a5",
+      "a1",
+      "a2",
+      "a4",
+      "a3"
+    ]
+  },
+  "rank_ids_by_all_naive": {
+    "ids": [
+      "a1",
+      "a2",
+      "a3",
+      "a4",
+      "a5"
+    ],
+    "impact": {
+      "a1": 0.9,
+      "a2": 0.4,
+      "a3": 0.05,
+      "a4": 0.4,
+      "a5": 0.9,
+      "a7": 0.0
+    },
+    "output": [
+      "a5",
+      "a1",
+      "a2",
+      "a4",
+      "a3"
+    ]
+  },
+  "rank_ids_by_empty": {
+    "output": []
+  },
+  "rank_ids_by_mixed_tz": {
+    "ids": [
+      "a1",
+      "a7"
+    ],
+    "impact": {
+      "a1": 0.5,
+      "a7": 0.5
+    },
+    "message": "can't compare offset-naive and offset-aware datetimes",
+    "note": "KNOWN BUG, pinned deliberately: _parse_date_for_sort returns tz-aware for ISO-with-offset and tz-naive for missing/date-only, so two articles with equal impact and differing tz-awareness raise. Recorded, not fixed - fixing it is a behaviour change and belongs to a later session.",
+    "output": null,
+    "raises": "TypeError"
+  },
+  "score_article_relevance": [
+    {
+      "id": "a1",
+      "output": 0.9500000000000001
+    },
+    {
+      "id": "a2",
+      "output": 0.5
+    },
+    {
+      "id": "a3",
+      "output": 0.0
+    },
+    {
+      "id": "a4",
+      "output": 0.1
+    },
+    {
+      "id": "a5",
+      "output": 0.9500000000000001
+    },
+    {
+      "id": "a6",
+      "output": 0.1
+    },
+    {
+      "id": "a7",
+      "output": 0.6
+    }
+  ],
+  "score_article_relevance_other_country": [
+    {
+      "id": "a1",
+      "output": 0.1
+    },
+    {
+      "id": "a2",
+      "output": 0.1
+    },
+    {
+      "id": "a3",
+      "output": 0.1
+    },
+    {
+      "id": "a4",
+      "output": 0.1
+    },
+    {
+      "id": "a5",
+      "output": 0.1
+    },
+    {
+      "id": "a6",
+      "output": 0.1
+    },
+    {
+      "id": "a7",
+      "output": 0.1
+    }
+  ],
+  "to_utc_iso": [
+    {
+      "input": {
+        "iso": "2024-03-15T09:30:00",
+        "tzinfo": null
+      },
+      "output": "2024-03-15T09:30Z"
+    },
+    {
+      "input": {
+        "iso": "2024-03-15T09:30:00+00:00",
+        "tzinfo": "UTC"
+      },
+      "output": "2024-03-15T09:30Z"
+    },
+    {
+      "input": {
+        "iso": "1970-01-01T00:00:00",
+        "tzinfo": null
+      },
+      "output": "1970-01-01T00:00Z"
+    },
+    {
+      "input": {
+        "iso": "2026-09-22T23:59:59+00:00",
+        "tzinfo": "UTC"
+      },
+      "output": "2026-09-22T23:59Z"
+    }
+  ]
+}
