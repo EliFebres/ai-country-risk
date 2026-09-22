@@ -202,9 +202,11 @@ def build_census(
             # be able to ask a week later without recomputing a cache key.
             "rejected": gate.get("rejected", []),
             # What the gate said about EVERY candidate, not just the ones it
-            # turned away. Without it, asking "what did the classifier decide
-            # about this article" means recomputing a content hash by hand, and
-            # drawing a stratified sample of its judgements is impossible.
+            # turned away, and why. Without it, asking "what did the classifier
+            # decide about this article" means recomputing a content hash by
+            # hand — which misses on any article whose body was not stored
+            # byte-for-byte as the gate read it — and drawing a stratified
+            # sample of its judgements is impossible.
             "gate_labels": gate.get("gate_labels", []),
             "per_theme_selected": gate["per_theme"],
             "per_ledger_selected": gate["per_ledger"],

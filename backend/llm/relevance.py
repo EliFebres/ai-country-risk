@@ -497,6 +497,7 @@ def select(
         gate_labels.append({
             "url": article.get("publisher_link") or article.get("link"),
             "label": verdict.get("label", "unclassified"),
+            "reason": verdict.get("reason", ""),
             "ledgers": verdict.get("ledgers", []),
             "is_structural_event": bool(verdict.get("is_structural_event")),
         })
