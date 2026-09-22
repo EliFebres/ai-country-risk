@@ -94,7 +94,23 @@ def _announce(command: str) -> None:
     print(f"[main] optional keys: {env.describe_optional()}")
 
 
+def _utf8_console() -> None:
+    """Make stdout UTF-8 regardless of the platform's default codepage.
+
+    A Windows console defaults to cp1252, so a single non-ASCII character in a
+    progress line — an arrow, an accented country name — raises
+    UnicodeEncodeError and takes the whole run down with it. The run should not
+    be able to fail on a print.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
+
+
 def main(argv: list[str] | None = None) -> None:
+    _utf8_console()
     args = _build_parser().parse_args(argv)
 
     # Environment is loaded and validated once, here, before a handler is

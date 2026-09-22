@@ -18,8 +18,7 @@ import os
 import pathlib
 import requests
 
-from typing import List, Dict, Tuple
-from collections import defaultdict
+from typing import Dict, List, Optional, Tuple
 from datetime import datetime, timezone, timedelta
 
 # --- Internal Imports -------------------------------------------
@@ -29,6 +28,7 @@ from backend.util import provenance
 from backend.util import usage
 from backend.util import paths
 from backend.data_fetching import curated_loader
+from backend.data_fetching import structural_facts
 from backend.data_fetching import data_retrieval
 from backend.llm import constants as ai_constants
 from backend.llm import langchain_llm
@@ -39,7 +39,7 @@ from backend.llm import relevance
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
 from backend.data_upsert import data_push, store
-from backend.news_fetching import core, fetch_links
+from backend.news_fetching import core
 from backend.data_fetching import fetch_metrics
 from backend.data_fetching import country_data_fetch
 from backend.data_fetching import fmp_calendar_fetch
@@ -116,25 +116,6 @@ def _parse_date_for_sort(date_str: str | None):
     except Exception:
         return datetime(1970, 1, 1)
 
-def _rank_ids_by(
-    ids: List[str],
-    items_by_id: Dict[str, Dict],
-    impact_map: Dict[str, float],
-) -> List[str]:
-    """
-    Rank a list of article IDs by:
-      1) impact DESC
-      2) published recency DESC
-      3) precomputed relevance_score DESC (if present)
-    """
-    def key_fn(aid: str) -> Tuple[float, datetime, float]:
-        it = items_by_id.get(aid, {})
-        impact = float(impact_map.get(aid, 0.0))
-        dt = _parse_date_for_sort(it.get("published"))
-        rel = float(it.get("relevance_score", 0.0))
-        return (impact, dt, rel)
-    return sorted(ids, key=key_fn, reverse=True)
-
 def _fetch_candidate_pool(country_name: str, iso2: str) -> Tuple[List[Dict], Dict]:
     """Fetch one country's candidate pool. No ranking, no budget, no filtering.
 
@@ -188,14 +169,15 @@ def _article_rows(articles: List[Dict], iso2: str) -> List[Dict]:
 def ensure_missing_country_panels(root: pathlib.Path,
                                   indicators: dict,
                                   start: int | None = None,
-                                  end: int | None = None) -> None:
+                                  end: int | None = None,
+                                  roster: Optional[List[Dict]] = None) -> None:
     """
     Make sure every country in constants.COUNTRY_ROSTER has a partition under root.
     Only (re)build and write partitions that are missing or empty.
     """
     root.mkdir(parents=True, exist_ok=True)
 
-    roster = constants.COUNTRY_ROSTER
+    roster = roster or constants.COUNTRY_ROSTER
     iso3_by_iso2 = constants.ISO3_BY_ISO2
 
     missing = []
@@ -261,21 +243,31 @@ def seed_roster() -> int:
     return written
 
 
-def run_etl() -> None:
-    """Loop countries → payload → news → LLM score → enrich Top-3 images if missing → DB."""
+def run_etl(only: Optional[List[str]] = None) -> None:
+    """Loop countries → payload → news → gate → digests → score → census → DB.
+
+    Args:
+        only: ISO-2 codes to run instead of the whole roster. For verification
+            and for re-running one country after a failure; the scheduled run
+            passes nothing and covers everything.
+    """
+    roster = [c for c in constants.COUNTRY_ROSTER
+              if not only or c["iso2"] in {x.upper() for x in only}]
+    if only:
+        print(f"[run] limited to {[c['iso2'] for c in roster]}")
     print(f"=== AI Country Risk run started at {_to_utc_iso(datetime.now(timezone.utc))} UTC ===")
 
     # Every paid call in this run is metered, so the run can say what it cost
     # rather than leaving it to the invoice.
     run_meter = usage.Meter()
 
-    # 0a) Seed the roster into `country` — every other table's foreign key
-    #     points here.
+    # 0a) Seed the roster into `country`. It has to come first: every other
+    #     table's foreign key points at it.
     seed_roster()
 
-    # 0b) Provision the evidence store. `ensure_schema` verifies after it
-    #     provisions: a CREATE TABLE IF NOT EXISTS that returns without raising
-    #     is not evidence that the table is there.
+    # 0b) Provision the rest of the schema. `ensure_schema` verifies after it
+    #     provisions, because a CREATE TABLE IF NOT EXISTS that returns without
+    #     raising is not evidence that the table is there.
     store.ensure_schema()
 
     # 0) Ensure/Backfill panels per country (incremental, idempotent)
@@ -286,6 +278,7 @@ def run_etl() -> None:
         indicators=constants.INDICATORS,
         start=None,
         end=None,
+        roster=roster,
     )
 
     # 0b) Economic calendar (FMP) for the front-end Econ Calendar pane. Guarded
@@ -326,7 +319,7 @@ def run_etl() -> None:
     #     so an IMF gap or outage never blocks the risk loop below.
     if constants.IMF_RECENT_INDICATORS:
         refreshed = 0
-        for c in constants.COUNTRY_ROSTER:
+        for c in roster:
             try:
                 recent = imf_macro_fetch.fetch_recent_indicators(c["iso3"])
                 if recent:
@@ -334,10 +327,10 @@ def run_etl() -> None:
                     refreshed += 1
             except Exception as e:
                 print(f"[imf-refresh] {c['iso2']} ERROR: {e}")
-        print(f"[imf-refresh] refreshed {refreshed}/{len(constants.COUNTRY_ROSTER)} countries")
+        print(f"[imf-refresh] refreshed {refreshed}/{len(roster)} countries")
 
     # Map "Country_Name" → "iso2" from the hardcoded roster
-    country_map = {c["name"]: c["iso2"] for c in constants.COUNTRY_ROSTER}
+    country_map = {c["name"]: c["iso2"] for c in roster}
 
     # Pool every country's Top-3 articles for the post-loop global alert ranking.
     global_alert_pool: List[Dict] = []
@@ -520,147 +513,93 @@ def run_etl() -> None:
             for i, it in enumerate(items, start=1):
                 it["id"] = f"a{i}"
 
-            # 3) LLM scoring
-            llm_output = langchain_llm.country_llm_score(
-                country_display=country_name,
-                payload=payload,
-                articles=items,
+            # 3) Assemble the payload and score.
+            #    Structural facts first, so everything after is read against
+            #    them; then the economics by ledger, the theme counts, the
+            #    digests, the top-k full texts, and the computed coverage.
+            scoring_payload = payload_builder.build_scoring_payload(
+                iso2,
+                country_name,
+                structural=structural_facts.for_country(iso2),
+                economics=econ,
+                pool_report=pool_report,
+                gate=gate,
+                coverage=census["coverage_components"],
+                full_text_k=relevance.FULL_TEXT_K,
+                body_cap_chars=digest_engine.BODY_CAP_CHARS,
+            )
+            article_ids = [a["id"] for a in scoring_payload["articles"]]
+
+            scored = langchain_llm.score_country(
+                iso2=iso2,
+                payload=scoring_payload,
+                article_ids=article_ids,
                 model=SCORING_MODEL,
                 seed=42,
+                meter=run_meter,
             )
+            if scored["failed"] or not scored["answer"]:
+                raise RuntimeError(f"scoring failed: {scored['failed']}")
 
-            # 4) Rank and select Top-3 using AI's TOPIC CLUSTERING, with guaranteed length=3
-            try:
-                # Build maps from AI output
-                article_scores = llm_output.get("news_article_scores") or []
-                imp_map: Dict[str, float] = {}
-                topic_map: Dict[str, str] = {}  # article_id -> topic_group
+            answer = scored["answer"]
+            violations = scored["violations"]
+            if violations:
+                # Counted rather than swallowed. A run where the model returned
+                # three out-of-range scores and a clamp quietly fixed them is a
+                # different run from one where it did not.
+                print(f"[score] {iso2}: {len(violations)} schema violation(s): "
+                      f"{[v['field'] + ':' + v['problem'] for v in violations][:6]}")
+                census["versions"]["schema_violations"] = len(violations)
+                census["versions"]["violations"] = violations
+                try:
+                    store.write_census(census)
+                except Exception as e:
+                    print(f"[census] {iso2} could not record violations: {e}")
 
-                for e in article_scores:
-                    if not isinstance(e, dict):
-                        continue
-                    aid = e.get("id", "")
-                    if not aid:
-                        continue
-                    try:
-                        imp_map[aid] = float(e.get("impact", 0.0))
-                    except (ValueError, TypeError):
-                        imp_map[aid] = 0.0
-                    topic_map[aid] = e.get("topic_group", "unknown")
-            except Exception:
-                imp_map = {}
-                topic_map = {}
+            if scored["badge"]:
+                # Observation only. The rating stays the model's own; the legal
+                # fact sits beside it.
+                print(f"[score] {iso2}: RESTRICTED — {scored['badge']['rule'][:90]}")
 
-            items_by_id = {it.get("id"): it for it in items if isinstance(it, dict) and it.get("id")}
-
-            def ensure_top_three(
-                items_by_id: Dict[str, Dict],
-                imp_map: Dict[str, float],
-                topic_map: Dict[str, str] | None,
-            ) -> List[str]:
-                # If we have impact but no topic info, just impact-rank fallback.
-                if not items_by_id:
-                    return []
-
-                all_ids = list(items_by_id.keys())
-
-                # If we have some impact scores, fill missing ones with 0.0 so ranking is stable
-                if imp_map:
-                    for aid in all_ids:
-                        imp_map.setdefault(aid, 0.0)
-
-                # Prefer topic representatives ONLY if we have >=3 distinct topics
-                if topic_map:
-                    topics = defaultdict(list)
-                    for aid, tg in topic_map.items():
-                        if aid in items_by_id:  # ensure exists
-                            topics[tg].append(aid)
-
-                    topic_reps: List[Tuple[str, float, str]] = []
-                    for tg, ids in topics.items():
-                        # Best in topic by (impact, recency, relevance)
-                        best = _rank_ids_by(ids, items_by_id, imp_map)[0] if ids else None
-                        if best:
-                            topic_reps.append((best, imp_map.get(best, 0.0), tg))
-
-                    topic_reps.sort(key=lambda t: t[1], reverse=True)
-                    distinct_topic_count = len(topics)
-
-                    if distinct_topic_count >= 3:
-                        top_ids = [aid for aid, _, _ in topic_reps[:3]]
-                        print(f"[{iso2}] AI identified {distinct_topic_count} topics (used 1/article).")
-                        return top_ids
-
-                    # If topics <=2, still use the best representative(s) then fill to 3
-                    chosen = [aid for aid, _, _ in topic_reps[:3]]  # at most 2 here typically
-                    remaining = [aid for aid in all_ids if aid not in chosen]
-                    # Rank remaining by (impact, recency, relevance) and fill
-                    ranked_remaining = _rank_ids_by(remaining, items_by_id, imp_map)
-                    needed = 3 - len(chosen)
-                    chosen += ranked_remaining[:max(0, needed)]
-                    print(f"[{iso2}] Only {distinct_topic_count} topic(s). Backfilled to 3 with best remaining.")
-                    return chosen[:3]
-
-                # No topic map at all → fall back to global ranking by impact/recency/relevance
-                ranked = _rank_ids_by(all_ids, items_by_id, imp_map)
-                return ranked[:3]
-
-            # Main selection path
-            if imp_map:
-                top_ids = ensure_top_three(items_by_id, imp_map, topic_map or {})
-            else:
-                # No impact from LLM (edge), fall back to relevance+recency from fetch stage
-                ranked_ids = sorted(
-                    items_by_id.keys(),
-                    key=lambda iid: (
-                        items_by_id[iid].get("relevance_score", 0.0),
-                        _parse_date_for_sort(items_by_id[iid].get("published")),
-                    ),
-                    reverse=True,
-                )
-                top_ids = ranked_ids[:3]
-                print(f"[{iso2}] No LLM impacts. Used relevance+recency fallback.")
+            # 4) The top three are the first three of the gate's own order —
+            #    structural events first, then the ledger round-robin. They are
+            #    the same three the model read in full, so what the dashboard
+            #    shows and what the score was made from cannot diverge.
+            bearing_by_id = {
+                a["id"]: a.get("bearing")
+                for a in answer["article_scores"]
+                if a.get("id")
+            }
+            top_items = items[:3]
 
             # 5) Enrich ONLY the Top-3 with missing images using the advanced scraper
             cb_token = _crawlbase_token()
             if cb_token:
-                for iid in top_ids:
-                    it = items_by_id.get(iid)
-                    if not it:
+                for it in top_items:
+                    if it.get("image"):
                         continue
-                    if it.get("image"):  # only if image is missing
-                        continue
-                    link = it.get("link") or ""
+                    link = it.get("publisher_link") or it.get("link") or ""
                     if not isinstance(link, str) or not link.startswith("http"):
                         continue
-
                     rec = crawlbase_scrape_one(link, cb_token, respect_robots=True)
                     if rec.get("error") or rec.get("skipped"):
                         continue
-                    # Fill image if Crawlbase found one
                     if rec.get("image_url"):
                         it["image"] = rec["image_url"]
-                    # Backfill published if missing
                     if (not it.get("published")) and rec.get("published_at"):
                         it["published"] = rec["published_at"]
 
             # 6) Build Top-3 payload AFTER enrichment
             top_articles = []
-            for r, iid in enumerate(top_ids, start=1):
-                it = items_by_id.get(iid, {})
-                try:
-                    impact = float(imp_map.get(iid, 0.0))
-                except Exception:
-                    impact = None
-
+            for r, it in enumerate(top_items, start=1):
                 top_articles.append({
                     "rank": r,
                     "id": it.get("id"),
-                    "url": it.get("link") or "",
+                    "url": it.get("publisher_link") or it.get("link") or "",
                     "title": it.get("title") or "",
                     "source": it.get("source") or "",
-                    "published_at": it.get("published") or None,
-                    "impact": float(impact) if impact is not None else None,
+                    "published_at": it.get("page_published_at") or it.get("published") or None,
+                    "impact": bearing_by_id.get(it.get("id")),
                     "summary": it.get("summary") or it.get("snippet") or "",
                     "image": it.get("image"),
                 })
@@ -671,15 +610,22 @@ def run_etl() -> None:
 
             # 7) Upsert to DB
             data_push.upsert_snapshot(
-                {**payload, "llm_output": llm_output, "top_articles": top_articles},
-                country_name=country_name
+                {
+                    **payload,
+                    "llm_output": answer,
+                    "top_articles": top_articles,
+                    "badge": scored["badge"],
+                    "census": census,
+                },
+                country_name=country_name,
             )
 
-            # Optional progress print
-            sc = llm_output.get("score")
-            print(f"[{iso2}] score={sc}")
-            print(f"article_url: {[a['url'] for a in top_articles]}")
-            print(f"img_url: {[a['image'] for a in top_articles]}")
+            print(
+                f"[{iso2}] score_12m={answer['score_12m']} score_3m={answer['score_3m']} "
+                f"ledgers friction={answer['friction']} order={answer['order']} "
+                f"information={answer['information']} edge={answer['edge']} "
+                f"coverage={census['evidence_coverage']}"
+            )
 
         except Exception as e:
             print(f"[{iso2}] ERROR: {e}")

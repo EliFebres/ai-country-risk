@@ -339,3 +339,67 @@ class TestCuratedFileAsCommitted:
                 as_of = d.date.fromisoformat(row["as_of"])
                 assert vintage.is_plausible(as_of, source, row["period"]), \
                     f"{iso2} {code}: as_of {as_of} vs period {row['period']}"
+
+
+# ---------------------------------------------------------------------------
+# Structural facts: read before a single number.
+# ---------------------------------------------------------------------------
+
+from backend.data_fetching import structural_facts  # noqa: E402
+
+
+class TestMonetaryRegime:
+    def test_every_roster_country_has_a_declared_regime(self):
+        """A country whose monetary regime is unstated has its whole payload
+        read against a guess about how its economy works."""
+        roster = {c["iso2"] for c in _consts.COUNTRY_ROSTER}
+        assert set(_consts.MONETARY_REGIME) == roster
+
+    def test_the_euro_area_has_no_monetary_sovereignty(self):
+        """The policy rate is set in Frankfurt for the whole area."""
+        for iso2 in ("PT", "DE", "IE", "GR"):
+            assert _consts.MONETARY_REGIME[iso2]["sovereignty"] == "none", iso2
+
+    def test_a_currency_board_is_not_the_same_as_a_peg(self):
+        """Hong Kong's base is fully backed and the rate defended mechanically;
+        a conventional peg leaves more room and more ways to fail."""
+        assert _consts.MONETARY_REGIME["HK"]["sovereignty"] == "none"
+        assert _consts.MONETARY_REGIME["SA"]["sovereignty"] == "constrained"
+        assert _consts.MONETARY_REGIME["HK"]["regime"] != _consts.MONETARY_REGIME["SA"]["regime"]
+
+    def test_a_heavily_managed_float_still_counts_as_sovereign(self):
+        """The instrument is theirs, whatever they choose to do with it."""
+        for iso2 in ("TR", "EG", "IN"):
+            assert _consts.MONETARY_REGIME[iso2]["sovereignty"] == "full", iso2
+
+    def test_every_sovereignty_value_is_one_of_three(self):
+        allowed = {"full", "constrained", "none"}
+        for iso2, spec in _consts.MONETARY_REGIME.items():
+            assert spec["sovereignty"] in allowed, iso2
+            assert spec["regime"], iso2
+
+
+class TestStructuralFactsAsCommitted:
+    def test_the_file_covers_the_whole_roster(self):
+        facts = structural_facts.load()
+        roster = {c["iso2"] for c in _consts.COUNTRY_ROSTER}
+        assert set(facts) == roster
+
+    def test_every_country_carries_region_income_and_regime(self):
+        for iso2, f in structural_facts.load().items():
+            for field in ("region", "income_group", "regime", "sovereignty"):
+                assert f.get(field), (iso2, field)
+
+    def test_taiwan_is_classified_from_the_declared_fallback_not_dropped(self):
+        """It is not a World Bank member. A country with no structural facts at
+        all would have the rest of its payload read against nothing."""
+        tw = structural_facts.for_country("TW")
+        assert tw["region"] == "East Asia & Pacific"
+        assert "not a World Bank member" in tw["classification_source"]
+
+    def test_the_classification_source_is_recorded_per_country(self):
+        pt = structural_facts.for_country("PT")
+        assert pt["classification_source"] == "World Bank country classification"
+
+    def test_an_absent_file_is_silent_rather_than_fatal(self, tmp_path):
+        assert structural_facts.load(tmp_path / "nothing.json") == {}

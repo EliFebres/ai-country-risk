@@ -49,6 +49,26 @@ ALTER TABLE country ADD COLUMN IF NOT EXISTS lng  DOUBLE PRECISION;
 """
 
 
+# The v2 scorer returns four ledger readings, two horizons and a set of
+# observations. `score` changes meaning here — from a 0-1 float to the 0-100
+# integer `score_12m` — which the front-end has not been told about yet; see
+# docs/deferred.md.
+_RISK_SNAPSHOT_DDL = """
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS score_12m           INTEGER;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS score_3m            INTEGER;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS friction_score      INTEGER;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS order_score         INTEGER;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS information_score   INTEGER;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS edge_score          INTEGER;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS condition_flags     JSONB;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS subscore_evidence   JSONB;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS evidence_coverage   INTEGER;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS payload_fingerprint TEXT;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS versions            JSONB;
+ALTER TABLE risk_snapshot ADD COLUMN IF NOT EXISTS restricted_badge    JSONB;
+"""
+
+
 def upsert_countries(roster: Optional[List[Dict[str, Any]]] = None) -> int:
     """Seed the ``country`` table from the roster, and return the row count written.
 
@@ -152,7 +172,7 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
       - _meta.generated_at (ISO datetime string)
       - _meta.units (dict: indicator_name -> unit)
       - indicators (dict: indicator_name -> {"series": {year: value or None}})
-      - llm_output.score, llm_output.bullet_summary
+      - llm_output.score_12m, llm_output.score_3m, llm_output.bullet_summary
 
     Optional:
       - top_articles: list of dicts with
@@ -183,8 +203,11 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
         raise ValueError("payload['indicators'] must be a non-empty dict")
 
     llm_out = payload.get("llm_output") or {}
-    if not (isinstance(llm_out, dict) and {"score", "bullet_summary"} <= set(llm_out.keys())):
-        raise ValueError("payload['llm_output'] must include 'score' and 'bullet_summary'")
+    required = {"score_12m", "score_3m", "bullet_summary"}
+    if not (isinstance(llm_out, dict) and required <= set(llm_out)):
+        raise ValueError(
+            f"payload['llm_output'] must include {sorted(required)}"
+        )
 
     # Optional: new top-3 article rows
     top_articles = payload.get("top_articles") or []
@@ -248,17 +271,51 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
                         page_size=1000,
                     )
 
-            # 2) Risk snapshot (latest AI score for the run date)
+            # 2) Risk snapshot (the AI rating for the run date)
+            cur.execute(_RISK_SNAPSHOT_DDL)
+            census = payload.get("census") or {}
             cur.execute(
                 """
-                INSERT INTO risk_snapshot (country_iso2, as_of, score, bullet_summary)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO risk_snapshot (
+                    country_iso2, as_of, score, bullet_summary,
+                    score_12m, score_3m,
+                    friction_score, order_score, information_score, edge_score,
+                    condition_flags, subscore_evidence,
+                    evidence_coverage, payload_fingerprint, versions, restricted_badge
+                )
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (country_iso2, as_of)
                 DO UPDATE SET
-                  score = EXCLUDED.score,
-                  bullet_summary = EXCLUDED.bullet_summary
+                  score               = EXCLUDED.score,
+                  bullet_summary      = EXCLUDED.bullet_summary,
+                  score_12m           = EXCLUDED.score_12m,
+                  score_3m            = EXCLUDED.score_3m,
+                  friction_score      = EXCLUDED.friction_score,
+                  order_score         = EXCLUDED.order_score,
+                  information_score   = EXCLUDED.information_score,
+                  edge_score          = EXCLUDED.edge_score,
+                  condition_flags     = EXCLUDED.condition_flags,
+                  subscore_evidence   = EXCLUDED.subscore_evidence,
+                  evidence_coverage   = EXCLUDED.evidence_coverage,
+                  payload_fingerprint = EXCLUDED.payload_fingerprint,
+                  versions            = EXCLUDED.versions,
+                  restricted_badge    = EXCLUDED.restricted_badge
                 """,
-                (country, as_of, llm_out["score"], llm_out["bullet_summary"]),
+                (
+                    country, as_of,
+                    # `score` carries the 12-month integer. Same column, new
+                    # meaning; the front-end still reads it as 0-1.
+                    llm_out["score_12m"], llm_out["bullet_summary"],
+                    llm_out["score_12m"], llm_out["score_3m"],
+                    llm_out.get("friction"), llm_out.get("order"),
+                    llm_out.get("information"), llm_out.get("edge"),
+                    extras.Json(llm_out.get("condition_flags") or {}),
+                    extras.Json(llm_out.get("subscore_evidence") or {}),
+                    census.get("evidence_coverage"),
+                    census.get("payload_fingerprint"),
+                    extras.Json(census.get("versions") or {}),
+                    extras.Json(payload.get("badge")) if payload.get("badge") else None,
+                ),
             )
 
             # 3) Optional: write the top-3 links for this snapshot (now includes image_url)

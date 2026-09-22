@@ -700,6 +700,26 @@ class TestCensus:
         thin = _census(resolved=(1, 4, 2, 3))
         assert [d["reason"] for d in thin["indicators"]["dropped"]] == ["no row"] * 3
 
+    def test_the_rejections_themselves_are_kept_not_just_their_counts(self):
+        """"Was the gate right?" has to be answerable a week later without
+        recomputing a cache key."""
+        c = payload_health.build_census(
+            "PT", _date.date(2026, 9, 22),
+            economics=_econ(),
+            pool_report={"fetched": 3, "after_dedupe": 3, "per_theme": {}},
+            gate={"selected": [], "counts": {"eligible": 0, "selected": 0, "budget": 20,
+                                             "rejected_by_label": {"irrelevant": 1}},
+                  "per_theme": {}, "per_ledger": {},
+                  "rejected": [{"url": "http://x/1", "title": "Benfica win 3-1",
+                                "publisher": "A Bola", "label": "irrelevant",
+                                "reason": "a match report"}]},
+            digests={}, versions={}, budget=20,
+        )
+        kept = c["articles"]["rejected"][0]
+        assert kept["title"] == "Benfica win 3-1"
+        assert kept["label"] == "irrelevant"
+        assert kept["reason"] == "a match report"
+
     def test_it_records_the_whole_article_funnel(self):
         art = _census()["articles"]
         assert art["fetched"] == 52
@@ -760,3 +780,133 @@ class TestResolutionAlarm:
             {"friction": 4, "order": 4, "information": 2, "edge": 3},
         ]
         assert payload_health.resolution_alarm("PT", now, history)
+
+
+# ---------------------------------------------------------------------------
+# The validator: grammars enforce structure, not bounds.
+# ---------------------------------------------------------------------------
+
+from backend.llm import validate as validator  # noqa: E402
+from backend.llm import constants as ai_consts  # noqa: E402
+
+
+def _answer(**over):
+    base = {
+        "score_12m": 54,
+        "score_3m": 57,
+        "friction": 40, "order": 62, "information": 30, "edge": 71,
+        "condition_flags": {f: False for f in ai_consts.CONDITION_FLAGS},
+        "bullet_summary": "Fiscal position deteriorating; courts contested.",
+        "subscore_evidence": {f: "because" for f in ai_consts.LEDGER_FIELDS},
+        "article_scores": [{"id": "a1", "door": "cost", "bearing": 40, "note": "n"}],
+    }
+    base.update(over)
+    return base
+
+
+class TestValidator:
+    def test_a_good_answer_passes_clean(self):
+        got = validator.validate(_answer(), article_ids=["a1"])
+        assert got.ok
+        assert got["answer"]["score_12m"] == 54
+
+    def test_a_score_outside_its_bounds_is_clamped_and_the_raw_value_kept(self):
+        """A number that was silently corrected is a number nobody can audit:
+        "the score was 100" reads identically whether the model said 100 or 140."""
+        got = validator.validate(_answer(score_12m=140), article_ids=["a1"])
+        assert got["answer"]["score_12m"] == 100
+        v = [x for x in got.violations if x["field"] == "score_12m"][0]
+        assert v["raw"] == 140
+        assert v["clamped_to"] == 100
+
+    def test_a_null_ledger_survives_rather_than_becoming_a_number(self):
+        """A ledger with nothing to read is a statement about the evidence."""
+        got = validator.validate(_answer(information=None), article_ids=["a1"])
+        assert got["answer"]["information"] is None
+        assert got.ok
+
+    def test_a_missing_composite_is_a_violation_not_a_null(self):
+        got = validator.validate(_answer(score_12m=None), article_ids=["a1"])
+        assert any(v["field"] == "score_12m" for v in got.violations)
+
+    def test_an_answer_about_an_article_that_was_never_sent_is_caught(self):
+        got = validator.validate(
+            _answer(article_scores=[{"id": "a99", "door": None, "bearing": 5, "note": ""}]),
+            article_ids=["a1"],
+        )
+        assert any(v["problem"] == "unknown article" for v in got.violations)
+
+    def test_an_article_the_model_never_scored_is_caught(self):
+        """Silent, and the reason articles eleven to twenty used to enter Top-3
+        selection with an impact of zero."""
+        got = validator.validate(_answer(), article_ids=["a1", "a2", "a3"])
+        unscored = [v for v in got.violations if v["problem"] == "article not scored"]
+        assert {v["raw"] for v in unscored} == {"a2", "a3"}
+
+    def test_a_duplicate_article_score_is_caught(self):
+        rows = [{"id": "a1", "door": None, "bearing": 5, "note": ""}] * 2
+        got = validator.validate(_answer(article_scores=rows), article_ids=["a1"])
+        assert any(v["problem"] == "duplicate article" for v in got.violations)
+        assert len(got["answer"]["article_scores"]) == 1
+
+    def test_an_unknown_condition_flag_is_reported(self):
+        flags = {f: False for f in ai_consts.CONDITION_FLAGS}
+        flags["invented_flag"] = True
+        got = validator.validate(_answer(condition_flags=flags), article_ids=["a1"])
+        assert any(v["problem"] == "unknown flag" for v in got.violations)
+
+    def test_a_missing_flag_is_reported_and_defaulted_visibly(self):
+        flags = {f: False for f in ai_consts.CONDITION_FLAGS}
+        flags.pop("capital_controls")
+        got = validator.validate(_answer(condition_flags=flags), article_ids=["a1"])
+        assert any(v["field"] == "condition_flags.capital_controls" for v in got.violations)
+        assert got["answer"]["condition_flags"]["capital_controls"] is False
+
+    def test_a_missing_subscore_reason_is_a_violation(self):
+        ev = {f: "because" for f in ai_consts.LEDGER_FIELDS}
+        ev["edge"] = ""
+        got = validator.validate(_answer(subscore_evidence=ev), article_ids=["a1"])
+        assert any(v["field"] == "subscore_evidence.edge" for v in got.violations)
+
+    def test_a_non_object_answer_does_not_raise(self):
+        got = validator.validate("nope")
+        assert got["answer"] is None
+        assert got.violations
+
+
+class TestScoringContract:
+    def test_the_schema_uses_type_unions_for_nullable_ledgers(self):
+        """The grammar is part of the instrument, not packaging around it."""
+        props = ai_consts.RISK_SCHEMA["schema"]["properties"]
+        for field in ai_consts.LEDGER_FIELDS:
+            assert props[field]["type"] == ["integer", "null"], field
+
+    def test_the_composites_are_not_nullable(self):
+        props = ai_consts.RISK_SCHEMA["schema"]["properties"]
+        assert props["score_12m"]["type"] == "integer"
+
+    def test_evidence_coverage_is_not_something_the_model_returns(self):
+        """It was measured self-reporting 80 with twenty articles and 80 with six."""
+        assert "evidence_coverage" not in ai_consts.RISK_SCHEMA["schema"]["properties"]
+        assert "Do not return an evidence-coverage figure" in ai_consts.RISK_PROMPT
+
+    def test_the_prompt_carries_the_framework(self):
+        p = ai_consts.RISK_PROMPT
+        for phrase in ("THE THREE LEDGERS", "THREE-DOOR EVENT TEST",
+                       "CALIBRATION ANCHORS", "Never round to a multiple of 5",
+                       "A QUIET WEEK IS NOT A GOOD WEEK"):
+            assert phrase in p, phrase
+
+    def test_the_prompt_says_nothing_downstream_alters_the_score(self):
+        assert "Nothing downstream alters the score" in ai_consts.RISK_PROMPT
+
+    def test_the_legal_gate_is_a_badge_and_not_an_override(self):
+        """Russia's rating was a constant, the same number whether the week held
+        a mobilisation or nothing at all."""
+        from backend.llm import langchain_llm
+
+        assert not hasattr(langchain_llm, "_legal_gate_decision")
+        badge = langchain_llm.legal_badge("RU")
+        assert badge and badge["rule"]
+        src = (__import__("pathlib").Path(langchain_llm.__file__)).read_text(encoding="utf-8")
+        assert "1.0 if gate else" not in src

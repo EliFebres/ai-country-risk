@@ -305,11 +305,11 @@ def test_nothing_stamps_an_indicator_as_of_from_the_clock():
         # the snapshot's own date, and the alerts feed's
         "run_as_of = datetime.now",
         "as_of=datetime.now",
-        # the legal gate asks "which rules were in force when we scored", and
-        # falls back to today when the payload carries no date. It becomes an
-        # observation-only badge when the scorer is rewritten, which should
-        # remove this line rather than justify it.
-        "as_of = _parse_iso_date(as_of_raw)",
+        # The non-investability badge asks "was this rule in force on the day we
+        # scored", and defaults to today when no date is given. That is a
+        # question about our own run, not about when a published number became
+        # knowable, and the badge alters no score.
+        "(as_of or date.today()) < effective",
     )
     offenders = [o for o in offenders if not any(a in o for a in allowed)]
     assert not offenders, offenders

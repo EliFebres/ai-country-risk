@@ -54,61 +54,14 @@ def test_parse_date_for_sort(case):
     assert _dt_repr(etl._parse_date_for_sort(case["input"])) == case["output"]
 
 
-# `_score_article_relevance` was deleted when the relevance gate replaced it.
-# Its own characterization tests went with it — the fixture's recorded outputs
-# are kept below only because `_rank_ids_by` used the score as a tiebreak, and
-# that function's behaviour is still pinned.
-
-_RECORDED_RELEVANCE = {
-    c["id"]: c["output"] for c in FIXTURES["score_article_relevance"]
-}
-
-
-def _scored_by_id(date_mode: str) -> dict:
-    """Rebuild the ranking input exactly as the baseline generator did.
-
-    The scores are read from the fixture rather than recomputed, because the
-    function that computed them is gone. The recorded numbers are what shipped,
-    which is the only thing `_rank_ids_by`'s characterization needs.
-    """
-    out = {}
-    for a in FIXTURES["articles"]:
-        item = dict(a)
-        item["relevance_score"] = _RECORDED_RELEVANCE[a["id"]]
-        if date_mode == "naive":
-            p = item.get("published")
-            if isinstance(p, str) and "T" in p:
-                item["published"] = p[:10]
-        out[item["id"]] = item
-    return out
-
-
-@pytest.mark.parametrize("mode", ["aware", "naive"])
-def test_rank_ids_by(mode):
-    case = FIXTURES[f"rank_ids_by_all_{mode}"]
-    got = etl._rank_ids_by(case["ids"], _scored_by_id(mode), dict(case["impact"]))
-    assert got == case["output"]
-
-
-def test_rank_ids_by_empty():
-    assert etl._rank_ids_by([], {}, {}) == FIXTURES["rank_ids_by_empty"]["output"]
-
-
-def test_rank_ids_by_mixed_tz_raises():
-    """A pinned bug, recorded rather than fixed.
-
-    Two articles with equal impact and differing tz-awareness reach the datetime
-    comparison and blow up. Equal impacts are routine because the caller fills
-    missing scores with ``imp_map.setdefault(aid, 0.0)``. Fixing this changes
-    behaviour, so it belongs to a later session; this test exists so the fix is
-    a deliberate, visible act rather than an accident.
-    """
-    case = FIXTURES["rank_ids_by_mixed_tz"]
-    assert case["raises"] == "TypeError", "fixture no longer records the bug"
-    with pytest.raises(TypeError) as excinfo:
-        etl._rank_ids_by(case["ids"], _scored_by_id("aware"), dict(case["impact"]))
-    assert str(excinfo.value) == case["message"]
-
+# `_score_article_relevance` and `_rank_ids_by` were both deleted: the relevance
+# gate replaced the first, and the Top-3 is now the first three of the gate's own
+# selection order rather than a re-rank of the model's impact scores. Their
+# characterization tests went with them, and with `_rank_ids_by` went the pinned
+# mixed-timezone crash it raised on equal impacts — deleted rather than fixed,
+# which was the outcome `docs/deferred.md` anticipated.
+#
+# `_parse_date_for_sort` and `_to_utc_iso` survive and are still pinned above.
 
 # --- the supervisor's ETL due-check -------------------------------------------
 #

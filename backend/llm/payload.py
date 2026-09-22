@@ -28,7 +28,7 @@ from typing import Any, Dict, List, Optional
 
 from backend.util import constants, trends, vintage
 
-__all__ = ["build_economics_block", "LEDGER_QUESTIONS"]
+__all__ = ["build_economics_block", "build_scoring_payload", "LEDGER_QUESTIONS"]
 
 
 # What each ledger is asking, put in front of the model with the numbers rather
@@ -177,5 +177,113 @@ def build_economics_block(
             "by_source": by_source,
             "dropped": dropped,
             "as_of_schemes": schemes,
+        },
+    }
+
+
+# --- What the scorer actually receives --------------------------------------
+
+
+def build_scoring_payload(
+    iso2: str,
+    country_name: str,
+    *,
+    structural: Optional[Dict[str, Any]],
+    economics: Dict[str, Any],
+    pool_report: Dict[str, Any],
+    gate: Dict[str, Any],
+    coverage: Dict[str, Any],
+    full_text_k: int,
+    body_cap_chars: int,
+) -> Dict[str, Any]:
+    """Assemble the payload, in the order the model reads it.
+
+    The order is deliberate and is the argument of the whole session:
+
+    1. **The structural facts**, first, so everything after is read against them.
+       A 7% policy rate means something different in a country that sets its own
+       rate than in one that imports Frankfurt's.
+    2. **The economics block by ledger**, each value with its trajectory in
+       words, its vintage and its staleness.
+    3. **The per-theme article counts**, with the note that a zero means no
+       relevant coverage was found — not that nothing happened.
+    4. **The digests** of every admitted article.
+    5. **The top-k full texts**, each labelled with how much of it was read.
+    6. **The computed coverage components**, so the model can see how much it
+       was given without being asked to assess that itself.
+
+    Every article carries an id (``a1``, ``a2``, ...) so the returned
+    per-article scores can be matched back, and the validator can notice one
+    that was never answered.
+    """
+    selected = gate["selected"]
+
+    articles = []
+    for i, a in enumerate(selected, start=1):
+        a["id"] = f"a{i}"
+        entry = {
+            "id": a["id"],
+            "publisher": a.get("source"),
+            "published": (a.get("page_published_at") or a.get("published") or "")[:10],
+            "title": a.get("title"),
+            "themes": a.get("themes", []),
+            "ledgers": (a.get("relevance") or {}).get("ledgers", []),
+            "body_status": a.get("body_status", "title-only"),
+        }
+        digest = a.get("digest")
+        if digest:
+            entry["digest"] = {
+                "what_happened": digest.get("what_happened"),
+                "institutions": digest.get("institutions", []),
+                "direction": digest.get("direction"),
+                "numbers": digest.get("numbers", []),
+            }
+        articles.append(entry)
+
+    full_texts = []
+    for a in selected[:full_text_k]:
+        body = (a.get("text") or "")[:body_cap_chars]
+        if not body.strip():
+            continue
+        full_texts.append({
+            "id": a["id"],
+            "title": a.get("title"),
+            "publisher": a.get("source"),
+            "body_status": a.get("body_status"),
+            "chars_read": len(body),
+            "chars_original": a.get("body_chars_original"),
+            "text": body,
+        })
+
+    theme_counts = {
+        theme: gate["per_theme"].get(theme, 0)
+        for theme in pool_report.get("per_theme", {})
+    }
+
+    return {
+        "country": {"iso2": iso2, "name": country_name},
+        "structural_facts": structural or {
+            "note": "No structural facts are on file for this country. Do not "
+                    "assume a default monetary regime or income level."
+        },
+        "economics_by_ledger": economics["ledgers"],
+        "article_coverage": {
+            "note": "Counts are of articles that passed the relevance gate. A "
+                    "zero means no relevant coverage was found for that theme "
+                    "this week — it does not mean nothing happened, and it is "
+                    "not a good sign.",
+            "selected_per_theme": theme_counts,
+            "selected_per_ledger": gate["per_ledger"],
+            "candidates_fetched": pool_report.get("fetched", 0),
+            "passed_the_gate": gate["counts"]["eligible"],
+            "selected": gate["counts"]["selected"],
+            "budget": gate["counts"]["budget"],
+        },
+        "articles": articles,
+        "full_texts": full_texts,
+        "evidence_coverage_components": {
+            "note": "Computed from what you were sent. Do not return a coverage "
+                    "figure of your own.",
+            **coverage,
         },
     }

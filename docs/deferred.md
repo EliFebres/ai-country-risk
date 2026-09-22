@@ -138,3 +138,60 @@ and the dashboard reads that column directly
 (`frontend/app/lib/risk-server.ts`). The dashboard will show wrong numbers until
 the front-end session catches up. This was accepted deliberately rather than
 worked around; it is recorded here so it is not rediscovered as a bug.
+
+## 8. Both READMEs now describe an instrument that no longer exists
+
+`README.md` and `backend/README.md` still document the pre-v2.0 product, and
+several sections are now actively wrong rather than merely incomplete:
+
+- the coverage universe is given as 56 countries; it is 48
+- the AI prompt is reproduced in full, and it is the old 0-1 `conflict_war`
+  prompt, not `RISK_PROMPT`
+- the schema table lists `indicator` / `yearly_value` / `recent_indicator` and
+  omits `article`, `llm_artifact` and `payload_census`
+- `backend/README.md` reproduces the DDL for seven tables, and that copy is now
+  stale: `country` and `risk_snapshot` have both gained columns
+
+The DDL half of this is **fixed**, and not by choice. Prose does not run: the
+first end-to-end run on a fresh database reached the upsert and died on
+`relation "indicator" does not exist`. `indicator`, `yearly_value`,
+`risk_snapshot` and `risk_snapshot_article` are now provisioned by
+`data_upsert/schema.py` like everything else, so the code is the record.
+
+What is left is the prose itself. Both READMEs still describe the old
+instrument, and a README rewrite belongs with the front-end work, where
+`risk_snapshot.score` changing meaning has to be dealt with anyway (item 7).
+
+## 9. The no-round-numbers instruction is followed about two-thirds of the time
+
+The prompt says never to return a multiple of 5, because a 55 or a 70 usually
+means a band was picked rather than a country assessed. Measured on the first
+two live runs:
+
+| | round numbers returned |
+|---|---|
+| first wording (framed around "a rating") | 5 of 8 |
+| after tightening it to cover every score returned | 4 of 12 |
+
+The composites obey it (38, 36, 54, 52). The residue is entirely in the **ledger
+scores** — 20, 45, 40 — which suggests the model treats a ledger reading as a
+coarser judgement than the rating, whatever the prompt says.
+
+Left as measured rather than tuned further. Two more prompt rewrites would move
+the number without anyone knowing whether the scores got better or just less
+round, and the round-number share is exactly the kind of thing that should be a
+line in the determinism study rather than something chased by hand. Re-measure
+it there, across more than two countries.
+
+## 10. Kuwait scored 58 and then 54 on consecutive runs a few minutes apart
+
+Same week, near-identical evidence — the article set differed by one, and the
+payload fingerprint changed accordingly, so this is not a clean repeat. It is
+recorded because a 4-point move on an unchanged week is the shape of the problem
+the determinism study exists to size, and because it is the first live
+observation of it on the v2 payload.
+
+Do not quote it as a noise measurement. A real one needs the same fingerprint
+scored N times, which is Session B's smoke check and a later session's proper
+study.
+

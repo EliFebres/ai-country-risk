@@ -146,7 +146,11 @@ def panel_values(
 
     out: dict[str, dict] = {}
     for col in df.columns:
-        if col == "year":
+        # The panel carries its partition key (`country_code`) as a column, and
+        # a partition key is not an observation. Selecting on dtype rather than
+        # on a name list means a new non-numeric column cannot break this the
+        # way the first one did.
+        if col == "year" or not pd.api.types.is_numeric_dtype(df[col]):
             continue
         s = df.set_index("year")[col].dropna()
         if s.empty:

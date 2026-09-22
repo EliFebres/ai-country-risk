@@ -1,0 +1,437 @@
+{
+  "_source": "Region and income group: World Bank country classifications, https://api.worldbank.org/v2/country. Monetary regime: declared in backend/util/constants.py::MONETARY_REGIME.",
+  "countries": {
+    "AE": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "United Arab Emirates",
+      "regime": "conventional peg to the US dollar",
+      "region": "Middle East, North Africa, Afghanistan & Pakistan",
+      "sovereignty": "constrained",
+      "tier": "EM"
+    },
+    "AT": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Austria",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "AU": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Australia",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "BE": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Belgium",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "BR": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Brazil",
+      "regime": "own currency, floating",
+      "region": "Latin America & Caribbean ",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "CA": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Canada",
+      "regime": "own currency, floating",
+      "region": "North America",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "CH": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Switzerland",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "CL": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Chile",
+      "regime": "own currency, floating",
+      "region": "Latin America & Caribbean ",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "CN": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "China",
+      "regime": "managed float against a basket, with capital controls",
+      "region": "East Asia & Pacific",
+      "sovereignty": "constrained",
+      "tier": "EM"
+    },
+    "CO": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Colombia",
+      "regime": "own currency, floating",
+      "region": "Latin America & Caribbean ",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "CZ": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Czechia",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "DE": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Germany",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "DK": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Denmark",
+      "regime": "peg to the euro (ERM II)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "constrained",
+      "tier": "DM"
+    },
+    "EG": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Lower middle income",
+      "name": "Egypt",
+      "regime": "own currency, floating",
+      "region": "Middle East, North Africa, Afghanistan & Pakistan",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "ES": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Spain",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "FI": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Finland",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "FR": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "France",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "GB": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "United Kingdom",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "GR": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Greece",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "EM"
+    },
+    "HK": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Hong Kong SAR, China",
+      "regime": "currency board (linked to the US dollar)",
+      "region": "East Asia & Pacific",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "HU": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Hungary",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "ID": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Indonesia",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "IE": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Ireland",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "IL": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Israel",
+      "regime": "own currency, floating",
+      "region": "Middle East, North Africa, Afghanistan & Pakistan",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "IN": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Lower middle income",
+      "name": "India",
+      "regime": "own currency, floating",
+      "region": "South Asia",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "IT": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Italy",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "JP": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Japan",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "KR": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "South Korea",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "KW": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Kuwait",
+      "regime": "peg to an undisclosed currency basket",
+      "region": "Middle East, North Africa, Afghanistan & Pakistan",
+      "sovereignty": "constrained",
+      "tier": "EM"
+    },
+    "MX": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Mexico",
+      "regime": "own currency, floating",
+      "region": "Latin America & Caribbean ",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "MY": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Malaysia",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "NL": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Netherlands",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "NO": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Norway",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "NZ": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "New Zealand",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "PE": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Peru",
+      "regime": "own currency, floating",
+      "region": "Latin America & Caribbean ",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "PH": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Philippines",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "PL": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Poland",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "PT": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Portugal",
+      "regime": "shared currency (euro area)",
+      "region": "Europe & Central Asia",
+      "sovereignty": "none",
+      "tier": "DM"
+    },
+    "QA": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Qatar",
+      "regime": "conventional peg to the US dollar",
+      "region": "Middle East, North Africa, Afghanistan & Pakistan",
+      "sovereignty": "constrained",
+      "tier": "EM"
+    },
+    "RU": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Russia",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "Special"
+    },
+    "SA": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Saudi Arabia",
+      "regime": "conventional peg to the US dollar",
+      "region": "Middle East, North Africa, Afghanistan & Pakistan",
+      "sovereignty": "constrained",
+      "tier": "EM"
+    },
+    "SE": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Sweden",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "SG": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "Singapore",
+      "regime": "managed exchange rate as the policy instrument",
+      "region": "East Asia & Pacific",
+      "sovereignty": "constrained",
+      "tier": "DM"
+    },
+    "TH": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Thailand",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "TR": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "Turkey",
+      "regime": "own currency, floating",
+      "region": "Europe & Central Asia",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "TW": {
+      "classification_source": "not a World Bank member; region and income group assigned here to match the World Bank's own categories for comparable economies",
+      "income_group": "High income",
+      "name": "Taiwan",
+      "regime": "own currency, floating",
+      "region": "East Asia & Pacific",
+      "sovereignty": "full",
+      "tier": "EM"
+    },
+    "US": {
+      "classification_source": "World Bank country classification",
+      "income_group": "High income",
+      "name": "United States",
+      "regime": "own currency, floating",
+      "region": "North America",
+      "sovereignty": "full",
+      "tier": "DM"
+    },
+    "ZA": {
+      "classification_source": "World Bank country classification",
+      "income_group": "Upper middle income",
+      "name": "South Africa",
+      "regime": "own currency, floating",
+      "region": "Sub-Saharan Africa ",
+      "sovereignty": "full",
+      "tier": "EM"
+    }
+  }
+}

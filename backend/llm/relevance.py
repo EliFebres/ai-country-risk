@@ -32,10 +32,9 @@ gate judged well, or re-run selection under a different rule on the same week.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 from langchain_core.messages import SystemMessage
 from langchain_openai import ChatOpenAI

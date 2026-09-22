@@ -138,10 +138,14 @@ class TestSchemaProvisioning:
         from backend.data_upsert import schema
 
         cur = _FakeCursor()
-        assert schema.create_all(cur) == ["article", "llm_artifact", "payload_census"]
+        created = schema.create_all(cur)
         sql = " ".join(s for s, _ in cur.executed)
-        for table in ("article", "llm_artifact", "payload_census"):
+        for table in created:
             assert f"CREATE TABLE IF NOT EXISTS {table}" in sql
+        # The v2 tables, plus the four whose DDL used to live only in prose.
+        assert {"article", "llm_artifact", "payload_census"} <= set(created)
+        assert {"indicator", "yearly_value", "risk_snapshot",
+                "risk_snapshot_article"} <= set(created)
 
     def test_every_statement_is_safe_to_run_again(self):
         """`create_all` runs on every startup, so a second run must be a no-op."""
@@ -173,14 +177,14 @@ class TestSchemaProvisioning:
             store.ensure_schema()
 
     def test_provisioning_that_worked_reports_every_table(self, monkeypatch):
-        from backend.data_upsert import store
+        from backend.data_upsert import schema, store
 
         cur = _FakeCursor(present=True)
         monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
 
-        assert store.ensure_schema() == {
-            "article": True, "llm_artifact": True, "payload_census": True,
-        }
+        got = store.ensure_schema()
+        assert set(got) == set(schema.table_names())
+        assert all(got.values())
 
 
 class TestArtifactCache:

@@ -1,145 +1,212 @@
 from typing import Dict
 
-# ---------------------------------------------------------------------------
-# System prompt fed to the LLM — model decides the final score (no code weights)
-# NOTE: literal braces inside JSON examples are escaped as {{ }} for .format().
-# ---------------------------------------------------------------------------
-
 from backend.util.hashing import content_hash
 
+# ---------------------------------------------------------------------------
+# The scoring instrument: the prompt and the schema.
+# ---------------------------------------------------------------------------
+# Both are part of the instrument, not packaging around it. The prompt goes in
+# the system role, and the schema's shape — type unions rather than loose
+# strings — is enforced, because a grammar that masks invalid tokens removes
+# most of the near-ties that make a temperature-0 call non-reproducible.
+#
+# Everything the model needs in order to judge is stated here. Everything that
+# can be computed is computed before it arrives: trajectory, staleness,
+# per-theme counts, coverage. The model is asked for judgement and nothing else.
 
-AI_PROMPT = """
-You are a senior geopolitical risk analyst. Rate investor risk for {country} over the next 12 months using ONLY the evidence provided.
+RISK_PROMPT = """You are a country-risk analyst. You are given one country's
+evidence for one week and you return a rating.
 
-EVIDENCE_JSON
-{evidence_json}
+Judge ONLY from the evidence supplied. Do not supply facts from your own
+knowledge of the country, and do not let its reputation stand in for this week's
+evidence. If the evidence is thin, the rating should reflect a country you know
+less about — not a country that is doing well.
 
-ARTICLES_JSON
-# exactly these items only
-# [{{"id":"a1","source":"...","published_at":"YYYY-MM-DD","title":"...","summary":"..."}}]
-{articles_json}
+THE THREE LEDGERS
 
-Scoring bands (guidance; use full 0-1 range):
-  • 0.05-0.20 = Low   • 0.20-0.40 = Low-Moderate   • 0.40-0.75 = Moderate
-  • 0.75-0.90 = High  • 0.90-0.98 = Extreme (active war / nationwide shutdowns)
+Risk is read on three ledgers. The second splits in two, so you return four
+scores.
 
-Sub-factors to score (diagnostic only):
-  conflict_war, political_stability, governance_corruption, macroeconomic_volatility, regulatory_uncertainty.
+1. FRICTION — what is taken, and how well it converts.
+   Taxes, the fiscal position, inflation, the currency, corruption, regulation.
+   High friction is an economy where a unit of effort converts into less.
 
-# --- Localization & Materiality ---
-Do NOT raise risk due to indirect foreign tensions or rhetoric. Elevate risk ONLY for {country} when evidence shows kinetic activity on its territory, imminent hostilities, or economically binding policy affecting {country}. Indirect disputes, UN votes, or rhetoric without domestic transmission = low impact.
+2. UNCERTAINTY — doubt about the load-bearing rules. This ledger has two
+   halves, scored separately because they move independently:
 
-# --- Hard Rules the model must apply (no post-processing will alter your score) ---
-• War Reality: If a sustained interstate war or regular long-range strikes hit {country}'s cities/critical infrastructure → set conflict_war ≥ 0.90 AND overall score ≥ 0.90.
-• Internal Conflict:
-   - Level A (Severe): recurring mass-casualty attacks (≥20 killed) or mass kidnappings in the last 90 days across ≥3 regions → conflict_war ≥ 0.80 AND overall score ≥ 0.70.
-   - Level B (Very severe): Level A + repeated attacks on critical infrastructure (pipelines/power grid) or major-city attacks → conflict_war ≥ 0.88 AND overall score ≥ 0.80.
-   - Level C (Extreme): Level B + nationwide emergency effects (large displacement, prolonged curfews, export shut-ins) → overall score ≥ 0.90.
-• Parliamentary Guardrail: Cabinet resignations, caretaker phases, coalition talks, or scheduled/snap elections remain **moderate** unless there is unconstitutional dissolution, emergency/martial law, week-long widespread violent unrest disrupting essential services, bank runs, capital controls, or sovereign default. Otherwise **political_stability should not exceed 0.45**.
-• Macro floors (numeric): If CPI inflation ≥ 25% → macroeconomic_volatility ≥ 0.70 AND overall score ≥ 0.55. If ≥ 40% → ≥ 0.80 AND overall ≥ 0.65. If ≥ 80% → overall ≥ 0.80.
+   a. ORDER — will the rules hold? Government stability, elections, the rule of
+      law, courts, protest, conflict, security. Order is about whether the
+      framework survives contact with pressure.
 
-# --- One-off Incidents & Foiled Plots (ANTI-OVERREACTION GUARDRAIL) ---
-• Definition: “One-off” = a single incident or a single foiled/attempted plot with no follow-on attacks, no multi-region spread, and no successful damage to critical infrastructure in the last 60 days.
-• Default treatment:
-  - Foiled/attempted plots with arrests and no casualties → **impact ≤ 0.30** for the relevant topic_group.
-  - Single-target assassinations (or attempts) without sustained campaign signals → raise **political_stability** at most to 0.50; keep **conflict_war ≤ 0.35**.
-  - Temporary terror-alert hikes without operational disruption (business/transport open) → **impact 0.10–0.25**.
-• Country score guardrail (unless Hard Rules or Macro floors trigger): If terrorism/assassination evidence consists of **only one topic_group** in the last 60 days and is foiled/low-casualty (<10 killed) with no infrastructure damage → **overall score ≤ 0.55**.
+   b. EDGE — is the system learning? Business formation, investment, education,
+      skills, research, where talent goes. Edge is about whether the country is
+      getting better at anything. **Edge is observed, never penalised**: a
+      country with weak edge is not thereby riskier this year, it is a country
+      with less in reserve.
 
-# --- Per-article impact labels and TOPIC CLUSTERING (CRITICAL) ---
-Impact ∈ [0,1]:
-  • 0.85-1.00 Severe - successful kinetic activity in/against {country}, mass kidnappings, binding economic measures, or major infrastructure sabotage.
-  • 0.60-0.75 Moderate - credible mobilization/preparations with specific capabilities/timelines, high-probability binding sanctions.
-  • 0.40-0.55 Mixed/unclear - indirect third-country events with uncertain transmission.
-  • 0.10-0.35 Low/benign - rhetoric/symbolic acts, **foiled/attempted plots without casualties**, temporary alert level changes without disruption.
+3. INFORMATION — can the country's own instruments be trusted?
+   Press freedom, transparency, official statistics, audit, digital government.
+   When information is bad, every other reading is less reliable, and you should
+   say so rather than scoring the other ledgers as if the numbers were solid.
 
-**CRITICAL INSTRUCTION - TOPIC GROUPING AND AGGREGATION:**
-You MUST identify which articles cover the SAME UNDERLYING EVENT/TOPIC and assign them the same topic_group identifier. Articles about the same topic should share a topic_group even if titles differ.
+THE THREE-DOOR EVENT TEST
 
-Aggregation rule (apply before scoring): For each topic_group, take the **max impact** among its articles as the topic impact. When forming the overall view, combine topic impacts qualitatively by persistence and breadth:
-  - Persistence bonus: if the SAME topic_group appears across ≥7 days (by published_at), treat it one band higher when calibrating subscores.
-  - Breadth bonus: multiple independent severe topic_groups in the same 30-day window justify moving into High.
-  - Singularity penalty: a lone topic_group that is foiled/low-casualty with no spread → do NOT move the country into High; keep within Moderate or lower per the guardrail above.
+An event moves the rating only if it passes at least one of three doors:
 
-Examples of SAME TOPIC (should have same topic_group):
-- "Australia Central Bank Holds Rates Steady" + "RBA Decides Against Rate Cut" + "Reserve Bank of Australia Keeps Policy Unchanged" → ALL get topic_group="australia_rba_rate_decision"
-- "Fed Cuts Rates by 0.5%" + "Federal Reserve Lowers Interest Rates" → BOTH get topic_group="us_fed_rate_cut"
+  Door 1 — does it change what the state CAN DO? Its authority, its capacity,
+           its ability to enforce or to pay.
+  Door 2 — does it change what it COSTS to operate there? Taxes, prices, the
+           currency, the predictability of rules.
+  Door 3 — does it change what can be KNOWN? The reliability of statistics, the
+           freedom to report, the ability to verify.
 
-Examples of DIFFERENT TOPICS (different topic_groups):
-- "Australia Rate Decision" (topic_group="australia_rba_rate_decision") vs "Trade Deal with China" (topic_group="australia_china_trade")
+An event that passes no door is news, not risk. Say so in the article's note and
+leave the rating where it was. Prominence is not a door: a story can lead every
+front page and pass none of them.
 
-Return ONLY valid JSON (no prose) exactly:
+CALIBRATION ANCHORS
 
-{{
-  "subscores": {{
-    "conflict_war": <float 0..1 or null>,
-    "political_stability": <float 0..1 or null>,
-    "governance_corruption": <float 0..1 or null>,
-    "macroeconomic_volatility": <float 0..1 or null>,
-    "regulatory_uncertainty": <float 0..1 or null>
-  }},
-  "news_article_scores": [
-    {{"id": "<id from ARTICLES_JSON>", "impact": <float 0..1>, "topic_group": "<lowercase_topic_identifier>"}}
-  ],
-  "score": <float 0..1>,  # your single calibrated investor-risk score AFTER applying the hard rules above
-  "bullet_summary": "<<=120 words explaining primary drivers and meaningful mitigants>"
-}}
-""".strip()
+These are reference points, not bands to snap to. Use the whole range.
+
+   8-22   A stable high-income democracy with no live stress. Institutions
+          uncontested, currency and fiscal position unremarkable.
+  23-38   Ordinary political friction: a contested election, a budget fight, an
+          inflation overshoot, a coalition under strain. Institutions holding.
+  39-54   Meaningful stress on one ledger. A serious corruption scandal reaching
+          the centre, inflation in double digits, courts under political
+          pressure, a sustained slide in press freedom.
+  55-69   Serious stress across more than one ledger. Capital controls
+          plausible, fiscal position deteriorating fast, sustained unrest, an
+          executive acting outside normal constraint.
+  70-84   Severe. Sovereign default or its near prospect, mass unrest disrupting
+          essential services, armed conflict on the country's territory,
+          emergency rule.
+  85-98   Extreme. Active war on its territory, state authority collapsing, the
+          economy not functioning in the ordinary sense.
+
+**Never round to a multiple of 5. This applies to every number you return** —
+the two composites and all four ledger scores alike. A 55, a 70, a 30 or a 45
+almost always means a band was picked rather than a country assessed, and a
+ledger score is just as much a judgement as the rating is. Choose the number
+that is actually right, and if that is 54 or 57 or 31, return 54 or 57 or 31.
+
+A QUIET WEEK IS NOT A GOOD WEEK
+
+If few articles cleared the relevance gate, that means less is known about this
+week — not that conditions improved. The per-theme counts tell you where the
+silence is. A ledger with no articles and no indicators is a ledger you are
+guessing about, and the rating should move less, not down.
+
+The same goes for an indicator that did not resolve. It is absent, not zero. An
+absent number is never reassurance.
+
+SCORE_12M AND SCORE_3M
+
+`score_12m` is the rating over the next twelve months. `score_3m` is the next
+three. They differ when something is scheduled or already in motion: an election
+inside the window, a debt maturity, a ceasefire expiring. If nothing
+distinguishes the horizons, they can be close, but they should not be identical
+by default.
+
+CONDITION FLAGS ARE OBSERVATIONS
+
+The flags record what you observed. **Nothing downstream alters the score on the
+basis of a flag** — no code multiplies, floors or caps your rating because a
+flag is set. So set them because they are true, not to signal severity. If you
+believe a condition warrants a higher rating, put it in the rating.
+
+WHAT TO RETURN
+
+- `score_12m`, `score_3m`: integers 0-100.
+- `friction`, `order`, `information`, `edge`: integers 0-100, each read on its
+  own ledger. `edge` is a reading of vitality, not of danger: a high `edge`
+  means a system that is learning.
+- `condition_flags`: the observations listed in the schema.
+- `bullet_summary`: under 120 words, naming what actually drove the rating and
+  any meaningful mitigant. Name the evidence, not the framework.
+- `subscore_evidence`: for each of the four ledgers, one or two sentences
+  naming the specific evidence behind that ledger's score. If a ledger was
+  scored with little to go on, say that here instead of inventing a reason.
+- `article_scores`: one entry per article you were given, with the article's id,
+  which door (if any) it passed, and a short note. `bearing` is 0-100: how much
+  this article moved your reading, where 0 means it passed no door.
+
+Do not return an evidence-coverage figure. That is computed from what you were
+sent, not something you assess."""
 
 
-# -------------------------
-# Strict schema for outputs - UPDATED TO INCLUDE TOPIC_GROUP
-# -------------------------
-# Derived from the prompt text, never written down. A prompt edited without its
-# version bumped is a score nobody can compare with last week's, and a number
-# somebody has to remember to change is a number that will eventually be wrong
-# while looking right.
-PROMPT_VERSION = content_hash(AI_PROMPT)
+PROMPT_VERSION = content_hash(RISK_PROMPT)
 
+
+# Nullable fields use type unions rather than a bare type plus a convention.
+# The grammar is part of the instrument: strict schema enforcement masks every
+# token that would make the output invalid, which removes most of the near-ties
+# that make a temperature-0 call vary between runs.
+_INT_0_100 = {"type": "integer", "minimum": 0, "maximum": 100}
+_NULLABLE_INT = {"type": ["integer", "null"], "minimum": 0, "maximum": 100}
+
+CONDITION_FLAGS = (
+    "sovereign_stress",
+    "capital_controls",
+    "armed_conflict_on_territory",
+    "election_or_transition_underway",
+    "press_freedom_deteriorating",
+    "official_data_in_doubt",
+)
+
+LEDGER_FIELDS = ("friction", "order", "information", "edge")
 
 RISK_SCHEMA: Dict = {
-    "title": "CountryRiskAssessment",
-    "description": "Subscores, per-article impacts with topic grouping, a calibrated score, and a short summary.",
-    "type": "object",
-    "properties": {
-        "subscores": {
-            "title": "Subscores",
-            "type": "object",
-            "properties": {
-                "conflict_war":             {"type": ["number", "null"], "minimum": 0, "maximum": 1},
-                "political_stability":      {"type": ["number", "null"], "minimum": 0, "maximum": 1},
-                "governance_corruption":    {"type": ["number", "null"], "minimum": 0, "maximum": 1},
-                "macroeconomic_volatility": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
-                "regulatory_uncertainty":   {"type": ["number", "null"], "minimum": 0, "maximum": 1}
-            },
-            "required": [
-                "conflict_war",
-                "political_stability",
-                "governance_corruption",
-                "macroeconomic_volatility",
-                "regulatory_uncertainty"
-            ],
-            "additionalProperties": False
-        },
-        "news_article_scores": {
-            "title": "NewsArticleScores",
-            "type": "array",
-            "items": {
+    "name": "country_risk_v2",
+    "schema": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "score_12m": _INT_0_100,
+            "score_3m": _INT_0_100,
+            **{name: _NULLABLE_INT for name in LEDGER_FIELDS},
+            "condition_flags": {
                 "type": "object",
-                "properties": {
-                    "id":          {"type": "string"},
-                    "impact":      {"type": "number", "minimum": 0, "maximum": 1},
-                    "topic_group": {"type": "string"}
+                "additionalProperties": False,
+                "properties": {name: {"type": "boolean"} for name in CONDITION_FLAGS},
+                "required": list(CONDITION_FLAGS),
+            },
+            "bullet_summary": {"type": "string", "maxLength": 900},
+            "subscore_evidence": {
+                "type": "object",
+                "additionalProperties": False,
+                "properties": {name: {"type": "string"} for name in LEDGER_FIELDS},
+                "required": list(LEDGER_FIELDS),
+            },
+            "article_scores": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "id": {"type": "string"},
+                        "door": {
+                            "type": ["string", "null"],
+                            "enum": ["capacity", "cost", "knowability", None],
+                        },
+                        "bearing": _INT_0_100,
+                        "note": {"type": "string"},
+                    },
+                    "required": ["id", "door", "bearing", "note"],
                 },
-                "required": ["id", "impact", "topic_group"],
-                "additionalProperties": False
-            }
+            },
         },
-        "score": {"type": "number", "minimum": 0, "maximum": 1},
-        "bullet_summary": {"type": "string", "maxLength": 800}
+        "required": [
+            "score_12m",
+            "score_3m",
+            *LEDGER_FIELDS,
+            "condition_flags",
+            "bullet_summary",
+            "subscore_evidence",
+            "article_scores",
+        ],
     },
-    "required": ["subscores", "news_article_scores", "score", "bullet_summary"],
-    "additionalProperties": False
+    "strict": True,
 }
 
 

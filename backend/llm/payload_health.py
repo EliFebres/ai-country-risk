@@ -10,9 +10,9 @@ Three things live here, and keeping them apart is the point:
 
 **The census is state.** Per country per run: indicators expected against
 resolved by ledger and by source, every dropped one named with its reason, the
-article funnel with per-theme counts, the body-status mix, digests generated
-against cached, and the versions of everything that could have changed the
-answer. Taiwan's zeros appear in every single run's table, because state that is
+article funnel with per-theme counts, every rejected article with the label and
+the reason it was rejected for, the body-status mix, digests generated against
+cached, and the versions of everything that could have changed the answer. Taiwan's zeros appear in every single run's table, because state that is
 always the same is still information.
 
 **The alarm is change.** It compares this run against the country's own recent
@@ -32,7 +32,7 @@ from __future__ import annotations
 
 import datetime as dt
 from statistics import median
-from typing import Any, Dict, List, Optional, Sequence
+from typing import Any, Dict, List, Sequence
 
 from backend.util import constants
 from backend.util.hashing import content_hash
@@ -196,6 +196,11 @@ def build_census(
             "selected": gate["counts"]["selected"],
             "budget": budget,
             "rejected_by_label": gate["counts"]["rejected_by_label"],
+            # The rejections themselves, not just their counts. The labels also
+            # live in `llm_artifact`, but only under a hash nobody can join on
+            # by eye — and "was the gate right?" is a question somebody has to
+            # be able to ask a week later without recomputing a cache key.
+            "rejected": gate.get("rejected", []),
             "per_theme_selected": gate["per_theme"],
             "per_ledger_selected": gate["per_ledger"],
             "body_status": status_mix,

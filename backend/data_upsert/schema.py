@@ -43,6 +43,10 @@ from typing import Dict, List
 
 __all__ = [
     "ARTICLE",
+    "INDICATOR",
+    "YEARLY_VALUE",
+    "RISK_SNAPSHOT",
+    "RISK_SNAPSHOT_ARTICLE",
     "LLM_ARTIFACT",
     "PAYLOAD_CENSUS",
     "INDEXES",
@@ -157,6 +161,69 @@ CREATE TABLE IF NOT EXISTS payload_census (
 """
 
 
+
+# --- The tables whose DDL lived only in prose ------------------------------
+#
+# `indicator`, `yearly_value`, `risk_snapshot` and `risk_snapshot_article` were
+# documented in `backend/README.md` and created by hand. Prose does not run: a
+# fresh database reached the first upsert and failed on `relation "indicator"
+# does not exist`, which is how this session found them.
+#
+# They are transcribed here unchanged, so the code is the record. The v2 payload
+# does not read `indicator` or `yearly_value` — the registry owns labels and
+# units now — but the front-end still queries both, so they keep their writer
+# until that session catches up.
+
+INDICATOR = """
+CREATE TABLE IF NOT EXISTS indicator (
+    id   SERIAL PRIMARY KEY,
+    name TEXT UNIQUE NOT NULL,
+    unit TEXT         NOT NULL
+)
+"""
+
+YEARLY_VALUE = """
+CREATE TABLE IF NOT EXISTS yearly_value (
+    country_iso2 CHAR(2) REFERENCES country(iso2),
+    indicator_id INT     REFERENCES indicator(id),
+    yr           INT,
+    value        DOUBLE PRECISION,
+    PRIMARY KEY (country_iso2, indicator_id, yr)
+)
+"""
+
+RISK_SNAPSHOT = """
+CREATE TABLE IF NOT EXISTS risk_snapshot (
+    country_iso2   CHAR(2) REFERENCES country(iso2),
+    as_of          DATE,
+    score          DOUBLE PRECISION,
+    bullet_summary TEXT,
+    PRIMARY KEY (country_iso2, as_of)
+)
+"""
+
+RISK_SNAPSHOT_ARTICLE = """
+CREATE TABLE IF NOT EXISTS risk_snapshot_article (
+    id            BIGSERIAL PRIMARY KEY,
+    country_iso2  CHAR(2)      NOT NULL REFERENCES country(iso2),
+    as_of         DATE         NOT NULL,
+    rank          SMALLINT     NOT NULL CHECK (rank BETWEEN 1 AND 3),
+    url           TEXT         NOT NULL,
+    title         TEXT,
+    source        TEXT,
+    published_at  TIMESTAMPTZ,
+    impact        DOUBLE PRECISION,
+    summary       TEXT,
+    image_url     TEXT,
+    created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),
+    UNIQUE (country_iso2, as_of, rank),
+    FOREIGN KEY (country_iso2, as_of)
+        REFERENCES risk_snapshot (country_iso2, as_of)
+        ON DELETE CASCADE
+)
+"""
+
 INDEXES = (
     # The run asks "what did I hold for this country, this week".
     "CREATE INDEX IF NOT EXISTS article_country_published_idx "
@@ -167,10 +234,18 @@ INDEXES = (
     # The alarm reads a country's own recent runs.
     "CREATE INDEX IF NOT EXISTS payload_census_country_idx "
     "ON payload_census (country_iso2, as_of DESC)",
+    "CREATE INDEX IF NOT EXISTS idx_risk_snapshot_article_country_date "
+    "ON risk_snapshot_article (country_iso2, as_of)",
 )
 
 
+# Order matters: the foreign keys below point at `country`, which `data_push`
+# provisions, then at `indicator` and `risk_snapshot`.
 _TABLES: Dict[str, str] = {
+    "indicator": INDICATOR,
+    "yearly_value": YEARLY_VALUE,
+    "risk_snapshot": RISK_SNAPSHOT,
+    "risk_snapshot_article": RISK_SNAPSHOT_ARTICLE,
     "article": ARTICLE,
     "llm_artifact": LLM_ARTIFACT,
     "payload_census": PAYLOAD_CENSUS,

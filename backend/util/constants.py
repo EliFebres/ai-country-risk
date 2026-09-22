@@ -35,6 +35,69 @@ FMP_HISTORICAL_ENDPOINT: str = "https://financialmodelingprep.com/stable/histori
 FMP_TREASURY_ENDPOINT: str = "https://financialmodelingprep.com/stable/treasury-rates"
 
 # ---------------------------------------------------------------------------
+# Monetary regime — declared, because no machine-readable source states it.
+# ---------------------------------------------------------------------------
+# A 7% policy rate means something different in a country that sets its own rate
+# than in one that imports Frankfurt's, and a current-account deficit means
+# something different under a currency board than under a float. The scorer is
+# told this before it reads a single number.
+#
+# The IMF publishes its exchange-rate-arrangement classification once a year, as
+# a table in a PDF. There is no endpoint. So this is written down once, with the
+# reasoning in the field itself, rather than scraped badly.
+#
+#   regime       — what the exchange rate actually does
+#   sovereignty  — full | constrained | none. Whether the country can set policy
+#                  for its own conditions. `none` is not a judgement about
+#                  competence; it is a statement that the instrument is not
+#                  theirs to use.
+#
+# Reviewed 2026-09-22 against the IMF AREAER categories.
+
+_EURO = {"regime": "shared currency (euro area)", "sovereignty": "none"}
+_FLOAT = {"regime": "own currency, floating", "sovereignty": "full"}
+_USD_PEG = {"regime": "conventional peg to the US dollar", "sovereignty": "constrained"}
+
+MONETARY_REGIME: dict[str, dict[str, str]] = {
+    # --- Euro area: the policy rate is set in Frankfurt for the whole area ---
+    "AT": _EURO, "BE": _EURO, "DE": _EURO, "ES": _EURO, "FI": _EURO,
+    "FR": _EURO, "GR": _EURO, "IE": _EURO, "IT": _EURO, "NL": _EURO,
+    "PT": _EURO,
+
+    # --- Pegged, to varying degrees of hardness -----------------------------
+    # A currency board: the monetary base is fully backed and the rate is
+    # defended mechanically, so there is no domestic policy rate to speak of.
+    "HK": {"regime": "currency board (linked to the US dollar)", "sovereignty": "none"},
+    # Conventional dollar pegs. The rate follows the Fed; fiscal policy carries
+    # the adjustment instead.
+    "AE": _USD_PEG, "QA": _USD_PEG, "SA": _USD_PEG,
+    # A basket peg whose weights are not published, which is its own kind of
+    # opacity and belongs in the `information` reading as well as this one.
+    "KW": {"regime": "peg to an undisclosed currency basket", "sovereignty": "constrained"},
+    # Denmark holds the krone inside a narrow band against the euro under
+    # ERM II, so it follows ECB decisions without a vote on them.
+    "DK": {"regime": "peg to the euro (ERM II)", "sovereignty": "constrained"},
+    # Singapore's policy instrument IS the exchange rate: MAS targets a band for
+    # the trade-weighted dollar rather than setting an interest rate. Real
+    # sovereignty, exercised through a different lever.
+    "SG": {"regime": "managed exchange rate as the policy instrument",
+           "sovereignty": "constrained"},
+    # A managed float against an undisclosed basket, with capital controls.
+    "CN": {"regime": "managed float against a basket, with capital controls",
+           "sovereignty": "constrained"},
+
+    # --- Own currency, own policy rate --------------------------------------
+    # Includes several heavily managed floats (Egypt, India, Türkiye): the
+    # instrument is theirs, whatever they choose to do with it.
+    "AU": _FLOAT, "BR": _FLOAT, "CA": _FLOAT, "CH": _FLOAT, "CL": _FLOAT,
+    "CO": _FLOAT, "CZ": _FLOAT, "EG": _FLOAT, "GB": _FLOAT, "HU": _FLOAT,
+    "ID": _FLOAT, "IL": _FLOAT, "IN": _FLOAT, "JP": _FLOAT, "KR": _FLOAT,
+    "MX": _FLOAT, "MY": _FLOAT, "NO": _FLOAT, "NZ": _FLOAT, "PE": _FLOAT,
+    "PH": _FLOAT, "PL": _FLOAT, "RU": _FLOAT, "SE": _FLOAT, "TH": _FLOAT,
+    "TR": _FLOAT, "TW": _FLOAT, "US": _FLOAT, "ZA": _FLOAT,
+}
+
+# ---------------------------------------------------------------------------
 # The indicator registry — the one map every consumer reads.
 # ---------------------------------------------------------------------------
 # Keyed by the SOURCE'S OWN CODE, because that is the identifier that survives:
