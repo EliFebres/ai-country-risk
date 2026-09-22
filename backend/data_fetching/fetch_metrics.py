@@ -1,4 +1,4 @@
-# backend/utils/data_fetching/fetch_metrics.py
+# backend/data_fetching/fetch_metrics.py
 import logging
 import requests
 import pandas as pd

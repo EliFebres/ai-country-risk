@@ -25,6 +25,7 @@ This directory contains the **data-engineering and inference pipeline** that pow
 - **Python 3.10+** (tested on 3.11)
 - PostgreSQL 15+ (Neon Serverless used in prod)
 - `pip install -r backend/requirements.txt` (LangChain, pandas, psycopg2-binary, requests, beautifulsoup4, tldextract, python-dotenv, …)
+- To run the suite as well: `pip install -r backend/requirements-dev.txt` (adds pytest)
 
 ---
 
@@ -55,6 +56,7 @@ pip install -r backend/requirements.txt
 python -m backend.main etl
 
 # Run the suite (no network, no database, no model, no spend)
+pip install -r backend/requirements-dev.txt
 python backend/test.py
 ```
 

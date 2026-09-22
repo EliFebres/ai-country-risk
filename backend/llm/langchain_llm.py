@@ -1,4 +1,4 @@
-# backend/utils/ai/langchain_llm.py
+# backend/llm/langchain_llm.py
 import os
 import json
 import logging

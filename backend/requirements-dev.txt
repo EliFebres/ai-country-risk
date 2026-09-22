@@ -1,0 +1,7 @@
+# Development-only dependencies. Not needed to run the ETL, the prices loop or
+# the supervisor - only to run `python backend/test.py`.
+#
+# Kept out of requirements.txt deliberately: a production install should not
+# pull in a test runner, and the suite is not part of what a deployment runs.
+-r requirements.txt
+pytest>=8,<9
