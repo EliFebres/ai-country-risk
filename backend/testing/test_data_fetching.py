@@ -249,3 +249,93 @@ class TestCuratedLoader:
         path = _csv(tmp_path, "PT,RSF.PRESS.SCORE,2026,75.4,2026-05-03,"
                               "https://rsf.org,T,2026-09-22\n")
         assert curated_loader.load_for_country("DE", path) == {}
+
+
+# ---------------------------------------------------------------------------
+# The curated build: what stops a transcription that looks fine.
+# ---------------------------------------------------------------------------
+
+from backend.data_fetching import curated_build  # noqa: E402
+from backend.util import constants as _consts  # noqa: E402
+
+
+class TestCuratedBuildGuards:
+    """The failure mode here is not a crash. It is a file that loads cleanly and
+    is wrong — one column copied over another, or a step that drops rows."""
+
+    def test_the_oecd_averages_are_pinned_to_the_published_figures(self):
+        assert curated_build.PISA_OECD_AVERAGE["mathematics"] == pytest.approx(472.36, abs=0.01)
+        assert curated_build.PISA_OECD_AVERAGE["reading"] == pytest.approx(475.59, abs=0.01)
+        assert curated_build.PISA_OECD_AVERAGE["science"] == pytest.approx(484.65, abs=0.01)
+
+    def test_china_is_excluded_explicitly_not_just_by_absence(self):
+        """The four-province sample is not the country. Labelling it China would
+        be the same error as a roster name that means something else."""
+        assert "CN" in curated_build.PISA_EXCLUDED
+
+    def test_no_roster_country_is_mapped_twice(self):
+        """Two OECD names pointing at one ISO-2 would silently overwrite."""
+        iso2s = list(curated_build.PISA_NAME_TO_ISO2.values())
+        dupes = {i for i in iso2s if iso2s.count(i) > 1}
+        # Only deliberate spelling variants of the same country may repeat.
+        for iso2 in dupes:
+            names = [n for n, v in curated_build.PISA_NAME_TO_ISO2.items() if v == iso2]
+            assert len(names) == 2, f"{iso2} mapped from {names}"
+
+    def test_every_mapped_code_is_in_the_roster(self):
+        roster = {c["iso2"] for c in _consts.COUNTRY_ROSTER}
+        for name, iso2 in curated_build.PISA_NAME_TO_ISO2.items():
+            assert iso2 in roster, f"{name} -> {iso2} is not in the roster"
+
+    def test_the_rsf_period_is_the_year_assessed_not_the_index_year(self):
+        """An index published in May of year N assesses the year that closed the
+        previous December. Recording the index year would put `as_of` seven
+        months before the period it describes had ended."""
+        assert curated_build.RSF_PERIOD_OFFSET == -1
+
+    def test_rsf_years_start_at_the_methodology_change(self):
+        """RSF rebuilt its methodology for 2022; an earlier edition would look
+        like a trend and be a change of instrument."""
+        assert min(curated_build.RSF_YEARS) == 2022
+
+
+class TestCuratedFileAsCommitted:
+    """The file in the repo, read by the loader that the payload uses."""
+
+    def test_it_loads_and_covers_the_whole_roster_for_press_freedom(self):
+        rows = curated_loader.load_curated()
+        roster = [c["iso2"] for c in _consts.COUNTRY_ROSTER]
+        missing = [i for i in roster if "RSF.PRESS.SCORE" not in rows.get(i, {})]
+        assert missing == [], f"no press-freedom score for {missing}"
+
+    def test_press_freedom_carries_enough_history_to_have_a_direction(self):
+        """Two points is a line. `information` was the thinnest ledger; a single
+        observation would have left it with a level and no trajectory."""
+        rows = curated_loader.load_curated()
+        assert len(rows["PT"]["RSF.PRESS.SCORE"]["series"]) >= 3
+
+    def test_absent_pisa_countries_are_absent_rather_than_interpolated(self):
+        rows = curated_loader.load_curated()
+        for iso2 in ("CN", "KW", "RU"):
+            assert "OECD.PISA.MEAN" not in rows.get(iso2, {}), iso2
+
+    def test_every_row_carries_a_citation_and_a_retrieval_date(self):
+        rows = curated_loader.load_curated()
+        for iso2, by_code in rows.items():
+            for code, row in by_code.items():
+                assert row["source_url"].startswith("http"), (iso2, code)
+                assert row["source_table"], (iso2, code)
+                assert row["retrieved_at"], (iso2, code)
+
+    def test_every_as_of_is_a_plausible_publication_date(self):
+        """The same invariant the panel indicators are held to."""
+        from backend.util import vintage
+        import datetime as d
+
+        rows = curated_loader.load_curated()
+        for iso2, by_code in rows.items():
+            for code, row in by_code.items():
+                source = _consts.INDICATOR_REGISTRY[code]["source"]
+                as_of = d.date.fromisoformat(row["as_of"])
+                assert vintage.is_plausible(as_of, source, row["period"]), \
+                    f"{iso2} {code}: as_of {as_of} vs period {row['period']}"
