@@ -54,7 +54,7 @@ INDICATORS = {
 
 # Non-World-Bank indicators. The value is a sentinel (never sent to the WB API);
 # these are merged into each country's panel after the WB fetch (see
-# backend/utils/data_fetching/political_corruption_fetch.py and
+# backend/data_fetching/political_corruption_fetch.py and
 # country_data_fetch.merge_extra_indicators).
 EXTRA_INDICATORS = {
     "POL_CORRUPTION":     "OWID:political-corruption-index",  # V-Dem via Our World in Data
@@ -168,7 +168,7 @@ FMP_CALENDAR_COUNTRIES: dict[str, str] = {
 # prices (stocks/crypto/commodities) come from FMP's batch-quote endpoint; US
 # Treasury yields come from FMP's treasury-rates endpoint. To minimize API hits,
 # FMP quote classes are fetched only while their market is open (see
-# backend/utils/market_hours.py); the yields and the 1Q/YTD reference closes
+# backend/data_fetching/market_hours.py); the yields and the 1Q/YTD reference closes
 # refresh at most once per (ET) day.
 
 # How often the daemon polls live FMP quotes (seconds).

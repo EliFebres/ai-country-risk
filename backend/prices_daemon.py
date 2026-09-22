@@ -40,9 +40,9 @@ if str(_REPO_ROOT) not in sys.path:
 from dotenv import load_dotenv
 
 from backend.util import constants
-from backend.utils import market_hours
+from backend.data_fetching import market_hours
 from backend.data_upsert import data_push
-from backend.utils.data_fetching import fmp_prices_fetch
+from backend.data_fetching import fmp_prices_fetch
 
 load_dotenv()
 

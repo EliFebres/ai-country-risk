@@ -8,8 +8,8 @@ from typing import Mapping, Optional
 from datetime import datetime, date, timedelta
 
 from backend.util import constants
-import backend.utils.data_fetching.fetch_metrics as fetch_metrics
-import backend.utils.data_fetching.political_corruption_fetch as political_corruption_fetch
+import backend.data_fetching.fetch_metrics as fetch_metrics
+import backend.data_fetching.political_corruption_fetch as political_corruption_fetch
 
 
 def _first_monday(year: int, month: int) -> date:

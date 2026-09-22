@@ -19,16 +19,16 @@ if str(_REPO_ROOT) not in sys.path:
 # --- Internal Imports -------------------------------------------
 from backend.util import constants
 from backend.util import paths
-from backend.utils import data_retrieval
+from backend.data_fetching import data_retrieval
 from backend.utils.ai import langchain_llm
 from backend.utils.ai import calendar_ranker
 from backend.utils.ai import alerts_ranker
 from backend.data_upsert import data_push
 from backend.utils.news_fetching import fetch_links
-from backend.utils.data_fetching import fetch_metrics
-from backend.utils.data_fetching import country_data_fetch
-from backend.utils.data_fetching import fmp_calendar_fetch
-from backend.utils.data_fetching import imf_macro_fetch
+from backend.data_fetching import fetch_metrics
+from backend.data_fetching import country_data_fetch
+from backend.data_fetching import fmp_calendar_fetch
+from backend.data_fetching import imf_macro_fetch
 from backend.utils.news_fetching.url_resolver import resolve_google_news_url
 from backend.utils.news_fetching.simple_scraper import get_article_assets
 from backend.utils.news_fetching.source_filter import is_blocked_url

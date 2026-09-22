@@ -125,7 +125,7 @@ The `backend/.env` file is read by the ETL pipeline and the database upsert rout
 2. **Seed macro data (optional):** The first run of the ETL will automatically download World Bank panels for all configured countries. If you wish to pre‑download, run:
 
  ```bash
- python backend/utils/country_data_fetch.py
+ python backend/data_fetching/country_data_fetch.py
  ```
 
 3. **Run the end‑to‑end ETL:** This computes risk scores and persists them to the database.

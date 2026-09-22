@@ -65,9 +65,9 @@ python backend/main.py
 * `backend/utils/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
 * `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata for **Top-3** Reuters/Bloomberg links only.
 * `backend/utils/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
-* `backend/utils/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
-* `backend/utils/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
-* `backend/utils/data_fetching/fmp_calendar_fetch.py` — FMP ~14-day economic-calendar pull.
+* `backend/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
+* `backend/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
+* `backend/data_fetching/fmp_calendar_fetch.py` — FMP ~14-day economic-calendar pull.
 * `backend/utils/ai/langchain_llm.py` — LLM call for risk scoring.
 * `backend/utils/ai/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
 * `backend/utils/ai/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
@@ -241,12 +241,12 @@ CREATE TABLE price_reference (
 Unlike the standalone prices daemon, these two refreshes run **as part of the daily
 `main.py` ETL**:
 
-* **IMF higher-frequency macro.** `utils/data_fetching/imf_macro_fetch.py` pulls the
+* **IMF higher-frequency macro.** `data_fetching/imf_macro_fetch.py` pulls the
   freshest sub-annual prints (e.g. monthly/quarterly inflation) from the IMF SDMX 2.1
   API and upserts them into `recent_indicator`. The front-end prefers these over the
   annual World Bank `yearly_value`, so a country in a fast-moving inflation regime shows
   a current figure instead of a year-old one. The tracked set lives in `constants.IMF_RECENT_INDICATORS`.
-* **Economic calendar.** `utils/data_fetching/fmp_calendar_fetch.py` pulls the upcoming
+* **Economic calendar.** `data_fetching/fmp_calendar_fetch.py` pulls the upcoming
   ~14-day calendar from FMP; `utils/ai/calendar_ranker.py` then scores each event's
   investor importance (`ai_importance` / `ai_rationale`) before the rows are upserted into
   `economic_calendar_event`.
@@ -263,7 +263,7 @@ and upserts the latest snapshot into `market_price`.
   Bonds pane tracks US tenors only). The tracked universe + symbol map lives in
   `constants.PRICE_ASSETS`.
 * **Cost control.** FMP quote classes are fetched only while their market is open
-  (`utils/market_hours.py`: crypto 24/7, US equities on the NYSE session, commodities on
+  (`data_fetching/market_hours.py`: crypto 24/7, US equities on the NYSE session, commodities on
   the Globex window). The yields and the 1Q/YTD reference closes refresh at most once per
   ET day.
 
