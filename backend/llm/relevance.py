@@ -69,9 +69,28 @@ LEDGERS = ("friction", "order", "information", "edge")
 
 LABELS = ("structural", "incident", "irrelevant")
 
-# Measured, not assumed — see `backend/llm/gate_bakeoff.py`. Dated id: an alias
-# moves under you, and a gate that silently changes model silently changes the
-# evidence behind every score.
+# Measured, not assumed. `gate_bakeoff.py` on 2026-09-22: 99 candidate articles
+# from US, PT and KW, each classified three times by each candidate model.
+#
+#   model                      stable 3/3    label mix (structural/incident/irrelevant)
+#   gpt-4o-mini-2024-07-18       98.0%       48 / 15 / 36
+#   gpt-4.1-nano-2025-04-14      98.0%       51 /  7 / 41
+#   gpt-4.1-mini-2025-04-14      96.0%       70 /  6 / 23
+#
+# Stability ties between mini and nano, so the default stands. The label mix
+# breaks the tie on its own terms: `gpt-4o-mini` is the only one of the three
+# that actually uses all three labels. Nano and 4.1-mini call six or seven of
+# ninety-nine articles an `incident`, which means they are not making the
+# structural-versus-incident judgement at all — they are collapsing it into
+# relevant-versus-not, which is the judgement the old keyword scorer made.
+#
+# The finding to carry into Part 7: **the three models agree with each other on
+# only 69-75% of articles** while each is 96-98% self-consistent. Reproducible
+# is not the same as right, and nothing here establishes which of them is right.
+# The hand-labelled sample is what settles that.
+#
+# Dated id: an alias moves under you, and a gate that silently changes model
+# silently changes the evidence behind every score.
 DEFAULT_MODEL = "gpt-4o-mini-2024-07-18"
 
 ARTICLE_BUDGET = 20
