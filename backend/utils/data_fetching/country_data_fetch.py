@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 from typing import Mapping, Optional
 from datetime import datetime, date, timedelta
 
-from backend.utils import constants
+from backend.util import constants
 import backend.utils.data_fetching.fetch_metrics as fetch_metrics
 import backend.utils.data_fetching.political_corruption_fetch as political_corruption_fetch
 

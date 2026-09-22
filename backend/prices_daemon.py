@@ -28,21 +28,18 @@ import threading
 from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
 
-# --- Resolve project root so "backend/" is importable (mirrors main.py) -------
-project_root = pathlib.Path.cwd().resolve()
-while not (project_root / "backend").is_dir():
-    if project_root.parent == project_root:
-        # Fall back to this file's location when launched from elsewhere.
-        project_root = pathlib.Path(__file__).resolve().parent.parent
-        break
-    project_root = project_root.parent
-
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# --- Make "backend/" importable ----------------------------------------------
+# Anchored on this file, never on the working directory. The package has no
+# __init__.py and resolves as a PEP 420 namespace package, so the repo root must
+# be on sys.path before the first backend.* import. Past this point every path
+# comes from backend.util.paths, which computes the same root the same way.
+_REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 from dotenv import load_dotenv
 
-from backend.utils import constants
+from backend.util import constants
 from backend.utils import market_hours
 from backend.utils.data_upsert import data_push
 from backend.utils.data_fetching import fmp_prices_fetch

@@ -86,3 +86,38 @@ def test_import_graph_is_acyclic():
         walk(node, [node])
 
     assert not cycles, "import cycle(s):\n  " + "\n  ".join(sorted(set(cycles)))
+
+
+def test_project_root_has_exactly_one_definition():
+    """backend.util.paths is the only thing that decides where the project is.
+
+    It imports nothing but pathlib, so this costs no dependency.
+    """
+    from backend.util import paths
+
+    assert paths.PROJECT_ROOT == REPO_ROOT
+    assert paths.BACKEND_DIR == BACKEND
+    assert paths.DATA_DIR == BACKEND / "data"
+    assert paths.PANEL_DIR == BACKEND / "data" / "wb_panel_wide"
+
+
+def test_nothing_rewalks_the_filesystem_for_the_project_root():
+    """No module may rediscover the root by walking up from the CWD.
+
+    Three modules used to do this, two of them from the working directory, and
+    the parquet panel's writer and reader could therefore disagree about where
+    the panel was. The resolver in util/paths.py is anchored on its own file;
+    a reintroduced walk would silently restore the divergence.
+    """
+    offenders = []
+    for name, path in MODULES.items():
+        if name == "backend.util.paths":
+            continue
+        text = path.read_text(encoding="utf-8")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if "Path.cwd()" in line or "os.getcwd()" in line:
+                offenders.append(f"{name} (line {lineno}): {line.strip()}")
+    assert not offenders, (
+        "the project root is resolved in util/paths.py, not rediscovered:\n  "
+        + "\n  ".join(offenders)
+    )

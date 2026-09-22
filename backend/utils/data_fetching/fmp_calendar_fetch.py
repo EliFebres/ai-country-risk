@@ -36,7 +36,7 @@ from tenacity import (
     retry_if_exception,
 )
 
-import backend.utils.constants as constants
+import backend.util.constants as constants
 
 load_dotenv()
 

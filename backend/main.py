@@ -7,18 +7,18 @@ from typing import List, Dict, Tuple
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta
 
-# --- Resolve project root so "backend/" is importable ------------------------
-project_root = pathlib.Path.cwd().resolve()
-while not (project_root / "backend").is_dir():
-    if project_root.parent == project_root:
-        raise RuntimeError("Could not find project root containing 'backend/'")
-    project_root = project_root.parent
-
-if str(project_root) not in sys.path:
-    sys.path.insert(0, str(project_root))
+# --- Make "backend/" importable ----------------------------------------------
+# Anchored on this file, never on the working directory. The package has no
+# __init__.py and resolves as a PEP 420 namespace package, so the repo root must
+# be on sys.path before the first backend.* import. Past this point every path
+# comes from backend.util.paths, which computes the same root the same way.
+_REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
+if str(_REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_ROOT))
 
 # --- Internal Imports -------------------------------------------
-from backend.utils import constants
+from backend.util import constants
+from backend.util import paths
 from backend.utils import data_retrieval
 from backend.utils.ai import langchain_llm
 from backend.utils.ai import calendar_ranker
@@ -35,8 +35,8 @@ from backend.utils.news_fetching.source_filter import is_blocked_url
 from backend.utils.news_fetching.advanced_scraper import scrape_one as crawlbase_scrape_one
 
 # --- Paths ------------------------------------------------------------------
-BACKEND_DIR    = project_root / "backend"
-PROCESSED_DATA = BACKEND_DIR / "data" / "wb_panel_wide"
+BACKEND_DIR    = paths.BACKEND_DIR
+PROCESSED_DATA = paths.PANEL_DIR
 
 
 # --- Helpers ----------------------------------------------------------------

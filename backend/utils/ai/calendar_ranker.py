@@ -26,7 +26,7 @@ load_dotenv(find_dotenv(), override=False)
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage
 
-import backend.utils.constants as constants
+import backend.util.constants as constants
 import backend.utils.ai.constants as ai_constants
 
 logger = logging.getLogger(__name__)
