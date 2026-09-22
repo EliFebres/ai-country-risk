@@ -567,3 +567,196 @@ class TestEconomicsBlock:
         schemes = block["resolution"]["as_of_schemes"]
         assert schemes["publication-lag-estimate"] == 1
         assert schemes["source-published"] == 1
+
+
+# ---------------------------------------------------------------------------
+# The census: state, the alarm, and a coverage number nobody authors.
+# ---------------------------------------------------------------------------
+
+import datetime as _date  # noqa: E402
+
+from backend.llm import payload_health  # noqa: E402
+
+
+def _econ(resolved_per_ledger=(4, 4, 2, 3), stale=0):
+    """An economics block with a given per-ledger resolution."""
+    ledgers, dropped = {}, []
+    expected = {"friction": 4, "order": 4, "information": 2, "edge": 3}
+    by_source = {"World Bank WDI": {"expected": 13, "resolved": 0}}
+    n = 0
+    for ledger, want in zip(consts.LEDGERS, resolved_per_ledger):
+        inds = []
+        for i in range(want):
+            n += 1
+            inds.append({
+                "code": f"C{n}", "period": 2024, "as_of": "2026-07-02",
+                "stale_for_its_cadence": n <= stale,
+            })
+        ledgers[ledger] = {"question": "?", "indicators": inds}
+        for i in range(expected[ledger] - want):
+            dropped.append({"code": f"D{ledger}{i}", "ledger": ledger,
+                            "source": "World Bank WDI", "label": "x", "reason": "no row"})
+    by_source["World Bank WDI"]["resolved"] = n
+    return {
+        "ledgers": ledgers,
+        "resolution": {
+            "expected_by_ledger": expected,
+            "resolved_by_ledger": dict(zip(consts.LEDGERS, resolved_per_ledger)),
+            "empty_ledgers": [l for l, c in zip(consts.LEDGERS, resolved_per_ledger) if c == 0],
+            "by_source": by_source,
+            "dropped": dropped,
+            "as_of_schemes": {"publication-lag-estimate": n},
+        },
+    }
+
+
+def _selected(n, status="full"):
+    out = []
+    for i in range(n):
+        a = _article(f"http://x/{i}", f"Story {i}")
+        a["body_status"] = status
+        out.append(a)
+    return out
+
+
+class TestEvidenceCoverage:
+    """It was measured self-reporting 80 with twenty articles and 80 with six."""
+
+    def test_more_articles_read_in_full_scores_higher_than_fewer(self):
+        rich = payload_health.evidence_coverage(_econ(), _selected(20), budget=20)
+        thin = payload_health.evidence_coverage(_econ(), _selected(6), budget=20)
+        assert rich["evidence_coverage"] > thin["evidence_coverage"]
+
+    def test_reading_headlines_scores_lower_than_reading_articles(self):
+        full = payload_health.evidence_coverage(_econ(), _selected(20, "full"), budget=20)
+        thin = payload_health.evidence_coverage(
+            _econ(), _selected(20, "title-only"), budget=20
+        )
+        assert full["evidence_coverage"] > thin["evidence_coverage"]
+
+    def test_one_empty_ledger_costs_a_quarter_of_the_indicator_component(self):
+        """A payload can be rich overall and blind in one quarter of the
+        framework; averaging over all indicators would hide that."""
+        whole = payload_health.evidence_coverage(_econ((4, 4, 2, 3)), _selected(20), budget=20)
+        blind = payload_health.evidence_coverage(_econ((4, 4, 2, 0)), _selected(20), budget=20)
+        assert whole["evidence_coverage"] > blind["evidence_coverage"]
+        assert blind["components"]["indicator_resolution"] == pytest.approx(0.75)
+
+    def test_the_components_are_stored_beside_the_value(self):
+        """So the number can be argued with rather than just believed."""
+        got = payload_health.evidence_coverage(_econ(), _selected(10), budget=20)
+        assert set(got["components"]) == set(payload_health.COVERAGE_WEIGHTS)
+        assert got["weights"] == payload_health.COVERAGE_WEIGHTS
+
+    def test_nothing_at_all_is_zero_not_a_default(self):
+        got = payload_health.evidence_coverage(_econ((0, 0, 0, 0)), [], budget=20)
+        assert got["evidence_coverage"] == 0
+
+
+class TestPayloadFingerprint:
+    def test_the_same_evidence_fingerprints_the_same(self):
+        e, s = _econ(), _selected(5)
+        assert payload_health.payload_fingerprint(e, s) == \
+            payload_health.payload_fingerprint(e, s)
+
+    def test_a_different_article_set_is_a_different_fingerprint(self):
+        e = _econ()
+        assert payload_health.payload_fingerprint(e, _selected(5)) != \
+            payload_health.payload_fingerprint(e, _selected(6))
+
+    def test_a_changed_indicator_vintage_is_a_different_fingerprint(self):
+        """A score that moved because the data was revised is not a score that
+        moved because the country did."""
+        a, b = _econ(), _econ()
+        b["ledgers"]["friction"]["indicators"][0]["as_of"] = "2026-08-01"
+        s = _selected(3)
+        assert payload_health.payload_fingerprint(a, s) != \
+            payload_health.payload_fingerprint(b, s)
+
+
+def _census(iso2="PT", resolved=(4, 4, 2, 3), selected=None):
+    return payload_health.build_census(
+        iso2,
+        _date.date(2026, 9, 22),
+        economics=_econ(resolved),
+        pool_report={"fetched": 52, "after_dedupe": 45, "stale_republications": 2,
+                     "per_theme": {"broad": 10}, "duplicate_slots": 1,
+                     "query_name": "Portugal"},
+        gate={"selected": selected if selected is not None else _selected(12),
+              "counts": {"eligible": 14, "selected": 12, "budget": 20,
+                         "rejected_by_label": {"irrelevant": 20, "incident": 11}},
+              "per_theme": {"broad": 6}, "per_ledger": {"friction": 5}},
+        digests={"generated": 9, "cached": 3, "truncated_retry": 1, "failed": 0},
+        versions={"git_sha": "abc", "seed": 42},
+        budget=20,
+    )
+
+
+class TestCensus:
+    def test_it_records_expected_against_resolved_and_names_the_dropped(self):
+        c = _census()
+        assert c["indicators"]["expected_by_ledger"]["friction"] == 4
+        assert c["indicators"]["dropped"] == []
+        thin = _census(resolved=(1, 4, 2, 3))
+        assert [d["reason"] for d in thin["indicators"]["dropped"]] == ["no row"] * 3
+
+    def test_it_records_the_whole_article_funnel(self):
+        art = _census()["articles"]
+        assert art["fetched"] == 52
+        assert art["after_dedupe"] == 45
+        assert art["passed_gate"] == 14
+        assert art["selected"] == 12
+        assert art["rejected_by_label"] == {"irrelevant": 20, "incident": 11}
+
+    def test_it_separates_digests_generated_from_digests_cached(self):
+        """A working cache and an empty one look identical from the outside
+        unless both are counted."""
+        art = _census()["articles"]
+        assert art["digests_generated"] == 9
+        assert art["digests_cached"] == 3
+        assert art["digests_truncated_retry"] == 1
+
+    def test_it_carries_the_versions_of_everything_that_could_move_a_score(self):
+        assert _census()["versions"]["git_sha"] == "abc"
+        assert _census()["versions"]["schema_violations"] == 0
+
+    def test_an_empty_ledger_is_named_in_the_census(self):
+        c = _census(resolved=(4, 4, 0, 3))
+        assert c["indicators"]["empty_ledgers"] == ["information"]
+        assert "LEDGER WITH NO INDICATORS" in payload_health.format_census(c)
+
+
+class TestResolutionAlarm:
+    """State is what is; the alarm is what changed."""
+
+    def test_the_first_run_reports_state_and_raises_no_alarm(self):
+        assert payload_health.resolution_alarm("PT", _census(), []) == []
+
+    def test_a_country_that_always_resolved_zero_does_not_shout(self):
+        """Taiwan resolving zero is expected. An alarm that fires every week
+        stops being read."""
+        tw = _census("TW", resolved=(0, 0, 2, 3))
+        history = [{"friction": 0, "order": 0, "information": 2, "edge": 3}] * 4
+        assert payload_health.resolution_alarm("TW", tw, history) == []
+
+    def test_a_country_that_dropped_from_its_own_baseline_shouts(self):
+        """Portugal going from twenty indicators to twelve is a source break."""
+        now = _census("PT", resolved=(1, 4, 2, 3))
+        history = [{"friction": 4, "order": 4, "information": 2, "edge": 3}] * 4
+        alarms = payload_health.resolution_alarm("PT", now, history)
+        assert len(alarms) == 1
+        assert "friction" in alarms[0] and "source break" in alarms[0]
+
+    def test_a_small_wobble_is_not_an_alarm(self):
+        now = _census("PT", resolved=(3, 4, 2, 3))
+        history = [{"friction": 4, "order": 4, "information": 2, "edge": 3}] * 4
+        assert payload_health.resolution_alarm("PT", now, history) == []
+
+    def test_the_baseline_is_a_median_so_one_bad_week_does_not_move_it(self):
+        now = _census("PT", resolved=(1, 4, 2, 3))
+        history = [
+            {"friction": 0, "order": 4, "information": 2, "edge": 3},
+            {"friction": 4, "order": 4, "information": 2, "edge": 3},
+            {"friction": 4, "order": 4, "information": 2, "edge": 3},
+        ]
+        assert payload_health.resolution_alarm("PT", now, history)

@@ -28,6 +28,9 @@ __all__ = [
     "write_artifacts",
     "upsert_articles",
     "read_articles",
+    "write_census",
+    "read_census",
+    "read_recent_resolution",
 ]
 
 
@@ -259,5 +262,114 @@ def read_articles(country_iso2: str, *, limit: Optional[int] = None) -> List[Dic
                 (country_iso2, limit) if limit else (country_iso2,),
             )
             return [dict(zip(_ARTICLE_COLUMNS, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+# --- The census -------------------------------------------------------------
+
+
+def write_census(row: Dict[str, Any]) -> None:
+    """Store one country's census for one run.
+
+    Args:
+        row: ``country_iso2``, ``as_of`` and the four JSONB blocks
+            (``indicators``, ``articles``, ``versions``, ``coverage_components``)
+            plus ``payload_fingerprint`` and ``evidence_coverage``.
+    """
+    conn = _connect()
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO payload_census
+                  (country_iso2, as_of, payload_fingerprint, evidence_coverage,
+                   coverage_components, indicators, articles, versions)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (country_iso2, as_of) DO UPDATE SET
+                    payload_fingerprint = EXCLUDED.payload_fingerprint,
+                    evidence_coverage   = EXCLUDED.evidence_coverage,
+                    coverage_components = EXCLUDED.coverage_components,
+                    indicators          = EXCLUDED.indicators,
+                    articles            = EXCLUDED.articles,
+                    versions            = EXCLUDED.versions,
+                    created_at          = now()
+                """,
+                (
+                    row["country_iso2"],
+                    row["as_of"],
+                    row.get("payload_fingerprint"),
+                    row.get("evidence_coverage"),
+                    extras.Json(row.get("coverage_components") or {}),
+                    extras.Json(row.get("indicators") or {}),
+                    extras.Json(row.get("articles") or {}),
+                    extras.Json(row.get("versions") or {}),
+                ),
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def read_census(country_iso2: str, as_of: Any) -> Optional[Dict[str, Any]]:
+    """Read one census row back.
+
+    The consumer side of :func:`write_census`. A scoring run asserts against
+    this rather than against the write returning cleanly, because a census that
+    is written and never read is exactly the failure it exists to prevent.
+    """
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT country_iso2, as_of, payload_fingerprint, evidence_coverage,
+                       coverage_components, indicators, articles, versions
+                  FROM payload_census
+                 WHERE country_iso2 = %s AND as_of = %s
+                """,
+                (country_iso2, as_of),
+            )
+            r = cur.fetchone()
+            if not r:
+                return None
+            return {
+                "country_iso2": r[0], "as_of": r[1], "payload_fingerprint": r[2],
+                "evidence_coverage": r[3], "coverage_components": r[4],
+                "indicators": r[5], "articles": r[6], "versions": r[7],
+            }
+    finally:
+        conn.close()
+
+
+def read_recent_resolution(
+    country_iso2: str, *, before: Any = None, limit: int = 5
+) -> List[Dict[str, int]]:
+    """Return per-ledger resolved counts from a country's own recent runs.
+
+    What the alarm compares against. The baseline is the country's own history,
+    not an absolute floor: Taiwan resolving zero is expected because Taiwan
+    always resolved zero, while Portugal going from twenty to twelve is a source
+    break. An absolute threshold cannot tell those apart.
+    """
+    conn = _connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT indicators -> 'resolved_by_ledger'
+                  FROM payload_census
+                 WHERE country_iso2 = %s
+                   AND (%s::date IS NULL OR as_of < %s::date)
+                 ORDER BY as_of DESC
+                 LIMIT %s
+                """,
+                (country_iso2, before, before, limit),
+            )
+            return [r[0] for r in cur.fetchall() if r[0]]
     finally:
         conn.close()

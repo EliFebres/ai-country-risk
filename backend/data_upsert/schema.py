@@ -1,12 +1,12 @@
 """
-Self-provisioning DDL for the two tables the payload work needs.
+Self-provisioning DDL for the tables the payload work needs.
 
 This project has no migration tool: every table is created idempotently by the
 code that writes it (see the five `CREATE TABLE IF NOT EXISTS` constants in
-`data_push.py`). These two follow that convention rather than inventing a second
+`data_push.py`). These follow that convention rather than inventing a second
 one, and `create_all` is safe to run on every startup.
 
-Two tables, and the reason each exists:
+Three tables, and the reason each exists:
 
 `article` — the evidence, kept. Today a run fetches fifty-odd articles per
 country, scores from them, persists the top three, and throws the rest away. That
@@ -28,13 +28,28 @@ for the other would put a country's name into a prompt that was supposed not to
 have it. Keeping `mode` in the key now means masking can be switched on later
 without a migration and without a stale cache. Whether to mask at all is a
 decision for Eli, and is deliberately not made here.
+
+`payload_census` — what the registry promised against what reached the model,
+one row per country per run. It is the countermeasure to this codebase's
+recurring failure: code that ran, wrote something plausible, and had no
+consumer, so every count looked right. A census nobody stores cannot be compared
+against last week, and comparison is the only way to tell a source that broke
+from a country that was quiet.
 """
 
 from __future__ import annotations
 
 from typing import Dict, List
 
-__all__ = ["ARTICLE", "LLM_ARTIFACT", "INDEXES", "create_all", "table_names", "verify"]
+__all__ = [
+    "ARTICLE",
+    "LLM_ARTIFACT",
+    "PAYLOAD_CENSUS",
+    "INDEXES",
+    "create_all",
+    "table_names",
+    "verify",
+]
 
 
 # --- Article bodies, as retrieved ------------------------------------------
@@ -118,6 +133,30 @@ CREATE TABLE IF NOT EXISTS llm_artifact (
 """
 
 
+
+# --- What reached the model, per country per run ----------------------------
+
+PAYLOAD_CENSUS = """
+CREATE TABLE IF NOT EXISTS payload_census (
+    country_iso2    TEXT NOT NULL,
+    as_of           DATE NOT NULL,
+    -- A hash over the resolved indicator codes and their vintages plus the
+    -- ordered selected article ids. Two runs with the same fingerprint read the
+    -- same evidence, which is the only way to tell a score that moved because
+    -- the country moved from one that moved because the model did.
+    payload_fingerprint TEXT,
+    -- Computed from the census, never authored by the model.
+    evidence_coverage   DOUBLE PRECISION,
+    coverage_components JSONB,
+    indicators      JSONB NOT NULL,
+    articles        JSONB NOT NULL,
+    versions        JSONB NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (country_iso2, as_of)
+)
+"""
+
+
 INDEXES = (
     # The run asks "what did I hold for this country, this week".
     "CREATE INDEX IF NOT EXISTS article_country_published_idx "
@@ -125,12 +164,16 @@ INDEXES = (
     # The census counts artifacts by kind per run.
     "CREATE INDEX IF NOT EXISTS llm_artifact_kind_idx "
     "ON llm_artifact (kind, mode)",
+    # The alarm reads a country's own recent runs.
+    "CREATE INDEX IF NOT EXISTS payload_census_country_idx "
+    "ON payload_census (country_iso2, as_of DESC)",
 )
 
 
 _TABLES: Dict[str, str] = {
     "article": ARTICLE,
     "llm_artifact": LLM_ARTIFACT,
+    "payload_census": PAYLOAD_CENSUS,
 }
 
 
@@ -140,7 +183,7 @@ def table_names() -> List[str]:
 
 
 def create_all(cur) -> List[str]:
-    """Create both tables and their indexes if they do not exist.
+    """Create every table and index this module owns, if they do not exist.
 
     Idempotent, and cheap enough to run on every startup. Takes a cursor rather
     than opening a connection so the caller owns the transaction — provisioning

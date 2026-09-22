@@ -25,13 +25,16 @@ from datetime import datetime, timezone, timedelta
 # --- Internal Imports -------------------------------------------
 from backend.util import constants
 from backend.util import hashing
+from backend.util import provenance
 from backend.util import usage
 from backend.util import paths
 from backend.data_fetching import curated_loader
 from backend.data_fetching import data_retrieval
+from backend.llm import constants as ai_constants
 from backend.llm import langchain_llm
 from backend.llm import digest_engine
 from backend.llm import payload as payload_builder
+from backend.llm import payload_health
 from backend.llm import relevance
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
@@ -231,6 +234,11 @@ def ensure_missing_country_panels(root: pathlib.Path,
             print(f"[{iso2}] ERROR while backfilling panel: {e}")
 
 # --- Main -------------------------------------------------------------------
+# The scoring model, named once. Four call sites used to carry this string
+# and one of them had already drifted to the undated alias.
+SCORING_MODEL = "gpt-4o-2024-08-06"
+
+
 def seed_roster() -> int:
     """Write the roster into ``country`` and read it back, returning the row count.
 
@@ -472,6 +480,42 @@ def run_etl() -> None:
                         if need_image and thumb:
                             it["image"] = thumb
 
+            # 2d) The census: what the registry promised against what reached
+            #      the model. Stored, and read back — a census nobody stores
+            #      cannot be compared against last week, and comparison is the
+            #      only way to tell a source that broke from a quiet country.
+            run_as_of = datetime.now(timezone.utc).date()
+            census = payload_health.build_census(
+                iso2,
+                run_as_of,
+                economics=econ,
+                pool_report=pool_report,
+                gate=gate,
+                digests=dc,
+                versions=provenance.run_versions(
+                    scoring_model=SCORING_MODEL,
+                    digest_model=digest_engine.DEFAULT_MODEL,
+                    gate_model=relevance.DEFAULT_MODEL,
+                    prompt_version=ai_constants.PROMPT_VERSION,
+                    digest_prompt_version=digest_engine.DIGEST_PROMPT_VERSION,
+                    relevance_prompt_version=relevance.RELEVANCE_PROMPT_VERSION,
+                    seed=42,
+                ),
+                budget=relevance.ARTICLE_BUDGET,
+            )
+            print(payload_health.format_census(census))
+
+            try:
+                history = store.read_recent_resolution(iso2, before=run_as_of)
+                store.write_census(census)
+                # Read back rather than trusting the write.
+                if store.read_census(iso2, run_as_of) is None:
+                    raise RuntimeError("census did not reach the database")
+                for alarm in payload_health.resolution_alarm(iso2, census, history):
+                    print(alarm)
+            except Exception as e:
+                print(f"[census] {iso2} ERROR: {e}")
+
             # Assign stable ids ("a1","a2",...)
             for i, it in enumerate(items, start=1):
                 it["id"] = f"a{i}"
@@ -481,7 +525,7 @@ def run_etl() -> None:
                 country_display=country_name,
                 payload=payload,
                 articles=items,
-                model="gpt-4o-2024-08-06",
+                model=SCORING_MODEL,
                 seed=42,
             )
 

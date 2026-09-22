@@ -235,3 +235,107 @@ def test_entry_point_and_paths_agree_on_the_root():
     from backend.util import paths
 
     assert main._REPO_ROOT == paths.PROJECT_ROOT
+
+
+# --- Consumer-side rules -----------------------------------------------------
+#
+# The recurring failure in this project has not been code that crashed. It has
+# been code that ran, wrote something plausible, and had no consumer — so every
+# count looked right and nobody ever read the number. These assert the reader
+# exists, in the source, where a unit test with a stubbed writer cannot.
+
+
+def test_a_scoring_run_writes_a_census():
+    """The countermeasure only works if the run actually records one."""
+    src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
+    assert "payload_health.build_census(" in src, "the run builds no census"
+    assert "store.write_census(" in src, "the run does not record a census"
+
+
+def test_the_run_reads_the_census_back():
+    """A write that returns cleanly is not evidence that anything landed, and a
+    census nobody reads is the exact failure it exists to prevent."""
+    src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
+    assert "store.read_census(" in src, "the census is written and never read"
+
+
+def test_the_resolution_alarm_has_a_caller():
+    src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
+    assert "resolution_alarm(" in src, "the alarm is computed by nobody"
+    assert "read_recent_resolution(" in src, "the alarm has no baseline to compare against"
+
+
+def test_the_relevance_gate_decides_what_is_scored():
+    """A classifier whose verdict nothing acts on is the failure the gate
+    replaced, wearing a different hat."""
+    src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
+    assert "relevance.classify(" in src
+    assert "relevance.select(" in src
+
+
+def test_the_keyword_relevance_heuristic_is_gone():
+    """It returned 0.1 whenever the roster's formal name was not a substring of
+    the title and summary, which floors every country the press calls by
+    another name."""
+    src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
+    assert "_score_article_relevance" not in src
+
+
+def test_nothing_stamps_an_indicator_as_of_from_the_clock():
+    """`as_of` answers when a number became knowable, which is a fact about the
+    publisher and never about when we happened to fetch it. Every date comes
+    from `util.vintage`; this is the rule the fetch-clock bug broke."""
+    offenders = []
+    for name, path in MODULES.items():
+        if name.endswith("util.vintage"):
+            continue
+        text = path.read_text(encoding="utf-8")
+        for i, line in enumerate(text.splitlines(), start=1):
+            stripped = line.strip()
+            if stripped.startswith("#"):
+                continue
+            if "as_of" not in stripped:
+                continue
+            if any(clock in stripped for clock in ("now()", "today()", "utcnow(")):
+                offenders.append(f"{name} (line {i}): {stripped}")
+    # Three exceptions, each named rather than waved through. All three are the
+    # date we SCORED on, which is legitimately the clock; the rule is about when
+    # a published number became knowable, which never is.
+    allowed = (
+        # the snapshot's own date, and the alerts feed's
+        "run_as_of = datetime.now",
+        "as_of=datetime.now",
+        # the legal gate asks "which rules were in force when we scored", and
+        # falls back to today when the payload carries no date. It becomes an
+        # observation-only badge when the scorer is rewritten, which should
+        # remove this line rather than justify it.
+        "as_of = _parse_iso_date(as_of_raw)",
+    )
+    offenders = [o for o in offenders if not any(a in o for a in allowed)]
+    assert not offenders, offenders
+
+
+def test_the_prompt_version_is_derived_from_the_prompt():
+    """A version somebody has to remember to bump is a version that will
+    eventually be wrong while looking right."""
+    for module, constant in (
+        ("llm/constants.py", "PROMPT_VERSION"),
+        ("llm/relevance.py", "RELEVANCE_PROMPT_VERSION"),
+        ("llm/digest_engine.py", "DIGEST_PROMPT_VERSION"),
+    ):
+        src = (BACKEND / module).read_text(encoding="utf-8")
+        assert f"{constant} = content_hash(" in src, f"{module}:{constant}"
+
+
+def test_the_scoring_model_is_named_once_and_dated():
+    """Four call sites used to carry this string and one had already drifted to
+    the undated alias, so scores from two models were indistinguishable."""
+    src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
+    assert src.count('"gpt-4o-2024-08-06"') == 1, "the model id is repeated"
+    for module in ("llm/relevance.py", "llm/digest_engine.py"):
+        text = (BACKEND / module).read_text(encoding="utf-8")
+        assert "DEFAULT_MODEL = \"gpt-4" in text
+        # A dated id, not an alias: an alias moves under you.
+        for line in text.splitlines():
+            if line.startswith("DEFAULT_MODEL"):
+                assert any(ch.isdigit() for ch in line.split("-")[-1]), line

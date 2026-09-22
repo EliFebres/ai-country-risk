@@ -134,14 +134,14 @@ class _FakeConn:
 
 
 class TestSchemaProvisioning:
-    def test_create_all_provisions_both_tables(self):
+    def test_create_all_provisions_every_table(self):
         from backend.data_upsert import schema
 
         cur = _FakeCursor()
-        assert schema.create_all(cur) == ["article", "llm_artifact"]
+        assert schema.create_all(cur) == ["article", "llm_artifact", "payload_census"]
         sql = " ".join(s for s, _ in cur.executed)
-        assert "CREATE TABLE IF NOT EXISTS article" in sql
-        assert "CREATE TABLE IF NOT EXISTS llm_artifact" in sql
+        for table in ("article", "llm_artifact", "payload_census"):
+            assert f"CREATE TABLE IF NOT EXISTS {table}" in sql
 
     def test_every_statement_is_safe_to_run_again(self):
         """`create_all` runs on every startup, so a second run must be a no-op."""
@@ -178,7 +178,9 @@ class TestSchemaProvisioning:
         cur = _FakeCursor(present=True)
         monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
 
-        assert store.ensure_schema() == {"article": True, "llm_artifact": True}
+        assert store.ensure_schema() == {
+            "article": True, "llm_artifact": True, "payload_census": True,
+        }
 
 
 class TestArtifactCache:

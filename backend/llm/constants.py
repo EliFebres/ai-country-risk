@@ -5,6 +5,9 @@ from typing import Dict
 # NOTE: literal braces inside JSON examples are escaped as {{ }} for .format().
 # ---------------------------------------------------------------------------
 
+from backend.util.hashing import content_hash
+
+
 AI_PROMPT = """
 You are a senior geopolitical risk analyst. Rate investor risk for {country} over the next 12 months using ONLY the evidence provided.
 
@@ -87,6 +90,13 @@ Return ONLY valid JSON (no prose) exactly:
 # -------------------------
 # Strict schema for outputs - UPDATED TO INCLUDE TOPIC_GROUP
 # -------------------------
+# Derived from the prompt text, never written down. A prompt edited without its
+# version bumped is a score nobody can compare with last week's, and a number
+# somebody has to remember to change is a number that will eventually be wrong
+# while looking right.
+PROMPT_VERSION = content_hash(AI_PROMPT)
+
+
 RISK_SCHEMA: Dict = {
     "title": "CountryRiskAssessment",
     "description": "Subscores, per-article impacts with topic grouping, a calibrated score, and a short summary.",
