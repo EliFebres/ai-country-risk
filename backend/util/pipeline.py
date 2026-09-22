@@ -29,7 +29,7 @@ from backend.data_fetching import data_retrieval
 from backend.llm import langchain_llm
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
-from backend.data_upsert import data_push
+from backend.data_upsert import data_push, store
 from backend.news_fetching import fetch_links
 from backend.data_fetching import fetch_metrics
 from backend.data_fetching import country_data_fetch
@@ -294,6 +294,11 @@ def run_etl() -> None:
     # 0a) Seed the roster into `country` — every other table's foreign key
     #     points here.
     seed_roster()
+
+    # 0b) Provision the evidence store. `ensure_schema` verifies after it
+    #     provisions: a CREATE TABLE IF NOT EXISTS that returns without raising
+    #     is not evidence that the table is there.
+    store.ensure_schema()
 
     # 0) Ensure/Backfill panels per country (incremental, idempotent)
     #    World Bank indicators are fetched per-country; non-WB indicators

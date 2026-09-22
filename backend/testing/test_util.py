@@ -199,3 +199,60 @@ def test_the_decision_is_logged_either_way(monkeypatch, caplog):
     with caplog.at_level(logging.INFO, logger="supervisor"):
         s2.etl_is_due(NOW)
     assert "RUN" in caplog.text and "30d old" in caplog.text
+
+
+# ---------------------------------------------------------------------------
+# Content hashing — the one place a cache key is computed.
+# ---------------------------------------------------------------------------
+
+
+class TestContentHash:
+    """Two call sites that normalise differently give one article two hashes, the
+    cache misses forever, and the bill looks like a cache that is working."""
+
+    def test_the_same_text_hashes_the_same_way_twice(self):
+        from backend.util.hashing import content_hash
+
+        assert content_hash("Portugal raises rates") == content_hash("Portugal raises rates")
+
+    def test_reflowed_whitespace_is_the_same_article(self):
+        """A re-scrape that rewraps a paragraph must not pay for a second digest."""
+        from backend.util.hashing import content_hash
+
+        assert content_hash("a  b\n\nc\t d ") == content_hash("a b c d")
+
+    def test_a_non_breaking_space_is_the_same_article(self):
+        from backend.util.hashing import content_hash
+
+        assert content_hash("EUR 15bn") == content_hash("EUR 15bn")
+
+    def test_case_is_not_collapsed(self):
+        """A digest of shouting is not a digest of the same words spoken."""
+        from backend.util.hashing import content_hash
+
+        assert content_hash("US SANCTIONS LIFTED") != content_hash("us sanctions lifted")
+
+    def test_added_words_are_a_different_article(self):
+        from backend.util.hashing import content_hash
+
+        assert content_hash("a b c") != content_hash("a b c d")
+
+    def test_none_is_refused_rather_than_hashed(self):
+        """Hashing the string 'None' would be a cache key that silently collides."""
+        from backend.util.hashing import content_hash
+
+        with pytest.raises(TypeError):
+            content_hash(None)
+
+    def test_the_normalised_text_is_inspectable(self):
+        """A cache key you cannot see the input of is unauditable."""
+        from backend.util.hashing import content_hash, normalize
+
+        assert normalize("  a   b  ") == "a b"
+        assert content_hash("  a   b  ") == content_hash(normalize("  a   b  "))
+
+    def test_the_digest_is_a_sha256_hex_string(self):
+        from backend.util.hashing import content_hash
+
+        h = content_hash("x")
+        assert len(h) == 64 and all(c in "0123456789abcdef" for c in h)
