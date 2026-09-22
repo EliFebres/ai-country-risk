@@ -16,6 +16,7 @@ it belongs to none of them.
 
 import os
 import pathlib
+import time
 import requests
 
 from typing import Dict, List, Optional, Tuple
@@ -335,7 +336,15 @@ def run_etl(only: Optional[List[str]] = None) -> None:
     # Pool every country's Top-3 articles for the post-loop global alert ranking.
     global_alert_pool: List[Dict] = []
 
+    # Per-country wall-clock and spend. This is the weekly run's real cost, and
+    # it should be on the record from the first full pass rather than estimated
+    # later from an invoice.
+    per_country: List[Dict] = []
+
     for country_name, iso2 in country_map.items():
+        started = time.monotonic()
+        spend_before = run_meter.spend_usd
+        outcome = "ok"
         try:
             # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
             #    the merged non-WB indicators (Political Corruption Index) so they
@@ -628,7 +637,40 @@ def run_etl(only: Optional[List[str]] = None) -> None:
             )
 
         except Exception as e:
+            outcome = f"ERROR: {e}"
             print(f"[{iso2}] ERROR: {e}")
+
+        elapsed = time.monotonic() - started
+        spent = run_meter.spend_usd - spend_before
+        per_country.append(
+            {"iso2": iso2, "seconds": round(elapsed, 1),
+             "usd": round(spent, 4), "outcome": outcome}
+        )
+        print(f"[time] {iso2}: {elapsed:.1f}s, ${spent:.4f}")
+
+    # 7b) The run's own shape, printed as a table. A weekly job that cannot say
+    #     what it cost or where it spent its time is one nobody can budget for.
+    if per_country:
+        ok = [c for c in per_country if c["outcome"] == "ok"]
+        failed = [c for c in per_country if c["outcome"] != "ok"]
+        total_s = sum(c["seconds"] for c in per_country)
+        total_usd = sum(c["usd"] for c in per_country)
+        times = sorted(c["seconds"] for c in per_country)
+        median_s = times[len(times) // 2]
+        print("")
+        print(f"[run] {len(ok)}/{len(per_country)} countries scored, "
+              f"{len(failed)} failed")
+        print(f"[run] wall-clock {total_s / 60:.1f} min total, "
+              f"{median_s:.1f}s median per country, "
+              f"{total_s / len(per_country):.1f}s mean")
+        print(f"[run] spend ${total_usd:.4f} total, "
+              f"${total_usd / max(len(ok), 1):.4f} per scored country")
+        slowest = sorted(per_country, key=lambda c: -c["seconds"])[:5]
+        print(f"[run] slowest: "
+              + ", ".join(f"{c['iso2']} {c['seconds']:.0f}s" for c in slowest))
+        if failed:
+            for c in failed:
+                print(f"[run] FAILED {c['iso2']}: {c['outcome'][:120]}")
 
     # 8) Global news alerts: rank the pooled Top-3 articles by importance to the
     #    global economy and persist the top-N. Guarded so a failure here never

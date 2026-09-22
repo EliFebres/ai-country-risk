@@ -488,10 +488,24 @@ def select(
     for r in rejected:
         label_counts[r["label"]] = label_counts.get(r["label"], 0) + 1
 
+    # One row per candidate, whatever the gate decided. The census keeps these
+    # so a later session can ask what the classifier said without recomputing a
+    # cache key, and can stratify a sample over its judgements.
+    gate_labels = []
+    for article in articles:
+        verdict = labels.get(relevance_key(article, iso2)) or {}
+        gate_labels.append({
+            "url": article.get("publisher_link") or article.get("link"),
+            "label": verdict.get("label", "unclassified"),
+            "ledgers": verdict.get("ledgers", []),
+            "is_structural_event": bool(verdict.get("is_structural_event")),
+        })
+
     return {
         "selected": selected,
         "eligible": eligible,
         "rejected": rejected,
+        "gate_labels": gate_labels,
         "per_theme": per_theme,
         "per_ledger": per_ledger,
         "counts": {
