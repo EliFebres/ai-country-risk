@@ -35,34 +35,157 @@ FMP_HISTORICAL_ENDPOINT: str = "https://financialmodelingprep.com/stable/histori
 FMP_TREASURY_ENDPOINT: str = "https://financialmodelingprep.com/stable/treasury-rates"
 
 # ---------------------------------------------------------------------------
-# Economic / governance indicators (World Bank series)
+# The indicator registry — the one map every consumer reads.
 # ---------------------------------------------------------------------------
+# Keyed by the SOURCE'S OWN CODE, because that is the identifier that survives:
+# a friendly name is ours to change, `FP.CPI.TOTL.ZG` is the World Bank's and
+# means the same thing in five years. A code that is not in this registry is a
+# code nothing reads.
+#
+# Each entry carries:
+#   label      — display name, also what the payload calls it
+#   unit       — how to read the number
+#   ledger     — friction | order | information | edge; which section of the
+#                evidence payload this indicator appears under
+#   source     — who publishes it; also what `vintage` uses to date it
+#   freq       — A | Q | M, the series' own cadence, which is what staleness is
+#                measured against
+#   panel_col  — the column it occupies in the World Bank parquet panel, or None
+#                for a series that arrives some other way
+#
+# The four ledgers, and what each is asking:
+#   friction     — what is taken, and how well it converts
+#   order        — doubt about the load-bearing rules
+#   information  — whether the country's own instruments can be trusted
+#   edge         — whether the system is learning
+#
+# `security` is deliberately absent. It is a retrieval theme, because security
+# reporting needs its own query; conflict reaches the score through `order`.
 
-# World Bank series only — every value here is fetched from the World Bank API.
-# Non-WB sources (e.g. the OWID Political Corruption Index) live in EXTRA_INDICATORS
-# so the World Bank fetch loop never sees a non-WB code.
-INDICATORS = {
-    "INFLATION":          "FP.CPI.TOTL.ZG",         # Consumer-price inflation, % y/y
-    "UNEMPLOYMENT":       "SL.UEM.TOTL.ZS",         # Unemployment rate, % labour force
-    "FDI_PCT_GDP":        "BX.KLT.DINV.WD.GD.ZS",   # FDI net inflows, % GDP
-    "POL_STABILITY":      "GOV_WGI_PV.EST",         # Political stability (z-score)
-    "RULE_OF_LAW":        "GOV_WGI_RL.EST",         # Rule of law (z-score)
-    "GINI_INDEX":         "SI.POV.GINI",            # Income inequality (0 – 100)
-    "GDP_PC_GROWTH":      "NY.GDP.PCAP.KD.ZG",      # GDP per-capita growth, % y/y
-    "INT_PAYM_PCT_REV":   "GC.XPN.INTP.RV.ZS",      # Interest payments / revenue, %
+INDICATOR_REGISTRY: dict[str, dict] = {
+    # --- friction: what is taken, and how well it converts ------------------
+    "FP.CPI.TOTL.ZG": {
+        "label": "Inflation (% y/y)", "unit": "% y/y",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "INFLATION",
+    },
+    "SI.POV.GINI": {
+        "label": "Income inequality (Gini)", "unit": "index",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "GINI_INDEX",
+    },
+    "GC.XPN.INTP.RV.ZS": {
+        "label": "Interest payments (% revenue)", "unit": "% revenue",
+        "ledger": "friction", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "INT_PAYM_PCT_REV",
+    },
+    "OWID.VDEM.CORRUPTION": {
+        "label": "Political corruption index (0-1, higher = more corrupt)",
+        "unit": "index (0-1)",
+        "ledger": "friction", "source": "V-Dem via OWID", "freq": "A",
+        "panel_col": "POL_CORRUPTION",
+    },
+
+    # --- order: doubt about the load-bearing rules --------------------------
+    "GOV_WGI_PV.EST": {
+        "label": "Political stability (z-score)", "unit": "z-score",
+        "ledger": "order", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "POL_STABILITY",
+    },
+    "GOV_WGI_RL.EST": {
+        "label": "Rule of law (z-score)", "unit": "z-score",
+        "ledger": "order", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "RULE_OF_LAW",
+    },
+    "SL.UEM.TOTL.ZS": {
+        "label": "Unemployment (% labour force)", "unit": "%",
+        "ledger": "order", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "UNEMPLOYMENT",
+    },
+    "NY.GDP.PCAP.KD.ZG": {
+        "label": "GDP per-capita growth (% y/y)", "unit": "% y/y",
+        "ledger": "order", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "GDP_PC_GROWTH",
+    },
+
+    # --- information: can the country's own instruments be trusted ----------
+    # This ledger was the thinnest, and a ledger with one indicator is a ledger
+    # that cannot disagree with itself. SPI is a World Bank series and costs
+    # nothing to add; RSF is curated because RSF publishes no API.
+    "IQ.SPI.OVRL": {
+        "label": "Statistical performance (0-100)", "unit": "score",
+        "ledger": "information", "source": "World Bank SPI", "freq": "A",
+        "panel_col": "STAT_PERFORMANCE",
+    },
+    "RSF.PRESS.SCORE": {
+        "label": "Press freedom (0-100, higher = freer)", "unit": "score",
+        "ledger": "information", "source": "RSF World Press Freedom Index",
+        "freq": "A", "panel_col": None,
+    },
+
+    # --- edge: is the system learning ---------------------------------------
+    "BX.KLT.DINV.WD.GD.ZS": {
+        "label": "FDI inflow (% GDP)", "unit": "% GDP",
+        "ledger": "edge", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "FDI_PCT_GDP",
+    },
+    "SE.XPD.TOTL.GD.ZS": {
+        "label": "Education spending (% GDP)", "unit": "% GDP",
+        "ledger": "edge", "source": "World Bank WDI", "freq": "A",
+        "panel_col": "EDU_SPEND_PCT_GDP",
+    },
+    "OECD.PISA.MEAN": {
+        "label": "PISA mean score (maths/reading/science)", "unit": "score",
+        "ledger": "edge", "source": "OECD PISA", "freq": "A",
+        "panel_col": None,
+    },
 }
 
-# Non-World-Bank indicators. The value is a sentinel (never sent to the WB API);
-# these are merged into each country's panel after the WB fetch (see
-# backend/data_fetching/political_corruption_fetch.py and
+LEDGERS: tuple[str, ...] = ("friction", "order", "information", "edge")
+
+# Derived, so the fetch loop and the registry cannot disagree about which codes
+# are World Bank codes. The panel column is the key because that is what the
+# parquet panel and `prepare_llm_payload_pretty` use.
+INDICATORS: dict[str, str] = {
+    spec["panel_col"]: code
+    for code, spec in INDICATOR_REGISTRY.items()
+    if spec["panel_col"] and spec["source"].startswith("World Bank")
+}
+
+# Non-World-Bank indicators that still arrive through the panel. The value is a
+# sentinel and is never sent to the WB API; these are merged into each country's
+# panel after the WB fetch (see data_fetching/political_corruption_fetch.py and
 # country_data_fetch.merge_extra_indicators).
-EXTRA_INDICATORS = {
-    "POL_CORRUPTION":     "OWID:political-corruption-index",  # V-Dem via Our World in Data
+EXTRA_INDICATORS: dict[str, str] = {
+    "POL_CORRUPTION": "OWID:political-corruption-index",
 }
 
 # Full set used by the read/DB side (data_retrieval + data_push). The fetch side
 # uses INDICATORS (WB-only) so the WB loop never tries to fetch the sentinel.
-ALL_INDICATORS = {**INDICATORS, **EXTRA_INDICATORS}
+ALL_INDICATORS: dict[str, str] = {**INDICATORS, **EXTRA_INDICATORS}
+
+# Codes that reach the payload from `backend/data/curated.csv` rather than from
+# a panel column.
+CURATED_CODES: tuple[str, ...] = tuple(
+    code for code, spec in INDICATOR_REGISTRY.items() if spec["panel_col"] is None
+)
+
+# panel column -> registry code, for the payload builder.
+CODE_BY_PANEL_COL: dict[str, str] = {
+    spec["panel_col"]: code
+    for code, spec in INDICATOR_REGISTRY.items()
+    if spec["panel_col"]
+}
+
+# Display maps, derived from the registry so a label lives in exactly one place.
+NICE_NAME: dict[str, str] = {
+    spec["panel_col"]: spec["label"]
+    for spec in INDICATOR_REGISTRY.values()
+    if spec["panel_col"]
+}
+UNITS: dict[str, str] = {
+    spec["label"]: spec["unit"] for spec in INDICATOR_REGISTRY.values()
+}
 
 # ---------------------------------------------------------------------------
 # IMF higher-frequency refresh (new IMF Data API, SDMX 2.1)
@@ -310,34 +433,3 @@ ISO3_BY_ISO2: dict[str, str] = {c["iso2"]: c["iso3"] for c in COUNTRY_ROSTER}
 COUNTRY_NAME_BY_ISO2: dict[str, str] = {c["iso2"]: c["name"] for c in COUNTRY_ROSTER}
 TIER_BY_ISO2: dict[str, str] = {c["iso2"]: c["tier"] for c in COUNTRY_ROSTER}
 
-# ---------------------------------------------------------------------------
-# Display names for indicators
-# ---------------------------------------------------------------------------
-
-NICE_NAME: dict[str, str] = {
-    "INFLATION":          "Inflation (% y/y)",
-    "UNEMPLOYMENT":       "Unemployment (% labour force)",
-    "FDI_PCT_GDP":        "FDI inflow (% GDP)",
-    "POL_STABILITY":      "Political stability (z-score)",
-    "RULE_OF_LAW":        "Rule of law (z-score)",
-    "GINI_INDEX":         "Income inequality (Gini)",
-    "GDP_PC_GROWTH":      "GDP per-capita growth (% y/y)",
-    "INT_PAYM_PCT_REV":   "Interest payments (% revenue)",
-    "POL_CORRUPTION":     "Political corruption index (0–1, higher = more corrupt)",
-}
-
-# ---------------------------------------------------------------------------
-# Units for the pretty labels above
-# ---------------------------------------------------------------------------
-
-UNITS: dict[str, str] = {
-    "Inflation (% y/y)":               "% y/y",
-    "Unemployment (% labour force)":   "%",
-    "FDI inflow (% GDP)":              "% GDP",
-    "Political stability (z-score)":   "z-score",
-    "Rule of law (z-score)":           "z-score",
-    "Income inequality (Gini)":        "index",
-    "GDP per-capita growth (% y/y)":   "% y/y",
-    "Interest payments (% revenue)":   "% revenue",
-    "Political corruption index (0–1, higher = more corrupt)": "index (0–1)",
-}

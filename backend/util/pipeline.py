@@ -27,9 +27,11 @@ from backend.util import constants
 from backend.util import hashing
 from backend.util import usage
 from backend.util import paths
+from backend.data_fetching import curated_loader
 from backend.data_fetching import data_retrieval
 from backend.llm import langchain_llm
 from backend.llm import digest_engine
+from backend.llm import payload as payload_builder
 from backend.llm import relevance
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
@@ -61,13 +63,38 @@ def _crawlbase_token() -> str:
 
 def _has_country_partition(root: pathlib.Path, iso2: str) -> bool:
     """
-    Return True if a partition dir like country_code=XX exists and has at least one .parquet file.
+    Return True if a partition dir like country_code=XX exists, has at least one
+    .parquet file, AND holds every column the registry currently expects.
+
+    The column check is the part that matters. Adding an indicator to
+    `INDICATOR_REGISTRY` used to be silent: the partition existed, so it was
+    never rebuilt, so the new column never appeared, so the indicator resolved
+    to nothing forever while the registry said it was expected. A registry entry
+    nothing fetches is exactly the kind of writer-with-no-consumer this codebase
+    keeps producing.
     """
     part_dir = root / f"country_code={iso2}"
     if not part_dir.is_dir():
         return False
     try:
-        return any(p.suffix == ".parquet" for p in part_dir.glob("*.parquet"))
+        files = list(part_dir.glob("*.parquet"))
+        if not files:
+            return False
+        import duckdb
+
+        glob = (part_dir / "*.parquet").as_posix()
+        have = {
+            r[0]
+            for r in duckdb.sql(
+                f"SELECT column_name FROM (DESCRIBE SELECT * FROM read_parquet('{glob}'))"
+            ).fetchall()
+        }
+        want = set(constants.ALL_INDICATORS)
+        missing = want - have
+        if missing:
+            print(f"[{iso2}] panel is missing {sorted(missing)} — rebuilding.")
+            return False
+        return True
     except Exception:
         return False
 
@@ -319,6 +346,27 @@ def run_etl() -> None:
                 lookback=10,
                 deltas=(1, 5),
             )
+
+            # 1b) The economics block: the same numbers, grouped by ledger, each
+            #     carrying five years of history with the direction stated in
+            #     words, and the date it became knowable rather than the date we
+            #     fetched it. A ledger that resolved nothing says so here and is
+            #     counted below.
+            econ = payload_builder.build_economics_block(
+                data_retrieval.panel_values(iso2, lookback=10),
+                curated_loader.load_for_country(iso2),
+            )
+            res = econ["resolution"]
+            print(
+                f"[econ] {iso2}: resolved {res['resolved_by_ledger']} of "
+                f"{res['expected_by_ledger']} | dates {res['as_of_schemes']}"
+            )
+            if res["empty_ledgers"]:
+                print(
+                    f"[econ] {iso2}: LEDGER WITH NO INDICATORS: "
+                    f"{', '.join(res['empty_ledgers'])} — "
+                    f"dropped: {[d['code'] + ' (' + d['reason'] + ')' for d in res['dropped']]}"
+                )
 
             # 2) Fetch relevant news using multi-query strategy with relevance filtering (+ BROAD query)
             candidates, pool_report = _fetch_candidate_pool(country_name or iso2, iso2)

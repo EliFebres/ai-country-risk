@@ -254,3 +254,140 @@ class TestContentHash:
 
         h = content_hash("x")
         assert len(h) == 64 and all(c in "0123456789abcdef" for c in h)
+
+
+# ---------------------------------------------------------------------------
+# `as_of` — when a number became knowable.
+# ---------------------------------------------------------------------------
+
+import datetime as _dt  # noqa: E402
+
+from backend.util import constants as _constants, trends as _trends, vintage as _vintage  # noqa: E402
+
+
+class TestPeriodEnd:
+    def test_a_year_ends_on_the_last_day_of_it(self):
+        assert _vintage.period_end(2024) == _dt.date(2024, 12, 31)
+        assert _vintage.period_end("2024") == _dt.date(2024, 12, 31)
+
+    def test_a_quarter_ends_at_its_quarter(self):
+        assert _vintage.period_end("2024-05-15", "Q") == _dt.date(2024, 6, 30)
+
+    def test_a_month_ends_at_its_month_including_february(self):
+        assert _vintage.period_end("2024-02-03", "M") == _dt.date(2024, 2, 29)
+
+    def test_an_unreadable_period_raises_rather_than_guessing(self):
+        with pytest.raises(ValueError):
+            _vintage.period_end("sometime last year")
+
+
+class TestAsOf:
+    def test_a_source_that_publishes_a_date_is_believed(self):
+        as_of, scheme = _vintage.as_of_for(
+            "OECD PISA", 2022, published="2023-12-05"
+        )
+        assert as_of == _dt.date(2023, 12, 5)
+        assert scheme == _vintage.SOURCE_PUBLISHED
+
+    def test_a_source_that_publishes_no_date_gets_its_declared_lag(self):
+        as_of, scheme = _vintage.as_of_for("World Bank WDI", 2024)
+        assert scheme == _vintage.LAG_ESTIMATE
+        assert as_of > _dt.date(2024, 12, 31)
+
+    def test_the_scheme_travels_with_the_date(self):
+        """A measured date and a derived one must be distinguishable downstream."""
+        _, a = _vintage.as_of_for("World Bank WDI", 2024)
+        _, b = _vintage.as_of_for("World Bank WDI", 2024, published="2026-06-01")
+        assert a != b
+
+    def test_an_undeclared_source_raises_rather_than_assuming_no_lag(self):
+        """Defaulting to zero lag is the fetch-clock bug wearing a different hat."""
+        with pytest.raises(KeyError, match="no publication lag declared"):
+            _vintage.as_of_for("Some Ministry Nobody Dated", 2024)
+
+    def test_every_registry_source_can_be_dated(self):
+        """A registry entry whose source has no lag is an indicator that cannot
+        reach the payload at all."""
+        for code, spec in _constants.INDICATOR_REGISTRY.items():
+            as_of, scheme = _vintage.as_of_for(spec["source"], 2024, freq=spec["freq"])
+            assert scheme == _vintage.LAG_ESTIMATE, code
+            assert isinstance(as_of, _dt.date)
+
+
+class TestAsOfInvariant:
+    """The test that would have caught the fetch-clock bug on day one."""
+
+    def test_as_of_never_precedes_the_period_it_describes(self):
+        assert not _vintage.is_plausible(
+            _dt.date(2024, 6, 1), "World Bank WDI", 2024
+        )
+
+    def test_as_of_never_exceeds_period_end_plus_the_declared_lag(self):
+        """A 2019 figure stamped with today's date — which is exactly what the
+        fetch clock produced — is not a plausible publication date."""
+        assert not _vintage.is_plausible(
+            _dt.date(2026, 9, 22), "World Bank WDI", 2019
+        )
+
+    def test_a_real_publication_date_passes(self):
+        as_of, _ = _vintage.as_of_for("World Bank WDI", 2024)
+        assert _vintage.is_plausible(as_of, "World Bank WDI", 2024)
+
+    def test_every_registry_source_produces_a_plausible_date(self):
+        for code, spec in _constants.INDICATOR_REGISTRY.items():
+            for year in (2019, 2022, 2024):
+                as_of, _ = _vintage.as_of_for(spec["source"], year, freq=spec["freq"])
+                assert _vintage.is_plausible(as_of, spec["source"], year, spec["freq"]), \
+                    f"{code} @ {year}"
+
+
+# ---------------------------------------------------------------------------
+# Trajectory — computed here so the model does not do arithmetic in its head.
+# ---------------------------------------------------------------------------
+
+
+class TestDirection:
+    def test_a_clear_rise_is_rising(self):
+        assert _trends.direction_of([2.0, 3.0, 5.0, 7.0, 9.0]) == "rising"
+
+    def test_a_clear_fall_is_falling(self):
+        assert _trends.direction_of([20.0, 15.0, 10.0, 8.0, 7.0]) == "falling"
+
+    def test_movement_inside_the_band_is_flat(self):
+        assert _trends.direction_of([5.0, 5.1, 4.95, 5.05, 5.02]) == "flat"
+
+    def test_two_points_are_a_line_not_a_trend(self):
+        assert _trends.direction_of([1.0, 9.0]) == "unknown"
+
+    def test_gaps_do_not_stop_a_direction_being_read(self):
+        assert _trends.direction_of([2.0, None, 5.0, None, 9.0]) == "rising"
+
+    def test_nothing_observed_is_unknown_not_flat(self):
+        """`flat` is a claim about the country; `unknown` is a claim about us."""
+        assert _trends.direction_of([None, None, None, None, None]) == "unknown"
+
+
+class TestAnnualHistory:
+    def test_a_missing_year_is_present_and_empty_rather_than_absent(self):
+        """A filled gap is a number the model treats as measured, and it never
+        was; a shortened window hides that the gap existed."""
+        got = _trends.describe({2022: 1.0, 2024: 3.0}, latest_year=2024)
+        years = [h["year"] for h in got["history"]]
+        assert years == [2020, 2021, 2022, 2023, 2024]
+        assert got["history"][3]["value"] == "unknown"
+        assert got["missing"] == 3
+
+    def test_nothing_is_interpolated(self):
+        got = _trends.describe({2020: 0.0, 2024: 100.0}, latest_year=2024)
+        values = [h["value"] for h in got["history"]]
+        assert values == [0.0, "unknown", "unknown", "unknown", 100.0]
+
+    def test_acceleration_needs_enough_points_to_claim(self):
+        assert _trends.describe({2023: 1.0, 2024: 2.0}, latest_year=2024)["accelerating"] is None
+
+    def test_a_steepening_rise_is_accelerating(self):
+        got = _trends.describe(
+            {2020: 1.0, 2021: 2.0, 2022: 3.0, 2023: 8.0, 2024: 20.0}, latest_year=2024
+        )
+        assert got["direction"] == "rising"
+        assert got["accelerating"] is True

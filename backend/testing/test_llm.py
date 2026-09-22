@@ -444,3 +444,126 @@ class TestDigestArticles:
         out = digest_engine.digest_articles([_article("http://x/1", "T")])
         assert out["counts"]["no_body"] == 1
         assert out["digests"] == {}
+
+
+# ---------------------------------------------------------------------------
+# The economics block — indicators by ledger, with trajectory and vintage.
+# ---------------------------------------------------------------------------
+
+from backend.llm import payload as payload_mod  # noqa: E402
+from backend.util import constants as consts  # noqa: E402
+
+
+def _panel(**cols):
+    out = {}
+    for col, series in cols.items():
+        latest_year = max(series)
+        out[col] = {
+            "latest": series[latest_year],
+            "latest_year": latest_year,
+            "series": series,
+        }
+    return out
+
+
+class TestEconomicsBlock:
+    def test_indicators_arrive_grouped_by_ledger(self):
+        """The score is four ledger judgements; a registry-ordered list asks the
+        model to do the sorting itself on every call."""
+        block = payload_mod.build_economics_block(
+            _panel(INFLATION={2023: 4.0, 2024: 7.2})
+        )
+        assert set(block["ledgers"]) == set(consts.LEDGERS)
+        friction = block["ledgers"]["friction"]["indicators"]
+        assert [i["code"] for i in friction] == ["FP.CPI.TOTL.ZG"]
+
+    def test_each_ledger_carries_the_question_it_is_asking(self):
+        block = payload_mod.build_economics_block({})
+        assert "how well does it convert" in block["ledgers"]["friction"]["question"]
+
+    def test_the_direction_reaches_the_payload_in_words(self):
+        block = payload_mod.build_economics_block(
+            _panel(INFLATION={2020: 2.0, 2021: 3.0, 2022: 5.0, 2023: 7.0, 2024: 9.0})
+        )
+        entry = block["ledgers"]["friction"]["indicators"][0]
+        assert entry["direction"] == "rising"
+        assert entry["history"][0]["year"] == 2020
+
+    def test_a_value_carries_when_it_became_knowable_not_when_we_fetched_it(self):
+        block = payload_mod.build_economics_block(_panel(INFLATION={2024: 7.2}))
+        entry = block["ledgers"]["friction"]["indicators"][0]
+        assert entry["as_of"] > "2024-12-31"
+        assert entry["as_of_scheme"] == "publication-lag-estimate"
+
+    def test_staleness_is_measured_against_the_series_own_cadence(self):
+        import datetime as d
+
+        block = payload_mod.build_economics_block(
+            _panel(INFLATION={2019: 1.0}), today=d.date(2026, 9, 22)
+        )
+        entry = block["ledgers"]["friction"]["indicators"][0]
+        assert entry["stale_for_its_cadence"] is True
+
+    def test_an_indicator_with_no_observation_is_omitted_and_named(self):
+        """Never a zero and never a padded null — a zero reads as reassurance."""
+        block = payload_mod.build_economics_block(_panel(INFLATION={2024: 7.2}))
+        dropped = {d["code"] for d in block["resolution"]["dropped"]}
+        assert "SL.UEM.TOTL.ZS" in dropped
+        codes_in_payload = {
+            i["code"]
+            for led in block["ledgers"].values()
+            for i in led["indicators"]
+        }
+        assert "SL.UEM.TOTL.ZS" not in codes_in_payload
+
+    def test_every_dropped_indicator_carries_a_reason(self):
+        block = payload_mod.build_economics_block({})
+        assert block["resolution"]["dropped"]
+        for d in block["resolution"]["dropped"]:
+            assert d["reason"]
+            assert d["ledger"] in consts.LEDGERS
+            assert d["source"]
+
+    def test_an_empty_ledger_is_impossible_to_miss(self):
+        """Stated in the payload as well as in the census: the model is told the
+        evidence is absent rather than inferring it from an empty list."""
+        block = payload_mod.build_economics_block(_panel(INFLATION={2024: 7.2}))
+        order = block["ledgers"]["order"]
+        assert order["indicators"] == []
+        assert "do not read the absence as a good result" in order["note"]
+        assert "order" in block["resolution"]["empty_ledgers"]
+
+    def test_the_resolution_report_counts_expected_against_resolved(self):
+        block = payload_mod.build_economics_block(_panel(INFLATION={2024: 7.2}))
+        res = block["resolution"]
+        assert res["expected_by_ledger"]["friction"] == 4
+        assert res["resolved_by_ledger"]["friction"] == 1
+        assert res["by_source"]["World Bank WDI"]["expected"] >= 1
+
+    def test_curated_values_reach_the_payload(self):
+        """RSF and PISA are the reason information and edge are not one-indicator
+        ledgers; verified by consumption, not by row count."""
+        block = payload_mod.build_economics_block(
+            _panel(STAT_PERFORMANCE={2023: 80.0}),
+            curated={
+                "RSF.PRESS.SCORE": {"value": 76.0, "period": 2026,
+                                    "as_of": "2026-05-03", "series": {2026: 76.0}},
+                "OECD.PISA.MEAN": {"value": 492.0, "period": 2022,
+                                   "as_of": "2023-12-05", "series": {2022: 492.0}},
+            },
+        )
+        info = {i["code"] for i in block["ledgers"]["information"]["indicators"]}
+        edge = {i["code"] for i in block["ledgers"]["edge"]["indicators"]}
+        assert info == {"IQ.SPI.OVRL", "RSF.PRESS.SCORE"}
+        assert "OECD.PISA.MEAN" in edge
+        assert block["resolution"]["as_of_schemes"]["source-published"] == 2
+
+    def test_the_census_can_tell_measured_dates_from_derived_ones(self):
+        block = payload_mod.build_economics_block(
+            _panel(INFLATION={2024: 7.2}),
+            curated={"RSF.PRESS.SCORE": {"value": 76.0, "period": 2026,
+                                         "as_of": "2026-05-03", "series": {}}},
+        )
+        schemes = block["resolution"]["as_of_schemes"]
+        assert schemes["publication-lag-estimate"] == 1
+        assert schemes["source-published"] == 1

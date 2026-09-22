@@ -118,6 +118,44 @@ def prepare_llm_payload_pretty(
             "source": "World Bank",
             "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ"),
             "series_lookback": lookback,
-            "data_dir": str(DATA_DIR),
         },
     }
+
+
+def panel_values(
+    country_iso: str,
+    *,
+    since: int = 2000,
+    lookback: int = 10,
+) -> dict[str, dict]:
+    """Return the panel keyed by its own column names, for the payload builder.
+
+    `prepare_llm_payload_pretty` keys its output by display label, which is a
+    presentation decision and a poor join key. The economics block joins on the
+    registry instead, so it needs the panel column and the year each value
+    belongs to — the year being what `vintage` dates the observation from.
+
+    Returns:
+        ``{panel_col: {"latest", "latest_year", "series"}}``, carrying only the
+        columns that actually hold a value. A column the panel does not have is
+        absent rather than present-and-null, so the caller can tell "this
+        country has no row" from "this indicator is not in the panel at all".
+    """
+    df = query_macro_panel(country_iso)
+    df = df[df.year >= since]
+
+    out: dict[str, dict] = {}
+    for col in df.columns:
+        if col == "year":
+            continue
+        s = df.set_index("year")[col].dropna()
+        if s.empty:
+            continue
+        s = s.tail(lookback).round(4)
+        latest_year = int(s.index.max())
+        out[col] = {
+            "latest": float(s.loc[latest_year]),
+            "latest_year": latest_year,
+            "series": {int(y): float(v) for y, v in s.items()},
+        }
+    return out

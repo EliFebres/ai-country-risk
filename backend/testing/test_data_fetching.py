@@ -170,3 +170,82 @@ def test_a_restart_no_longer_refetches_yields(monkeypatch):
     restarted.load_state()
     restarted.maybe_refresh_yields(NOW)
     assert fetched == [], "a restart refetched yields the database already had"
+
+
+# ---------------------------------------------------------------------------
+# The curated loader: the two series no API serves.
+# ---------------------------------------------------------------------------
+
+import pytest  # noqa: E402
+
+from backend.data_fetching import curated_loader  # noqa: E402
+
+_HEADER = ("country_iso2,indicator_code,period,value,as_of,"
+           "source_url,source_table,retrieved_at\n")
+
+
+def _csv(tmp_path, body):
+    p = tmp_path / "curated.csv"
+    p.write_text(_HEADER + body, encoding="utf-8")
+    return p
+
+
+class TestCuratedLoader:
+    def test_an_absent_file_is_silent(self, tmp_path):
+        """A country with no curated rows still scores; the census says which
+        indicators were missing."""
+        assert curated_loader.load_curated(tmp_path / "nothing.csv") == {}
+
+    def test_a_header_only_file_loads_nothing(self, tmp_path):
+        assert curated_loader.load_curated(_csv(tmp_path, "")) == {}
+
+    def test_a_good_row_loads_with_its_citation(self, tmp_path):
+        path = _csv(tmp_path, "PT,RSF.PRESS.SCORE,2026,75.4,2026-05-03,"
+                              "https://rsf.org/en/index,Index table,2026-09-22\n")
+        got = curated_loader.load_curated(path)
+        assert got["PT"]["RSF.PRESS.SCORE"]["value"] == 75.4
+        assert got["PT"]["RSF.PRESS.SCORE"]["source_url"] == "https://rsf.org/en/index"
+        assert got["PT"]["RSF.PRESS.SCORE"]["retrieved_at"] == "2026-09-22"
+
+    def test_a_malformed_value_raises_rather_than_being_skipped(self, tmp_path):
+        """A silently skipped row is how a file that loads 'successfully' ends
+        up holding half the data someone thought they put in it."""
+        path = _csv(tmp_path, "PT,RSF.PRESS.SCORE,2026,not-a-number,2026-05-03,"
+                              "https://rsf.org,T,2026-09-22\n")
+        with pytest.raises(curated_loader.CuratedFileError, match="not a number"):
+            curated_loader.load_curated(path)
+
+    def test_a_row_with_no_citation_raises(self, tmp_path):
+        path = _csv(tmp_path, "PT,RSF.PRESS.SCORE,2026,75.4,2026-05-03,,,2026-09-22\n")
+        with pytest.raises(curated_loader.CuratedFileError, match="no source_url"):
+            curated_loader.load_curated(path)
+
+    def test_an_unknown_indicator_code_raises(self, tmp_path):
+        path = _csv(tmp_path, "PT,MADE.UP.CODE,2026,1.0,2026-05-03,"
+                              "https://x,T,2026-09-22\n")
+        with pytest.raises(curated_loader.CuratedFileError, match="not in INDICATOR_REGISTRY"):
+            curated_loader.load_curated(path)
+
+    def test_a_curated_row_cannot_shadow_a_fetched_indicator(self, tmp_path):
+        """Otherwise a hand-typed number quietly overrides the World Bank."""
+        path = _csv(tmp_path, "PT,FP.CPI.TOTL.ZG,2024,3.0,2025-06-01,"
+                              "https://x,T,2026-09-22\n")
+        with pytest.raises(curated_loader.CuratedFileError, match="not curated"):
+            curated_loader.load_curated(path)
+
+    def test_several_years_become_a_series_with_the_freshest_on_top(self, tmp_path):
+        path = _csv(
+            tmp_path,
+            "PT,RSF.PRESS.SCORE,2024,80.0,2024-05-03,https://rsf.org,T,2026-09-22\n"
+            "PT,RSF.PRESS.SCORE,2026,75.4,2026-05-03,https://rsf.org,T,2026-09-22\n"
+            "PT,RSF.PRESS.SCORE,2025,78.0,2025-05-03,https://rsf.org,T,2026-09-22\n",
+        )
+        got = curated_loader.load_curated(path)["PT"]["RSF.PRESS.SCORE"]
+        assert got["period"] == 2026
+        assert got["value"] == 75.4
+        assert got["series"] == {2024: 80.0, 2025: 78.0, 2026: 75.4}
+
+    def test_a_country_with_no_rows_gets_an_empty_dict(self, tmp_path):
+        path = _csv(tmp_path, "PT,RSF.PRESS.SCORE,2026,75.4,2026-05-03,"
+                              "https://rsf.org,T,2026-09-22\n")
+        assert curated_loader.load_for_country("DE", path) == {}
