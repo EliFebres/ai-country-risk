@@ -29,6 +29,7 @@ from backend.util import usage
 from backend.util import paths
 from backend.data_fetching import data_retrieval
 from backend.llm import langchain_llm
+from backend.llm import digest_engine
 from backend.llm import relevance
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
@@ -139,11 +140,16 @@ def _article_rows(articles: List[Dict], iso2: str) -> List[Dict]:
             "page_published_at": a.get("page_published_at"),
             "title": a.get("title"),
             "abstract": a.get("snippet"),
-            "body": body or None,
-            "content_sha256": hashing.content_hash(body) if body else None,
-            "body_status": "full" if body else "title-only",
-            "body_chars_original": len(body) or None,
-            "body_clipped": False,
+            # The hash covers what was actually read, not what was fetched: a
+            # cache keyed on the full article would serve a digest of words the
+            # model never saw.
+            "body": (body[:digest_engine.BODY_CAP_CHARS] or None),
+            "content_sha256": (
+                hashing.content_hash(body[:digest_engine.BODY_CAP_CHARS]) if body else None
+            ),
+            "body_status": a.get("body_status") or ("digest-only" if body else "title-only"),
+            "body_chars_original": a.get("body_chars_original", len(body)) or None,
+            "body_clipped": bool(a.get("body_clipped", len(body) > digest_engine.BODY_CAP_CHARS)),
             "themes": a.get("themes") or [],
         })
     return rows
@@ -346,6 +352,36 @@ def run_etl() -> None:
                 store.upsert_articles(_article_rows(candidates, iso2))
             except Exception as e:
                 print(f"[{iso2}] could not store articles: {e}")
+
+            # 2c) Stage one: digest every admitted article, and mark the top
+            #     few to be read in full. Breadth from the digests, depth from
+            #     three — twenty full bodies is unaffordable and twenty headlines
+            #     throws away the reporting already paid for.
+            for rank, it in enumerate(items):
+                reads_full = rank < relevance.FULL_TEXT_K
+                status, clipped, original = digest_engine.body_status_for(
+                    it, full_text=reads_full
+                )
+                it["body_status"] = status
+                it["body_clipped"] = clipped
+                it["body_chars_original"] = original
+
+            digested = digest_engine.digest_articles(items, meter=run_meter)
+            for it in items:
+                key = it.get("publisher_link") or it.get("link")
+                it["digest"] = digested["digests"].get(key)
+
+            dc = digested["counts"]
+            status_mix: Dict[str, int] = {}
+            for it in items:
+                status_mix[it["body_status"]] = status_mix.get(it["body_status"], 0) + 1
+            print(
+                f"[digest] {iso2}: {dc['generated']} generated, {dc['cached']} cached, "
+                f"{dc['truncated_retry']} truncated-retry, {dc['failed']} failed, "
+                f"{dc['no_body']} without a body | bodies {status_mix}"
+            )
+            pool_report["digests"] = dc
+            pool_report["body_status"] = status_mix
 
             pool_report["gate"] = counts
             pool_report["per_ledger"] = gate["per_ledger"]

@@ -299,3 +299,148 @@ class TestDuplicateStoryReport:
         ]
         assert relevance.duplicate_story_report(sel)["duplicated_slots"] == 0
 
+# ---------------------------------------------------------------------------
+# Stage one: the digest engine.
+# ---------------------------------------------------------------------------
+
+from backend.llm import digest_engine  # noqa: E402
+
+
+class _Raw:
+    def __init__(self, finish_reason="stop", usage=None):
+        self.response_metadata = {"finish_reason": finish_reason}
+        self.usage_metadata = usage or {"input_tokens": 100, "output_tokens": 20}
+
+
+class _FakeStructured:
+    """Replays a scripted list of (finish_reason, parsed) responses."""
+
+    def __init__(self, script):
+        self.script = list(script)
+        self.prompts = []
+
+    def invoke(self, messages):
+        self.prompts.append(messages[0].content)
+        finish, parsed = self.script.pop(0)
+        if isinstance(parsed, Exception):
+            raise parsed
+        return {"raw": _Raw(finish), "parsed": parsed}
+
+
+def _digest(what="Rates rose."):
+    return {"what_happened": what, "institutions": ["Banco de Portugal"],
+            "direction": "deteriorating", "numbers": ["inflation 4.2%"]}
+
+
+class TestDigestPrompt:
+    def test_the_version_is_the_prompt_s_own_hash(self):
+        from backend.util.hashing import content_hash
+
+        assert digest_engine.DIGEST_PROMPT_VERSION == content_hash(digest_engine.DIGEST_PROMPT)
+
+    def test_the_prompt_forbids_filling_gaps_from_outside_knowledge(self):
+        """Anything invented here reaches the scorer indistinguishable from
+        reporting."""
+        p = digest_engine.DIGEST_PROMPT
+        assert "not stated" in p
+        assert "extraction engine, not an analyst" in p
+
+    def test_the_output_ceiling_is_a_few_times_the_schema_not_the_default(self):
+        """A digest model left at its default ceiling can burn thousands of
+        tokens producing a two-hundred-token object."""
+        assert digest_engine.MAX_OUTPUT_TOKENS <= 1000
+
+
+class TestBodyStatus:
+    def test_an_article_with_no_body_is_title_only(self):
+        assert digest_engine.body_status_for({"text": ""}, full_text=False)[0] == "title-only"
+
+    def test_an_article_that_was_only_digested_says_so(self):
+        got = digest_engine.body_status_for({"text": "body"}, full_text=False)
+        assert got[0] == "digest-only"
+
+    def test_a_short_body_read_in_full_is_full(self):
+        status, clipped, original = digest_engine.body_status_for(
+            {"text": "short body"}, full_text=True
+        )
+        assert (status, clipped) == ("full", False)
+        assert original == len("short body")
+
+    def test_a_long_body_read_in_full_is_clipped_and_says_how_long_it_was(self):
+        body = "x" * (digest_engine.BODY_CAP_CHARS + 500)
+        status, clipped, original = digest_engine.body_status_for(
+            {"text": body}, full_text=True
+        )
+        assert (status, clipped) == ("clipped", True)
+        assert original == digest_engine.BODY_CAP_CHARS + 500
+
+
+class TestDigestRetry:
+    def test_a_clean_digest_takes_one_call(self):
+        fake = _FakeStructured([("stop", _digest())])
+        got = digest_engine.digest_text("body", structured=fake)
+        assert got["what_happened"] == "Rates rose."
+        assert "truncated_retry" not in got
+        assert len(fake.prompts) == 1
+
+    def test_hitting_the_ceiling_retries_once_on_a_shorter_slice(self):
+        """The failure this bounds: an ordinary input running to the output
+        ceiling and producing nothing."""
+        fake = _FakeStructured([("length", None), ("stop", _digest())])
+        body = "y" * 20_000
+        got = digest_engine.digest_text(body, structured=fake)
+        assert got["truncated_retry"] is True
+        assert len(fake.prompts) == 2
+        assert len(fake.prompts[1]) < len(fake.prompts[0])
+
+    def test_the_retry_reads_the_first_six_thousand_characters(self):
+        fake = _FakeStructured([("length", None), ("stop", _digest())])
+        body = "z" * 20_000
+        digest_engine.digest_text(body, structured=fake)
+        assert fake.prompts[1].count("z") == digest_engine.RETRY_CHARS
+
+    def test_two_failures_give_up_rather_than_inventing_a_digest(self):
+        fake = _FakeStructured([("length", None), ("length", None)])
+        assert digest_engine.digest_text("body", structured=fake) is None
+
+    def test_a_raising_call_is_retried_then_given_up_on(self):
+        fake = _FakeStructured([("stop", RuntimeError("boom")), ("stop", _digest())])
+        assert digest_engine.digest_text("body", structured=fake)["what_happened"]
+
+    def test_usage_is_metered_on_every_attempt(self):
+        m = usage.Meter()
+        fake = _FakeStructured([("length", None), ("stop", _digest())])
+        digest_engine.digest_text("body", structured=fake, meter=m)
+        assert m.calls == 2
+
+
+class TestDigestArticles:
+    def test_a_cached_digest_is_served_without_a_call(self, monkeypatch):
+        art = _article("http://x/1", "T")
+        art["text"] = "the body"
+        from backend.util.hashing import content_hash
+
+        monkeypatch.setattr(
+            digest_engine.store,
+            "read_artifacts",
+            lambda hashes, **kw: {content_hash("the body"): _digest()},
+        )
+
+        def boom(*a, **kw):
+            raise AssertionError("constructed a client for a cached digest")
+
+        monkeypatch.setattr(digest_engine, "ChatOpenAI", boom)
+
+        out = digest_engine.digest_articles([art])
+        assert out["counts"]["cached"] == 1
+        assert out["counts"]["generated"] == 0
+        assert out["digests"]["http://x/1"]["cached"] is True
+
+    def test_an_article_with_no_body_is_counted_not_digested(self, monkeypatch):
+        def boom(*a, **kw):
+            raise AssertionError("looked up a digest for an article with no body")
+
+        monkeypatch.setattr(digest_engine.store, "read_artifacts", boom)
+        out = digest_engine.digest_articles([_article("http://x/1", "T")])
+        assert out["counts"]["no_body"] == 1
+        assert out["digests"] == {}

@@ -58,9 +58,16 @@ def _compute_news_flow(articles_min: List[Dict], impact_by_id: Dict[str, float])
 # Helpers for prompt I/O
 # -------------------------
 def _articles_to_json(articles: List[Dict]) -> str:
-    """Normalize article fields used in the prompt."""
+    """Normalize article fields used in the prompt.
+
+    Every selected article reaches the model. The slice that used to be here
+    took the first ten, while the rest of the pipeline fetched, scraped and
+    ranked twenty — so half the budget was paid for and never read, and articles
+    eleven to twenty entered Top-3 selection with an impact of zero because the
+    model had never been shown them.
+    """
     norm = []
-    for i, it in enumerate(articles[:10]):
+    for i, it in enumerate(articles):
         norm.append({
             "id": f"a{i+1}",
             "source": (it.get("source") or "").strip(),
