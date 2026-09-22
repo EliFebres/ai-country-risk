@@ -23,7 +23,7 @@ from backend.utils import data_retrieval
 from backend.utils.ai import langchain_llm
 from backend.utils.ai import calendar_ranker
 from backend.utils.ai import alerts_ranker
-from backend.utils.data_upsert import data_push
+from backend.data_upsert import data_push
 from backend.utils.news_fetching import fetch_links
 from backend.utils.data_fetching import fetch_metrics
 from backend.utils.data_fetching import country_data_fetch

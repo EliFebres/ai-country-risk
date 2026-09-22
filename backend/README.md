@@ -71,7 +71,7 @@ python backend/main.py
 * `backend/utils/ai/langchain_llm.py` — LLM call for risk scoring.
 * `backend/utils/ai/alerts_ranker.py` — LLM global ranking of pooled Top-3 articles into the `news_alert` feed.
 * `backend/utils/ai/calendar_ranker.py` — LLM ranking of calendar events by investor importance.
-* `backend/utils/data_upsert/data_push.py` — transactional upserts for every table below.
+* `backend/data_upsert/data_push.py` — transactional upserts for every table below.
 
 ---
 
