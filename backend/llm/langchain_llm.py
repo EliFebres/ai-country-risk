@@ -7,8 +7,8 @@ from functools import lru_cache
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
-from dotenv import load_dotenv, find_dotenv
-load_dotenv(find_dotenv(), override=False)
+from backend.util import env
+env.load()
 
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import SystemMessage

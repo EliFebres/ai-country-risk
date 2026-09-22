@@ -163,7 +163,7 @@ FMP_CALENDAR_COUNTRIES: dict[str, str] = {
 # ---------------------------------------------------------------------------
 # Prices feed (bottom-bar "Prices" pane)
 # ---------------------------------------------------------------------------
-# A standalone long-running daemon (backend/prices_daemon.py) polls these assets
+# The prices loop (backend/data_fetching/prices_daemon.py) polls these assets
 # on PRICES_POLL_SECONDS and upserts them to the `market_price` table. Live
 # prices (stocks/crypto/commodities) come from FMP's batch-quote endpoint; US
 # Treasury yields come from FMP's treasury-rates endpoint. To minimize API hits,

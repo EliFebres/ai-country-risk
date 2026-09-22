@@ -12,9 +12,7 @@ from datetime import datetime, timezone
 from typing import Dict, Any, Optional, List, Union, Tuple
 
 # --- .env loading (simple & explicit) ---
-from dotenv import load_dotenv
-
-from backend.util import paths
+from backend.util import env
 
 # The real .env, named once. The two lines this replaces claimed in their
 # comments to load backend/.env and the repo-root .env, but were anchored on
@@ -23,7 +21,7 @@ from backend.util import paths
 # populated the Crawlbase tokens. Moving this file up one level would have
 # quietly turned one of them live, so it is corrected here rather than left to
 # start working by accident.
-load_dotenv(paths.BACKEND_DIR / ".env", override=False)
+env.load()
 
 # -------------------- Tuned constants (faster + safer) -------------------- #
 API_BASE = "https://api.crawlbase.com"

@@ -4,9 +4,9 @@ from typing import Dict, Any, Optional, List, Tuple
 
 import psycopg2
 import psycopg2.extras as extras
-from dotenv import load_dotenv
+from backend.util import env
 
-load_dotenv()
+env.load()
 
 DB_URL = os.getenv("DATABASE_URL")
 

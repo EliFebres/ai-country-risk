@@ -1,10 +1,10 @@
 """
 Prices daemon — long-running market-data poller for the bottom-bar "Prices" pane.
 
-Runs SEPARATELY from the daily ``main.py`` ETL: a persistent loop (run it
-directly, e.g. under Task Scheduler at boot) that, every ``PRICES_POLL_SECONDS``,
-pulls live prices from FMP and upserts the latest snapshot into the
-``market_price`` table the frontend reads.
+Reached as ``python -m backend.main prices``: a persistent loop that, every
+``PRICES_POLL_SECONDS``, pulls live prices from FMP and upserts the latest
+snapshot into the ``market_price`` table the frontend reads. ``main.py run``
+drives the same tick on its own schedule alongside the ETL.
 
 Cost control:
   • FMP live quotes are fetched in ONE batched call per tick, and only for asset
@@ -15,36 +15,20 @@ Cost control:
     other tick.
 
 Resilience: each tick is wrapped so a failure never kills the loop, and SIGINT/
-SIGTERM trigger a clean shutdown. Run ``python backend/prices_daemon.py --once``
+SIGTERM trigger a clean shutdown. Run ``python -m backend.main prices --once``
 to execute a single tick (used for verification).
 """
 
-import os
-import sys
 import signal
 import logging
-import pathlib
 import threading
 from datetime import datetime, timezone, date
 from typing import Any, Dict, List, Optional
-
-# --- Make "backend/" importable ----------------------------------------------
-# Anchored on this file, never on the working directory. The package has no
-# __init__.py and resolves as a PEP 420 namespace package, so the repo root must
-# be on sys.path before the first backend.* import. Past this point every path
-# comes from backend.util.paths, which computes the same root the same way.
-_REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
-if str(_REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(_REPO_ROOT))
-
-from dotenv import load_dotenv
 
 from backend.util import constants
 from backend.data_fetching import market_hours
 from backend.data_upsert import data_push
 from backend.data_fetching import fmp_prices_fetch
-
-load_dotenv()
 
 logging.basicConfig(
     level=logging.INFO,
@@ -230,18 +214,16 @@ class PricesDaemon:
                 pass  # not in main thread / unsupported on this platform
 
 
-def main() -> None:
-    if not os.getenv("DATABASE_URL"):
-        logger.error("DATABASE_URL is not set; cannot run the prices daemon.")
-        sys.exit(1)
+def run_daemon(once: bool = False) -> None:
+    """One tick, or the poll loop until a signal stops it.
 
+    The DATABASE_URL guard that used to live here has moved to the launch-time
+    check in main.py, which runs for every command and names every missing key
+    at once rather than the first one reached.
+    """
     daemon = PricesDaemon()
-    if "--once" in sys.argv[1:]:
+    if once:
         daemon.load_state()
         daemon.tick()
     else:
         daemon.run()
-
-
-if __name__ == "__main__":
-    main()

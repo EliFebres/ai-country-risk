@@ -17,8 +17,8 @@ from pathlib import Path
 
 import pytest
 
-# The one line that moves when the ETL body moves out of main.py.
-from backend import main as etl
+# The ETL body moved out of main.py; the fixtures were recorded before it did.
+from backend.util import pipeline as etl
 
 FIXTURES = json.loads(
     (Path(__file__).with_name("characterization.json")).read_text(encoding="utf-8")

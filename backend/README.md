@@ -34,7 +34,7 @@ This directory contains the **data-engineering and inference pipeline** that pow
 | --------------------- | ----------------------------------------------------------------------- |
 | `DATABASE_URL`        | Postgres connection string (Neon or local)                              |
 | `OPENAI_API_KEY`      | OpenAI key used by `langchain_openai`                                   |
-| `FMP_API_KEY`         | Financial Modeling Prep key — economic calendar in `main.py` and the live prices daemon |
+| `FMP_API_KEY`         | Financial Modeling Prep key — economic calendar in the ETL and the live prices loop |
 | `CRAWLBASE_JS_TOKEN`  | *(optional)* Crawlbase JS token for advanced Reuters/Bloomberg enrichment |
 | `CRAWLBASE_TOKEN`     | *(optional)* Crawlbase standard token (used if JS token not provided)   |
 
@@ -52,16 +52,22 @@ pip install -r backend/requirements.txt
 # Add .env in backend/ with DATABASE_URL, OPENAI_API_KEY, and optional Crawlbase token(s)
 
 # Run the end-to-end ETL (fetch headlines → rank → LLM → DB)
-python backend/main.py
+python -m backend.main etl
+
+# Run the suite (no network, no database, no model, no spend)
+python backend/test.py
 ```
 
-*Running the full ETL for ~200 countries can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
+*Running the full ETL for the 57-country roster can take several minutes due to polite pacing of feed resolution and per-article fetches. If you need more speed, reduce country scope, tune batch sizes, or move to higher-throughput feeds/services.*
 
 ---
 
 ## Key modules
 
-* `backend/main.py` — orchestrates the run: data payload → news → LLM scoring → DB upsert.
+* `backend/main.py` — argument parsing and dispatch only: `etl` and `prices`.
+* `backend/util/pipeline.py` — orchestrates the ETL: data payload → news → LLM scoring → DB upsert.
+* `backend/util/paths.py` — the one project-root resolver.
+* `backend/util/env.py` — the one place `.env` is read and required keys are validated.
 * `backend/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
 * `backend/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata for **Top-3** Reuters/Bloomberg links only.
 * `backend/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
@@ -201,7 +207,7 @@ CREATE TABLE economic_calendar_event (
     UNIQUE (event_time, country_code, event)
 );
 
--- Live "Prices" pane. Maintained by the standalone prices_daemon.py (NOT main.py):
+-- Live "Prices" pane. Maintained by the prices loop (main.py prices), not the ETL:
 -- one row per tracked asset, upserted in place every few minutes. Stocks/crypto/
 -- commodities come from FMP batch-quote; US Treasury yields from FMP treasury-
 -- rates. is_yield rows carry POINT changes (shown as %); others carry % moves.
@@ -236,10 +242,9 @@ CREATE TABLE price_reference (
 
 ---
 
-## IMF & economic-calendar refresh (inside `main.py`)
+## IMF & economic-calendar refresh (inside the ETL)
 
-Unlike the standalone prices daemon, these two refreshes run **as part of the daily
-`main.py` ETL**:
+Unlike the prices loop, these two refreshes run **as part of the ETL**:
 
 * **IMF higher-frequency macro.** `data_fetching/imf_macro_fetch.py` pulls the
   freshest sub-annual prints (e.g. monthly/quarterly inflation) from the IMF SDMX 2.1
@@ -251,10 +256,10 @@ Unlike the standalone prices daemon, these two refreshes run **as part of the da
   investor importance (`ai_importance` / `ai_rationale`) before the rows are upserted into
   `economic_calendar_event`.
 
-## Live prices feed (`prices_daemon.py`)
+## Live prices feed (`main.py prices`)
 
-A standalone, long-running daemon — **separate from the daily `main.py` ETL** — keeps
-the bottom-bar "Prices" pane fresh. It polls every `PRICES_POLL_SECONDS` (default 300)
+A long-running poll loop, reached through the one entry point, keeps the
+bottom-bar "Prices" pane fresh. It polls every `PRICES_POLL_SECONDS` (default 300)
 and upserts the latest snapshot into `market_price`.
 
 * **Sources.** Equity indices, the MSCI ETF proxies (ACWI/ACWX/EEM, relabeled), crypto,
@@ -269,14 +274,14 @@ and upserts the latest snapshot into `market_price`.
 
 ```bash
 # One-shot tick (verification): fetch once, upsert, exit
-python backend/prices_daemon.py --once
+python -m backend.main prices --once
 
 # Continuous loop: runs until stopped (Ctrl-C)
-python backend/prices_daemon.py
+python -m backend.main prices
 ```
 
 Point a boot-time Task Scheduler entry (or any process supervisor) at
-`python backend/prices_daemon.py` so the feed runs continuously alongside the `main.py`
+`python -m backend.main prices` so the feed runs continuously alongside the `etl`
 cron. Reuses `FMP_API_KEY` + `DATABASE_URL` — no other secret needed.
 
 ---

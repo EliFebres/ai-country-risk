@@ -148,3 +148,89 @@ def test_no_module_imports_backend_utils():
 
 def test_utils_directory_is_gone():
     assert not (BACKEND / "utils").exists(), "backend/utils/ should not exist"
+
+
+def test_every_module_lives_in_a_known_folder():
+    """No new top-level folders, and nothing loose at the top of backend/.
+
+    main.py and test.py are the two executables; every other module belongs to a
+    folder that names what it is for.
+    """
+    allowed_folders = {
+        "data_fetching", "news_fetching", "data_upsert",
+        "llm", "notebooks", "util", "testing",
+    }
+    allowed_top_level = {"main.py", "test.py"}
+    stray = []
+    for path in BACKEND.rglob("*.py"):
+        rel = path.relative_to(BACKEND)
+        if len(rel.parts) == 1:
+            if rel.name not in allowed_top_level:
+                stray.append(f"{rel} (loose at the top of backend/)")
+        elif rel.parts[0] not in allowed_folders:
+            stray.append(f"{rel} (unknown folder {rel.parts[0]!r})")
+    assert not stray, "unexpected module locations:\n  " + "\n  ".join(stray)
+
+
+# --- the entry point ---------------------------------------------------------
+
+EXPECTED_COMMANDS = {
+    "etl": ("backend.util.pipeline", "run_etl"),
+    "prices": ("backend.data_fetching.prices_daemon", "run_daemon"),
+}
+
+
+def test_main_declares_exactly_the_expected_commands():
+    from backend import main
+
+    assert set(main.COMMANDS) == set(EXPECTED_COMMANDS)
+
+
+def test_each_command_dispatches_to_its_expected_function():
+    """The table is only useful if the targets actually exist and are callable."""
+    from backend import main
+
+    for name, (module, function) in EXPECTED_COMMANDS.items():
+        spec = main.COMMANDS[name]
+        assert (spec.module, spec.function) == (module, function), name
+        resolved = main._resolve(name)
+        assert callable(resolved), f"{name} -> {module}.{function} is not callable"
+        assert resolved.__name__ == function
+
+
+def test_help_lists_exactly_the_commands():
+    """--help is the contract a deployment reads. It must not drift."""
+    import io
+    import contextlib
+
+    from backend import main
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        try:
+            main._build_parser().parse_args(["--help"])
+        except SystemExit:
+            pass
+    text = buf.getvalue()
+    for name in EXPECTED_COMMANDS:
+        assert f"\n    {name} " in text, f"{name} missing from --help:\n{text}"
+
+
+def test_main_holds_no_business_logic():
+    """main.py parses arguments and dispatches. Nothing else belongs in it.
+
+    A crude proxy - the file's length - but the failure it guards against is
+    gradual, and a number is harder to argue with than an intention.
+    """
+    lines = (BACKEND / "main.py").read_text(encoding="utf-8").splitlines()
+    code = [ln for ln in lines if ln.strip() and not ln.strip().startswith("#")]
+    assert len(code) < 100, f"main.py has {len(code)} lines of code; it should only dispatch"
+
+
+def test_entry_point_and_paths_agree_on_the_root():
+    """main.py must bootstrap sys.path before util.paths can be imported, so the
+    root is computed twice. The two must not be able to disagree."""
+    from backend import main
+    from backend.util import paths
+
+    assert main._REPO_ROOT == paths.PROJECT_ROOT

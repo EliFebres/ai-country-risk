@@ -131,7 +131,7 @@ The `backend/.env` file is read by the ETL pipeline and the database upsert rout
 3. **Run the end‑to‑end ETL:** This computes risk scores and persists them to the database.
 
  ```bash
- python backend/main.py
+ python -m backend.main etl
  ```
 
  The script loops over each country, builds the macro payload, fetches relevant news, calls the LLM to generate a risk score and bullet summary, and upserts the results into Postgres. Running the ETL for the 56‑country roster can take several minutes because the news fetcher throttles requests to stay under Google’s anonymous quota.
@@ -153,11 +153,11 @@ The app reads live from Postgres through cached API routes — the map loads ris
 
 ### Live prices feed (optional)
 
-The bottom‑bar **Prices** pane is fed by a standalone, long‑running daemon — `backend/prices_daemon.py` — that is **separate from the daily `main.py` ETL**. Point a process supervisor (or boot‑time Task Scheduler entry) at it so the feed stays fresh:
+The bottom‑bar **Prices** pane is fed by a long‑running poll loop, reached through the one entry point:
 
  ```bash
-python backend/prices_daemon.py        # continuous loop (Ctrl‑C to stop)
-python backend/prices_daemon.py --once # one‑shot tick for verification
+python -m backend.main prices        # continuous loop (Ctrl‑C to stop)
+python -m backend.main prices --once # one‑shot tick for verification
  ```
 
 It reuses `FMP_API_KEY` + `DATABASE_URL`. See `backend/README.md` for details.
@@ -166,16 +166,18 @@ It reuses `FMP_API_KEY` + `DATABASE_URL`. See `backend/README.md` for details.
 ```bash
 AI-Country-Risk-Dashboard/
 ├── backend/                    # Python ETL, LLM scoring and DB interface
-│   ├── main.py                 # Entry point for the end‑to‑end daily ETL
-│   ├── prices_daemon.py        # Standalone live‑prices poller (separate process)
-│   ├── utils/
-│   │   ├── ai/                 # LangChain LLM wrapper, prompt constants, alert/calendar rankers, legal_restrictions.yaml (sanctions gate)
-│   │   ├── data_fetching/      # World Bank, IMF, OWID (political corruption), FMP (calendar/prices) fetchers
-│   │   ├── news_fetching/      # Google News RSS, URL resolver, simple/advanced scrapers
-│   │   ├── data_upsert/        # Transactional upserts into PostgreSQL (data_push.py)
-│   │   ├── data_retrieval.py   # Reads panels and builds the LLM payload
-│   │   ├── market_hours.py     # Market‑open gating for the prices daemon
-│   │   └── constants.py        # Indicator definitions, asset universe, LLM prompt
+│   ├── main.py                 # The one executable: `etl`, `prices` subcommands
+│   ├── test.py                 # The one test executable
+│   ├── data_fetching/          # World Bank, IMF, OWID, FMP fetchers; the panel
+│   │                           #   reader, market‑hours gating and the prices loop
+│   ├── news_fetching/          # Google News RSS, URL resolver, simple/advanced
+│   │                           #   scrapers, blocked_sources.txt denylist
+│   ├── llm/                    # LangChain wrapper, prompt constants, alert and
+│   │                           #   calendar rankers, legal_restrictions.yaml
+│   ├── data_upsert/            # Transactional upserts into PostgreSQL
+│   ├── util/                   # Shared across folders: constants, paths, env,
+│   │                           #   and the ETL orchestration itself
+│   ├── testing/                # The suite; one file per target folder
 │   └── README.md               # Detailed backend instructions
 ├── frontend/                   # Next.js (App Router) dashboard
 │   ├── app/
