@@ -24,15 +24,15 @@ from backend.utils.ai import langchain_llm
 from backend.utils.ai import calendar_ranker
 from backend.utils.ai import alerts_ranker
 from backend.data_upsert import data_push
-from backend.utils.news_fetching import fetch_links
+from backend.news_fetching import fetch_links
 from backend.data_fetching import fetch_metrics
 from backend.data_fetching import country_data_fetch
 from backend.data_fetching import fmp_calendar_fetch
 from backend.data_fetching import imf_macro_fetch
-from backend.utils.news_fetching.url_resolver import resolve_google_news_url
-from backend.utils.news_fetching.simple_scraper import get_article_assets
-from backend.utils.news_fetching.source_filter import is_blocked_url
-from backend.utils.news_fetching.advanced_scraper import scrape_one as crawlbase_scrape_one
+from backend.news_fetching.url_resolver import resolve_google_news_url
+from backend.news_fetching.simple_scraper import get_article_assets
+from backend.news_fetching.source_filter import is_blocked_url
+from backend.news_fetching.advanced_scraper import scrape_one as crawlbase_scrape_one
 
 # --- Paths ------------------------------------------------------------------
 BACKEND_DIR    = paths.BACKEND_DIR

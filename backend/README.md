@@ -12,11 +12,11 @@ This directory contains the **data-engineering and inference pipeline** that pow
 
 ### How headline scraping works (fast first, then targeted enrichment)
 
-- All links are first processed with the **simple scraper** (`backend/utils/news_fetching/simple_scraper.py`) which:
+- All links are first processed with the **simple scraper** (`backend/news_fetching/simple_scraper.py`) which:
   - fetches each article **once**,
   - extracts a clean **summary**, **full text** (truncated for storage), and a **thumbnail** (OG/Twitter/JSON-LD with fallbacks).
 - The LLM ranks articles by impact.
-- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/utils/news_fetching/advanced_scraper.py`) **when they are from Reuters or Bloomberg** and a Crawlbase token is available. This uses Crawlbase to improve metadata while respecting `robots.txt`.
+- **Only the Top-3** are optionally enriched with the **advanced scraper** (`backend/news_fetching/advanced_scraper.py`) **when they are from Reuters or Bloomberg** and a Crawlbase token is available. This uses Crawlbase to improve metadata while respecting `robots.txt`.
 
 ---
 
@@ -62,9 +62,9 @@ python backend/main.py
 ## Key modules
 
 * `backend/main.py` — orchestrates the run: data payload → news → LLM scoring → DB upsert.
-* `backend/utils/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
-* `backend/utils/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata for **Top-3** Reuters/Bloomberg links only.
-* `backend/utils/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
+* `backend/news_fetching/simple_scraper.py` — single-request extractor for summary, full text, and thumbnail.
+* `backend/news_fetching/advanced_scraper.py` — Crawlbase-powered metadata for **Top-3** Reuters/Bloomberg links only.
+* `backend/news_fetching/url_resolver.py` — resolves `news.google.com` wrappers to publisher URLs.
 * `backend/data_fetching/country_data_fetch.py` — World Bank panel ingestion.
 * `backend/data_fetching/imf_macro_fetch.py` — IMF SDMX 2.1 fetch of the freshest monthly/quarterly indicators (e.g. inflation) → `recent_indicator`.
 * `backend/data_fetching/fmp_calendar_fetch.py` — FMP ~14-day economic-calendar pull.
