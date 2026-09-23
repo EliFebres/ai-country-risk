@@ -746,40 +746,77 @@ class TestCensus:
         assert "LEDGER WITH NO INDICATORS" in payload_health.format_census(c)
 
 
-class TestResolutionAlarm:
-    """State is what is; the alarm is what changed."""
+class TestQualityReportFlags:
+    """State is what is; the flags are what changed. They moved to
+    `quality_report`, which runs once at the end of a run so the flags read as
+    one block rather than scrolling past one country at a time."""
 
-    def test_the_first_run_reports_state_and_raises_no_alarm(self):
-        assert payload_health.resolution_alarm("PT", _census(), []) == []
+    @staticmethod
+    def _row(iso2, resolved, history_resolved, pool=45, pass_rate=0.35):
+        def state(res):
+            return {
+                "fetched": 52, "after_dedupe": pool, "passed_gate": int(pool * pass_rate),
+                "pass_rate": pass_rate, "selected": 16, "budget": 20,
+                "per_ledger_selected": {}, "body_status": {},
+                "digests_failed": 0, "digests_truncated_retry": 0,
+                "resolved_by_ledger": dict(zip(consts.LEDGERS, res)),
+                "expected_by_ledger": {"friction": 4, "order": 4,
+                                       "information": 2, "edge": 3},
+                "empty_ledgers": [], "schema_violations": 0,
+            }
+        return {
+            "iso2": iso2, "name": iso2, "scored": True,
+            "state": state(resolved), "coverage": 80,
+            "history": [state(h) for h in history_resolved],
+        }
+
+    def test_the_first_run_raises_no_flag(self):
+        from backend.llm import quality_report
+
+        row = self._row("PT", (4, 4, 2, 3), [])
+        assert quality_report.flags_for(row) == []
 
     def test_a_country_that_always_resolved_zero_does_not_shout(self):
         """Taiwan resolving zero is expected. An alarm that fires every week
         stops being read."""
-        tw = _census("TW", resolved=(0, 0, 2, 3))
-        history = [{"friction": 0, "order": 0, "information": 2, "edge": 3}] * 4
-        assert payload_health.resolution_alarm("TW", tw, history) == []
+        from backend.llm import quality_report
+
+        row = self._row("TW", (0, 0, 2, 3), [(0, 0, 2, 3)] * 4)
+        assert quality_report.flags_for(row) == []
 
     def test_a_country_that_dropped_from_its_own_baseline_shouts(self):
-        """Portugal going from twenty indicators to twelve is a source break."""
-        now = _census("PT", resolved=(1, 4, 2, 3))
-        history = [{"friction": 4, "order": 4, "information": 2, "edge": 3}] * 4
-        alarms = payload_health.resolution_alarm("PT", now, history)
-        assert len(alarms) == 1
-        assert "friction" in alarms[0] and "source break" in alarms[0]
+        from backend.llm import quality_report
 
-    def test_a_small_wobble_is_not_an_alarm(self):
-        now = _census("PT", resolved=(3, 4, 2, 3))
-        history = [{"friction": 4, "order": 4, "information": 2, "edge": 3}] * 4
-        assert payload_health.resolution_alarm("PT", now, history) == []
+        row = self._row("PT", (1, 4, 2, 3), [(4, 4, 2, 3)] * 4)
+        flags = quality_report.flags_for(row)
+        assert len(flags) == 1 and "friction" in flags[0]
 
-    def test_the_baseline_is_a_median_so_one_bad_week_does_not_move_it(self):
-        now = _census("PT", resolved=(1, 4, 2, 3))
-        history = [
-            {"friction": 0, "order": 4, "information": 2, "edge": 3},
-            {"friction": 4, "order": 4, "information": 2, "edge": 3},
-            {"friction": 4, "order": 4, "information": 2, "edge": 3},
-        ]
-        assert payload_health.resolution_alarm("PT", now, history)
+    def test_a_small_wobble_is_not_a_flag(self):
+        from backend.llm import quality_report
+
+        row = self._row("PT", (3, 4, 2, 3), [(4, 4, 2, 3)] * 4)
+        assert quality_report.flags_for(row) == []
+
+    def test_a_ledger_falling_to_zero_is_named_as_such(self):
+        from backend.llm import quality_report
+
+        row = self._row("PT", (0, 4, 2, 3), [(4, 4, 2, 3)] * 4)
+        assert "resolved nothing" in quality_report.flags_for(row)[0]
+
+    def test_a_halved_pool_is_a_flag(self):
+        from backend.llm import quality_report
+
+        row = self._row("PT", (4, 4, 2, 3), [(4, 4, 2, 3)] * 4, pool=10)
+        row["history"] = [dict(h, after_dedupe=50) for h in row["history"]]
+        assert any("pool fell" in f for f in quality_report.flags_for(row))
+
+    def test_two_consecutive_failures_are_a_flag(self):
+        from backend.llm import quality_report
+
+        row = self._row("PT", (4, 4, 2, 3), [(4, 4, 2, 3)] * 4)
+        assert any("failed 2 runs" in f
+                   for f in quality_report.flags_for(row, consecutive_failures=2))
+
 
 
 # ---------------------------------------------------------------------------

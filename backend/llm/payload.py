@@ -28,7 +28,12 @@ from typing import Any, Dict, List, Optional
 
 from backend.util import constants, trends, vintage
 
-__all__ = ["build_economics_block", "build_scoring_payload", "LEDGER_QUESTIONS"]
+__all__ = [
+    "build_economics_block",
+    "build_scoring_payload",
+    "count_tokens",
+    "LEDGER_QUESTIONS",
+]
 
 
 # What each ledger is asking, put in front of the model with the numbers rather
@@ -287,3 +292,26 @@ def build_scoring_payload(
             **coverage,
         },
     }
+
+
+# --- How big the thing is ---------------------------------------------------
+
+def count_tokens(text: str, model: str = "gpt-4o-2024-08-06") -> Dict[str, Any]:
+    """Return a token count and how it was arrived at.
+
+    Falls back to a characters-over-four estimate if `tiktoken` is not
+    installed, and says which it used — an estimate reported as a measurement is
+    how a self-hosting decision gets made on the wrong number.
+    """
+    try:
+        import tiktoken
+
+        try:
+            enc = tiktoken.encoding_for_model(model)
+        except KeyError:
+            enc = tiktoken.get_encoding("o200k_base")
+        return {"tokens": len(enc.encode(text)), "method": f"tiktoken/{enc.name}"}
+    except Exception:
+        return {"tokens": round(len(text) / 4), "method": "estimate (chars/4)"}
+
+

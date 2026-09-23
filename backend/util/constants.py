@@ -233,6 +233,14 @@ CURATED_CODES: tuple[str, ...] = tuple(
     code for code, spec in INDICATOR_REGISTRY.items() if spec["panel_col"] is None
 )
 
+# Display label -> registry code. `IMF_RECENT_INDICATORS` is keyed by the
+# World Bank display name, which is how the sub-annual refresh used to join to
+# `recent_indicator`; this is what turns that name back into a code the series
+# can be keyed on.
+CODE_BY_LABEL: dict[str, str] = {
+    spec["label"]: code for code, spec in INDICATOR_REGISTRY.items()
+}
+
 # panel column -> registry code, for the payload builder.
 CODE_BY_PANEL_COL: dict[str, str] = {
     spec["panel_col"]: code

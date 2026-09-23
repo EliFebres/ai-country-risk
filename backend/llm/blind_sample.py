@@ -88,9 +88,10 @@ def _gather(countries: Sequence[str]) -> Dict[str, Dict[str, Any]]:
     run_date = dt.date.today()
 
     for iso2 in countries:
-        census = store.read_census(iso2, run_date)
-        if not census:
+        snapshot = store.read_snapshot(iso2, run_date)
+        if not snapshot:
             continue
+        census = ((snapshot.get("manifest") or {}).get("census")) or {}
         verdicts = {
             row["url"]: row
             for row in (census.get("articles") or {}).get("gate_labels", [])

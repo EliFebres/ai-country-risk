@@ -142,10 +142,8 @@ class TestSchemaProvisioning:
         sql = " ".join(s for s, _ in cur.executed)
         for table in created:
             assert f"CREATE TABLE IF NOT EXISTS {table}" in sql
-        # The v2 tables, plus the four whose DDL used to live only in prose.
-        assert {"article", "llm_artifact", "payload_census"} <= set(created)
-        assert {"indicator", "yearly_value", "risk_snapshot",
-                "risk_snapshot_article"} <= set(created)
+        # Ten. Not eleven, not nine.
+        assert len(created) == 10, created
 
     def test_every_statement_is_safe_to_run_again(self):
         """`create_all` runs on every startup, so a second run must be a no-op."""
@@ -161,7 +159,7 @@ class TestSchemaProvisioning:
         from backend.data_upsert import schema
 
         assert (
-            "PRIMARY KEY (content_sha256, kind, version, mode)"
+            "PRIMARY KEY (content_sha256, kind, version, mode, country_iso2)"
             in " ".join(schema.LLM_ARTIFACT.split())
         )
 
@@ -171,7 +169,7 @@ class TestSchemaProvisioning:
         from backend.data_upsert import store
 
         cur = _FakeCursor(present=False)
-        monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
+        monkeypatch.setattr(store.db, "connect", lambda: _FakeConn(cur))
 
         with pytest.raises(RuntimeError, match="did not create"):
             store.ensure_schema()
@@ -180,11 +178,12 @@ class TestSchemaProvisioning:
         from backend.data_upsert import schema, store
 
         cur = _FakeCursor(present=True)
-        monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
+        monkeypatch.setattr(store.db, "connect", lambda: _FakeConn(cur))
 
         got = store.ensure_schema()
         assert set(got) == set(schema.table_names())
         assert all(got.values())
+        assert len(got) == 10
 
 
 class TestArtifactCache:
@@ -195,13 +194,13 @@ class TestArtifactCache:
 
         cur = _FakeCursor()
         cur.fetchall = lambda: []
-        monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
+        monkeypatch.setattr(store.db, "connect", lambda: _FakeConn(cur))
 
         store.read_artifacts(["h1", "h2"], kind="digest", version="v-abc", mode="named")
 
         sql, params = cur.executed[-1]
         assert "FROM llm_artifact" in sql
-        assert params == ("digest", "v-abc", "named", ["h1", "h2"])
+        assert params == ("digest", "v-abc", "named", "", ["h1", "h2"])
 
     def test_a_miss_is_an_absent_key_not_a_null(self, monkeypatch):
         """"We have no answer" and "the model answered null" are different facts."""
@@ -209,7 +208,7 @@ class TestArtifactCache:
 
         cur = _FakeCursor()
         cur.fetchall = lambda: [("h1", {"label": "structural"})]
-        monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
+        monkeypatch.setattr(store.db, "connect", lambda: _FakeConn(cur))
 
         got = store.read_artifacts(["h1", "h2"], kind="relevance", version="v1")
         assert got == {"h1": {"label": "structural"}}
@@ -221,7 +220,7 @@ class TestArtifactCache:
         def boom():
             raise AssertionError("opened a connection for an empty lookup")
 
-        monkeypatch.setattr(store, "_connect", boom)
+        monkeypatch.setattr(store.db, "connect", boom)
         assert store.read_artifacts([], kind="digest", version="v1") == {}
 
     def test_a_written_row_carries_the_version_that_produced_it(self, monkeypatch):
@@ -229,7 +228,7 @@ class TestArtifactCache:
 
         cur = _FakeCursor()
         captured = {}
-        monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
+        monkeypatch.setattr(store.db, "connect", lambda: _FakeConn(cur))
         monkeypatch.setattr(
             store.extras,
             "execute_values",
@@ -243,10 +242,11 @@ class TestArtifactCache:
             model="gpt-4o-mini-2024-07-18",
         )
 
-        h, kind, version, mode, model, _payload = captured["rows"][0]
-        assert (h, kind, version, mode) == ("h1", "relevance", "v-abc", "named")
+        h, kind, version, mode, country, model, _payload = captured["rows"][0]
+        assert (h, kind, version, mode, country) == ("h1", "relevance", "v-abc", "named", "")
         assert model == "gpt-4o-mini-2024-07-18"
-        assert "ON CONFLICT (content_sha256, kind, version, mode) DO NOTHING" in captured["sql"]
+        assert ("ON CONFLICT (content_sha256, kind, version, mode, country_iso2) "
+                "DO NOTHING") in captured["sql"]
 
 
 class TestArticleStore:
@@ -257,7 +257,7 @@ class TestArticleStore:
         def boom():
             raise AssertionError("opened a connection for nothing to write")
 
-        monkeypatch.setattr(store, "_connect", boom)
+        monkeypatch.setattr(store.db, "connect", boom)
         assert store.upsert_articles([{"url": "http://x", "body_status": "full"}]) == 0
         assert store.upsert_articles([{"country_iso2": "PT"}]) == 0
 
@@ -266,7 +266,7 @@ class TestArticleStore:
 
         cur = _FakeCursor()
         captured = {}
-        monkeypatch.setattr(store, "_connect", lambda: _FakeConn(cur))
+        monkeypatch.setattr(store.db, "connect", lambda: _FakeConn(cur))
         monkeypatch.setattr(
             store.extras,
             "execute_values",

@@ -15,11 +15,12 @@ the reason it was rejected for, the body-status mix, digests generated against
 cached, and the versions of everything that could have changed the answer. Taiwan's zeros appear in every single run's table, because state that is
 always the same is still information.
 
-**The alarm is change.** It compares this run against the country's own recent
-runs, not against an absolute floor. Taiwan resolving zero is expected, because
-Taiwan always resolved zero. Portugal going from twenty indicators to twelve is
-a source break, and that is what shouts. An absolute threshold cannot tell those
-apart, and an alarm that fires every week stops being read.
+**The alarm is change**, and it lives in `quality_report` rather than here. It
+compares a run against the country's own recent median, not against an absolute
+floor: Taiwan resolving zero is expected because Taiwan always resolved zero,
+while Portugal going from twenty indicators to twelve is a source break. It runs
+at the end of the run so the flags read as one block instead of scrolling past
+one country at a time.
 
 **`evidence_coverage` is computed, never authored.** Asked to self-report it, a
 model returned 80 with twenty articles and 80 with six. It is arithmetic over
@@ -31,7 +32,6 @@ beside the value so the number can be argued with.
 from __future__ import annotations
 
 import datetime as dt
-from statistics import median
 from typing import Any, Dict, List, Sequence
 
 from backend.util import constants
@@ -43,7 +43,6 @@ __all__ = [
     "build_census",
     "evidence_coverage",
     "payload_fingerprint",
-    "resolution_alarm",
     "format_census",
 ]
 
@@ -221,39 +220,6 @@ def build_census(
         },
         "versions": {**versions, "schema_violations": schema_violations},
     }
-
-
-def resolution_alarm(
-    iso2: str,
-    census: Dict[str, Any],
-    history: Sequence[Dict[str, int]],
-) -> List[str]:
-    """Return the alarms this run should shout, comparing against `history`.
-
-    `history` is the country's own recent per-ledger resolution. With no
-    history there is nothing to compare, so the first run reports state and
-    raises no alarm — alarms are live from the second run onwards.
-    """
-    if not history:
-        return []
-
-    now = census["indicators"]["resolved_by_ledger"]
-    alarms: List[str] = []
-    for ledger in constants.LEDGERS:
-        past = [h.get(ledger, 0) for h in history if h is not None]
-        if not past:
-            continue
-        baseline = median(past)
-        current = now.get(ledger, 0)
-        if baseline <= 0:
-            continue  # always been zero here; that is state, not change
-        if current < baseline * ALARM_DROP:
-            alarms.append(
-                f"[ALARM] {iso2}: ledger '{ledger}' resolved {current} indicators, "
-                f"against a recent median of {baseline:g}. That is a source break, "
-                f"not a quiet week."
-            )
-    return alarms
 
 
 def format_census(census: Dict[str, Any]) -> str:

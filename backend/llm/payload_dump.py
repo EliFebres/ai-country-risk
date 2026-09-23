@@ -26,9 +26,10 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+from backend.llm.payload import count_tokens
 from backend.util import constants, paths
 
-__all__ = ["count_tokens", "inspect", "write_report"]
+__all__ = ["inspect", "write_report"]
 
 
 DUMP_DIR = paths.PROJECT_ROOT / "docs" / "payload-dumps"
@@ -36,25 +37,6 @@ DUMP_DIR = paths.PROJECT_ROOT / "docs" / "payload-dumps"
 # The model the payload is sized for. Token counts are only meaningful against
 # a named encoding.
 SCORING_MODEL = "gpt-4o-2024-08-06"
-
-
-def count_tokens(text: str, model: str = SCORING_MODEL) -> Dict[str, Any]:
-    """Return a token count and how it was arrived at.
-
-    Falls back to a characters-over-four estimate if `tiktoken` is not
-    installed, and says which it used — an estimate reported as a measurement is
-    how a self-hosting decision gets made on the wrong number.
-    """
-    try:
-        import tiktoken
-
-        try:
-            enc = tiktoken.encoding_for_model(model)
-        except KeyError:
-            enc = tiktoken.get_encoding("o200k_base")
-        return {"tokens": len(enc.encode(text)), "method": f"tiktoken/{enc.name}"}
-    except Exception:
-        return {"tokens": round(len(text) / 4), "method": "estimate (chars/4)"}
 
 
 def inspect(payload: Dict[str, Any]) -> Dict[str, Any]:

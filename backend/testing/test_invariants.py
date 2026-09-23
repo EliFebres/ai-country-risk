@@ -178,6 +178,8 @@ EXPECTED_COMMANDS = {
     "etl": ("backend.util.pipeline", "run_etl"),
     "prices": ("backend.data_fetching.prices_daemon", "run_daemon"),
     "run": ("backend.util.supervisor", "run_supervisor"),
+    "bootstrap": ("backend.data_upsert.store", "ensure_schema"),
+    "report": ("backend.llm.quality_report", "run_report"),
 }
 
 
@@ -249,20 +251,43 @@ def test_a_scoring_run_writes_a_census():
     """The countermeasure only works if the run actually records one."""
     src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
     assert "payload_health.build_census(" in src, "the run builds no census"
-    assert "store.write_census(" in src, "the run does not record a census"
+    assert "store.upsert_snapshot(" in src, "the run does not write a snapshot"
 
 
-def test_the_run_reads_the_census_back():
-    """A write that returns cleanly is not evidence that anything landed, and a
-    census nobody reads is the exact failure it exists to prevent."""
+def test_the_census_travels_inside_the_snapshot():
+    """It used to be a table of its own that nothing joined to. A score and the
+    record of what produced it belong in one row."""
     src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
-    assert "store.read_census(" in src, "the census is written and never read"
+    assert '"manifest": {' in src and '"census": census' in src
 
 
-def test_the_resolution_alarm_has_a_caller():
-    src = (BACKEND / "util" / "pipeline.py").read_text(encoding="utf-8")
-    assert "resolution_alarm(" in src, "the alarm is computed by nobody"
-    assert "read_recent_resolution(" in src, "the alarm has no baseline to compare against"
+def test_a_snapshot_without_a_manifest_is_refused():
+    """A score with no record of the evidence behind it is not a valid row, and
+    the write path — not a convention — is what says so."""
+    src = (BACKEND / "data_upsert" / "store.py").read_text(encoding="utf-8")
+    assert 'if not row.get("manifest"):' in src
+    assert "refusing to write a snapshot with no" in src
+
+
+def test_stamps_cannot_be_rewritten():
+    """The old branch lost its ability to detect a stale reference because a
+    later commit quietly restamped a git_sha."""
+    src = (BACKEND / "data_upsert" / "store.py").read_text(encoding="utf-8")
+    assert "class StampConflict" in src
+    assert "_check_stamps(" in src
+
+
+def test_the_quality_report_compares_against_a_country_s_own_history():
+    src = (BACKEND / "llm" / "quality_report.py").read_text(encoding="utf-8")
+    assert "read_recent_snapshots(" in src, "the report has no baseline"
+    assert "flags_for(" in src, "the report computes no flags"
+
+
+def test_every_ledger_row_says_where_it_ran():
+    """Two databases with confusable names cost a day once."""
+    src = (BACKEND / "data_upsert" / "store.py").read_text(encoding="utf-8")
+    assert "socket.gethostname()" in src
+    assert "db.where()" in src
 
 
 def test_the_relevance_gate_decides_what_is_scored():
@@ -325,6 +350,16 @@ def test_the_prompt_version_is_derived_from_the_prompt():
     ):
         src = (BACKEND / module).read_text(encoding="utf-8")
         assert f"{constant} = content_hash(" in src, f"{module}:{constant}"
+
+
+def test_there_is_no_unqualified_database_url():
+    """A bare name is what every tool grabs by default, and that default was the
+    database everything had been writing to for weeks."""
+    for name, path in MODULES.items():
+        text = path.read_text(encoding="utf-8")
+        for i, line in enumerate(text.splitlines(), start=1):
+            if "getenv(\"DATABASE_URL\")" in line or "getenv('DATABASE_URL')" in line:
+                raise AssertionError(f"{name} line {i} reads a bare DATABASE_URL")
 
 
 def test_the_scoring_model_is_named_once_and_dated():

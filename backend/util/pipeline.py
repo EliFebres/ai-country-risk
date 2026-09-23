@@ -25,7 +25,9 @@ from datetime import datetime, timezone, timedelta
 
 # --- Internal Imports -------------------------------------------
 from backend.util import constants
+from backend.util import db
 from backend.util import hashing
+from backend.util import vintage
 from backend.util import provenance
 from backend.util import usage
 from backend.util import paths
@@ -37,6 +39,7 @@ from backend.llm import langchain_llm
 from backend.llm import digest_engine
 from backend.llm import payload as payload_builder
 from backend.llm import payload_health
+from backend.llm import quality_report
 from backend.llm import relevance
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
@@ -218,6 +221,63 @@ def ensure_missing_country_panels(root: pathlib.Path,
             print(f"[{iso2}] ERROR while backfilling panel: {e}")
 
 # --- Main -------------------------------------------------------------------
+def _series_rows(iso2: str, econ: Dict) -> List[Dict]:
+    """Every resolved indicator's full history, shaped for `indicator_series`.
+
+    The whole five-year window rather than only the latest value: a level says
+    almost nothing on its own, and storing only the newest point would make the
+    trajectory unrecoverable from the record.
+    """
+    rows: List[Dict] = []
+    for ledger in econ["ledgers"].values():
+        for ind in ledger["indicators"]:
+            for point in ind.get("history") or []:
+                if point.get("value") in (None, "unknown"):
+                    continue
+                rows.append({
+                    "country_iso2": iso2,
+                    "indicator_code": ind["code"],
+                    "period": point["year"],
+                    "as_of": ind["as_of"],
+                    "as_of_scheme": ind["as_of_scheme"],
+                    "value": point["value"],
+                    "unit": ind.get("unit"),
+                    "source": ind["source"],
+                    "ledger": ind.get("ledger") or _ledger_of(ind["code"]),
+                    "freq": "A",
+                })
+    return rows
+
+
+def _ledger_of(code: str) -> str:
+    return (constants.INDICATOR_REGISTRY.get(code) or {}).get("ledger", "")
+
+
+def _imf_series_rows(iso2: str, recent: Dict) -> List[Dict]:
+    """Sub-annual IMF observations, shaped for `indicator_series`."""
+    rows: List[Dict] = []
+    for name, d in (recent or {}).items():
+        if not isinstance(d, dict) or d.get("value") is None or not d.get("period"):
+            continue
+        code = constants.CODE_BY_LABEL.get(name)
+        if not code:
+            continue
+        spec = constants.INDICATOR_REGISTRY.get(code) or {}
+        rows.append({
+            "country_iso2": iso2,
+            "indicator_code": code,
+            "period": d["period"].year,
+            "as_of": d["period"],
+            "as_of_scheme": vintage.SOURCE_PUBLISHED,
+            "value": d["value"],
+            "unit": d.get("unit") or spec.get("unit"),
+            "source": d.get("source") or spec.get("source", "IMF"),
+            "ledger": spec.get("ledger", ""),
+            "freq": d.get("freq", "M"),
+        })
+    return rows
+
+
 # The scoring model, named once. Four call sites used to carry this string
 # and one of them had already drifted to the undated alias.
 SCORING_MODEL = "gpt-4o-2024-08-06"
@@ -234,7 +294,22 @@ def seed_roster() -> int:
     Raises:
         RuntimeError: if any roster country is not readable afterwards.
     """
-    written = data_push.upsert_countries()
+    facts = structural_facts.load()
+    enriched = []
+    for c in constants.COUNTRY_ROSTER:
+        f = facts.get(c["iso2"], {})
+        enriched.append({
+            "iso2": c["iso2"], "iso3": c["iso3"], "name": c["name"],
+            # What retrieval actually asks for, stored rather than left as a
+            # constant only the fetcher knows about.
+            "query_name": core.query_name(c["iso2"], c["name"]),
+            "tier": c["tier"], "lat": c["lat"], "lng": c["lng"],
+            "region": f.get("region"), "income_group": f.get("income_group"),
+            "monetary_regime": f.get("regime"),
+            "monetary_sovereignty": f.get("sovereignty"),
+        })
+
+    written = data_push.upsert_countries(enriched)
     seeded = data_push.read_countries()
     missing = [c["iso2"] for c in constants.COUNTRY_ROSTER if c["iso2"] not in seeded]
     if missing:
@@ -277,6 +352,8 @@ def run_etl(
     # leaving that country's score with no census to join to. A weekly rating is
     # a statement about a week, not about the minute its row was written.
     run_as_of = datetime.now(timezone.utc).date()
+    run_git_sha = provenance.git_sha()
+    db.announce()
     print(f"[run] stamping every row for this run as_of={run_as_of}")
 
     # 0a) Seed the roster into `country`. It has to come first: every other
@@ -341,7 +418,12 @@ def run_etl(
             try:
                 recent = imf_macro_fetch.fetch_recent_indicators(c["iso3"])
                 if recent:
-                    data_push.upsert_recent_indicators(c["iso2"], recent)
+                    # Sub-annual observations join the same series as everything
+                    # else. `recent_indicator` held one row per pair, overwritten
+                    # in place, which made it useless for anything but "latest".
+                    store.upsert_indicator_series(
+                        _imf_series_rows(c["iso2"], recent)
+                    )
                     refreshed += 1
             except Exception as e:
                 print(f"[imf-refresh] {c['iso2']} ERROR: {e}")
@@ -360,7 +442,9 @@ def run_etl(
 
     for country_name, iso2 in country_map.items():
         started = time.monotonic()
+        started_wall = datetime.now(timezone.utc)
         spend_before = run_meter.spend_usd
+        tokens_before = (run_meter.input_tokens, run_meter.output_tokens)
         outcome = "ok"
         try:
             # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
@@ -523,16 +607,19 @@ def run_etl(
             )
             print(payload_health.format_census(census))
 
+            # The census travels inside the snapshot's manifest rather than in a
+            # table of its own that nothing joined to. Comparison against the
+            # country's own history is the quality report's job, at the end of
+            # the run, where it can be read as a block instead of scrolling past
+            # one country at a time.
+
+            # The macro half of the evidence, kept as a series. `as_of` is in
+            # the key, so a revision arrives as a new row and this week's score
+            # stays re-readable against the numbers as they stood.
             try:
-                history = store.read_recent_resolution(iso2, before=run_as_of)
-                store.write_census(census)
-                # Read back rather than trusting the write.
-                if store.read_census(iso2, run_as_of) is None:
-                    raise RuntimeError("census did not reach the database")
-                for alarm in payload_health.resolution_alarm(iso2, census, history):
-                    print(alarm)
+                store.upsert_indicator_series(_series_rows(iso2, econ))
             except Exception as e:
-                print(f"[census] {iso2} ERROR: {e}")
+                print(f"[series] {iso2} could not store indicators: {e}")
 
             # Assign stable ids ("a1","a2",...)
             for i, it in enumerate(items, start=1):
@@ -554,6 +641,14 @@ def run_etl(
                 body_cap_chars=digest_engine.BODY_CAP_CHARS,
             )
             article_ids = [a["id"] for a in scoring_payload["articles"]]
+
+            # What the self-hosted scorer would have to serve, measured on the
+            # compact JSON that actually goes out rather than on a pretty-printed
+            # copy, which would overstate it by about a third.
+            payload_tokens = payload_builder.count_tokens(
+                json.dumps(scoring_payload, ensure_ascii=False, default=str)
+            )["tokens"]
+            census["versions"]["payload_tokens"] = payload_tokens
 
             if dump_dir is not None:
                 # Exactly the bytes the model is about to be handed.
@@ -589,10 +684,6 @@ def run_etl(
                       f"{[v['field'] + ':' + v['problem'] for v in violations][:6]}")
                 census["versions"]["schema_violations"] = len(violations)
                 census["versions"]["violations"] = violations
-                try:
-                    store.write_census(census)
-                except Exception as e:
-                    print(f"[census] {iso2} could not record violations: {e}")
 
             if scored["badge"]:
                 # Observation only. The rating stays the model's own; the legal
@@ -646,18 +737,54 @@ def run_etl(
             for a in top_articles:
                 global_alert_pool.append({**a, "country_iso2": iso2, "country_name": country_name})
 
-            # 7) Upsert to DB
-            data_push.upsert_snapshot(
-                {
-                    **payload,
-                    "llm_output": answer,
-                    "top_articles": top_articles,
-                    "badge": scored["badge"],
+            # 7) Write the week down. The manifest is what makes this row
+            #    comparable with next week's, and `store.upsert_snapshot`
+            #    refuses a row without one.
+            versions = census["versions"]
+            store.upsert_snapshot({
+                "country_iso2": iso2,
+                "run_date": run_as_of,
+                "score_12m": answer["score_12m"],
+                "score_3m": answer["score_3m"],
+                "friction_score": answer.get("friction"),
+                "order_score": answer.get("order"),
+                "information_score": answer.get("information"),
+                "edge_score": answer.get("edge"),
+                "condition_flags": answer.get("condition_flags") or {},
+                "bullet_summary": answer.get("bullet_summary"),
+                "subscore_evidence": answer.get("subscore_evidence") or {},
+                "article_scores": answer.get("article_scores") or [],
+                "top_articles": top_articles,
+                "evidence_coverage": census["evidence_coverage"],
+                "coverage_components": census["coverage_components"],
+                "payload_fingerprint": census["payload_fingerprint"],
+                "prompt_version": versions.get("prompt_version"),
+                "scoring_model": versions.get("scoring_model"),
+                "digest_model": versions.get("digest_model"),
+                "gate_model": versions.get("gate_model"),
+                "seed": versions.get("seed"),
+                "git_sha": versions.get("git_sha"),
+                "payload_tokens": payload_tokens,
+                "restricted_badge": scored["badge"],
+                "manifest": {
                     "census": census,
+                    "selected": [
+                        {"id": a.get("id"),
+                         "url": a.get("publisher_link") or a.get("link"),
+                         "body_status": a.get("body_status")}
+                        for a in items
+                    ],
+                    "rejected": gate["rejected"],
+                    "indicators": [
+                        {"code": i["code"], "period": i["period"],
+                         "as_of": i["as_of"], "as_of_scheme": i["as_of_scheme"]}
+                        for led in econ["ledgers"].values()
+                        for i in led["indicators"]
+                    ],
+                    "per_ledger_articles": gate["per_ledger"],
+                    "payload_tokens": payload_tokens,
                 },
-                country_name=country_name,
-                as_of=run_as_of,
-            )
+            })
 
             print(
                 f"[{iso2}] score_12m={answer['score_12m']} score_3m={answer['score_3m']} "
@@ -677,6 +804,24 @@ def run_etl(
              "usd": round(spent, 4), "outcome": outcome}
         )
         print(f"[time] {iso2}: {elapsed:.1f}s, ${spent:.4f}")
+
+        # One ledger row per unit of work, carrying where it ran and what it
+        # cost. A weekly job nobody can bill or locate is one nobody can debug.
+        try:
+            store.write_ledger(
+                job_type="etl", country_iso2=iso2, run_date=run_as_of,
+                started_at=started_wall,
+                finished_at=datetime.now(timezone.utc),
+                status="ok" if outcome == "ok" else "error",
+                git_sha=run_git_sha,
+                input_tokens=run_meter.input_tokens - tokens_before[0],
+                output_tokens=run_meter.output_tokens - tokens_before[1],
+                spend_usd=round(spent, 6),
+                detail={"seconds": round(elapsed, 1)},
+                error=None if outcome == "ok" else outcome[:500],
+            )
+        except Exception as e:
+            print(f"[ledger] {iso2} not recorded: {e}")
 
     # 7b) The run's own shape, printed as a table. A weekly job that cannot say
     #     what it cost or where it spent its time is one nobody can budget for.
@@ -708,7 +853,7 @@ def run_etl(
     try:
         ranked_alerts = alerts_ranker.rank_global_alerts(global_alert_pool)
         if ranked_alerts:
-            data_push.upsert_news_alerts(ranked_alerts, as_of=run_as_of)
+            data_push.upsert_news_alerts(ranked_alerts, run_date=run_as_of)
             print(f"[alerts] ranked {len(ranked_alerts)}/{len(global_alert_pool)} pooled articles, stored {len(ranked_alerts)}")
         else:
             print(f"[alerts] no alerts ranked from {len(global_alert_pool)} pooled articles (skipping upsert)")
@@ -719,4 +864,26 @@ def run_etl(
     # than from an estimate. A run that cannot say what it spent is a run whose
     # budget cap is decoration.
     print(run_meter.summary())
+
+    try:
+        store.write_ledger(
+            job_type="run", run_date=run_as_of, status="ok",
+            finished_at=datetime.now(timezone.utc), git_sha=run_git_sha,
+            input_tokens=run_meter.input_tokens,
+            output_tokens=run_meter.output_tokens,
+            spend_usd=round(run_meter.spend_usd, 6),
+            detail={"countries": len(per_country),
+                    "failed": [c["iso2"] for c in per_country
+                               if c["outcome"] != "ok"]},
+        )
+    except Exception as e:
+        print(f"[ledger] run not recorded: {e}")
+
+    # 9) The weekly quality report, every run. A report you have to remember to
+    #    run is a report that stops being run.
+    try:
+        quality_report.run_report(run_as_of)
+    except Exception as e:
+        print(f"[report] ERROR: {e}")
+
     print(f"=== Run finished at {_to_utc_iso(datetime.now(timezone.utc))} UTC ===")

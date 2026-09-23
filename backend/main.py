@@ -58,6 +58,14 @@ COMMANDS: Dict[str, Command] = {
         "backend.util.supervisor", "run_supervisor",
         "the supervisor: prices continuously, the ETL when the data says it is due",
     ),
+    "bootstrap": Command(
+        "backend.data_upsert.store", "ensure_schema",
+        "build an empty database into the full ten-table schema",
+    ),
+    "report": Command(
+        "backend.llm.quality_report", "run_report",
+        "the weekly quality report: state per country, and what changed against its own history",
+    ),
 }
 
 
@@ -83,34 +91,8 @@ def _build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def _announce(command: str) -> None:
-    """Say what was resolved, before doing any work."""
-    import os
-
-    print(f"[main] command      : {command}")
-    print(f"[main] project root : {paths.PROJECT_ROOT}")
-    print(f"[main] database     : {env.redact_database_url(os.getenv('DATABASE_URL'))}")
-    print(f"[main] env file     : {env.ENV_FILE} ({'found' if env.ENV_FILE.exists() else 'MISSING'})")
-    print(f"[main] optional keys: {env.describe_optional()}")
-
-
-def _utf8_console() -> None:
-    """Make stdout UTF-8 regardless of the platform's default codepage.
-
-    A Windows console defaults to cp1252, so a single non-ASCII character in a
-    progress line — an arrow, an accented country name — raises
-    UnicodeEncodeError and takes the whole run down with it. The run should not
-    be able to fail on a print.
-    """
-    for stream in (sys.stdout, sys.stderr):
-        try:
-            stream.reconfigure(encoding="utf-8", errors="replace")
-        except (AttributeError, ValueError):
-            pass
-
-
 def main(argv: list[str] | None = None) -> None:
-    _utf8_console()
+    env.utf8_console()
     args = _build_parser().parse_args(argv)
 
     # Environment is loaded and validated once, here, before a handler is
@@ -118,7 +100,7 @@ def main(argv: list[str] | None = None) -> None:
     # ordering is load, validate, then import.
     env.load()
     env.require(args.command)
-    _announce(args.command)
+    env.announce(args.command, paths.PROJECT_ROOT)
 
     handler = _resolve(args.command)
     if args.command == "prices":

@@ -18,10 +18,9 @@ from typing import Any, Dict, List, Optional, Sequence
 import psycopg2
 
 from backend.data_upsert import store
-from backend.data_upsert.data_push import DB_URL
 from backend.llm import constants as ai_constants
 from backend.llm import relevance
-from backend.util import constants, paths
+from backend.util import constants, db, paths
 
 __all__ = ["load_run", "country_table", "rejected_publishers",
            "noise_that_got_through", "round_number_shares", "reason_for"]
@@ -43,9 +42,7 @@ NOISE_WORDS = (
 
 
 def _connect():
-    if not DB_URL:
-        raise RuntimeError("DATABASE_URL is not set")
-    return psycopg2.connect(DB_URL)
+    return db.connect()
 
 
 def load_run(run_date: Optional[dt.date] = None) -> Dict[str, Any]:
@@ -54,25 +51,31 @@ def load_run(run_date: Optional[dt.date] = None) -> Dict[str, Any]:
     conn = _connect()
     try:
         with conn.cursor() as cur:
+            # The census lives inside the snapshot's manifest now; it used to
+            # be a table of its own that nothing joined to.
             cur.execute(
                 """
-                SELECT country_iso2, evidence_coverage, payload_fingerprint,
-                       indicators, articles, versions
-                  FROM payload_census WHERE as_of = %s ORDER BY country_iso2
+                SELECT country_iso2, evidence_coverage, payload_fingerprint, manifest
+                  FROM risk_snapshot WHERE run_date = %s ORDER BY country_iso2
                 """,
                 (run_date,),
             )
-            census = {
-                r[0]: {"evidence_coverage": r[1], "payload_fingerprint": r[2],
-                       "indicators": r[3], "articles": r[4], "versions": r[5]}
-                for r in cur.fetchall()
-            }
+            census = {}
+            for iso2, coverage, fingerprint, manifest in cur.fetchall():
+                c = (manifest or {}).get("census") or {}
+                census[iso2] = {
+                    "evidence_coverage": coverage,
+                    "payload_fingerprint": fingerprint,
+                    "indicators": c.get("indicators") or {},
+                    "articles": c.get("articles") or {},
+                    "versions": c.get("versions") or {},
+                }
             cur.execute(
                 """
                 SELECT country_iso2, score_12m, score_3m, friction_score,
                        order_score, information_score, edge_score,
                        condition_flags, evidence_coverage
-                  FROM risk_snapshot WHERE as_of = %s ORDER BY country_iso2
+                  FROM risk_snapshot WHERE run_date = %s ORDER BY country_iso2
                 """,
                 (run_date,),
             )

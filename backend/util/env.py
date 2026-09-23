@@ -18,6 +18,7 @@ mutating os.environ afterwards has no effect on it.
 """
 
 import os
+import sys
 from typing import Iterable, List
 
 from dotenv import load_dotenv
@@ -28,10 +29,18 @@ from backend.util import paths
 ENV_FILE = paths.BACKEND_DIR / ".env"
 
 #: Without these a command cannot do its work at all.
+#:
+#: `RISK_DB_TARGET` rather than a connection string: the URL itself is resolved
+#: by `util.db` from the chosen target, and there is deliberately no default. A
+#: bare `DATABASE_URL` is the variable every tool and stray script picks up
+#: without being told to, and on this project that bare name pointed at the
+#: database everything had been writing to for weeks.
 REQUIRED = {
-    "etl": ("DATABASE_URL", "OPENAI_API_KEY", "FMP_API_KEY"),
-    "prices": ("DATABASE_URL", "FMP_API_KEY"),
-    "run": ("DATABASE_URL", "OPENAI_API_KEY", "FMP_API_KEY"),
+    "etl": ("RISK_DB_TARGET", "OPENAI_API_KEY", "FMP_API_KEY"),
+    "prices": ("RISK_DB_TARGET", "FMP_API_KEY"),
+    "run": ("RISK_DB_TARGET", "OPENAI_API_KEY", "FMP_API_KEY"),
+    "bootstrap": ("RISK_DB_TARGET",),
+    "report": ("RISK_DB_TARGET",),
 }
 
 #: Absent, these degrade a feature rather than stopping the run. Reported, not enforced.
@@ -87,3 +96,38 @@ def describe_optional() -> str:
     """Which optional tokens are present, for the startup line."""
     present = [n for n in OPTIONAL if (os.getenv(n) or "").strip()]
     return ", ".join(present) if present else "none"
+
+
+def announce(command: str, project_root) -> None:
+    """Say what was resolved, before doing any work.
+
+    The database line names the target and the database it resolved to, because
+    "which database did this write to" should be answerable from the run output
+    rather than from memory.
+    """
+    from backend.util import db
+
+    print(f"[main] command      : {command}")
+    print(f"[main] project root : {project_root}")
+    try:
+        print(f"[main] db target    : {db.resolve()}")
+        print(f"[main] database     : {db.redact()}")
+    except db.DbTargetError as exc:
+        raise SystemExit(f"[main] {exc}")
+    print(f"[main] env file     : {ENV_FILE} ({'found' if ENV_FILE.exists() else 'MISSING'})")
+    print(f"[main] optional keys: {describe_optional()}")
+
+
+def utf8_console() -> None:
+    """Make stdout UTF-8 regardless of the platform's default codepage.
+
+    A Windows console defaults to cp1252, so a single non-ASCII character in a
+    progress line — an arrow, an accented country name — raises
+    UnicodeEncodeError and takes the whole run down with it. The run should not
+    be able to fail on a print.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")
+        except (AttributeError, ValueError):
+            pass
