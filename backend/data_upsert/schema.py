@@ -43,6 +43,9 @@ __all__ = [
     "create_all",
     "table_names",
     "verify",
+    "expected_columns",
+    "drift",
+    "SchemaDrift",
 ]
 
 
@@ -398,6 +401,65 @@ INDEXES: Tuple[str, ...] = (
 )
 
 
+class SchemaDrift(RuntimeError):
+    """A table exists with a shape that is not the one in this module."""
+
+
+_CONSTRAINT_WORDS = ("primary", "foreign", "unique", "check", "constraint", "exclude")
+
+
+def expected_columns(ddl: str) -> List[str]:
+    """Column names declared by one `CREATE TABLE` body, in order.
+
+    Parsed from the DDL rather than kept in a second list beside it, because a
+    second list is a thing that drifts from the first one and nobody notices
+    until the database disagrees with both.
+    """
+    body = ddl[ddl.index("(") + 1: ddl.rindex(")")]
+    names: List[str] = []
+    depth = 0
+    for raw in body.splitlines():
+        line = raw.split("--", 1)[0].strip()
+        if not line:
+            continue
+        if depth == 0:
+            first = line.split()[0].strip(",").lower()
+            if first and first not in _CONSTRAINT_WORDS and first.isidentifier():
+                names.append(first)
+        depth += line.count("(") - line.count(")")
+    return names
+
+
+def drift(cur) -> Dict[str, Dict[str, List[str]]]:
+    """Compare every existing table against the shape declared here.
+
+    Returns `{table: {"missing": [...], "unexpected": [...]}}` for tables that
+    exist and disagree. Absent tables are not drift — they are about to be
+    created.
+
+    This exists because `CREATE TABLE IF NOT EXISTS` is silent about a table
+    that is already there in the wrong shape. The polite failure is an index on
+    a column that does not exist; the impolite one is a run that writes into the
+    wrong shape and says nothing.
+    """
+    out: Dict[str, Dict[str, List[str]]] = {}
+    for name, ddl in TABLES.items():
+        cur.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_schema = 'public' AND table_name = %s",
+            (name,),
+        )
+        actual = {r[0] for r in cur.fetchall()}
+        if not actual:
+            continue
+        wanted = set(expected_columns(ddl))
+        missing = sorted(wanted - actual)
+        unexpected = sorted(actual - wanted)
+        if missing or unexpected:
+            out[name] = {"missing": missing, "unexpected": unexpected}
+    return out
+
+
 def table_names() -> List[str]:
     """The ten, in creation order."""
     return list(TABLES)
@@ -439,6 +501,23 @@ def bootstrap(conn) -> Dict[str, bool]:
     try:
         conn.autocommit = False
         with conn.cursor() as cur:
+            drifted = drift(cur)
+            if drifted:
+                lines = [
+                    f"  {name}: missing {d['missing']}, unexpected {d['unexpected']}"
+                    for name, d in sorted(drifted.items())
+                ]
+                raise SchemaDrift(
+                    "the database disagrees with schema.py and bootstrap "
+                    "will not paper over it:" + chr(10)
+                    + chr(10).join(lines)
+                    + chr(10) * 2
+                    + "Reconcile the table, or back it up and drop it so "
+                    "bootstrap can rebuild it. CREATE TABLE IF NOT EXISTS is "
+                    "silent about a table that already exists in the wrong "
+                    "shape, and a run that writes into the wrong shape is "
+                    "worse than one that refuses to start."
+                )
             create_all(cur)
             present = verify(cur)
         conn.commit()

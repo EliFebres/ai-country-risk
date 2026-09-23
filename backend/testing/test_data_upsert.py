@@ -106,6 +106,12 @@ class _FakeCursor:
     def fetchone(self):
         return ("public.article",) if self._present else (None,)
 
+    def fetchall(self):
+        # The drift probe asks information_schema for each table's columns. An
+        # empty answer means "this table does not exist yet", which is not
+        # drift — it is about to be created.
+        return []
+
     def __enter__(self):
         return self
 

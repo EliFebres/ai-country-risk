@@ -56,6 +56,11 @@ venv.bak/
 # Other
 backend/data/wb_panel_wide
 
+# Table dumps taken before a destructive migration. Kept on disk as the
+# fallback, not in the history: they are reproducible and the largest is a
+# multi-megabyte dump of cached model output.
+backend/data/backups/
+
 # Allow the example env files
 !backend/.env.example
 !frontend/.env.example

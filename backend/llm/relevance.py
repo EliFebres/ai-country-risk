@@ -266,6 +266,7 @@ def classify(
                 kind="relevance",
                 version=RELEVANCE_PROMPT_VERSION,
                 mode=mode,
+                country_iso2=iso2,
             )
         except Exception as e:  # a cache that is down must not stop the run
             logger.warning("relevance cache unavailable, classifying all: %s", e)
@@ -328,6 +329,9 @@ def classify(
                 version=RELEVANCE_PROMPT_VERSION,
                 model=model,
                 mode=mode,
+                # The country is already inside the hash; as a column it makes
+                # "every verdict for PT" a query rather than a recomputation.
+                country_iso2=iso2,
             )
         except Exception as e:
             logger.warning("could not cache relevance labels: %s", e)
