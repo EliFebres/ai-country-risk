@@ -195,3 +195,52 @@ Do not quote it as a noise measurement. A real one needs the same fingerprint
 scored N times, which is Session B's smoke check and a later session's proper
 study.
 
+## 11. The front-end now reads three things that no longer exist
+
+The ten-table schema renamed and removed columns the dashboard queries directly.
+`frontend/app/lib/risk-server.ts` is the only file involved and nothing under
+`frontend/` was touched this session, by instruction.
+
+| Query | Breaks on |
+|---|---|
+| `fetchJoinedLatestRisks` (`/api/risk`) | `risk_snapshot.as_of` is now `run_date`, and `score` is a 0–100 integer rather than a 0–1 float |
+| `fetchLatestSummaries` (`/api/risk-summary`) | the same `as_of` rename |
+| `fetchLatestArticlesForLatestSnapshots` (`/api/articles`) | `risk_snapshot_article` is gone; the top three are `risk_snapshot.top_articles` JSONB |
+| `fetchLatestIndicatorValues` (`/api/indicators`) | `indicator`, `yearly_value` and `recent_indicator` are all gone; values are in `indicator_series`, keyed by code rather than joined by display name |
+| `fetchIndicatorAverageTrends` | the same table swap |
+| `fetchMarketPrices` (`/api/prices`) | `market_price` is keyed `(symbol, ts)` now, so the query needs `DISTINCT ON (symbol) ... WHERE role = 'quote' ORDER BY symbol, ts DESC` |
+| `fetchEconCalendarEvents` | `id` is now a derived `event_id`; the query selects columns rather than the key, so this one may survive |
+
+The first two are the ones that previously worked, so this session broke them.
+That was accepted deliberately when the key was decided — the brief specifies
+`(country, run_date)` — rather than discovered afterwards.
+
+The indicator labels the front-end used to join on live in
+`constants.INDICATOR_REGISTRY` now. Either hard-code the code→label pairs in the
+front end or expose them from the backend; there is no table to join to.
+
+## 12. `snapshot_diagnostic` ships empty, on purpose
+
+It is created by `bootstrap` and nothing writes it. That is the one case where a
+table with no writer is correct: it is where the measurement session puts repeat
+runs, benchmark arms and probe results, and creating it now means that session
+is not also a schema change. If it is still empty after the measurement session,
+that is a finding.
+
+## 13. Four legacy tables remain until the week is verified
+
+`indicator`, `yearly_value`, `recent_indicator` and `payload_census` are no
+longer written by anything. They stay until the first real week on the new
+schema passes its checks, then get dumped to `backend/data/backups/` and
+dropped. Until that happens the database has fourteen tables, not ten.
+
+## 14. Dead relevance rows in `llm_artifact`
+
+2,489 relevance artifacts were written before `country_iso2` joined the key and
+carry `''`. The country is not recoverable from them — it only ever existed
+inside the content hash — so they cannot be backfilled, and they will never
+match a lookup again now that the gate passes the country. They are to be
+deleted once the new run has replaced them, so the table holds only rows its key
+can actually query. The 804 digest rows are unaffected: digests are genuinely
+not per-country and `''` is the right value for them.
+
