@@ -270,6 +270,15 @@ def run_etl(
     # rather than leaving it to the invoice.
     run_meter = usage.Meter()
 
+    # ONE date for the whole run, read once. Reading the clock per country puts
+    # a run that crosses midnight UTC on two dates — the 48-country pass on
+    # 2026-09-22 split 34/14 across two days, and because the census and the
+    # snapshot each read the clock separately they disagreed by one country,
+    # leaving that country's score with no census to join to. A weekly rating is
+    # a statement about a week, not about the minute its row was written.
+    run_as_of = datetime.now(timezone.utc).date()
+    print(f"[run] stamping every row for this run as_of={run_as_of}")
+
     # 0a) Seed the roster into `country`. It has to come first: every other
     #     table's foreign key points at it.
     seed_roster()
@@ -494,7 +503,6 @@ def run_etl(
             #      the model. Stored, and read back — a census nobody stores
             #      cannot be compared against last week, and comparison is the
             #      only way to tell a source that broke from a quiet country.
-            run_as_of = datetime.now(timezone.utc).date()
             census = payload_health.build_census(
                 iso2,
                 run_as_of,
@@ -648,6 +656,7 @@ def run_etl(
                     "census": census,
                 },
                 country_name=country_name,
+                as_of=run_as_of,
             )
 
             print(
@@ -699,9 +708,7 @@ def run_etl(
     try:
         ranked_alerts = alerts_ranker.rank_global_alerts(global_alert_pool)
         if ranked_alerts:
-            data_push.upsert_news_alerts(
-                ranked_alerts, as_of=datetime.now(timezone.utc).date()
-            )
+            data_push.upsert_news_alerts(ranked_alerts, as_of=run_as_of)
             print(f"[alerts] ranked {len(ranked_alerts)}/{len(global_alert_pool)} pooled articles, stored {len(ranked_alerts)}")
         else:
             print(f"[alerts] no alerts ranked from {len(global_alert_pool)} pooled articles (skipping upsert)")

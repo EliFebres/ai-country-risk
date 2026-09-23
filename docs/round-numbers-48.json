@@ -1,0 +1,602 @@
+{
+  "n_countries": 48,
+  "fields": {
+    "score_12m": {
+      "n": 48,
+      "multiple_of_5": 4,
+      "share_of_5": 0.0833,
+      "multiple_of_10": 2,
+      "mean": 44.8,
+      "min": 18,
+      "max": 68
+    },
+    "score_3m": {
+      "n": 48,
+      "multiple_of_5": 3,
+      "share_of_5": 0.0625,
+      "multiple_of_10": 1,
+      "mean": 43.1,
+      "min": 18,
+      "max": 66
+    },
+    "friction": {
+      "n": 48,
+      "multiple_of_5": 13,
+      "share_of_5": 0.2708,
+      "multiple_of_10": 8,
+      "mean": 39.7,
+      "min": 15,
+      "max": 58
+    },
+    "order": {
+      "n": 48,
+      "multiple_of_5": 34,
+      "share_of_5": 0.7083,
+      "multiple_of_10": 13,
+      "mean": 43.2,
+      "min": 15,
+      "max": 65
+    },
+    "information": {
+      "n": 48,
+      "multiple_of_5": 34,
+      "share_of_5": 0.7083,
+      "multiple_of_10": 21,
+      "mean": 33.9,
+      "min": 10,
+      "max": 65
+    },
+    "edge": {
+      "n": 48,
+      "multiple_of_5": 42,
+      "share_of_5": 0.875,
+      "multiple_of_10": 14,
+      "mean": 39.8,
+      "min": 22,
+      "max": 60
+    }
+  },
+  "condition_flags_set": {
+    "press_freedom_deteriorating": 21,
+    "election_or_transition_underway": 4,
+    "official_data_in_doubt": 1,
+    "sovereign_stress": 1,
+    "armed_conflict_on_territory": 1
+  },
+  "coverage": {
+    "mean": 84.8,
+    "min": 67,
+    "max": 89
+  },
+  "rows": [
+    {
+      "iso2": "AE",
+      "as_of": "2026-09-23",
+      "score_12m": 43,
+      "score_3m": 41,
+      "friction": 35,
+      "order": 40,
+      "information": 50,
+      "edge": 30,
+      "coverage": 87
+    },
+    {
+      "iso2": "AT",
+      "as_of": "2026-09-22",
+      "score_12m": 34,
+      "score_3m": 32,
+      "friction": 28,
+      "order": 35,
+      "information": 20,
+      "edge": 40,
+      "coverage": 88
+    },
+    {
+      "iso2": "AU",
+      "as_of": "2026-09-22",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 30,
+      "order": 35,
+      "information": 22,
+      "edge": 28,
+      "coverage": 86
+    },
+    {
+      "iso2": "BE",
+      "as_of": "2026-09-22",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 39,
+      "order": 37,
+      "information": 22,
+      "edge": 45,
+      "coverage": 80
+    },
+    {
+      "iso2": "BR",
+      "as_of": "2026-09-22",
+      "score_12m": 58,
+      "score_3m": 60,
+      "friction": 47,
+      "order": 55,
+      "information": 30,
+      "edge": 45,
+      "coverage": 88
+    },
+    {
+      "iso2": "CA",
+      "as_of": "2026-09-22",
+      "score_12m": 30,
+      "score_3m": 28,
+      "friction": 32,
+      "order": 28,
+      "information": 20,
+      "edge": 25,
+      "coverage": 87
+    },
+    {
+      "iso2": "CH",
+      "as_of": "2026-09-22",
+      "score_12m": 18,
+      "score_3m": 18,
+      "friction": 20,
+      "order": 15,
+      "information": 12,
+      "edge": 22,
+      "coverage": 86
+    },
+    {
+      "iso2": "CL",
+      "as_of": "2026-09-22",
+      "score_12m": 43,
+      "score_3m": 41,
+      "friction": 39,
+      "order": 45,
+      "information": 22,
+      "edge": 48,
+      "coverage": 88
+    },
+    {
+      "iso2": "CN",
+      "as_of": "2026-09-22",
+      "score_12m": 63,
+      "score_3m": 61,
+      "friction": 47,
+      "order": 58,
+      "information": 65,
+      "edge": 45,
+      "coverage": 84
+    },
+    {
+      "iso2": "CO",
+      "as_of": "2026-09-22",
+      "score_12m": 58,
+      "score_3m": 56,
+      "friction": 47,
+      "order": 61,
+      "information": 40,
+      "edge": 45,
+      "coverage": 89
+    },
+    {
+      "iso2": "CZ",
+      "as_of": "2026-09-22",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 39,
+      "order": 28,
+      "information": 18,
+      "edge": 32,
+      "coverage": 87
+    },
+    {
+      "iso2": "DE",
+      "as_of": "2026-09-22",
+      "score_12m": 47,
+      "score_3m": 45,
+      "friction": 39,
+      "order": 52,
+      "information": 22,
+      "edge": 45,
+      "coverage": 87
+    },
+    {
+      "iso2": "DK",
+      "as_of": "2026-09-22",
+      "score_12m": 18,
+      "score_3m": 18,
+      "friction": 20,
+      "order": 15,
+      "information": 10,
+      "edge": 25,
+      "coverage": 72
+    },
+    {
+      "iso2": "EG",
+      "as_of": "2026-09-22",
+      "score_12m": 65,
+      "score_3m": 63,
+      "friction": 54,
+      "order": 61,
+      "information": 58,
+      "edge": 45,
+      "coverage": 83
+    },
+    {
+      "iso2": "ES",
+      "as_of": "2026-09-22",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 39,
+      "order": 35,
+      "information": 25,
+      "edge": 42,
+      "coverage": 87
+    },
+    {
+      "iso2": "FI",
+      "as_of": "2026-09-22",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 32,
+      "order": 35,
+      "information": 18,
+      "edge": 40,
+      "coverage": 87
+    },
+    {
+      "iso2": "FR",
+      "as_of": "2026-09-22",
+      "score_12m": 48,
+      "score_3m": 46,
+      "friction": 50,
+      "order": 45,
+      "information": 20,
+      "edge": 40,
+      "coverage": 86
+    },
+    {
+      "iso2": "GB",
+      "as_of": "2026-09-22",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 32,
+      "order": 35,
+      "information": 20,
+      "edge": 40,
+      "coverage": 78
+    },
+    {
+      "iso2": "GR",
+      "as_of": "2026-09-22",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 47,
+      "order": 50,
+      "information": 45,
+      "edge": 55,
+      "coverage": 88
+    },
+    {
+      "iso2": "HK",
+      "as_of": "2026-09-22",
+      "score_12m": 58,
+      "score_3m": 56,
+      "friction": 42,
+      "order": 60,
+      "information": 65,
+      "edge": 45,
+      "coverage": 81
+    },
+    {
+      "iso2": "HU",
+      "as_of": "2026-09-22",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 47,
+      "order": 50,
+      "information": 40,
+      "edge": 45,
+      "coverage": 86
+    },
+    {
+      "iso2": "ID",
+      "as_of": "2026-09-22",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 47,
+      "order": 53,
+      "information": 45,
+      "edge": 50,
+      "coverage": 88
+    },
+    {
+      "iso2": "IE",
+      "as_of": "2026-09-22",
+      "score_12m": 22,
+      "score_3m": 22,
+      "friction": 20,
+      "order": 25,
+      "information": 18,
+      "edge": 30,
+      "coverage": 87
+    },
+    {
+      "iso2": "IL",
+      "as_of": "2026-09-22",
+      "score_12m": 58,
+      "score_3m": 56,
+      "friction": 42,
+      "order": 61,
+      "information": 45,
+      "edge": 50,
+      "coverage": 88
+    },
+    {
+      "iso2": "IN",
+      "as_of": "2026-09-22",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 48,
+      "order": 55,
+      "information": 60,
+      "edge": 45,
+      "coverage": 84
+    },
+    {
+      "iso2": "IT",
+      "as_of": "2026-09-22",
+      "score_12m": 48,
+      "score_3m": 46,
+      "friction": 52,
+      "order": 45,
+      "information": 40,
+      "edge": 35,
+      "coverage": 86
+    },
+    {
+      "iso2": "JP",
+      "as_of": "2026-09-22",
+      "score_12m": 30,
+      "score_3m": 28,
+      "friction": 32,
+      "order": 28,
+      "information": 20,
+      "edge": 25,
+      "coverage": 85
+    },
+    {
+      "iso2": "KR",
+      "as_of": "2026-09-23",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 32,
+      "order": 35,
+      "information": 40,
+      "edge": 28,
+      "coverage": 88
+    },
+    {
+      "iso2": "KW",
+      "as_of": "2026-09-22",
+      "score_12m": 48,
+      "score_3m": 46,
+      "friction": 45,
+      "order": 50,
+      "information": 40,
+      "edge": 35,
+      "coverage": 84
+    },
+    {
+      "iso2": "MX",
+      "as_of": "2026-09-23",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 48,
+      "order": 56,
+      "information": 50,
+      "edge": 45,
+      "coverage": 87
+    },
+    {
+      "iso2": "MY",
+      "as_of": "2026-09-22",
+      "score_12m": 48,
+      "score_3m": 46,
+      "friction": 45,
+      "order": 50,
+      "information": 40,
+      "edge": 35,
+      "coverage": 86
+    },
+    {
+      "iso2": "NL",
+      "as_of": "2026-09-22",
+      "score_12m": 28,
+      "score_3m": 27,
+      "friction": 30,
+      "order": 25,
+      "information": 15,
+      "edge": 35,
+      "coverage": 84
+    },
+    {
+      "iso2": "NO",
+      "as_of": "2026-09-22",
+      "score_12m": 18,
+      "score_3m": 18,
+      "friction": 20,
+      "order": 15,
+      "information": 10,
+      "edge": 25,
+      "coverage": 81
+    },
+    {
+      "iso2": "NZ",
+      "as_of": "2026-09-22",
+      "score_12m": 28,
+      "score_3m": 27,
+      "friction": 30,
+      "order": 25,
+      "information": 20,
+      "edge": 35,
+      "coverage": 85
+    },
+    {
+      "iso2": "PE",
+      "as_of": "2026-09-23",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 47,
+      "order": 56,
+      "information": 45,
+      "edge": 50,
+      "coverage": 88
+    },
+    {
+      "iso2": "PH",
+      "as_of": "2026-09-23",
+      "score_12m": 58,
+      "score_3m": 56,
+      "friction": 52,
+      "order": 55,
+      "information": 48,
+      "edge": 45,
+      "coverage": 86
+    },
+    {
+      "iso2": "PL",
+      "as_of": "2026-09-23",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 48,
+      "order": 50,
+      "information": 30,
+      "edge": 45,
+      "coverage": 86
+    },
+    {
+      "iso2": "PT",
+      "as_of": "2026-09-22",
+      "score_12m": 34,
+      "score_3m": 32,
+      "friction": 36,
+      "order": 30,
+      "information": 18,
+      "edge": 40,
+      "coverage": 83
+    },
+    {
+      "iso2": "QA",
+      "as_of": "2026-09-23",
+      "score_12m": 58,
+      "score_3m": 56,
+      "friction": 52,
+      "order": 55,
+      "information": 45,
+      "edge": 60,
+      "coverage": 84
+    },
+    {
+      "iso2": "RU",
+      "as_of": "2026-09-23",
+      "score_12m": 68,
+      "score_3m": 66,
+      "friction": 57,
+      "order": 65,
+      "information": 62,
+      "edge": 45,
+      "coverage": 84
+    },
+    {
+      "iso2": "SA",
+      "as_of": "2026-09-23",
+      "score_12m": 58,
+      "score_3m": 56,
+      "friction": 42,
+      "order": 60,
+      "information": 55,
+      "edge": 45,
+      "coverage": 75
+    },
+    {
+      "iso2": "SE",
+      "as_of": "2026-09-22",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 28,
+      "order": 35,
+      "information": 22,
+      "edge": 30,
+      "coverage": 86
+    },
+    {
+      "iso2": "SG",
+      "as_of": "2026-09-22",
+      "score_12m": 18,
+      "score_3m": 18,
+      "friction": 15,
+      "order": 20,
+      "information": 25,
+      "edge": 30,
+      "coverage": 87
+    },
+    {
+      "iso2": "TH",
+      "as_of": "2026-09-23",
+      "score_12m": 54,
+      "score_3m": 52,
+      "friction": 47,
+      "order": 50,
+      "information": 45,
+      "edge": 55,
+      "coverage": 88
+    },
+    {
+      "iso2": "TR",
+      "as_of": "2026-09-23",
+      "score_12m": 65,
+      "score_3m": 63,
+      "friction": 58,
+      "order": 62,
+      "information": 65,
+      "edge": 45,
+      "coverage": 85
+    },
+    {
+      "iso2": "TW",
+      "as_of": "2026-09-23",
+      "score_12m": 38,
+      "score_3m": 36,
+      "friction": 32,
+      "order": 28,
+      "information": 22,
+      "edge": 40,
+      "coverage": 67
+    },
+    {
+      "iso2": "US",
+      "as_of": "2026-09-22",
+      "score_12m": 47,
+      "score_3m": 45,
+      "friction": 42,
+      "order": 50,
+      "information": 30,
+      "edge": 35,
+      "coverage": 89
+    },
+    {
+      "iso2": "ZA",
+      "as_of": "2026-09-23",
+      "score_12m": 58,
+      "score_3m": 56,
+      "friction": 55,
+      "order": 60,
+      "information": 30,
+      "edge": 45,
+      "coverage": 86
+    }
+  ],
+  "_provenance": "Harvested 2026-09-23 from the 48-country ETL that ran before the scope correction. The instrument was NOT verified when these scores were produced, and the rows were deleted from risk_snapshot immediately after this extraction. Round-number share is a property of the model output format and does not depend on the evidence being right, so it is reported; the scores themselves are not product output and must not be read as ratings."
+}

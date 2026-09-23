@@ -156,7 +156,11 @@ def read_countries() -> Dict[str, Dict[str, Any]]:
         conn.close()
 
 
-def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
+def upsert_snapshot(
+    payload: Dict[str, Any],
+    country_name: str,
+    as_of: Optional[datetime.date] = None,
+) -> None:
     """
     Atomically insert or update a country-level snapshot.
 
@@ -196,7 +200,10 @@ def upsert_snapshot(payload: Dict[str, Any], country_name: str) -> None:
     if not isinstance(units, dict):
         raise ValueError("payload['_meta']['units'] must be a dict of indicator -> unit")
 
-    as_of: datetime.date = _to_date_from_iso(gen_at)
+    # The caller's run date wins. `generated_at` is written per country by
+    # `prepare_llm_payload_pretty`, so deriving the date from it puts a long
+    # run on two dates and lets the snapshot and its census disagree.
+    as_of: datetime.date = as_of or _to_date_from_iso(gen_at)
 
     indicators = payload.get("indicators") or {}
     if not isinstance(indicators, dict) or not indicators:
