@@ -12,6 +12,13 @@ The rule here:
 * **Where the source publishes a date, use it.** Scheme: `source-published`.
 * **Where it does not, use the period's end plus that source's declared
   publication lag.** Scheme: `publication-lag-estimate`.
+* **But never later than the day we first held the value.** The lag estimates
+  when the source published; having fetched the number proves it was published
+  by then. Where the estimate lands after that day — a 2025 WDI figure is
+  estimated at July 2027 and was in hand in September 2026 — the day we first
+  saw it wins. Scheme: `first-seen`. This is a ceiling, not the fetch clock:
+  it only ever moves a date earlier, so a two-year-old number still reads as
+  two years old. An `as_of` can therefore never exceed the run date.
 
 The lags are not guesses. Each one is a statement about the publisher's own
 release calendar, and each carries a citation to it beside the constant. The
@@ -39,6 +46,7 @@ from typing import Dict, Optional, Tuple
 __all__ = [
     "SOURCE_PUBLISHED",
     "LAG_ESTIMATE",
+    "FIRST_SEEN",
     "LAG_DAYS",
     "period_end",
     "as_of_for",
@@ -49,6 +57,7 @@ __all__ = [
 
 SOURCE_PUBLISHED = "source-published"
 LAG_ESTIMATE = "publication-lag-estimate"
+FIRST_SEEN = "first-seen"
 
 
 # Days from the end of the period to the day the figure became public.
@@ -142,6 +151,7 @@ def as_of_for(
     *,
     freq: str = "A",
     published: Optional[object] = None,
+    seen: Optional[dt.date] = None,
 ) -> Tuple[dt.date, str]:
     """Return ``(as_of, scheme)`` — when this observation became knowable.
 
@@ -154,10 +164,12 @@ def as_of_for(
         period: The period the observation covers.
         freq: The series' cadence.
         published: The date the source itself stated, if it stated one.
+        seen: The first day we held this value. Caps an estimate that would
+            otherwise land after it; ignored when the source stated a date.
 
     Returns:
-        ``(as_of, scheme)`` where scheme is `source-published` or
-        `publication-lag-estimate`.
+        ``(as_of, scheme)`` where scheme is `source-published`,
+        `publication-lag-estimate` or `first-seen`.
 
     Raises:
         KeyError: if the source has no declared lag and published no date.
@@ -178,7 +190,10 @@ def as_of_for(
             f"calendar rather than letting the date default to the period end."
         )
 
-    return period_end(period, freq) + dt.timedelta(days=LAG_DAYS[source]), LAG_ESTIMATE
+    estimate = period_end(period, freq) + dt.timedelta(days=LAG_DAYS[source])
+    if seen is not None and seen < estimate:
+        return seen, FIRST_SEEN
+    return estimate, LAG_ESTIMATE
 
 
 def staleness_days(as_of: dt.date, today: Optional[dt.date] = None) -> int:

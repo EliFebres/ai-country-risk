@@ -485,6 +485,8 @@ def run_etl(
             econ = payload_builder.build_economics_block(
                 data_retrieval.panel_values(iso2, lookback=10),
                 curated_loader.load_for_country(iso2),
+                today=run_as_of,
+                first_seen=store.read_first_seen(iso2),
             )
             res = econ["resolution"]
             print(

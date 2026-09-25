@@ -30,6 +30,7 @@ from backend.util import constants, trends, vintage
 
 __all__ = [
     "build_economics_block",
+    "seen_key",
     "build_scoring_payload",
     "count_tokens",
     "LEDGER_QUESTIONS",
@@ -47,12 +48,30 @@ LEDGER_QUESTIONS: Dict[str, str] = {
 }
 
 
+def seen_key(code: str, period: Any, value: Any) -> tuple:
+    """The key a value's first-seen date is looked up by.
+
+    The value is in it: a revision is a different number, first seen on the
+    day it arrived, not on the day its predecessor did.
+    """
+    try:
+        period = int(period)
+    except (TypeError, ValueError):
+        pass
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        pass
+    return (code, period, value)
+
+
 def _resolve_one(
     code: str,
     spec: Dict[str, Any],
     panel: Dict[str, Dict[str, Any]],
     curated: Dict[str, Dict[str, Any]],
     today: dt.date,
+    first_seen: Optional[Dict[tuple, dt.date]] = None,
 ) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
     """Resolve one registry code. Returns ``(entry, drop_reason)``."""
     panel_col = spec.get("panel_col")
@@ -78,8 +97,12 @@ def _resolve_one(
         return None, "no row"
 
     try:
+        # A value we already hold keeps the day we first saw it; one we have
+        # never seen is being seen today.
+        seen = (first_seen or {}).get(seen_key(code, latest_year, value), today)
         as_of, scheme = vintage.as_of_for(
-            spec["source"], latest_year, freq=spec.get("freq", "A"), published=published
+            spec["source"], latest_year, freq=spec.get("freq", "A"),
+            published=published, seen=seen,
         )
     except (KeyError, ValueError) as e:
         return None, f"undatable ({e.__class__.__name__})"
@@ -110,6 +133,7 @@ def build_economics_block(
     curated: Optional[Dict[str, Dict[str, Any]]] = None,
     *,
     today: Optional[dt.date] = None,
+    first_seen: Optional[Dict[tuple, dt.date]] = None,
 ) -> Dict[str, Any]:
     """Assemble the by-ledger economics block, and say what did not resolve.
 
@@ -118,7 +142,11 @@ def build_economics_block(
             World Bank parquet panel.
         curated: ``{registry_code: {"value", "period", "as_of", "series"}}``
             from `backend/data/curated.csv`.
-        today: For staleness; defaults to today.
+        today: For staleness, and the day a never-seen value is first seen;
+            defaults to today. The run passes its own date.
+        first_seen: ``{seen_key(code, period, value): date}`` for values
+            already in `indicator_series`, so a value keeps the day it was
+            first held rather than being re-seen every week.
 
     Returns:
         ``{"ledgers": {...}, "resolution": {...}}``. `resolution` is what the
@@ -142,7 +170,7 @@ def build_economics_block(
         slot = by_source.setdefault(source, {"expected": 0, "resolved": 0})
         slot["expected"] += 1
 
-        entry, reason = _resolve_one(code, spec, panel, curated, today)
+        entry, reason = _resolve_one(code, spec, panel, curated, today, first_seen)
         if entry is None:
             dropped.append({
                 "code": code, "ledger": ledger, "source": source,

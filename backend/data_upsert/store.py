@@ -45,6 +45,7 @@ __all__ = [
     "read_articles_by_hash",
     "upsert_indicator_series",
     "read_indicator_series",
+    "read_first_seen",
     "upsert_snapshot",
     "read_snapshot",
     "read_recent_snapshots",
@@ -334,6 +335,31 @@ def read_indicator_series(country_iso2: str, code: Optional[str] = None) -> List
                 (country_iso2, code, code),
             )
             return [dict(zip(cols, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def read_first_seen(country_iso2: str) -> Dict[tuple, dt.date]:
+    """The first day each stored value was held, keyed as `payload.seen_key`.
+
+    Having fetched a value proves it was published by then, so this caps a
+    publication-lag estimate that would land later. Keyed on the value, so a
+    revision is first seen when it arrived.
+    """
+    from backend.llm.payload import seen_key
+
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT indicator_code, period, value, (MIN(created_at) AT TIME ZONE 'UTC')::date
+                  FROM indicator_series WHERE country_iso2 = %s
+                 GROUP BY indicator_code, period, value
+                """,
+                (country_iso2,),
+            )
+            return {seen_key(c, p, v): d for c, p, v, d in cur.fetchall()}
     finally:
         conn.close()
 

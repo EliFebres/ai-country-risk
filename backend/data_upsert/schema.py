@@ -177,8 +177,9 @@ CREATE TABLE IF NOT EXISTS indicator_series (
     -- rather than an overwrite, and a score can be re-read against the data as
     -- it stood rather than as it was later corrected.
     as_of          DATE NOT NULL,
-    -- source-published | publication-lag-estimate. A measured date and a
-    -- derived one are different facts and stay distinguishable.
+    -- source-published | publication-lag-estimate | first-seen. A measured
+    -- date, a derived one and the day we first held the value are different
+    -- facts and stay distinguishable. See util/vintage.py.
     as_of_scheme   TEXT NOT NULL,
     value          DOUBLE PRECISION NOT NULL,
     unit           TEXT,
