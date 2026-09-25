@@ -133,7 +133,10 @@ def score_country(
             max_retries=0,
             api_key=api_key,
         ).with_structured_output(
-            schema=ai_constants.RISK_SCHEMA, strict=True, include_raw=True
+            # Built for this call: every article id sent is a required key,
+            # so an answer that skips one cannot be decoded.
+            schema=ai_constants.build_risk_schema(article_ids), strict=True,
+            include_raw=True
         )
 
     try:

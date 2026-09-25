@@ -1,4 +1,5 @@
-from typing import Dict
+import json
+from typing import Dict, Sequence
 
 from backend.util.hashing import content_hash
 
@@ -127,15 +128,14 @@ WHAT TO RETURN
 - `subscore_evidence`: for each of the four ledgers, one or two sentences
   naming the specific evidence behind that ledger's score. If a ledger was
   scored with little to go on, say that here instead of inventing a reason.
-- `article_scores`: one entry per article you were given, with the article's id,
-  which door (if any) it passed, and a short note. `bearing` is 0-100: how much
-  this article moved your reading, where 0 means it passed no door.
+- `article_scores`: keyed by article id, one entry for every article you were
+  given, each with which door (if any) it passed and a short note. `bearing` is
+  0-100: how much this article moved your reading, where 0 means it passed no
+  door.
 
 Do not return an evidence-coverage figure. That is computed from what you were
 sent, not something you assess."""
 
-
-PROMPT_VERSION = content_hash(RISK_PROMPT)
 
 
 # Nullable fields use type unions rather than a bare type plus a convention.
@@ -156,58 +156,88 @@ CONDITION_FLAGS = (
 
 LEDGER_FIELDS = ("friction", "order", "information", "edge")
 
-RISK_SCHEMA: Dict = {
-    "name": "country_risk_v2",
-    "schema": {
-        "type": "object",
-        "additionalProperties": False,
-        "properties": {
-            "score_12m": _INT_0_100,
-            "score_3m": _INT_0_100,
-            **{name: _NULLABLE_INT for name in LEDGER_FIELDS},
-            "condition_flags": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {name: {"type": "boolean"} for name in CONDITION_FLAGS},
-                "required": list(CONDITION_FLAGS),
-            },
-            "bullet_summary": {"type": "string", "maxLength": 900},
-            "subscore_evidence": {
-                "type": "object",
-                "additionalProperties": False,
-                "properties": {name: {"type": "string"} for name in LEDGER_FIELDS},
-                "required": list(LEDGER_FIELDS),
-            },
-            "article_scores": {
-                "type": "array",
-                "items": {
+#: One article's answer. The id is not in it: it is the key the entry sits under.
+ARTICLE_SCORE_SCHEMA: Dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "door": {
+            "type": ["string", "null"],
+            "enum": ["capacity", "cost", "knowability", None],
+        },
+        "bearing": _INT_0_100,
+        "note": {"type": "string"},
+    },
+    "required": ["door", "bearing", "note"],
+}
+
+
+def build_risk_schema(article_ids: Sequence[str]) -> Dict:
+    """The scorer's output schema for one call.
+
+    `article_scores` is an object keyed by the ids actually sent, every one of
+    them required. Strict mode cannot require a minimum array length, so as an
+    array the model could return a valid answer that skipped articles — HK's
+    week one scored 10 of 20, a7-a9 among the gaps. As required properties, an
+    answer that omits one is not valid output and cannot be decoded.
+
+    The schema is therefore call-specific. What identifies it as a version is
+    its shape, `SCHEMA_TEMPLATE`, not the ids.
+    """
+    ids = list(article_ids)
+    return {
+        "name": "country_risk_v3",
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "score_12m": _INT_0_100,
+                "score_3m": _INT_0_100,
+                **{name: _NULLABLE_INT for name in LEDGER_FIELDS},
+                "condition_flags": {
                     "type": "object",
                     "additionalProperties": False,
-                    "properties": {
-                        "id": {"type": "string"},
-                        "door": {
-                            "type": ["string", "null"],
-                            "enum": ["capacity", "cost", "knowability", None],
-                        },
-                        "bearing": _INT_0_100,
-                        "note": {"type": "string"},
-                    },
-                    "required": ["id", "door", "bearing", "note"],
+                    "properties": {name: {"type": "boolean"} for name in CONDITION_FLAGS},
+                    "required": list(CONDITION_FLAGS),
+                },
+                "bullet_summary": {"type": "string", "maxLength": 900},
+                "subscore_evidence": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {name: {"type": "string"} for name in LEDGER_FIELDS},
+                    "required": list(LEDGER_FIELDS),
+                },
+                "article_scores": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {aid: ARTICLE_SCORE_SCHEMA for aid in ids},
+                    "required": ids,
                 },
             },
+            "required": [
+                "score_12m",
+                "score_3m",
+                *LEDGER_FIELDS,
+                "condition_flags",
+                "bullet_summary",
+                "subscore_evidence",
+                "article_scores",
+            ],
         },
-        "required": [
-            "score_12m",
-            "score_3m",
-            *LEDGER_FIELDS,
-            "condition_flags",
-            "bullet_summary",
-            "subscore_evidence",
-            "article_scores",
-        ],
-    },
-    "strict": True,
-}
+        "strict": True,
+    }
+
+
+#: The schema's shape with the ids abstracted to one placeholder. Hashing a
+#: call's own schema would give a different version for every article count;
+#: this is the same for every call, and changes only when the shape does.
+SCHEMA_TEMPLATE: Dict = build_risk_schema(["<article-id>"])
+SCHEMA_VERSION = content_hash(json.dumps(SCHEMA_TEMPLATE, sort_keys=True))
+
+#: The stamped `prompt_version` covers the prompt text and the schema shape
+#: together: both moved scores on the old instrument, and a stamp that saw only
+#: the wording would let a schema change pass as the same instrument.
+PROMPT_VERSION = content_hash(RISK_PROMPT + "\n" + SCHEMA_VERSION)
 
 
 # ---------------------------------------------------------------------------

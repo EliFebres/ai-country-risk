@@ -25,7 +25,7 @@ by the time anyone looked there was no way to tell which weeks were involved.
 | What | Stamped as | What happens to the series |
 |---|---|---|
 | **Scoring model** | `scoring_model` | Step. Different models disagree by more than a typical week's move. |
-| **Scoring prompt** | `prompt_version` (hash of the text) | Step. Both the wording and the schema's shape moved scores on the old instrument. |
+| **Scoring prompt and output schema** | `prompt_version` (hash of the prompt text plus `SCHEMA_VERSION`, the hash of the schema's shape with article ids abstracted) | Step. Both the wording and the schema's shape moved scores on the old instrument. Each call's schema lists that call's article ids, so the schema text differs by article count while the stamp does not. |
 | **Gate model** | `gate_model` | Step. The gate decides what the scorer reads; a different gate is different evidence. |
 | **Digest model** | `digest_model` | Step, smaller. Digests are extractive, but the scorer reads them rather than the articles. |
 | **Payload shape** | `payload_fingerprint`, `payload_tokens` | Step. Adding or removing a block changes what the model weighs. |

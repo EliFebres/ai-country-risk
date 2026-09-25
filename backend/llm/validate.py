@@ -153,11 +153,19 @@ def validate(
         clean_evidence[name] = text.strip()
     cleaned["subscore_evidence"] = clean_evidence
 
+    # Keyed by article id, one required key per article sent, so the grammar
+    # already refuses an answer that skips one. Flattened here into the ordered
+    # list the snapshot stores; the checks below still run, because a schema is
+    # only as good as the call that was made with it.
     scores = answer.get("article_scores")
-    if not isinstance(scores, list):
+    if not isinstance(scores, dict):
         violations.append({"field": "article_scores", "problem": "missing",
                            "raw": scores})
-        scores = []
+        scores = {}
+    scores = [
+        {"id": aid, **row} if isinstance(row, dict) else row
+        for aid, row in scores.items()
+    ]
     known = set(article_ids)
     seen = set()
     clean_scores = []
@@ -172,10 +180,6 @@ def validate(
             # answering a question nobody asked.
             violations.append({"field": f"article_scores[{i}].id",
                                "problem": "unknown article", "raw": aid})
-            continue
-        if aid in seen:
-            violations.append({"field": f"article_scores[{i}].id",
-                               "problem": "duplicate article", "raw": aid})
             continue
         seen.add(aid)
         clean_scores.append({

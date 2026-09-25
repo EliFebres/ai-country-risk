@@ -835,7 +835,7 @@ def _answer(**over):
         "condition_flags": {f: False for f in ai_consts.CONDITION_FLAGS},
         "bullet_summary": "Fiscal position deteriorating; courts contested.",
         "subscore_evidence": {f: "because" for f in ai_consts.LEDGER_FIELDS},
-        "article_scores": [{"id": "a1", "door": "cost", "bearing": 40, "note": "n"}],
+        "article_scores": {"a1": {"door": "cost", "bearing": 40, "note": "n"}},
     }
     base.update(over)
     return base
@@ -868,7 +868,7 @@ class TestValidator:
 
     def test_an_answer_about_an_article_that_was_never_sent_is_caught(self):
         got = validator.validate(
-            _answer(article_scores=[{"id": "a99", "door": None, "bearing": 5, "note": ""}]),
+            _answer(article_scores={"a99": {"door": None, "bearing": 5, "note": ""}}),
             article_ids=["a1"],
         )
         assert any(v["problem"] == "unknown article" for v in got.violations)
@@ -879,12 +879,6 @@ class TestValidator:
         got = validator.validate(_answer(), article_ids=["a1", "a2", "a3"])
         unscored = [v for v in got.violations if v["problem"] == "article not scored"]
         assert {v["raw"] for v in unscored} == {"a2", "a3"}
-
-    def test_a_duplicate_article_score_is_caught(self):
-        rows = [{"id": "a1", "door": None, "bearing": 5, "note": ""}] * 2
-        got = validator.validate(_answer(article_scores=rows), article_ids=["a1"])
-        assert any(v["problem"] == "duplicate article" for v in got.violations)
-        assert len(got["answer"]["article_scores"]) == 1
 
     def test_an_unknown_condition_flag_is_reported(self):
         flags = {f: False for f in ai_consts.CONDITION_FLAGS}
@@ -914,17 +908,17 @@ class TestValidator:
 class TestScoringContract:
     def test_the_schema_uses_type_unions_for_nullable_ledgers(self):
         """The grammar is part of the instrument, not packaging around it."""
-        props = ai_consts.RISK_SCHEMA["schema"]["properties"]
+        props = ai_consts.SCHEMA_TEMPLATE["schema"]["properties"]
         for field in ai_consts.LEDGER_FIELDS:
             assert props[field]["type"] == ["integer", "null"], field
 
     def test_the_composites_are_not_nullable(self):
-        props = ai_consts.RISK_SCHEMA["schema"]["properties"]
+        props = ai_consts.SCHEMA_TEMPLATE["schema"]["properties"]
         assert props["score_12m"]["type"] == "integer"
 
     def test_evidence_coverage_is_not_something_the_model_returns(self):
         """It was measured self-reporting 80 with twenty articles and 80 with six."""
-        assert "evidence_coverage" not in ai_consts.RISK_SCHEMA["schema"]["properties"]
+        assert "evidence_coverage" not in ai_consts.SCHEMA_TEMPLATE["schema"]["properties"]
         assert "Do not return an evidence-coverage figure" in ai_consts.RISK_PROMPT
 
     def test_the_prompt_carries_the_framework(self):
