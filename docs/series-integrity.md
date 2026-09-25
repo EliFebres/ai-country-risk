@@ -105,7 +105,7 @@ the measurement session replaces each with a number.
 ## 5. Steps in the series
 
 **None yet. This is week one.** This page was written on 2026-09-23, but
-week one actually ran on **2026-09-25**, at git SHA **`519508b`**, against the
+week one actually ran on **2026-09-25**, at git SHA **`37dd309`**, against the
 dev database (`neondb` on `ep-round-brook-b5w0nzpy`). The 2026-09-23 attempt
 wrote no snapshots: every country it reached failed on the write, and it was
 interrupted after nine. Week one covers five countries (US, PT, KW, HK, TW),
