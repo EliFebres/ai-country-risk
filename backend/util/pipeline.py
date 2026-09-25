@@ -356,6 +356,19 @@ def run_etl(
     db.announce()
     print(f"[run] stamping every row for this run as_of={run_as_of}")
 
+    # The run-level row is opened before any work and closed at the end. Written
+    # only at the end, an interrupted run leaves nothing at run level at all:
+    # the 2026-09-23 week-one run left nine per-country error rows and no sign
+    # that the run itself never finished. A row still 'running' says so.
+    try:
+        store.write_ledger(
+            job_type="run", run_date=run_as_of, status="running",
+            started_at=datetime.now(timezone.utc), git_sha=run_git_sha,
+            detail={"only": sorted(c["iso2"] for c in roster) if only else None},
+        )
+    except Exception as e:
+        print(f"[ledger] run start not recorded: {e}")
+
     # 0a) Seed the roster into `country`. It has to come first: every other
     #     table's foreign key points at it.
     seed_roster()

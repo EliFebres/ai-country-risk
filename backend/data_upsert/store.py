@@ -24,6 +24,7 @@ time anyone noticed there was no way to tell which rows were affected.
 from __future__ import annotations
 
 import datetime as dt
+import json
 import logging
 import socket
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
@@ -51,6 +52,17 @@ __all__ = [
     "write_diagnostic",
     "StampConflict",
 ]
+
+
+def _json(value: Any) -> extras.Json:
+    """A JSONB parameter that survives dates.
+
+    Manifests and censuses carry `as_of` and `period` as `datetime.date`, and
+    psycopg2's default encoder raises on them. The first week-one run lost every
+    country it reached to exactly that, after the model had been paid. `str` is
+    what the rest of the codebase already uses when it serialises a payload.
+    """
+    return extras.Json(value, dumps=lambda v: json.dumps(v, default=str))
 
 
 class StampConflict(RuntimeError):
@@ -121,7 +133,7 @@ def write_artifacts(
     score that was already written.
     """
     batch: List[Tuple] = [
-        (h, kind, version, mode, country_iso2, model, extras.Json(payload))
+        (h, kind, version, mode, country_iso2, model, _json(payload))
         for h, payload in rows
         if h
     ]
@@ -374,7 +386,7 @@ def upsert_snapshot(row: Dict[str, Any]) -> None:
     values = []
     for col in _SNAPSHOT_COLUMNS:
         v = row.get(col)
-        values.append(extras.Json(v) if col in _JSON_COLUMNS and v is not None else v)
+        values.append(_json(v) if col in _JSON_COLUMNS and v is not None else v)
 
     assignments = ", ".join(
         f"{c} = EXCLUDED.{c}" for c in _SNAPSHOT_COLUMNS
@@ -499,7 +511,7 @@ def write_ledger(
                 (job_type, country_iso2, run_date, started_at, finished_at,
                  status, socket.gethostname(), db_host, db_name, git_sha,
                  input_tokens, output_tokens, spend_usd,
-                 extras.Json(detail or {}), error),
+                 _json(detail or {}), error),
             )
         conn.commit()
     except Exception:
@@ -548,7 +560,7 @@ def write_diagnostic(
                 ON CONFLICT (country_iso2, run_date, kind, model, variant)
                 DO UPDATE SET payload = EXCLUDED.payload
                 """,
-                (country_iso2, run_date, kind, model, variant, extras.Json(payload)),
+                (country_iso2, run_date, kind, model, variant, _json(payload)),
             )
         conn.commit()
     except Exception:
