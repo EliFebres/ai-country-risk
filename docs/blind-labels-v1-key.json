@@ -1,0 +1,338 @@
+{
+  "_note": "SEALED. Do not read before the blind labels are committed.",
+  "generated_at": "2026-09-23T00:39:16.048481+00:00",
+  "seed": 20260922,
+  "excluded_countries": [
+    "US",
+    "PT",
+    "KW"
+  ],
+  "rows": [
+    {
+      "id": "b01",
+      "url": "https://time.com/article/2026/09/17/russian-sanctions-bill-trump-new-tariffs-power-democrats-backlash/",
+      "country_iso2": "RU",
+      "title": "Democratic Leaders Fear the New Russia Sanctions Bill Could 'Harm' Americans. Here's Why - Time Magazine",
+      "stratum": "all rejected",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant"
+      }
+    },
+    {
+      "id": "b02",
+      "url": "https://www.thecairoreview.com/essays/new-handbook-maps-out-egypts-economic-future/",
+      "country_iso2": "EG",
+      "title": "Crisis Management, or Long-term Planning? New Handbook Maps Out Egypt\u2019s Economic Future - The Cairo Review of Global Affairs",
+      "stratum": "all accepted",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural"
+      }
+    },
+    {
+      "id": "b03",
+      "url": "https://www.motorcycles.news/en/motorcycle-tax-italy-2027-bollo-exemption/",
+      "country_iso2": "IT",
+      "title": "Motorcycle Tax Italy 2027: Who Is Exempt and Who Still Pays - motorcycles.news",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b04",
+      "url": "https://indonesiabusinesspost.com/7403/financial-crimes/indonesias-agrarian-affairs-ministers-confidants-questioned-in-kpk-corruption-probe",
+      "country_iso2": "ID",
+      "title": "Indonesia\u2019s agrarian affairs minister\u2019s confidants questioned in KPK corruption probe - Indonesia Business Post",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "structural"
+      }
+    },
+    {
+      "id": "b05",
+      "url": "https://hungarytoday.hu/gripen-fighter-jet-crashes-at-szolnok-military-base/",
+      "country_iso2": "HU",
+      "title": "Gripen Fighter Jet Crashes at Szolnok Military Base - Hungary Today",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b06",
+      "url": "https://www.fxstreet.com/analysis/austrias-economy-is-growing-but-momentum-remains-subdued-202609181044",
+      "country_iso2": "AT",
+      "title": "Austria\u2019s economy is growing \u2013 But momentum remains subdued - FXStreet",
+      "stratum": "all accepted",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural"
+      }
+    },
+    {
+      "id": "b07",
+      "url": "https://business.adobe.com/au/blog/why-ai-readiness-is-the-next-test-for-the-new-zealand-government",
+      "country_iso2": "NZ",
+      "title": "Why AI readiness is the next test for the New Zealand government - Adobe for Business",
+      "stratum": "all rejected",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant"
+      }
+    },
+    {
+      "id": "b08",
+      "url": "https://indianewengland.com/bombay-high-court-warns-vijay-mallya-against-posting-court-documents-online/",
+      "country_iso2": "IN",
+      "title": "Bombay High Court Warns Vijay Mallya Against Posting Court Documents Online - INDIA New England News",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b09",
+      "url": "https://www.audacy.com/wilknews/topic/germany-military-plane-crash-us-base-spangdahlem",
+      "country_iso2": "DE",
+      "title": "germany-military-plane-crash-us-base-spangdahlem: Latest Updates - Audacy",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant",
+        "gpt-4.1-mini-2025-04-14": "incident",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b10",
+      "url": "https://www.tribuneindia.com/news/business/leverage-edu-appoints-prabhakar-kalavacherla-as-independent-director-chair-of-audit-committee/amp/?utm=relatedarticles",
+      "country_iso2": "IN",
+      "title": "Leverage Edu Appoints Prabhakar Kalavacherla as Independent Director & Chair of Audit Committee - The Tribune",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b11",
+      "url": "https://www.forbesindia.com/article/upfront/brand-connect/shoma-chaudhurys-long-game-from-a-journalist-to-convener-of-the-worlds-sharpest-minds/2998557/1",
+      "country_iso2": "IN",
+      "title": "Shoma Chaudhury's long game: From a journalist to convener of the world's sharpest minds - Forbes India",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b12",
+      "url": "https://www.craincurrency.com/news/ccr-spotify-lorentzon-says-he-leave-sweden-if-wealth-tax-imposed/",
+      "country_iso2": "SE",
+      "title": "Spotify\u2019s Lorentzon says he\u2019d leave Sweden if wealth tax imposed - Crain Currency",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b13",
+      "url": "https://www2.fundsforngos.org/science/open-call-project-grants-in-bioscience-and-basic-biomedicine-denmark/",
+      "country_iso2": "DK",
+      "title": "Open Call: Project Grants in Bioscience and Basic Biomedicine (Denmark) - fundsforNGOs",
+      "stratum": "all rejected",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant"
+      }
+    },
+    {
+      "id": "b14",
+      "url": "https://www.bloomberg.com/news/articles/2026-08-27/mizuho-files-case-against-radiant-world-in-singapore-court",
+      "country_iso2": "SG",
+      "title": "Mizuho Files Case Against Radiant World in Singapore Court - Bloomberg.com",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b15",
+      "url": "https://manufacturing.economictimes.indiatimes.com/news/aerospace-defence/india-stabilising-factor-useful-counterweight-to-chinas-dominance-in-asia-belgium-defence-minister/133742529",
+      "country_iso2": "BE",
+      "title": "India stabilising factor, useful counterweight to China's dominance in Asia: Belgium Defence Minister - ET Manufacturing",
+      "stratum": "all rejected",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant"
+      }
+    },
+    {
+      "id": "b16",
+      "url": "https://www.jpost.com/middle-east/article-908720",
+      "country_iso2": "IL",
+      "title": "IDF arrests Press TV journalist in West Bank, handing her to Israel Police - The Jerusalem Post",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b17",
+      "url": "https://www.reuters.com/world/asia-pacific/japan-revises-q2-gdp-up-annualised-14-expansion-2026-09-07/",
+      "country_iso2": "JP",
+      "title": "Japan upgrades Q2 GDP on slight capex improvement - Reuters",
+      "stratum": "all accepted",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural"
+      }
+    },
+    {
+      "id": "b18",
+      "url": "https://www.fiercebiotech.com/biotech/china-targets-25-share-global-first-class-drugs-new-5-year-plan",
+      "country_iso2": "CN",
+      "title": "China targets 25% share of global first-in-class drugs in new 5-year plan - Fierce Biotech",
+      "stratum": "all accepted",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural"
+      }
+    },
+    {
+      "id": "b19",
+      "url": "https://www.bloomberg.com/news/articles/2026-09-22/brazil-election-lula-warns-against-meddling-at-un-as-trump-looms-over-vote",
+      "country_iso2": "BR",
+      "title": "Lula Warns Against Election Meddling at UN as Trump Looms Over Vote - Bloomberg.com",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b20",
+      "url": "https://www.helsinkitimes.fi/finland/finland-news/domestic/29302-finland-s-supreme-court-backs-police-use-of-force-to-remove-hijabs.html",
+      "country_iso2": "FI",
+      "title": "Finland\u2019s Supreme Court backs police use of force to remove hijabs - Helsinki Times",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b21",
+      "url": "https://www.business-humanrights.org/my/latest-news/france-court-rules-volvics-carbon-neutral-claims-misleading-danone-to-appeal/",
+      "country_iso2": "FR",
+      "title": "France: Court rules Volvic's \"carbon neutral\" claims misleading, Danone to appeal - Business and Human Rights Centre",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b22",
+      "url": "https://latinamericareports.com/chile-students-protest-right-wing-political-forum-as-milei-defends-pinochet/15183/",
+      "country_iso2": "CL",
+      "title": "Chile students protest right-wing political forum as Milei defends Pinochet - Latin America Reports",
+      "stratum": "all accepted",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural"
+      }
+    },
+    {
+      "id": "b23",
+      "url": "https://www.scmp.com/news/china/military/article/3367883/warning-against-japans-military-build-surfaces-beijing-xiangshan-conference",
+      "country_iso2": "JP",
+      "title": "Warning against Japan\u2019s military build-up surfaces at Beijing security conference - South China Morning Post",
+      "stratum": "all accepted",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural"
+      }
+    },
+    {
+      "id": "b24",
+      "url": "https://usafacts.org/answers/what-is-the-average-us-tariff-rate-overall/countries/australia/",
+      "country_iso2": "AU",
+      "title": "What is the average US tariff rate for Australia? - USA Facts",
+      "stratum": "all rejected",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant"
+      }
+    },
+    {
+      "id": "b25",
+      "url": "https://www.reuters.com/world/china/hong-kong-court-jails-two-tiananmen-vigil-group-leaders-7-years-2026-09-11/",
+      "country_iso2": "HK",
+      "title": "Hong Kong court jails two Tiananmen vigil group leaders for 7 years - Reuters",
+      "stratum": "on the incident line",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident"
+      }
+    },
+    {
+      "id": "b26",
+      "url": "https://simpleflying.com/airbus-a321-abandoned-switzerland-4-years-why/",
+      "country_iso2": "CH",
+      "title": "This Airbus A321 Has Been Sitting Abandoned In Switzerland For Over 4 Years: Here\u2019s Why - Simple Flying",
+      "stratum": "all rejected",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant"
+      }
+    },
+    {
+      "id": "b27",
+      "url": "https://qazinform.com/news/brazil-introduces-tax-incentives-to-attract-data-center-investment-f74a74",
+      "country_iso2": "BR",
+      "title": "Brazil introduces tax incentives to attract data center investment - Qazinform",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b28",
+      "url": "https://www.chinadailyasia.com/article/639922",
+      "country_iso2": "ID",
+      "title": "Chinese military to participate in exercise in Indonesia - chinadailyasia.com",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "irrelevant",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b29",
+      "url": "https://www.tradingview.com/news/seekingalpha:bbb764728094b:0-jpmorgan-to-step-up-investment-in-india-s-gift-city-branch-report/",
+      "country_iso2": "IN",
+      "title": "JPMorgan to step up investment in India's GIFT City branch - report - TradingView",
+      "stratum": "models disagreed",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "incident",
+        "gpt-4.1-mini-2025-04-14": "structural",
+        "gpt-4.1-nano-2025-04-14": "irrelevant"
+      }
+    },
+    {
+      "id": "b30",
+      "url": "https://www.bushcenter.org/publications/u-s-colombia-policy-should-reinforce-democratic-institutions-rule-of-law-to-restore-security",
+      "country_iso2": "CO",
+      "title": "U.S.-Colombia policy should reinforce democratic institutions, rule of law to restore security - George W. Bush Presidential Center",
+      "stratum": "all accepted",
+      "labels": {
+        "gpt-4o-mini-2024-07-18": "structural"
+      }
+    }
+  ],
+  "replacements": [
+    {
+      "id": "b01",
+      "date": "2026-09-25",
+      "removed_url": "https://www.telecompaper.com/news/3-ireland-funds-trial-to-restrict-smartphone-use-in-schools--1583434",
+      "reason": "Telecompaper body is a registration wall, not the article; the publisher is now denylisted. Replaced from the same stratum, same baseline-only rule, drawn from the roster-run census, excluding denylisted publishers and wall-like bodies."
+    }
+  ]
+}
