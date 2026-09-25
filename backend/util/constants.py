@@ -235,8 +235,8 @@ CURATED_CODES: tuple[str, ...] = tuple(
 
 # Display label -> registry code. `IMF_RECENT_INDICATORS` is keyed by the
 # World Bank display name, which is how the sub-annual refresh used to join to
-# `recent_indicator`; this is what turns that name back into a code the series
-# can be keyed on.
+# the retired `recent_indicator` table; this is what turns that name back into a
+# code the series can be keyed on.
 CODE_BY_LABEL: dict[str, str] = {
     spec["label"]: code for code, spec in INDICATOR_REGISTRY.items()
 }
@@ -264,9 +264,8 @@ UNITS: dict[str, str] = {
 # The World Bank series above are ANNUAL and published with a 1–2 year lag, so a
 # country in the middle of a fast-moving shock (e.g. Argentina inflation) shows a
 # badly stale headline. A handful of those indicators DO exist at monthly/quarterly
-# frequency from the IMF, so we refresh just those into the `recent_indicator`
-# table; the front-end prefers that fresher value and falls back to the WB annual
-# one when absent.
+# frequency from the IMF, so we refresh just those into `indicator_series` at
+# their own monthly or quarterly period, beside the WB annual series.
 #
 # NOTE: the legacy IFS SDMX host (dataservices.imf.org) was RETIRED. The current
 # IMF Data API is SDMX 2.1 at api.imf.org/external/sdmx/2.1, where the country
@@ -277,11 +276,11 @@ UNITS: dict[str, str] = {
 # manual y/y math is needed.
 IMF_DATA_ENDPOINT: str = "https://api.imf.org/external/sdmx/2.1/data"
 
-# Map of WB display name (matches `indicator.name` / NICE_NAME) -> IMF query spec:
+# Map of WB display name (the NICE_NAME label) -> IMF query spec:
 #   dataflow — SDMX dataflow id (dataset)
 #   key      — dot-separated series key with an "{iso3}" placeholder
 #   freq     — observation frequency code stored alongside the value ('M'|'Q'|'A')
-#   unit     — unit string persisted to recent_indicator
+#   unit     — unit string persisted to indicator_series
 # Only Inflation is wired today. GDP and Unemployment are deliberately NOT included:
 # IMF quarterly GDP (QGDP_WCA) is a group-based, multi-attribute cube with no
 # pre-computed y/y and patchy emerging-market coverage, and annual national

@@ -427,10 +427,10 @@ def run_etl(
         print(f"[econ-calendar] ERROR: {e}")
 
     # 0c) Refresh fast-moving indicators (Inflation) from the IMF at monthly
-    #     frequency into `recent_indicator`. World Bank values are annual and lag
-    #     1–2 years; the front-end prefers this fresher value and falls back to the
-    #     WB annual one when a country has no IMF observation. Guarded per-country
-    #     so an IMF gap or outage never blocks the risk loop below.
+    #     frequency into `indicator_series`. World Bank values are annual and lag
+    #     1–2 years, so the sub-annual observation sits beside them at its own
+    #     period. Guarded per-country so an IMF gap or outage never blocks
+    #     the risk loop below.
     if constants.IMF_RECENT_INDICATORS:
         refreshed = 0
         for c in roster:

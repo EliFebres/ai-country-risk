@@ -6,8 +6,8 @@ country mid-shock shows a badly stale headline (e.g. Argentina inflation reading
 the 2024 annual average of ~220% when the current monthly y/y print is ~32%).
 A few of those indicators exist at monthly/quarterly frequency from the IMF; this
 module fetches the **freshest observation** for each one configured in
-``constants.IMF_RECENT_INDICATORS`` so the rest of the pipeline can store it in
-``recent_indicator`` and let the front-end prefer it over the annual value.
+``constants.IMF_RECENT_INDICATORS`` so the pipeline can store it in
+``indicator_series`` beside the annual values, at its own sub-annual period.
 
 Source: the current IMF Data API (SDMX 2.1) at ``constants.IMF_DATA_ENDPOINT``.
 The legacy IFS host (``dataservices.imf.org``) was retired. The country dimension
