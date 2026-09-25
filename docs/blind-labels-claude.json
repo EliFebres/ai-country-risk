@@ -1,0 +1,41 @@
+{
+  "_note": "SEALED. Claude's labels for the v2 blind 30. Do not read before Eli's labels are committed.",
+  "labeller": "Claude (claude-opus-5-5), 2026-09-25",
+  "method": "Labelled from the full stored text of each article, before the labelling page was built, with no classifier label, stratum or model verdict displayed while drawing or reading.",
+  "known_exposure": [
+    "b14: the replacement draw printed that the two extra gate models were run on it, which revealed that b14 sits in the 'models disagreed' stratum (a contested case). No label was seen.",
+    "b01 and b04 report the same story (the killing of a Peruvian regional candidate) from two publishers."
+  ],
+  "labels": {
+    "b01": "incident",
+    "b02": "incident",
+    "b03": "structural",
+    "b04": "incident",
+    "b05": "incident",
+    "b06": "incident",
+    "b07": "structural",
+    "b08": "incident",
+    "b09": "irrelevant",
+    "b10": "structural",
+    "b11": "incident",
+    "b12": "structural",
+    "b13": "structural",
+    "b14": "irrelevant",
+    "b15": "structural",
+    "b16": "incident",
+    "b17": "irrelevant",
+    "b18": "structural",
+    "b19": "structural",
+    "b20": "incident",
+    "b21": "incident",
+    "b22": "structural",
+    "b23": "structural",
+    "b24": "incident",
+    "b25": "incident",
+    "b26": "irrelevant",
+    "b27": "irrelevant",
+    "b28": "structural",
+    "b29": "structural",
+    "b30": "irrelevant"
+  }
+}
