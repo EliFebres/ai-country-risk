@@ -518,13 +518,6 @@ def run_etl(
                     f"hold a story another selected article also tells"
                 )
 
-            # Keep the evidence. Without it a score is unauditable after the
-            # fact and last week's scoring cannot be re-run on what it saw.
-            try:
-                store.upsert_articles(_article_rows(candidates, iso2))
-            except Exception as e:
-                print(f"[{iso2}] could not store articles: {e}")
-
             # 2c) Stage one: digest every admitted article, and mark the top
             #     few to be read in full. Breadth from the digests, depth from
             #     three — twenty full bodies is unaffordable and twenty headlines
@@ -537,6 +530,21 @@ def run_etl(
                 it["body_status"] = status
                 it["body_clipped"] = clipped
                 it["body_chars_original"] = original
+
+            # Keep the evidence. Without it a score is unauditable after the
+            # fact and last week's scoring cannot be re-run on what it saw.
+            # Written after the statuses above are set, and with the selected
+            # copies in place of the candidates they came from: stored before,
+            # the three read in full were recorded as 'digest-only', and the
+            # manifest and the table disagreed about what the model read.
+            try:
+                read = {(it.get("publisher_link") or it.get("link")): it for it in items}
+                store.upsert_articles(_article_rows(
+                    [read.get(c.get("publisher_link") or c.get("link"), c) for c in candidates],
+                    iso2,
+                ))
+            except Exception as e:
+                print(f"[{iso2}] could not store articles: {e}")
 
             digested = digest_engine.digest_articles(items, meter=run_meter)
             for it in items:
