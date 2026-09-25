@@ -10,9 +10,9 @@
   "rows": [
     {
       "id": "b01",
-      "url": "https://www.telecompaper.com/news/3-ireland-funds-trial-to-restrict-smartphone-use-in-schools--1583434",
-      "country_iso2": "IE",
-      "title": "3 Ireland funds trial to restrict smartphone use in schools - Telecompaper",
+      "url": "https://time.com/article/2026/09/17/russian-sanctions-bill-trump-new-tariffs-power-democrats-backlash/",
+      "country_iso2": "RU",
+      "title": "Democratic Leaders Fear the New Russia Sanctions Bill Could 'Harm' Americans. Here's Why - Time Magazine",
       "stratum": "all rejected",
       "labels": {
         "gpt-4o-mini-2024-07-18": "irrelevant"
@@ -325,6 +325,14 @@
       "labels": {
         "gpt-4o-mini-2024-07-18": "structural"
       }
+    }
+  ],
+  "replacements": [
+    {
+      "id": "b01",
+      "date": "2026-09-25",
+      "removed_url": "https://www.telecompaper.com/news/3-ireland-funds-trial-to-restrict-smartphone-use-in-schools--1583434",
+      "reason": "Telecompaper body is a registration wall, not the article; the publisher is now denylisted. Replaced from the same stratum, same baseline-only rule, drawn from the roster-run census, excluding denylisted publishers and wall-like bodies."
     }
   ]
 }
