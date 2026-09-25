@@ -146,6 +146,16 @@ def old_selection(rows: List[Dict[str, Any]], country_name: str) -> Dict[str, An
     }
 
 
+def _pool_urls(iso2: str) -> List[str]:
+    """Every candidate URL in the country's latest scored run."""
+    recent = store.read_recent_snapshots(iso2, limit=1)
+    if not recent:
+        return []
+    census = (recent[0].get("manifest") or {}).get("census") or {}
+    return [r["url"] for r in (census.get("articles") or {}).get("gate_labels", [])
+            if r.get("url")]
+
+
 def report(countries: List[str]) -> Dict[str, Any]:
     """Print the old selection for each country, titles and publishers."""
     names = constants.COUNTRY_NAME_BY_ISO2
@@ -157,7 +167,10 @@ def report(countries: List[str]) -> Dict[str, Any]:
             print(f"{iso2}: not in the roster, skipped")
             continue
 
-        rows = store.read_articles(iso2)
+        # The pool is every candidate the country's latest run labelled. The
+        # article table does not know which country a story was evidence for;
+        # the census does.
+        rows = list(store.read_articles(_pool_urls(iso2)).values())
         if not rows:
             print(f"{iso2}: no stored candidates — run the ETL for it first")
             continue

@@ -42,6 +42,7 @@ __all__ = [
     "write_artifacts",
     "upsert_articles",
     "read_articles",
+    "read_articles_by_hash",
     "upsert_indicator_series",
     "read_indicator_series",
     "upsert_snapshot",
@@ -167,25 +168,33 @@ def write_artifacts(
 # --- The article corpus -----------------------------------------------------
 
 _ARTICLE_COLUMNS = (
-    "url", "wrapper_url", "country_iso2", "source_system", "publisher",
+    "url", "content_sha256", "wrapper_url", "source_system", "publisher",
     "published_at", "page_published_at", "title", "abstract", "body",
-    "content_sha256", "body_status", "body_chars_original", "body_clipped",
-    "themes",
+    "body_chars_original", "body_clipped", "harvested_at", "created_at",
 )
+_ARTICLE_WRITTEN = _ARTICLE_COLUMNS[:-2]
 
 
 def upsert_articles(rows: Iterable[Dict[str, Any]]) -> int:
-    """Store articles, keyed by resolved URL. Returns the number offered.
+    """Store articles, keyed by resolved URL and the hash of the body read.
+    Returns the number offered.
 
-    A body beats a stub: the update clause keeps whatever text it already has
-    when a row arrives without one, so a later pass that only knows the headline
-    cannot erase a body an earlier pass paid to fetch.
+    A body is never overwritten. The same URL with a different body is a new
+    row, so the text an earlier manifest points at is still there when that
+    week is reconstructed. On a repeat of the same (url, hash) only the
+    metadata is refreshed, and only where the new row knows something.
     """
     batch: List[Tuple] = []
+    seen = set()
     for r in rows:
-        if not r.get("url") or not r.get("country_iso2"):
+        if not r.get("url"):
             continue
-        batch.append(tuple(r.get(c) for c in _ARTICLE_COLUMNS))
+        r = {**r, "content_sha256": r.get("content_sha256") or ""}
+        key = (r["url"], r["content_sha256"])
+        if key in seen:
+            continue  # one statement cannot touch the same row twice
+        seen.add(key)
+        batch.append(tuple(r.get(c) for c in _ARTICLE_WRITTEN))
     if not batch:
         return 0
 
@@ -196,21 +205,13 @@ def upsert_articles(rows: Iterable[Dict[str, Any]]) -> int:
             extras.execute_values(
                 cur,
                 f"""
-                INSERT INTO article ({", ".join(_ARTICLE_COLUMNS)})
+                INSERT INTO article ({", ".join(_ARTICLE_WRITTEN)})
                 VALUES %s
-                ON CONFLICT (url) DO UPDATE SET
-                    title               = COALESCE(EXCLUDED.title, article.title),
-                    abstract            = COALESCE(EXCLUDED.abstract, article.abstract),
-                    body                = COALESCE(EXCLUDED.body, article.body),
-                    content_sha256      = COALESCE(EXCLUDED.content_sha256, article.content_sha256),
-                    page_published_at   = COALESCE(EXCLUDED.page_published_at, article.page_published_at),
-                    body_chars_original = COALESCE(EXCLUDED.body_chars_original, article.body_chars_original),
-                    body_clipped        = EXCLUDED.body_clipped,
-                    themes              = EXCLUDED.themes,
-                    body_status         = CASE
-                        WHEN EXCLUDED.body IS NOT NULL THEN EXCLUDED.body_status
-                        ELSE article.body_status
-                    END
+                ON CONFLICT (url, content_sha256) DO UPDATE SET
+                    title             = COALESCE(EXCLUDED.title, article.title),
+                    abstract          = COALESCE(EXCLUDED.abstract, article.abstract),
+                    publisher         = COALESCE(EXCLUDED.publisher, article.publisher),
+                    page_published_at = COALESCE(EXCLUDED.page_published_at, article.page_published_at)
                 """,
                 batch,
             )
@@ -223,28 +224,50 @@ def upsert_articles(rows: Iterable[Dict[str, Any]]) -> int:
         conn.close()
 
 
-def read_articles(country_iso2: str, *, limit: Optional[int] = None) -> List[Dict[str, Any]]:
-    """Stored articles for one country, newest first.
-
-    What makes a scoring re-run possible: last week's evidence as it stood,
-    rather than a re-fetch of a different week.
-    """
+def _select_articles(where: str, params: Tuple) -> List[Dict[str, Any]]:
     conn = db.connect()
     try:
         with conn.cursor() as cur:
             cur.execute(
-                f"""
-                SELECT {", ".join(_ARTICLE_COLUMNS)}
-                  FROM article
-                 WHERE country_iso2 = %s
-                 ORDER BY COALESCE(page_published_at, published_at) DESC NULLS LAST
-                 {"LIMIT %s" if limit else ""}
-                """,
-                (country_iso2, limit) if limit else (country_iso2,),
+                f"SELECT {', '.join(_ARTICLE_COLUMNS)} FROM article WHERE {where}",
+                params,
             )
             return [dict(zip(_ARTICLE_COLUMNS, r)) for r in cur.fetchall()]
     finally:
         conn.close()
+
+
+def read_articles(urls: Iterable[str]) -> Dict[str, Dict[str, Any]]:
+    """The latest stored version of each URL, preferring one with a body.
+
+    Keyed by URL. The list of URLs comes from a manifest or a census — the
+    article table no longer knows which country a story was evidence for.
+    """
+    urls = sorted({u for u in urls if u})
+    if not urls:
+        return {}
+    out: Dict[str, Dict[str, Any]] = {}
+    for row in _select_articles("url = ANY(%s)", (urls,)):
+        have = out.get(row["url"])
+        rank = (row["body"] is not None, row["created_at"])
+        if have is None or rank > (have["body"] is not None, have["created_at"]):
+            out[row["url"]] = row
+    return out
+
+
+def read_articles_by_hash(hashes: Iterable[str]) -> Dict[str, Dict[str, Any]]:
+    """Stored bodies keyed by the hash of the text that was read.
+
+    What reconstruction uses: a manifest names the hash of each body the model
+    read, and that exact text is what has to still exist.
+    """
+    hashes = sorted({h for h in hashes if h})
+    if not hashes:
+        return {}
+    return {
+        row["content_sha256"]: row
+        for row in _select_articles("content_sha256 = ANY(%s)", (hashes,))
+    }
 
 
 # --- The macro record -------------------------------------------------------

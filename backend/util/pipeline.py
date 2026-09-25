@@ -138,8 +138,22 @@ def _fetch_candidate_pool(country_name: str, iso2: str) -> Tuple[List[Dict], Dic
     return pool["items"], pool["report"]
 
 
-def _article_rows(articles: List[Dict], iso2: str) -> List[Dict]:
-    """Build `article` rows for the evidence store."""
+def _body_hash(a: Dict) -> str:
+    """The hash of the body as read, or '' when there was none.
+
+    The article's key alongside its URL, and what the manifest records so a
+    week can find the exact text it read.
+    """
+    body = (a.get("text") or "")[:digest_engine.BODY_CAP_CHARS]
+    return hashing.content_hash(body) if body else ""
+
+
+def _article_rows(articles: List[Dict]) -> List[Dict]:
+    """Build `article` rows for the evidence store.
+
+    Only facts about the article. The country, how it was read and which theme
+    query found it belong to the run, and go in the manifest.
+    """
     rows = []
     for a in articles:
         url = a.get("publisher_link") or a.get("link")
@@ -148,25 +162,17 @@ def _article_rows(articles: List[Dict], iso2: str) -> List[Dict]:
         body = a.get("text") or ""
         rows.append({
             "url": url,
+            "content_sha256": _body_hash(a),
             "wrapper_url": a.get("link"),
-            "country_iso2": iso2,
             "source_system": "google-news",
             "publisher": a.get("source"),
             "published_at": a.get("published"),
             "page_published_at": a.get("page_published_at"),
             "title": a.get("title"),
             "abstract": a.get("snippet"),
-            # The hash covers what was actually read, not what was fetched: a
-            # cache keyed on the full article would serve a digest of words the
-            # model never saw.
             "body": (body[:digest_engine.BODY_CAP_CHARS] or None),
-            "content_sha256": (
-                hashing.content_hash(body[:digest_engine.BODY_CAP_CHARS]) if body else None
-            ),
-            "body_status": a.get("body_status") or ("digest-only" if body else "title-only"),
             "body_chars_original": a.get("body_chars_original", len(body)) or None,
             "body_clipped": bool(a.get("body_clipped", len(body) > digest_engine.BODY_CAP_CHARS)),
-            "themes": a.get("themes") or [],
         })
     return rows
 
@@ -533,16 +539,8 @@ def run_etl(
 
             # Keep the evidence. Without it a score is unauditable after the
             # fact and last week's scoring cannot be re-run on what it saw.
-            # Written after the statuses above are set, and with the selected
-            # copies in place of the candidates they came from: stored before,
-            # the three read in full were recorded as 'digest-only', and the
-            # manifest and the table disagreed about what the model read.
             try:
-                read = {(it.get("publisher_link") or it.get("link")): it for it in items}
-                store.upsert_articles(_article_rows(
-                    [read.get(c.get("publisher_link") or c.get("link"), c) for c in candidates],
-                    iso2,
-                ))
+                store.upsert_articles(_article_rows(candidates))
             except Exception as e:
                 print(f"[{iso2}] could not store articles: {e}")
 
@@ -792,7 +790,9 @@ def run_etl(
                     "selected": [
                         {"id": a.get("id"),
                          "url": a.get("publisher_link") or a.get("link"),
-                         "body_status": a.get("body_status")}
+                         "content_sha256": _body_hash(a),
+                         "body_status": a.get("body_status"),
+                         "themes": a.get("themes") or []}
                         for a in items
                     ],
                     "rejected": gate["rejected"],

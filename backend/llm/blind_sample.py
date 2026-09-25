@@ -99,10 +99,9 @@ def _gather(countries: Sequence[str]) -> Dict[str, Dict[str, Any]]:
         }
         if not verdicts:
             continue
-        for row in store.read_articles(iso2):
-            url = row.get("url")
-            verdict = verdicts.get(url)
-            if not verdict or not (row.get("title") or "").strip():
+        for url, row in store.read_articles(verdicts).items():
+            verdict = verdicts[url]
+            if not (row.get("title") or "").strip():
                 continue
             out[url] = {
                 "url": url,
@@ -110,7 +109,7 @@ def _gather(countries: Sequence[str]) -> Dict[str, Dict[str, Any]]:
                 "country": constants.COUNTRY_NAME_BY_ISO2.get(iso2, iso2),
                 "title": (row.get("title") or "").strip(),
                 "publisher": (row.get("publisher") or "").strip() or "(unknown)",
-                "themes": row.get("themes") or [],
+                "themes": verdict.get("themes") or [],
                 "body": row.get("body") or row.get("abstract") or "",
                 "published": str(row.get("page_published_at") or row.get("published_at") or "")[:10],
                 "baseline_label": verdict.get("label"),

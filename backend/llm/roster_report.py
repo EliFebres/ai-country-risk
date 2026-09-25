@@ -146,7 +146,7 @@ def noise_that_got_through(run: Dict[str, Any]) -> List[Dict[str, Any]]:
             continue
         # `gate_labels` carries the verdict, not the headline, so the titles
         # come from the stored articles.
-        stored = {r["url"]: r for r in store.read_articles(iso2)}
+        stored = store.read_articles(labels)
         for url, row in labels.items():
             if row.get("label") != "structural":
                 continue

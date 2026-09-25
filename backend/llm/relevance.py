@@ -504,6 +504,9 @@ def select(
             "reason": verdict.get("reason", ""),
             "ledgers": verdict.get("ledgers", []),
             "is_structural_event": bool(verdict.get("is_structural_event")),
+            # Which theme queries found it, for this country. A fact about the
+            # run, so it is kept here rather than on the article.
+            "themes": article.get("themes") or [],
         })
 
     return {

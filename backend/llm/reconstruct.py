@@ -9,8 +9,9 @@ a number with a story attached rather than evidence.
 
 The rule the check enforces: **everything comes from the manifest and the
 tables**. Nothing is re-fetched, nothing is recomputed from today's registry,
-and no value is taken from the run. Where the manifest names an article, the
-article must be in `article`; where it names an indicator at a period and an
+and no value is taken from the run. Where the manifest says an article was read
+with a body, a body with that content hash must be in `article`; where it names
+an indicator at a period and an
 `as_of`, that exact row must be in `indicator_series`.
 
     python -m backend.llm.reconstruct --country PT
@@ -55,26 +56,32 @@ def reconstruct(iso2: str, run_date: dt.date) -> Dict[str, Any]:
     ))
 
     # --- the articles ------------------------------------------------------
+    # The manifest is the record of what was read: each entry names the hash
+    # of the body the model saw and how it was read. The article table is only
+    # asked whether that text still exists. It is not asked which country the
+    # story belongs to, or how it was read, because neither is a fact about
+    # the article.
     selected = manifest.get("selected") or []
-    stored = {a["url"]: a for a in store.read_articles(iso2)}
-    found = [s for s in selected if s.get("url") in stored]
-    missing = [s.get("url") for s in selected if s.get("url") not in stored]
+    unhashed = [s.get("url") for s in selected
+                if s.get("body_status") != "title-only" and not s.get("content_sha256")]
     checks.append(_check(
-        "every selected article is still in `article`",
-        not missing,
-        f"{len(found)}/{len(selected)} found"
-        + (f"; missing {missing[:3]}" if missing else ""),
+        "every article read with a body names its hash",
+        not unhashed,
+        f"{len(unhashed)} without one" + (f"; {unhashed[:3]}" if unhashed else ""),
     ))
 
-    body_mismatch = [
-        s["url"] for s in found_pairs(selected, stored)
-        if s is not None
-    ]
+    bodies = store.read_articles_by_hash(s.get("content_sha256") for s in selected)
+    needs_body = [s for s in selected if s.get("body_status") != "title-only"]
+    missing = [s.get("url") for s in needs_body
+               if not (bodies.get(s.get("content_sha256") or "") or {}).get("body")]
     checks.append(_check(
-        "stored body_status matches the manifest",
-        not body_mismatch,
-        f"{len(body_mismatch)} disagree" if body_mismatch else "all agree",
+        "a stored body exists for every article the manifest says was read",
+        not missing,
+        f"{len(needs_body) - len(missing)}/{len(needs_body)} found "
+        f"({len(selected) - len(needs_body)} title-only)"
+        + (f"; missing {missing[:3]}" if missing else ""),
     ))
+    by_url = store.read_articles(s.get("url") for s in selected)
 
     # --- the indicators ----------------------------------------------------
     wanted = manifest.get("indicators") or []
@@ -139,8 +146,9 @@ def reconstruct(iso2: str, run_date: dt.date) -> Dict[str, Any]:
         "country": iso2,
         "run_date": str(run_date),
         "articles": [
-            {"id": s.get("id"), "title": stored.get(s.get("url"), {}).get("title"),
-             "publisher": stored.get(s.get("url"), {}).get("publisher"),
+            {"id": s.get("id"), "title": by_url.get(s.get("url"), {}).get("title"),
+             "publisher": by_url.get(s.get("url"), {}).get("publisher"),
+             "content_sha256": s.get("content_sha256"),
              "body_status": s.get("body_status")}
             for s in selected
         ],
@@ -152,16 +160,6 @@ def reconstruct(iso2: str, run_date: dt.date) -> Dict[str, Any]:
         },
     }
     return {"ok": all(c["ok"] for c in checks), "checks": checks, "rebuilt": rebuilt}
-
-
-def found_pairs(selected, stored):
-    """Manifest entries whose stored `body_status` disagrees with the manifest."""
-    out = []
-    for s in selected:
-        row = stored.get(s.get("url"))
-        if row and s.get("body_status") and row.get("body_status") != s["body_status"]:
-            out.append(s)
-    return out
 
 
 def report(iso2: str, run_date: Optional[dt.date] = None) -> Dict[str, Any]:

@@ -256,18 +256,19 @@ class TestArtifactCache:
 
 
 class TestArticleStore:
-    def test_a_row_without_a_country_is_not_stored(self, monkeypatch):
-        """`country_iso2` is what every downstream read filters on."""
+    def test_a_row_without_a_url_is_not_stored(self, monkeypatch):
+        """The URL is half the key. The country is not stored at all: it is a
+        fact about the run, and lives in the manifest."""
         from backend.data_upsert import store
 
         def boom():
             raise AssertionError("opened a connection for nothing to write")
 
         monkeypatch.setattr(store.db, "connect", boom)
-        assert store.upsert_articles([{"url": "http://x", "body_status": "full"}]) == 0
-        assert store.upsert_articles([{"country_iso2": "PT"}]) == 0
+        assert store.upsert_articles([{"title": "x", "body": "text"}]) == 0
 
-    def test_a_later_stub_cannot_erase_a_body_already_paid_for(self, monkeypatch):
+    def test_a_changed_body_is_a_new_row_and_never_an_overwrite(self, monkeypatch):
+        """Last week's manifest points at last week's text by its hash."""
         from backend.data_upsert import store
 
         cur = _FakeCursor()
@@ -279,8 +280,9 @@ class TestArticleStore:
             lambda c, sql, rows: captured.update(sql=" ".join(sql.split())),
         )
 
-        store.upsert_articles(
-            [{"url": "http://x", "country_iso2": "PT", "body_status": "title-only"}]
-        )
-        assert "body = COALESCE(EXCLUDED.body, article.body)" in captured["sql"]
-        assert "WHEN EXCLUDED.body IS NOT NULL THEN EXCLUDED.body_status" in captured["sql"]
+        store.upsert_articles([{"url": "http://x", "content_sha256": "abc", "body": "t"}])
+        assert "ON CONFLICT (url, content_sha256)" in captured["sql"]
+        update = captured["sql"].split("DO UPDATE SET", 1)[1]
+        assert "body" not in update.replace("body_", "")
+        assert "country_iso2" not in captured["sql"]
+        assert "body_status" not in captured["sql"]

@@ -62,8 +62,9 @@ STAMPED_FIELDS: Tuple[str, ...] = (
     "payload_fingerprint",
 )
 
+#: How a run read an article. Recorded per article in the manifest, never on
+#: the `article` row: it is a fact about the run.
 BODY_STATUSES = ("full", "clipped", "digest-only", "title-only")
-_STATUSES_SQL = ", ".join(f"'{s}'" for s in BODY_STATUSES)
 
 # `rewrite` has no writer yet — it is the masking layer's kind, present in the
 # CHECK so that switching masking on later is not a schema change.
@@ -98,14 +99,25 @@ CREATE TABLE IF NOT EXISTS country (
 
 # --- 2. The evidence --------------------------------------------------------
 
-ARTICLE = f"""
+ARTICLE = """
 CREATE TABLE IF NOT EXISTS article (
+    -- Only what is true of the article whatever run read it. Which country it
+    -- was evidence for, how it was read and which query found it are facts
+    -- about a run, and live in that run's manifest: stored here, one Greenland
+    -- story "belonged" to Denmark when the US run read it, and a week that read
+    -- a headline overwrote the status of a week that read the body.
+    --
     -- The resolved publisher link. The Google News wrapper is not identity:
     -- one story arrives under several wrappers, and deduping on the wrapper let
     -- a single story take three of twenty slots.
-    url                 TEXT PRIMARY KEY,
+    url                 TEXT NOT NULL,
+    -- The hash of what was read, not of what was fetched: when a body is
+    -- clipped this covers the clipped text, so a cache keyed on the full
+    -- article cannot serve a digest of words the model never saw. In the key,
+    -- so a re-fetched body that changed is a new row and the text last week's
+    -- manifest points at survives. '' when no body was fetched.
+    content_sha256      TEXT NOT NULL DEFAULT '',
     wrapper_url         TEXT,
-    country_iso2        TEXT NOT NULL,
     source_system       TEXT NOT NULL DEFAULT 'google-news',
     publisher           TEXT,
     -- The feed's date and the page's own date, kept apart because a
@@ -116,17 +128,11 @@ CREATE TABLE IF NOT EXISTS article (
     title               TEXT,
     abstract            TEXT,
     body                TEXT,
-    -- The hash of what was read, not of what was fetched: when a body is
-    -- clipped this covers the clipped text, so a cache keyed on the full
-    -- article cannot serve a digest of words the model never saw.
-    content_sha256      TEXT,
-    body_status         TEXT NOT NULL DEFAULT 'title-only'
-                        CHECK (body_status IN ({_STATUSES_SQL})),
     body_chars_original INT,
     body_clipped        BOOLEAN NOT NULL DEFAULT FALSE,
-    themes              TEXT[],
     harvested_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (url, content_sha256)
 )
 """
 
@@ -381,8 +387,9 @@ TABLES: Dict[str, str] = {
 
 
 INDEXES: Tuple[str, ...] = (
-    "CREATE INDEX IF NOT EXISTS article_country_published_idx "
-    "ON article (country_iso2, published_at DESC)",
+    # Reconstruction looks a manifest's articles up by the hash of what was read.
+    "CREATE INDEX IF NOT EXISTS article_content_idx "
+    "ON article (content_sha256)",
     "CREATE INDEX IF NOT EXISTS llm_artifact_kind_idx "
     "ON llm_artifact (kind, mode, country_iso2)",
     "CREATE INDEX IF NOT EXISTS indicator_series_country_code_idx "
