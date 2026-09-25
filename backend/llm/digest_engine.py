@@ -113,6 +113,8 @@ Record:
     a paywall or subscribe page, a cookie or consent notice, a CAPTCHA or bot
     check, a "enable JavaScript" page, or an error page. A headline followed
     only by a wall is `not_article`.
+  A body that ends in a login, subscribe or registration prompt is at best
+  `partial`, never `full`, whatever comes before it.
 
 If the text is too short or too damaged to extract anything, say so in
 `what_happened` and leave the other fields empty. A thin digest that says it is
