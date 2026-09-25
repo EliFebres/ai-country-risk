@@ -229,7 +229,7 @@ that is a finding.
 
 ## 13. Four legacy tables remain until the week is verified — **closed 2026-09-25**
 
-Week one passed its six checks on dev on 2026-09-25 (run at `455650a`), and the
+Week one passed its six checks on dev on 2026-09-25 (final run at `519508b`), and the
 four tables were dumped to `backend/data/backups/2026-09-25-neondb-legacy-*.csv`
 and dropped from dev (`neondb` on `ep-round-brook`): `indicator` 11 rows,
 `yearly_value` 4,765, `recent_indicator` 46, `payload_census` 48. The database
