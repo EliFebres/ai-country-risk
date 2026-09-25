@@ -567,8 +567,9 @@ def run_etl(
             quality_mix: Dict[str, int] = {}
             for it in items:
                 status_mix[it["body_status"]] = status_mix.get(it["body_status"], 0) + 1
-                q = it["body_quality"] or "unassessed"
-                quality_mix[q] = quality_mix.get(q, 0) + 1
+                if (it.get("text") or "").strip():   # no body is counted as no_body
+                    q = it["body_quality"] or "unassessed"
+                    quality_mix[q] = quality_mix.get(q, 0) + 1
             print(
                 f"[digest] {iso2}: {dc['generated']} generated, {dc['cached']} cached, "
                 f"{dc['truncated_retry']} truncated-retry, {dc['failed']} failed, "
