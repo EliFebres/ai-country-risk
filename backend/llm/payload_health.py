@@ -163,9 +163,15 @@ def build_census(
     res = economics["resolution"]
 
     status_mix: Dict[str, int] = {}
+    quality_mix: Dict[str, int] = {}
     for a in selected:
         key = a.get("body_status", "title-only")
         status_mix[key] = status_mix.get(key, 0) + 1
+        # What the digest said each body is. `partial` and `not_article` are
+        # the walls it caught; `unassessed` is a body no digest vouched for.
+        if (a.get("text") or "").strip():
+            q = a.get("body_quality") or "unassessed"
+            quality_mix[q] = quality_mix.get(q, 0) + 1
 
     coverage = evidence_coverage(economics, selected, budget=budget)
 
@@ -210,6 +216,7 @@ def build_census(
             "per_theme_selected": gate["per_theme"],
             "per_ledger_selected": gate["per_ledger"],
             "body_status": status_mix,
+            "body_quality": quality_mix,
             "digests_generated": digests.get("generated", 0),
             "digests_cached": digests.get("cached", 0),
             "digests_clipped": status_mix.get("clipped", 0),
@@ -235,7 +242,7 @@ def format_census(census: Dict[str, Any]) -> str:
         f"[census]   articles fetched={art['fetched']} deduped={art['after_dedupe']} "
         f"passed={art['passed_gate']} selected={art['selected']}/{art['budget']} "
         f"rejected={art['rejected_by_label']}",
-        f"[census]   bodies {art['body_status']}  digests "
+        f"[census]   bodies {art['body_status']}  quality {art.get('body_quality', {})}  digests "
         f"{art['digests_generated']} new / {art['digests_cached']} cached / "
         f"{art['digests_truncated_retry']} truncated-retry",
         f"[census]   per-theme selected {art['per_theme_selected']}  "

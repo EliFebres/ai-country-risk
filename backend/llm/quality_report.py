@@ -63,6 +63,7 @@ def _manifest_state(manifest: Dict[str, Any]) -> Dict[str, Any]:
         "budget": articles.get("budget", 20) or 20,
         "per_ledger_selected": articles.get("per_ledger_selected") or {},
         "body_status": articles.get("body_status") or {},
+        "body_quality": articles.get("body_quality") or {},
         "digests_failed": articles.get("digests_failed", 0) or 0,
         "digests_truncated_retry": articles.get("digests_truncated_retry", 0) or 0,
         "resolved_by_ledger": indicators.get("resolved_by_ledger") or {},
@@ -230,6 +231,17 @@ def run_report(run_date: Optional[dt.date] = None) -> Dict[str, Any]:
         retries = sum(r["state"]["digests_truncated_retry"] for r in scored)
         print(f"[report] schema violations {violations} | digest failures "
               f"{failures} | truncated retries {retries}")
+        # The walls the digest caught, per country, so a run says how many
+        # bodies were a paywall or a registration form rather than the article.
+        caught = {
+            r["iso2"]: {q: n for q, n in (r["state"]["body_quality"] or {}).items()
+                        if q in ("partial", "not_article")}
+            for r in scored
+        }
+        caught = {k: v for k, v in caught.items() if v}
+        total = sum(sum(v.values()) for v in caught.values())
+        print(f"[report] walls caught by the digest: {total}"
+              + (f" — {caught}" if caught else ""))
 
     # Flags last, and hard to skip. An alarm nobody reads is the failure mode
     # this whole report is built against.

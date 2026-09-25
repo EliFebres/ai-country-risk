@@ -50,6 +50,7 @@ __all__ = [
     "digest_text",
     "digest_articles",
     "body_status_for",
+    "BODY_QUALITIES",
 ]
 
 
@@ -70,6 +71,12 @@ BODY_CAP_CHARS = 12_000
 
 # The second attempt after a length failure.
 RETRY_CHARS = 6_000
+
+
+#: What the digest says a stored body is. A general check for walls, done by
+#: the call that already reads every admitted body, so it catches any language
+#: and wording where a phrase list is English-only and a floor.
+BODY_QUALITIES = ("full", "partial", "not_article")
 
 
 DIGEST_PROMPT = """You are an extraction engine, not an analyst.
@@ -97,10 +104,20 @@ Record:
   quantity and what it measures, for example "inflation 4.2% in August" or
   "EUR 918 million pension bonus". Copy them; do not compute, convert, annualise
   or round. Empty list if the article states none.
+- `body_quality`: what the text in front of you actually is, in any language.
+  - `full`: the article, whole or near enough to read as one.
+  - `partial`: the article starts and is then cut off by a paywall, a
+    registration or login wall, or a subscribe prompt. Some reporting is there,
+    but not the whole piece.
+  - `not_article`: there is no article at all — a registration or login form,
+    a paywall or subscribe page, a cookie or consent notice, a CAPTCHA or bot
+    check, a "enable JavaScript" page, or an error page. A headline followed
+    only by a wall is `not_article`.
 
 If the text is too short or too damaged to extract anything, say so in
 `what_happened` and leave the other fields empty. A thin digest that says it is
-thin is useful; an invented one is not."""
+thin is useful; an invented one is not. For `not_article`, say in
+`what_happened` what the page is instead, and extract nothing from it."""
 
 
 DIGEST_SCHEMA: Dict[str, Any] = {
@@ -116,8 +133,13 @@ DIGEST_SCHEMA: Dict[str, Any] = {
                 "enum": ["improving", "deteriorating", "mixed", "unclear"],
             },
             "numbers": {"type": "array", "items": {"type": "string"}},
+            "body_quality": {
+                "type": "string",
+                "enum": ["full", "partial", "not_article"],
+            },
         },
-        "required": ["what_happened", "institutions", "direction", "numbers"],
+        "required": ["what_happened", "institutions", "direction", "numbers",
+                     "body_quality"],
     },
     "strict": True,
 }
@@ -126,20 +148,27 @@ DIGEST_SCHEMA: Dict[str, Any] = {
 DIGEST_PROMPT_VERSION = content_hash(DIGEST_PROMPT)
 
 
-def body_status_for(article: Dict[str, Any], *, full_text: bool) -> Tuple[str, bool, int]:
+def body_status_for(
+    article: Dict[str, Any], *, full_text: bool, quality: Optional[str] = None,
+) -> Tuple[str, bool, int]:
     """Return ``(body_status, clipped, original_chars)`` for one article.
 
     The status is honest about how much of the article was actually read, and it
     is told to the scorer: a judgement made from a headline is not a judgement
     made from the reporting, and a payload that hides the difference invites the
     model to treat them alike.
+
+    `quality` is the digest's `body_quality`. A body that is `not_article` is
+    no body at all and reads as `title-only`. A `partial` one is never read in
+    full, whatever its rank: a registration wall after a paragraph is not the
+    article, and a full read would present it as one.
     """
     body = article.get("text") or ""
     original = len(body)
-    if not body.strip():
+    if not body.strip() or quality == "not_article":
         return "title-only", False, original
     clipped = original > BODY_CAP_CHARS
-    if full_text:
+    if full_text and quality != "partial":
         return ("clipped" if clipped else "full"), clipped, original
     return "digest-only", clipped, original
 

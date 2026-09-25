@@ -273,8 +273,11 @@ def build_scoring_payload(
             }
         articles.append(entry)
 
+    # The bodies read in full are the ones marked so, not the first k by rank:
+    # a body the digest called partial or not_article is never sent as a full
+    # text, and the next article the digest vouched for takes its place.
     full_texts = []
-    for a in selected[:full_text_k]:
+    for a in [a for a in selected if a.get("body_status") in ("full", "clipped")][:full_text_k]:
         body = (a.get("text") or "")[:body_cap_chars]
         if not body.strip():
             continue

@@ -526,18 +526,34 @@ def run_etl(
                     f"hold a story another selected article also tells"
                 )
 
-            # 2c) Stage one: digest every admitted article, and mark the top
-            #     few to be read in full. Breadth from the digests, depth from
-            #     three — twenty full bodies is unaffordable and twenty headlines
-            #     throws away the reporting already paid for.
-            for rank, it in enumerate(items):
-                reads_full = rank < relevance.FULL_TEXT_K
+            # 2c) Stage one: digest every admitted article, then choose the few
+            #     to read in full. Breadth from the digests, depth from three —
+            #     twenty full bodies is unaffordable and twenty headlines throws
+            #     away the reporting already paid for.
+            #
+            #     The digest comes first because it says what each body is. Only
+            #     a body the digest calls `full` can be read in full, so the
+            #     three full reads go to the first three such articles in the
+            #     gate's order. A `partial` body (the article, cut off by a
+            #     wall) is digest-only; a `not_article` body (the wall itself)
+            #     is title-only and its digest is not sent. An article whose
+            #     digest failed is not vouched for, so it is not read in full.
+            digested = digest_engine.digest_articles(items, meter=run_meter)
+            full_reads = 0
+            for it in items:
+                key = it.get("publisher_link") or it.get("link")
+                digest = digested["digests"].get(key)
+                quality = (digest or {}).get("body_quality") if (it.get("text") or "").strip() else None
+                it["body_quality"] = quality
+                it["digest"] = None if quality == "not_article" else digest
+                reads_full = quality == "full" and full_reads < relevance.FULL_TEXT_K
                 status, clipped, original = digest_engine.body_status_for(
-                    it, full_text=reads_full
+                    it, full_text=reads_full, quality=quality
                 )
                 it["body_status"] = status
                 it["body_clipped"] = clipped
                 it["body_chars_original"] = original
+                full_reads += status in ("full", "clipped")
 
             # Keep the evidence. Without it a score is unauditable after the
             # fact and last week's scoring cannot be re-run on what it saw.
@@ -546,19 +562,17 @@ def run_etl(
             except Exception as e:
                 print(f"[{iso2}] could not store articles: {e}")
 
-            digested = digest_engine.digest_articles(items, meter=run_meter)
-            for it in items:
-                key = it.get("publisher_link") or it.get("link")
-                it["digest"] = digested["digests"].get(key)
-
             dc = digested["counts"]
             status_mix: Dict[str, int] = {}
+            quality_mix: Dict[str, int] = {}
             for it in items:
                 status_mix[it["body_status"]] = status_mix.get(it["body_status"], 0) + 1
+                q = it["body_quality"] or "unassessed"
+                quality_mix[q] = quality_mix.get(q, 0) + 1
             print(
                 f"[digest] {iso2}: {dc['generated']} generated, {dc['cached']} cached, "
                 f"{dc['truncated_retry']} truncated-retry, {dc['failed']} failed, "
-                f"{dc['no_body']} without a body | bodies {status_mix}"
+                f"{dc['no_body']} without a body | bodies {status_mix} | quality {quality_mix}"
             )
             pool_report["digests"] = dc
             pool_report["body_status"] = status_mix
@@ -711,16 +725,20 @@ def run_etl(
                 # fact sits beside it.
                 print(f"[score] {iso2}: RESTRICTED — {scored['badge']['rule'][:90]}")
 
-            # 4) The top three are the first three of the gate's own order —
-            #    structural events first, then the ledger round-robin. They are
-            #    the same three the model read in full, so what the dashboard
-            #    shows and what the score was made from cannot diverge.
+            # 4) The top three are the articles the model read in full — the
+            #    first three the digest called `full`, in the gate's own order —
+            #    so what the dashboard shows and what the score was made from
+            #    cannot diverge. If fewer than three were read in full, the
+            #    rest come next in gate order; a wall is never one of them.
             bearing_by_id = {
                 a["id"]: a.get("bearing")
                 for a in answer["article_scores"]
                 if a.get("id")
             }
-            top_items = items[:3]
+            top_items = [it for it in items if it["body_status"] in ("full", "clipped")]
+            top_items += [it for it in items if it not in top_items
+                          and it["body_quality"] != "not_article"]
+            top_items = top_items[:3]
 
             # 5) Enrich ONLY the Top-3 with missing images using the advanced scraper
             cb_token = _crawlbase_token()
@@ -794,6 +812,7 @@ def run_etl(
                          "url": a.get("publisher_link") or a.get("link"),
                          "content_sha256": _body_hash(a),
                          "body_status": a.get("body_status"),
+                         "body_quality": a.get("body_quality"),
                          "themes": a.get("themes") or []}
                         for a in items
                     ],
