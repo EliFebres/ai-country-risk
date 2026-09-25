@@ -19,7 +19,9 @@ An absolute threshold cannot tell those apart, and an alarm that fires every
 week stops being read — which is the failure this is built against, so the
 flags print last, in a block that is hard to skip.
 
-The first run has no history and reports state only.
+The one exception is a schema violation, which is flagged whenever it happens,
+history or not: it is a defect in the answer a score was made from, and a first
+run can have one. Otherwise the first run has no history and reports state only.
 """
 
 from __future__ import annotations
@@ -121,11 +123,18 @@ def flags_for(row: Dict[str, Any], consecutive_failures: int = 0) -> List[str]:
 
     if not row["scored"]:
         return out
+
+    # The one absolute flag. A schema violation is a defect in the answer the
+    # score was made from, not a change against history, so it fires on a first
+    # run too: HK's week one printed "NO FLAGS" with ten articles unscored.
+    state = row["state"]
+    violations = state.get("schema_violations") or 0
+    if violations > 0:
+        out.append(f"{iso2}: {violations} schema violation(s) in the scorer's answer")
+
     history = row["history"]
     if not history:
-        return out   # first run: state only, nothing to compare against
-
-    state = row["state"]
+        return out   # first run: nothing else to compare against
 
     for ledger in constants.LEDGERS:
         base = _baseline(history, "resolved_by_ledger", ledger)
@@ -227,7 +236,8 @@ def run_report(run_date: Optional[dt.date] = None) -> Dict[str, Any]:
     print("")
     if all_flags:
         print("!" * 72)
-        print(f"!! {len(all_flags)} FLAG(S) — something changed against a country's own history")
+        print(f"!! {len(all_flags)} FLAG(S) — a defect in an answer, or a change "
+              f"against a country's own history")
         print("!" * 72)
         for flag in all_flags:
             print(f"!! {flag}")
