@@ -227,20 +227,20 @@ runs, benchmark arms and probe results, and creating it now means that session
 is not also a schema change. If it is still empty after the measurement session,
 that is a finding.
 
-## 13. Four legacy tables remain until the week is verified
+## 13. Four legacy tables remain until the week is verified — **closed 2026-09-25**
 
-`indicator`, `yearly_value`, `recent_indicator` and `payload_census` are no
-longer written by anything. They stay until the first real week on the new
-schema passes its checks, then get dumped to `backend/data/backups/` and
-dropped. Until that happens the database has fourteen tables, not ten.
+Week one passed its six checks on dev on 2026-09-25 (run at `455650a`), and the
+four tables were dumped to `backend/data/backups/2026-09-25-neondb-legacy-*.csv`
+and dropped from dev (`neondb` on `ep-round-brook`): `indicator` 11 rows,
+`yearly_value` 4,765, `recent_indicator` 46, `payload_census` 48. The database
+now holds exactly the ten tables in `schema.py`.
 
-## 14. Dead relevance rows in `llm_artifact`
+## 14. Dead relevance rows in `llm_artifact` — **closed 2026-09-25**
 
-2,489 relevance artifacts were written before `country_iso2` joined the key and
-carry `''`. The country is not recoverable from them — it only ever existed
-inside the content hash — so they cannot be backfilled, and they will never
-match a lookup again now that the gate passes the country. They are to be
-deleted once the new run has replaced them, so the table holds only rows its key
-can actually query. The 804 digest rows are unaffected: digests are genuinely
-not per-country and `''` is the right value for them.
-
+The relevance artifacts written before `country_iso2` joined the key were
+dumped to `backend/data/backups/2026-09-25-neondb-dead-relevance-llm_artifact.csv`
+and deleted from dev: **2,489 before, 0 after**. All of them went, not only the
+ones week one had re-labelled. Their country existed only inside the content
+hash, so which of them the five-country run replaced cannot be established, and
+no lookup could reach any of them. The 909 digest rows, where `''` is correct,
+were not touched.

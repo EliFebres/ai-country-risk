@@ -104,8 +104,12 @@ the measurement session replaces each with a number.
 
 ## 5. Steps in the series
 
-**None yet. This is week one**, first written on **2026-09-23** against the dev
-database (`neondb` on `ep-round-brook-b5w0nzpy`).
+**None yet. This is week one.** This page was written on 2026-09-23, but
+week one actually ran on **2026-09-25**, at git SHA **`455650a`**, against the
+dev database (`neondb` on `ep-round-brook-b5w0nzpy`). The 2026-09-23 attempt
+wrote no snapshots: every country it reached failed on the write, and it was
+interrupted after nine. Week one covers five countries (US, PT, KW, HK, TW),
+not the full roster.
 
 When a step happens, add a row: the date, what changed, which stamped field
 records it, and whether weeks either side can be compared at all.
