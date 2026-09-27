@@ -1,0 +1,1471 @@
+{
+  "AU": {
+    "export_partners": [
+      "China",
+      "Japan",
+      "South Korea",
+      "India",
+      "Taiwan"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "South Korea",
+      "Japan",
+      "Thailand"
+    ],
+    "main_exports": [
+      "iron ore",
+      "coal",
+      "natural gas"
+    ],
+    "neighbours": [
+      "Indonesia",
+      "Papua New Guinea"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "AT": {
+    "export_partners": [
+      "Germany",
+      "United States",
+      "Italy",
+      "Switzerland",
+      "Hungary"
+    ],
+    "import_partners": [
+      "Germany",
+      "China",
+      "Italy",
+      "Switzerland",
+      "Czechia"
+    ],
+    "main_exports": [
+      "cars",
+      "packaged medicine",
+      "vaccines"
+    ],
+    "neighbours": [
+      "Czechia",
+      "Germany",
+      "Hungary",
+      "Italy",
+      "Liechtenstein",
+      "Slovakia",
+      "Slovenia",
+      "Switzerland"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "BE": {
+    "export_partners": [
+      "France",
+      "Netherlands",
+      "Germany",
+      "Italy",
+      "United States"
+    ],
+    "import_partners": [
+      "Netherlands",
+      "Germany",
+      "France",
+      "United States",
+      "Ireland"
+    ],
+    "main_exports": [
+      "refined petroleum",
+      "natural gas",
+      "vaccines"
+    ],
+    "neighbours": [
+      "France",
+      "Germany",
+      "Luxembourg",
+      "Netherlands"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "CA": {
+    "export_partners": [
+      "United States",
+      "China",
+      "United Kingdom",
+      "Japan",
+      "Mexico"
+    ],
+    "import_partners": [
+      "United States",
+      "China",
+      "Mexico",
+      "Germany",
+      "Japan"
+    ],
+    "main_exports": [
+      "crude petroleum",
+      "cars",
+      "gold"
+    ],
+    "neighbours": [
+      "United States",
+      "Denmark (Greenland)"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "DK": {
+    "export_partners": [
+      "Germany",
+      "United States",
+      "Sweden",
+      "Netherlands",
+      "China"
+    ],
+    "import_partners": [
+      "Germany",
+      "Sweden",
+      "Norway",
+      "Netherlands",
+      "China"
+    ],
+    "main_exports": [
+      "packaged medicine",
+      "fish",
+      "vaccines"
+    ],
+    "neighbours": [
+      "Germany",
+      "Canada",
+      "Sweden"
+    ],
+    "security_rivals": [
+      "Russia"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "FI": {
+    "export_partners": [
+      "United States",
+      "Germany",
+      "Sweden",
+      "Netherlands",
+      "China"
+    ],
+    "import_partners": [
+      "Germany",
+      "Sweden",
+      "China",
+      "Norway",
+      "Netherlands"
+    ],
+    "main_exports": [
+      "paper",
+      "refined petroleum",
+      "steel"
+    ],
+    "neighbours": [
+      "Norway",
+      "Sweden",
+      "Russia"
+    ],
+    "security_rivals": [
+      "Russia"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "FR": {
+    "export_partners": [
+      "Germany",
+      "Italy",
+      "United States",
+      "Belgium",
+      "Spain"
+    ],
+    "import_partners": [
+      "Germany",
+      "Belgium",
+      "Netherlands",
+      "Spain",
+      "Italy"
+    ],
+    "main_exports": [
+      "aircraft",
+      "cars",
+      "packaged medicine"
+    ],
+    "neighbours": [
+      "Andorra",
+      "Belgium",
+      "Germany",
+      "Italy",
+      "Luxembourg",
+      "Monaco",
+      "Spain",
+      "Switzerland"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "DE": {
+    "export_partners": [
+      "United States",
+      "France",
+      "Netherlands",
+      "China",
+      "Italy"
+    ],
+    "import_partners": [
+      "China",
+      "Netherlands",
+      "United States",
+      "Poland",
+      "France"
+    ],
+    "main_exports": [
+      "cars",
+      "vehicle parts/accessories",
+      "packaged medicine"
+    ],
+    "neighbours": [
+      "Austria",
+      "Belgium",
+      "Czechia",
+      "Denmark",
+      "France",
+      "Luxembourg",
+      "Netherlands",
+      "Poland",
+      "Switzerland"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "HK": {
+    "export_partners": [
+      "China",
+      "Vietnam",
+      "South Korea",
+      "Netherlands",
+      "Switzerland"
+    ],
+    "import_partners": [
+      "China",
+      "Taiwan",
+      "Singapore",
+      "Japan",
+      "South Korea"
+    ],
+    "main_exports": [
+      "gold",
+      "integrated circuits",
+      "gas turbines"
+    ],
+    "neighbours": [
+      "China"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "IE": {
+    "export_partners": [
+      "United States",
+      "Germany",
+      "United Kingdom",
+      "Belgium",
+      "China"
+    ],
+    "import_partners": [
+      "United Kingdom",
+      "United States",
+      "France",
+      "China",
+      "Germany"
+    ],
+    "main_exports": [
+      "vaccines",
+      "packaged medicine",
+      "nitrogen compounds"
+    ],
+    "neighbours": [
+      "United Kingdom"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "IL": {
+    "export_partners": [
+      "United States",
+      "China",
+      "Ireland",
+      "Germany",
+      "Hong Kong"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "Germany",
+      "Turkey",
+      "Italy"
+    ],
+    "main_exports": [
+      "integrated circuits",
+      "diamonds",
+      "broadcasting equipment"
+    ],
+    "neighbours": [
+      "Egypt",
+      "Gaza Strip",
+      "Jordan",
+      "Lebanon",
+      "Syria",
+      "West Bank"
+    ],
+    "security_rivals": [
+      "Iran"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "IT": {
+    "export_partners": [
+      "Germany",
+      "United States",
+      "France",
+      "Spain",
+      "United Kingdom"
+    ],
+    "import_partners": [
+      "Germany",
+      "France",
+      "China",
+      "Netherlands",
+      "Spain"
+    ],
+    "main_exports": [
+      "packaged medicine",
+      "garments",
+      "cars"
+    ],
+    "neighbours": [
+      "Austria",
+      "France",
+      "Holy See (Vatican City)",
+      "San Marino",
+      "Slovenia",
+      "Switzerland"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "JP": {
+    "export_partners": [
+      "United States",
+      "China",
+      "Taiwan",
+      "South Korea",
+      "Hong Kong"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "Australia",
+      "United Arab Emirates",
+      "Saudi Arabia"
+    ],
+    "main_exports": [
+      "cars",
+      "integrated circuits",
+      "machinery"
+    ],
+    "neighbours": [
+      "China",
+      "Russia",
+      "North Korea",
+      "South Korea"
+    ],
+    "security_rivals": [
+      "China",
+      "North Korea",
+      "Russia"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "NL": {
+    "export_partners": [
+      "Germany",
+      "Belgium",
+      "France",
+      "Italy",
+      "United States"
+    ],
+    "import_partners": [
+      "Germany",
+      "Belgium",
+      "China",
+      "United States",
+      "United Kingdom"
+    ],
+    "main_exports": [
+      "refined petroleum",
+      "vaccines",
+      "machinery"
+    ],
+    "neighbours": [
+      "Belgium",
+      "Germany"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "NZ": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Australia",
+      "Japan",
+      "South Korea"
+    ],
+    "import_partners": [
+      "China",
+      "Australia",
+      "United States",
+      "South Korea",
+      "Japan"
+    ],
+    "main_exports": [
+      "milk",
+      "wood",
+      "beef"
+    ],
+    "neighbours": [
+      "Australia"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "NO": {
+    "export_partners": [
+      "Germany",
+      "United Kingdom",
+      "Sweden",
+      "Denmark",
+      "Netherlands"
+    ],
+    "import_partners": [
+      "Sweden",
+      "Germany",
+      "China",
+      "United States",
+      "Netherlands"
+    ],
+    "main_exports": [
+      "natural gas",
+      "crude petroleum",
+      "fish"
+    ],
+    "neighbours": [
+      "Finland",
+      "Sweden",
+      "Russia"
+    ],
+    "security_rivals": [
+      "Russia"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "PT": {
+    "export_partners": [
+      "Spain",
+      "France",
+      "Germany",
+      "United States",
+      "United Kingdom"
+    ],
+    "import_partners": [
+      "Spain",
+      "Germany",
+      "France",
+      "Netherlands",
+      "China"
+    ],
+    "main_exports": [
+      "cars",
+      "garments",
+      "vehicle parts/accessories"
+    ],
+    "neighbours": [
+      "Spain"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "SG": {
+    "export_partners": [
+      "Hong Kong",
+      "China",
+      "United States",
+      "Malaysia",
+      "South Korea"
+    ],
+    "import_partners": [
+      "China",
+      "Malaysia",
+      "Taiwan",
+      "United States",
+      "South Korea"
+    ],
+    "main_exports": [
+      "integrated circuits",
+      "refined petroleum",
+      "machinery"
+    ],
+    "neighbours": [
+      "Malaysia",
+      "Indonesia"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "ES": {
+    "export_partners": [
+      "France",
+      "Germany",
+      "Portugal",
+      "Italy",
+      "United Kingdom"
+    ],
+    "import_partners": [
+      "Germany",
+      "China",
+      "France",
+      "Italy",
+      "United States"
+    ],
+    "main_exports": [
+      "cars",
+      "packaged medicine",
+      "refined petroleum"
+    ],
+    "neighbours": [
+      "Andorra",
+      "France",
+      "Gibraltar",
+      "Portugal",
+      "Morocco (Ceuta)"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "SE": {
+    "export_partners": [
+      "Germany",
+      "United States",
+      "Denmark",
+      "Norway",
+      "Netherlands"
+    ],
+    "import_partners": [
+      "Germany",
+      "Netherlands",
+      "Norway",
+      "Denmark",
+      "China"
+    ],
+    "main_exports": [
+      "cars",
+      "refined petroleum",
+      "packaged medicine"
+    ],
+    "neighbours": [
+      "Finland",
+      "Norway",
+      "Denmark"
+    ],
+    "security_rivals": [
+      "Russia"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "CH": {
+    "export_partners": [
+      "Germany",
+      "China",
+      "United States",
+      "Italy",
+      "Turkey"
+    ],
+    "import_partners": [
+      "Germany",
+      "United States",
+      "Italy",
+      "France",
+      "China"
+    ],
+    "main_exports": [
+      "gold",
+      "packaged medicine",
+      "vaccines"
+    ],
+    "neighbours": [
+      "Austria",
+      "France",
+      "Italy",
+      "Liechtenstein",
+      "Germany"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "GB": {
+    "export_partners": [
+      "United States",
+      "China",
+      "Germany",
+      "Netherlands",
+      "Ireland"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "Germany",
+      "France",
+      "Norway"
+    ],
+    "main_exports": [
+      "cars",
+      "gold",
+      "gas turbines"
+    ],
+    "neighbours": [
+      "Ireland",
+      "France"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "US": {
+    "export_partners": [
+      "Canada",
+      "Mexico",
+      "China",
+      "Germany",
+      "Japan"
+    ],
+    "import_partners": [
+      "Mexico",
+      "China",
+      "Canada",
+      "Germany",
+      "Japan"
+    ],
+    "main_exports": [
+      "crude petroleum",
+      "refined petroleum",
+      "natural gas"
+    ],
+    "neighbours": [
+      "Canada",
+      "Mexico"
+    ],
+    "security_rivals": [
+      "China",
+      "Russia",
+      "Iran"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "BR": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Argentina",
+      "Netherlands",
+      "Chile"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "Germany",
+      "Argentina",
+      "Russia"
+    ],
+    "main_exports": [
+      "soybeans",
+      "crude petroleum",
+      "iron ore"
+    ],
+    "neighbours": [
+      "Argentina",
+      "Bolivia",
+      "Colombia",
+      "French Guiana",
+      "Guyana",
+      "Paraguay",
+      "Peru",
+      "Suriname",
+      "Uruguay",
+      "Venezuela"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "CL": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Japan",
+      "South Korea",
+      "Brazil"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "Brazil",
+      "Argentina",
+      "Germany"
+    ],
+    "main_exports": [
+      "copper ore",
+      "refined copper",
+      "fish"
+    ],
+    "neighbours": [
+      "Argentina",
+      "Bolivia",
+      "Peru"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "CN": {
+    "export_partners": [
+      "United States",
+      "Hong Kong",
+      "Japan",
+      "Germany",
+      "South Korea"
+    ],
+    "import_partners": [
+      "South Korea",
+      "United States",
+      "Japan",
+      "Australia",
+      "Russia"
+    ],
+    "main_exports": [
+      "broadcasting equipment",
+      "computers",
+      "integrated circuits"
+    ],
+    "neighbours": [
+      "Afghanistan",
+      "Bhutan",
+      "Myanmar",
+      "India",
+      "Kazakhstan",
+      "North Korea",
+      "Kyrgyzstan",
+      "Laos",
+      "Mongolia",
+      "Nepal",
+      "Pakistan",
+      "Russia (northeast)",
+      "Tajikistan",
+      "Vietnam"
+    ],
+    "security_rivals": [
+      "United States",
+      "India",
+      "Japan"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "CO": {
+    "export_partners": [
+      "United States",
+      "Panama",
+      "India",
+      "China",
+      "Netherlands"
+    ],
+    "import_partners": [
+      "United States",
+      "China",
+      "Brazil",
+      "Mexico",
+      "Germany"
+    ],
+    "main_exports": [
+      "crude petroleum",
+      "coal",
+      "gold"
+    ],
+    "neighbours": [
+      "Brazil",
+      "Ecuador",
+      "Panama",
+      "Peru",
+      "Venezuela"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "CZ": {
+    "export_partners": [
+      "Germany",
+      "Slovakia",
+      "Poland",
+      "France",
+      "United Kingdom"
+    ],
+    "import_partners": [
+      "Germany",
+      "China",
+      "Poland",
+      "Slovakia",
+      "Italy"
+    ],
+    "main_exports": [
+      "cars",
+      "vehicle parts/accessories",
+      "broadcasting equipment"
+    ],
+    "neighbours": [
+      "Austria",
+      "Germany",
+      "Poland",
+      "Slovakia"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "EG": {
+    "export_partners": [
+      "Saudi Arabia",
+      "Turkey",
+      "Italy",
+      "United States",
+      "United Arab Emirates"
+    ],
+    "import_partners": [
+      "China",
+      "Saudi Arabia",
+      "Russia",
+      "United States",
+      "Germany"
+    ],
+    "main_exports": [
+      "refined petroleum",
+      "natural gas",
+      "fertilizers"
+    ],
+    "neighbours": [
+      "Gaza Strip",
+      "Israel",
+      "Libya",
+      "Sudan"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "GR": {
+    "export_partners": [
+      "Italy",
+      "Germany",
+      "Cyprus",
+      "Bulgaria",
+      "United States"
+    ],
+    "import_partners": [
+      "Germany",
+      "China",
+      "Italy",
+      "Iraq",
+      "Netherlands"
+    ],
+    "main_exports": [
+      "refined petroleum",
+      "packaged medicine",
+      "aluminum"
+    ],
+    "neighbours": [
+      "Albania",
+      "Bulgaria",
+      "North Macedonia",
+      "Turkey"
+    ],
+    "security_rivals": [
+      "Turkey"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "HU": {
+    "export_partners": [
+      "Germany",
+      "Italy",
+      "Romania",
+      "United States",
+      "Slovakia"
+    ],
+    "import_partners": [
+      "Germany",
+      "China",
+      "Austria",
+      "Poland",
+      "South Korea"
+    ],
+    "main_exports": [
+      "cars",
+      "vehicle parts/accessories",
+      "electric batteries"
+    ],
+    "neighbours": [
+      "Austria",
+      "Croatia",
+      "Romania",
+      "Serbia",
+      "Slovakia",
+      "Slovenia",
+      "Ukraine"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "IN": {
+    "export_partners": [
+      "United States",
+      "United Arab Emirates",
+      "China",
+      "Germany",
+      "United Kingdom"
+    ],
+    "import_partners": [
+      "China",
+      "Russia",
+      "United States",
+      "United Arab Emirates",
+      "Saudi Arabia"
+    ],
+    "main_exports": [
+      "refined petroleum",
+      "packaged medicine",
+      "diamonds"
+    ],
+    "neighbours": [
+      "Bangladesh",
+      "Bhutan",
+      "Myanmar",
+      "China",
+      "Nepal",
+      "Pakistan"
+    ],
+    "security_rivals": [
+      "China",
+      "Pakistan"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "ID": {
+    "export_partners": [
+      "China",
+      "United States",
+      "India",
+      "Japan",
+      "Singapore"
+    ],
+    "import_partners": [
+      "China",
+      "Singapore",
+      "Japan",
+      "United States",
+      "Malaysia"
+    ],
+    "main_exports": [
+      "coal",
+      "palm oil",
+      "iron alloys"
+    ],
+    "neighbours": [
+      "Malaysia",
+      "Papua New Guinea",
+      "Timor-Leste"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "KW": {
+    "export_partners": [
+      "China",
+      "India",
+      "Japan",
+      "Taiwan",
+      "United Kingdom"
+    ],
+    "import_partners": [
+      "China",
+      "United Arab Emirates",
+      "United States",
+      "Saudi Arabia",
+      "Japan"
+    ],
+    "main_exports": [
+      "crude petroleum",
+      "refined petroleum",
+      "natural gas"
+    ],
+    "neighbours": [
+      "Iraq",
+      "Saudi Arabia",
+      "Iran"
+    ],
+    "security_rivals": [
+      "Iran",
+      "Iraq"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "MY": {
+    "export_partners": [
+      "China",
+      "Singapore",
+      "United States",
+      "Japan",
+      "Hong Kong"
+    ],
+    "import_partners": [
+      "China",
+      "Singapore",
+      "United States",
+      "Japan",
+      "Taiwan"
+    ],
+    "main_exports": [
+      "integrated circuits",
+      "refined petroleum",
+      "crude petroleum"
+    ],
+    "neighbours": [
+      "Brunei",
+      "Indonesia",
+      "Thailand"
+    ],
+    "security_rivals": [
+      "China"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "MX": {
+    "export_partners": [
+      "United States",
+      "Canada",
+      "China",
+      "Germany",
+      "Spain"
+    ],
+    "import_partners": [
+      "United States",
+      "China",
+      "Germany",
+      "Japan",
+      "South Korea"
+    ],
+    "main_exports": [
+      "cars",
+      "vehicle parts/accessories",
+      "crude petroleum"
+    ],
+    "neighbours": [
+      "Belize",
+      "Guatemala",
+      "United States"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "PE": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Canada",
+      "India",
+      "Switzerland"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "Brazil",
+      "Argentina",
+      "Mexico"
+    ],
+    "main_exports": [
+      "copper ore",
+      "gold",
+      "refined copper"
+    ],
+    "neighbours": [
+      "Bolivia",
+      "Brazil",
+      "Chile",
+      "Colombia",
+      "Ecuador"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "PH": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Hong Kong",
+      "Japan",
+      "Germany"
+    ],
+    "import_partners": [
+      "China",
+      "Indonesia",
+      "Japan",
+      "South Korea",
+      "United States"
+    ],
+    "main_exports": [
+      "integrated circuits",
+      "machine parts",
+      "gold"
+    ],
+    "neighbours": [
+      "China",
+      "Taiwan",
+      "Malaysia",
+      "Indonesia"
+    ],
+    "security_rivals": [
+      "China"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "PL": {
+    "export_partners": [
+      "Germany",
+      "United Kingdom",
+      "Czechia",
+      "France",
+      "Italy"
+    ],
+    "import_partners": [
+      "Germany",
+      "China",
+      "Italy",
+      "Netherlands",
+      "United States"
+    ],
+    "main_exports": [
+      "vehicle parts/accessories",
+      "electric batteries",
+      "plastic products"
+    ],
+    "neighbours": [
+      "Belarus",
+      "Czechia",
+      "Germany",
+      "Lithuania",
+      "Slovakia",
+      "Ukraine"
+    ],
+    "security_rivals": [
+      "Russia",
+      "Belarus"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "QA": {
+    "export_partners": [
+      "China",
+      "India",
+      "South Korea",
+      "Japan",
+      "Pakistan"
+    ],
+    "import_partners": [
+      "United States",
+      "China",
+      "United Arab Emirates",
+      "United Kingdom",
+      "India"
+    ],
+    "main_exports": [
+      "natural gas",
+      "crude petroleum",
+      "refined petroleum"
+    ],
+    "neighbours": [
+      "Saudi Arabia",
+      "Iran",
+      "Bahrain"
+    ],
+    "security_rivals": [
+      "Iran"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "SA": {
+    "export_partners": [
+      "China",
+      "India",
+      "Japan",
+      "United States",
+      "United Arab Emirates"
+    ],
+    "import_partners": [
+      "China",
+      "United Arab Emirates",
+      "United States",
+      "India",
+      "Germany"
+    ],
+    "main_exports": [
+      "crude petroleum",
+      "refined petroleum",
+      "plastics"
+    ],
+    "neighbours": [
+      "Iraq",
+      "Jordan",
+      "Kuwait",
+      "Oman",
+      "Qatar",
+      "United Arab Emirates",
+      "Yemen",
+      "Iran"
+    ],
+    "security_rivals": [
+      "Iran"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-21 (commit 1d943e73e6f5); sea neighbours and security rivals written by hand"
+  },
+  "ZA": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Germany",
+      "India",
+      "United Kingdom"
+    ],
+    "import_partners": [
+      "China",
+      "India",
+      "United States",
+      "Germany",
+      "United Arab Emirates"
+    ],
+    "main_exports": [
+      "gold",
+      "platinum",
+      "coal"
+    ],
+    "neighbours": [
+      "Botswana",
+      "Lesotho",
+      "Mozambique",
+      "Namibia",
+      "Eswatini",
+      "Zimbabwe"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "KR": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Hong Kong",
+      "Japan",
+      "Taiwan"
+    ],
+    "import_partners": [
+      "China",
+      "United States",
+      "Japan",
+      "Germany",
+      "Australia"
+    ],
+    "main_exports": [
+      "integrated circuits",
+      "cars",
+      "refined petroleum"
+    ],
+    "neighbours": [
+      "North Korea",
+      "Japan",
+      "China"
+    ],
+    "security_rivals": [
+      "North Korea"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "TW": {
+    "export_partners": [
+      "China",
+      "United States",
+      "Hong Kong",
+      "Singapore",
+      "Japan"
+    ],
+    "import_partners": [
+      "China",
+      "Japan",
+      "United States",
+      "South Korea",
+      "Australia"
+    ],
+    "main_exports": [
+      "integrated circuits",
+      "machine parts",
+      "broadcasting equipment"
+    ],
+    "neighbours": [
+      "China"
+    ],
+    "security_rivals": [
+      "China"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "TH": {
+    "export_partners": [
+      "United States",
+      "China",
+      "Japan",
+      "Australia",
+      "Singapore"
+    ],
+    "import_partners": [
+      "China",
+      "Japan",
+      "United States",
+      "United Arab Emirates",
+      "Taiwan"
+    ],
+    "main_exports": [
+      "machine parts",
+      "integrated circuits",
+      "trucks"
+    ],
+    "neighbours": [
+      "Myanmar",
+      "Cambodia",
+      "Laos",
+      "Malaysia"
+    ],
+    "security_rivals": [],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "TR": {
+    "export_partners": [
+      "Germany",
+      "United States",
+      "United Kingdom",
+      "United Arab Emirates",
+      "Iraq"
+    ],
+    "import_partners": [
+      "China",
+      "Russia",
+      "Germany",
+      "Switzerland",
+      "United States"
+    ],
+    "main_exports": [
+      "garments",
+      "cars",
+      "gold"
+    ],
+    "neighbours": [
+      "Armenia",
+      "Azerbaijan",
+      "Bulgaria",
+      "Georgia",
+      "Greece",
+      "Iran",
+      "Iraq",
+      "Syria"
+    ],
+    "security_rivals": [
+      "Greece"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "AE": {
+    "export_partners": [
+      "China",
+      "India",
+      "Japan",
+      "Iraq",
+      "Thailand"
+    ],
+    "import_partners": [
+      "China",
+      "India",
+      "United States",
+      "Turkey",
+      "Japan"
+    ],
+    "main_exports": [
+      "crude petroleum",
+      "refined petroleum",
+      "gold"
+    ],
+    "neighbours": [
+      "Oman",
+      "Saudi Arabia",
+      "Iran"
+    ],
+    "security_rivals": [
+      "Iran"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  },
+  "RU": {
+    "export_partners": [
+      "China",
+      "India",
+      "Turkey",
+      "Kazakhstan",
+      "Brazil"
+    ],
+    "import_partners": [
+      "China",
+      "Turkey",
+      "Germany",
+      "Kazakhstan",
+      "Italy"
+    ],
+    "main_exports": [
+      "crude petroleum",
+      "refined petroleum",
+      "natural gas"
+    ],
+    "neighbours": [
+      "Azerbaijan",
+      "Belarus",
+      "China (southeast)",
+      "Estonia",
+      "Finland",
+      "Georgia",
+      "Kazakhstan",
+      "North Korea",
+      "Latvia",
+      "Lithuania (Kaliningrad Oblast)",
+      "Mongolia",
+      "Norway",
+      "Poland (Kaliningrad Oblast)",
+      "Ukraine"
+    ],
+    "security_rivals": [
+      "Ukraine",
+      "United States"
+    ],
+    "source": "CIA World Factbook via github.com/factbook/factbook.json, edition 2026-01-22 (commit 783ed27f7a11); sea neighbours and security rivals written by hand"
+  }
+}
