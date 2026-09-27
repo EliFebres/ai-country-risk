@@ -56,8 +56,8 @@ class TestPromptVersion:
 
     def test_the_prompt_carries_the_cases_that_draw_the_line(self):
         p = relevance.RELEVANCE_PROMPT
-        for case in ("killing of a candidate", "coup attempt", "mentioned in passing",
-                     "fellowships", "obituaries"):
+        for case in ("WHO ACTED", "Topic alone never decides", "ON {country}",
+                     "even when {country} is not named", "Security rivals"):
             assert case in p
 
 
@@ -117,6 +117,17 @@ class TestSelectionEligibility:
 
 
 class TestSelectionOrder:
+    def test_a_high_impact_event_is_read_first(self):
+        """A coup or a default takes the full-text slots before anything else."""
+        trend = _article("http://x/1", "Inflation easing over four quarters",
+                         published="2026-09-21T00:00:00Z")
+        coup = _article("http://x/2", "Government falls",
+                        published="2026-09-01T00:00:00Z")
+        labels = _labels([(trend, "relevant", ["friction"]), (coup, "relevant", ["order"])])
+        labels[relevance.relevance_key(coup, "PT")]["high_impact_event"] = True
+        out = relevance.select([trend, coup], labels, "PT")
+        assert out["selected"][0]["title"] == "Government falls"
+
     def test_the_budget_spreads_across_ledgers_rather_than_one_story(self):
         """Twenty newest on a busy country can be eight versions of one event."""
         friction = [

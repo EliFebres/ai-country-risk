@@ -5,14 +5,16 @@ Every candidate is classified once, per country, before anything expensive
 touches it. A cheap model reads the article and answers one question, and only
 articles that pass are eligible to be scored.
 
-The question is not "is this about the country". It is:
+The question is not "what is this article about". It is:
 
-    is this article material to the risk of holding investments exposed to
-    THIS country?
+    who acted, and on whom?
 
-That is Eli's definition, and his blind labels are what the gate is measured
-against. An earlier three-label prompt asked whether an article described a
-condition or only an event, and agreed with him on 7 of 30 (deferred.md §4).
+Asking about topic made the model match keywords: "press freedom" or "military"
+next to the country's name read as relevant. Eli's sixty labels follow an actor
+rule instead, and the prompt states it as exclusions and tests. The model names
+the exclusion and the test, and the label is computed from them in code
+(`label_of`), where the rule is exact. Two earlier prompts, a three-label bar and
+a topic definition, agreed with him on 7 of 30 and 23 of 30 (deferred.md §4, §15).
 
 Three properties this file is designed around:
 
@@ -32,8 +34,11 @@ gate judged well, or re-run selection under a different rule on the same week.
 
 from __future__ import annotations
 
+import datetime as dt
+import json
 import logging
 import os
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 from langchain_core.messages import SystemMessage
@@ -68,28 +73,28 @@ LEDGERS = ("friction", "order", "information", "edge")
 
 LABELS = ("relevant", "irrelevant")
 
-# What the gate says an article touches. `order_security` is the `order` ledger
-# under the name the prompt uses. `edge` has no gate area, because research,
-# fellowships and university news are defined as irrelevant.
+# What the model answers. The label is not among them: it is computed from the
+# exclusion and the test by `label_of`, where the rule is exact.
+EXCLUSIONS = ("E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "none")
+TESTS = ("T1", "T2", "T3", "T4", "T5", "none")
+
+# The ledger an article bears on. `order_security` is the `order` ledger under
+# the name the prompt uses. `edge` has no gate value: edge runs on data, not
+# news (three-door-test.md).
 RISK_AREAS = ("friction", "order_security", "information", "none")
-BEARINGS = ("direct", "spillover", "none")
 LEDGER_OF_AREA = {"friction": "friction", "order_security": "order", "information": "information"}
 
 # What the gate reads. `snippet` is the title, the outlet and the feed's
 # description. On Google News the description is the outlet's name again, so
 # `snippet` is in practice the headline. `body` is the title, the outlet and the
-# opening of the extracted body. Until 2026-09-27 the gate read the title, the
-# outlet and 4,000 body characters whenever a body had been fetched, which is
-# neither mode.
+# opening of the extracted body.
 INPUT_MODES = ("snippet", "body")
 DEFAULT_INPUT_MODE = "body"
 BODY_INPUT_CHARS = 1500
 
-# Measured, not assumed. `gate_bakeoff.py` on 2026-09-22 measured stability for
-# the old three-label prompt (gpt-4o-mini 98%, 4.1-nano 98%, 4.1-mini 96%). Eli's
-# blind labels on 2026-09-27 then showed that prompt agreed with him on 7 of 30,
-# and that no model fixed it (deferred.md §4). The binary prompt below is
-# measured on a held-out draw before any model or mode is adopted (§15).
+# Fixed on 2026-09-27: gpt-4o-mini in body mode. It is the cheapest cell of the
+# v3 grid and cleared the recall bar there (20 of 22). From here only the prompt
+# and the harness change (deferred.md §15).
 #
 # Dated id: an alias moves under you, and a gate that silently changes model
 # silently changes the evidence behind every score.
@@ -98,83 +103,127 @@ DEFAULT_MODEL = "gpt-4o-mini-2024-07-18"
 ARTICLE_BUDGET = 20
 FULL_TEXT_K = 3
 
-# A few times the schema's real size: five short fields and a one-sentence
-# reason. Leaving the ceiling at the model's default lets a degenerate input burn
+# A few times the schema's real size: five short fields and two sentences.
+# Leaving the ceiling at the model's default lets a degenerate input burn
 # thousands of tokens producing nothing usable.
 MAX_OUTPUT_TOKENS = 400
 
+# What each country is exposed to, for the spillover test (T5). Built by
+# `data_fetching.exposure_cards_build` from the CIA World Factbook.
+EXPOSURE_CARDS_PATH = Path(__file__).with_name("exposure_cards.json")
+EXPOSURE_CARDS: Dict[str, Dict[str, Any]] = json.loads(EXPOSURE_CARDS_PATH.read_text(encoding="utf-8"))
+EXPOSURE_CARDS_VERSION = content_hash(EXPOSURE_CARDS_PATH.read_text(encoding="utf-8"))
 
-# The worked examples are ten of Eli's blind-labelled thirty (v2 draw), collapsed
-# to binary. The other twenty are the dev set the prompt was tuned against, and
-# none of the thirty may be used to report the gate's accuracy.
-RELEVANCE_PROMPT = """You screen news for a sovereign-risk analyst covering {country}. The analyst scores how risky it is to hold investments exposed to {country}. Decide whether this article is MATERIAL to that risk.
 
-RELEVANT: the article bears directly on {country} through at least one of these.
-- Friction: the cost and difficulty of doing business. Taxes, customs, permits, regulation, courts and contract enforcement, corruption, capital controls, expropriation, sanctions on or by {country}.
-- Order and security: government stability, elections and their conduct, coups, protests, unrest, armed conflict, terrorism, violence against officials, candidates or journalists, the central bank, inflation, currency, debt, default, IMF programmes, and the state of the economy as a whole. Also the treaties, alliances and defence or trade agreements {country}'s government enters into.
-- Information: whether you can trust what you know about {country}. Press freedom, censorship, the integrity of the statistics office, audits, judicial independence.
+# The prompt is Eli's actor test, used verbatim from the 2026-09-27 brief. He
+# derived it by reading all sixty of his labelled articles: the question is who
+# acted and on whom, not what the article is about. The `ledger` line keeps the
+# three areas the previous prompt defined, word for word. The fourteen worked
+# examples are his articles, in pairs that share a topic and differ in label.
+RELEVANCE_PROMPT = """You screen news for an analyst who scores the investable risk of {country}: how risky it is to hold stocks or bonds, or run a business, exposed to {country}. Decide whether this article belongs in front of that analyst this week.
 
-A single event counts if its consequences for {country} are high: an attack on its territory, a coup attempt, a sovereign default, the killing of a candidate.
+The test is WHO ACTED, and ON WHOM. Topic alone never decides. An article that mentions {country} alongside words like "military", "press freedom", "customs" or "corruption" is relevant only if it passes one of the tests in Step 2.
 
-A story about another country counts only if it names a direct consequence for {country}: a neighbour's war reaching {country}'s border, a partner's sanctions hitting {country}'s exports. {country} mentioned in passing is not enough.
+{country} exposures (use for Test T5):
+- Main export partners: {export_partners}
+- Main import partners: {import_partners}
+- Main exports: {main_exports}
+- Neighbours: {neighbours}
+- Security rivals: {security_rivals}
 
-IRRELEVANT: sport, celebrity, entertainment, lifestyle, travel, weather with no economic consequence, obituaries, individual crimes and court cases about one person with no institutional angle, a government's handling of one person's or one small group's case (an extradition, a visa, an evacuation) that changes no rule, company news with no bearing on {country}'s economy or policy, research papers, fellowships and university announcements, guides and explainers that report no change, and articles where {country} is mentioned in passing.
+Article published: {published_date}. Today: {run_date}.
 
-When unsure, ask: would a sovereign-risk analyst covering {country} want this in front of them this week?
+STEP 1: EXCLUSIONS. If any one applies, stop: the article is excluded.
+E1  Sport, entertainment, celebrity, culture, travel or lifestyle.
+E2  Academic or science programmes: fellowships, scholarships, research centres, course rankings.
+E3  A guide or explainer to rules already in force (how to file, deadlines, checklists). A NEW rule, or a CHANGE to a rule, is not an explainer.
+E4  Opinion, advocacy or proposals from people outside {country}'s government (experts, companies, NGOs, commentators) about something no {country} authority has proposed or decided.
+E5  Ordinary crime or a court case about private individuals: drugs, scams, murder, theft, extradition of a private person. NOT excluded: cases involving politicians, officials, elections, journalists or activists.
+E6  A company's own business: its deals, investments, results or products, especially abroad. NOT excluded: a {country} regulator, court or government acting on a company.
+E7  {country} is only the place where it happened, or is mentioned in passing, and the consequences fall on other countries.
+E8  People or groups outside {country} acting ABOUT {country}: protests held abroad, foreign NGO appeals, anniversaries of old events, when nothing new is happening inside {country}.
+
+STEP 2: TESTS. If no exclusion applies, find the first test that passes.
+T1  {country}'s own state acts or speaks officially: head of state, government, ministers, parliament, courts on public matters, regulators, central bank, anti-corruption body, statistics office, armed forces, diplomats. Routine official activity counts: hearings, budgets, trainings, speeches, consultations, agreements.
+T2  A measurement or assessment of {country}'s economy, markets, institutions or security: data releases, forecasts, rankings, analysis of conditions.
+T3  {country}'s political process: elections, parties, political violence, prosecution of politicians or officials, election crimes, protests inside {country}.
+T4  An outside state or force acts ON {country}: military strikes or threats against its territory, pressure from a major power over its status, tariffs, sanctions or border measures aimed at it, rules of a bloc it belongs to, agreements it signs.
+T5  Spillover through an exposure: news about one of {country}'s main trade partners' economies or trade policy, its main export commodities, or its neighbours' or security rivals' economies, borders or security, even when {country} is not named.
+
+If no test passes, the answer is none.
 
 HOW TO ANSWER
+- what_happened: one sentence, naming who did what to whom.
+- exclusion: the first exclusion that applies (E1 to E8), or "none".
+- test: if exclusion is "none", the first test that passes (T1 to T5), or "none". If an exclusion applies, "none".
+- high_impact_event: true only for a coup or coup attempt, a military attack on {country}'s territory, a sovereign default, or the killing of a candidate or senior official.
+- ledger: the one area the article bears on most, or `none`.
+    - `friction`: the cost and difficulty of doing business. Taxes, customs, permits, regulation, courts and contract enforcement, corruption, capital controls, expropriation, sanctions on or by {country}.
+    - `order_security`: government stability, elections and their conduct, coups, protests, unrest, armed conflict, terrorism, violence against officials, candidates or journalists, the central bank, inflation, currency, debt, default, IMF programmes, and the state of the economy as a whole.
+    - `information`: whether you can trust what you know about {country}. Press freedom, censorship, the integrity of the statistics office, audits, judicial independence.
+- reason: one sentence saying which words in the article decided the exclusion or test.
 
-Fill the fields in order, and decide each before the next:
-- subject_country: the country the article is mainly about.
-- bearing_on_target: `direct` if the article is about {country}; `spillover` if it is about another country and names a direct consequence for {country}; `none` otherwise.
-- risk_area: the one area above it bears on most, or `none`.
-- one_person_case: true if the story is one individual's case (a crime, an arrest, a trial) with no institutional consequence.
-- reason: one sentence naming what in the article decided it. Do not restate the headline.
-- label: `relevant` or `irrelevant`. A `none` bearing, a `none` risk area or a true one_person_case is `irrelevant`.
+EXAMPLES
 
-Judge only from the text supplied. If it is too thin to tell, say so in the reason and answer `irrelevant`.
+Country: Turkey. Published: 2026-09-18.
+Article: Turkey must release journalist Ahmet Polad following his transfer from Syria after months of captivity - Committee to Protect Journalists. "The Committee to Protect Journalists calls on Turkish authorities to immediately release Ahmet Polad, a Kurdish-Turkish journalist who was transferred to Turkey this month after nearly eight months of enforced disappearance in Syria and is reported to be in extremely poor health."
+{"what_happened": "Turkish authorities are holding journalist Ahmet Polad after his transfer from Syria, and the CPJ calls for his release.", "exclusion": "none", "test": "T1", "high_impact_event": false, "ledger": "information", "reason": "\"calls on Turkish authorities to immediately release\": Turkey's own authorities hold the journalist."}
 
-WORKED EXAMPLES
+Country: Hong Kong SAR, China. Published: 2026-09-14.
+Article: Where is Hong Kong journalist Minnie Chan, who disappeared three years ago in China? - RSF. "It will soon be the third anniversary of Minnie Chan's disappearance. The defence reporter was last seen covering the Forum in 2023. Reporters Without Borders (RSF) remains deeply concerned about her fate and whereabouts, especially as several RSF sources believe she is being detained by the Chinese authorities."
+{"what_happened": "RSF asks where Hong Kong journalist Minnie Chan is, three years after she disappeared in mainland China.", "exclusion": "E8", "test": "none", "high_impact_event": false, "ledger": "none", "reason": "\"third anniversary\" and \"detained by the Chinese authorities\": a foreign NGO appeal about China's action, with nothing new happening in Hong Kong."}
 
-Country: Peru
+Country: United States. Published: 2026-09-24.
+Article: Four Aliens Charged With Election Fraud - Department of Justice. "Four aliens, including 2 illegal aliens, have been charged with election-related crimes, announced United States Attorney David Metcalf. 'Anyone, including illegal aliens, who votes illegally in our elections will be prosecuted for corrupting our democracy.'"
+{"what_happened": "A US Attorney charged four non-citizens with voting illegally in US elections.", "exclusion": "none", "test": "T3", "high_impact_event": false, "ledger": "order_security", "reason": "\"charged with election-related crimes\": an election crime."}
+
+Country: Hong Kong SAR, China. Published: 2026-09-25.
+Article: Hong Kong Customs seizes suspected ketamine and suspected illicit cigarettes worth about $2.2 million - customs.gov.hk. "Hong Kong Customs on September 22 detected a dangerous drug trafficking case and seized about 5.7 kilograms of suspected ketamine. Twenty-seven thousand six hundred suspected illicit cigarettes were also seized. Three persons were arrested."
+{"what_happened": "Hong Kong Customs seized ketamine and illicit cigarettes and arrested three people.", "exclusion": "E5", "test": "none", "high_impact_event": false, "ledger": "none", "reason": "\"dangerous drug trafficking case\" and \"three persons were arrested\": ordinary crime by private individuals."}
+
+Country: New Zealand. Published: 2026-09-19.
+Article: Real estate agency fined $18k after six-year breach - NZ Herald. "The agency had made numerous genuine attempts to appoint an auditor without success. Last month, the agency was fined $18,000 after admitting a charge of reckless contravention of the Real Estate Agents Act 2008."
+{"what_happened": "New Zealand's Real Estate Authority fined an agency $18,000 for breaching the Real Estate Agents Act.", "exclusion": "none", "test": "T1", "high_impact_event": false, "ledger": "friction", "reason": "\"fined $18,000 ... Real Estate Agents Act 2008\": a New Zealand regulator acting on a company."}
+
+Country: Taiwan. Published: 2026-09-23.
+Article: Taiwan Cement Giant Makes Rare Wartime Investment in Ukraine - Kyiv Post. "Taiwan Cement Corporation (TCC), one of the world's largest cement producers, is set to become a strategic investor in PJSC Ivano-Frankivskcement (IFCEM), Ukraine's leading cement manufacturer. The deal marks a rare example of a global industrial group investing in a Ukrainian manufacturing asset while the country remains at war."
+{"what_happened": "Taiwan Cement Corporation agreed to become the owner of Ukraine's leading cement maker.", "exclusion": "E6", "test": "none", "high_impact_event": false, "ledger": "none", "reason": "\"set to become a strategic investor in ... Ukraine's leading cement manufacturer\": a company's own deal abroad."}
+
+Country: Norway. Published: 2026-09-07.
+Article: Russia Identifies US Missile Sites in Norway It Would Target in a Military Conflict - UNITED24 Media. "Russia has identified US missile deployment sites and their command-and-control centers in Norway as potential targets in the event of a military conflict, following Washington's reported deployment of a missile system capable of launching Tomahawk cruise missiles."
+{"what_happened": "Russia's Foreign Ministry named US missile sites in Norway as targets in a military conflict.", "exclusion": "none", "test": "T4", "high_impact_event": false, "ledger": "order_security", "reason": "\"identified US missile deployment sites ... in Norway as potential targets\": an outside power threatens Norway's territory."}
+
+Country: Hong Kong SAR, China. Published: 2026-09-24.
+Article: Chinese authorities reportedly in possession of F-35 components in Hong Kong - cnbc.com. "Chinese authorities are reportedly in possession of F-35 stealth fighter parts after components of the aircraft were 'inexplicably diverted to Hong Kong.' Shipping giant UPS was sending a cockpit canopy and weapons bay door to the U.S. from Australia in late May when it was diverted."
+{"what_happened": "F-35 parts shipped from Australia to the US were diverted to Hong Kong and are reportedly held by Chinese authorities.", "exclusion": "E7", "test": "none", "high_impact_event": false, "ledger": "none", "reason": "\"inexplicably diverted to Hong Kong\": Hong Kong is only where it happened, and the consequences fall on China, the US and Australia."}
+
+Country: Peru. Published: 2026-09-20.
 Article: Shot dead the journalist and regional candidate Susy Aponte Polo during a rally in Peru - Demócrata. "The journalist and aspiring regional governor Susy Isabel Aponte Polo has been shot dead this Saturday while participating in a campaign event in the city of Caraz, in the northwest of Peru, as confirmed by Peruvian authorities."
-{"subject_country": "Peru", "bearing_on_target": "direct", "risk_area": "order_security", "one_person_case": false, "reason": "A candidate killed at a campaign event is violence against the conduct of Peru's elections, a single event with high consequences.", "label": "relevant"}
+{"what_happened": "A gunman shot dead regional candidate Susy Aponte Polo at a campaign event in Peru.", "exclusion": "none", "test": "T3", "high_impact_event": true, "ledger": "order_security", "reason": "\"shot dead ... while participating in a campaign event\": political violence, the killing of a candidate."}
 
-Country: Poland
-Article: Russia hits Poland-Ukraine border area amid wave of attacks targeting gas stations, Kyiv says - Scripps News. "A Russian drone hit a gas station near Ukraine's border with Poland... The latest attack, in the small, northwest Ukrainian town of Yahodyn, happened just hundreds of meters from the border with Poland, a Polish official told Reuters."
-{"subject_country": "Ukraine", "bearing_on_target": "spillover", "risk_area": "order_security", "one_person_case": false, "reason": "A neighbour's war is striking a few hundred metres from a Polish border crossing, a direct security consequence for Poland.", "label": "relevant"}
+Country: Turkey. Published: 2026-09-22.
+Article: Greek LGBTQI+ Groups Plan Protest Rally in Solidarity With Turkey's LGBTQI+ Community - tovima.com. "LGBTQI+ collectives and organizations in Greece have called on the public to join a protest outside the Turkish Embassy in Athens, on Friday, September 25, in solidarity with Turkey's LGBTQI+ community."
+{"what_happened": "LGBTQI+ groups in Greece called a protest outside the Turkish Embassy in Athens.", "exclusion": "E8", "test": "none", "high_impact_event": false, "ledger": "none", "reason": "\"a protest outside the Turkish Embassy in Athens\": people abroad acting about Turkey."}
 
-Country: Mexico
-Article: Trump administration begins building border wall in Big Bend region of Texas - PBS. "The Trump administration has started building the border wall through a west Texas section of the Big Bend region, marking the first major construction in an area of the U.S.-Mexico border where the administration's plans have met with heavy opposition."
-{"subject_country": "United States", "bearing_on_target": "spillover", "risk_area": "friction", "one_person_case": false, "reason": "New US wall construction on the Mexican frontier bears directly on Mexico's border crossings and cross-border trade.", "label": "relevant"}
+Country: Canada. Published: 2026-09-17.
+Article: Pay cynicism has doubled since 2024 - just as Canada's transparency rules expand - Benefits and Pensions Monitor. "Six provinces now require pay disclosure. The share of employees who believe it's easier to get a pay raise by quitting and rejoining their employer has more than doubled since 2024. This finding lands as Canada's own patchwork of provincial pay transparency laws continues to expand."
+{"what_happened": "Canadian provinces keep adding pay transparency laws, as a survey finds pay cynicism has doubled.", "exclusion": "none", "test": "T1", "high_impact_event": false, "ledger": "friction", "reason": "\"Canada's own patchwork of provincial pay transparency laws continues to expand\": new rules from Canadian governments."}
 
-Country: Malaysia
-Article: Malaysia politics: Najib's house arrest order facing legal challenges, calls for transparency - CNA. "Malaysia's Attorney-General says former PM Najib Razak has yet to pay the RM50 million fine required for him to serve the rest of his prison term under house arrest. Meanwhile the house-arrest order is facing legal challenges, amid calls for greater transparency over how the conditional pardon was granted."
-{"subject_country": "Malaysia", "bearing_on_target": "direct", "risk_area": "information", "one_person_case": false, "reason": "It is about one man, but the question is how a former prime minister's pardon was granted and whether the courts will uphold it, which is institutional.", "label": "relevant"}
-
-Country: Chile
-Article: Weak economy puts pressure on Chile government's goals - upi.com. "Chile's Monthly Economic Activity Index fell 1.5% in July from a year earlier, marking its worst performance in more than three years. The unemployment rate reached 9.5% in the May-July period, its highest level since 2021."
-{"subject_country": "Chile", "bearing_on_target": "direct", "risk_area": "order_security", "one_person_case": false, "reason": "Activity at a three-year low and unemployment at its highest since 2021 describe the state of Chile's economy and the pressure on its government.", "label": "relevant"}
-
-Country: Singapore
-Article: Malaysian man who is alleged mastermind of scam syndicate operating in S'pore arrested - straitstimes.com. "A 27-year-old Malaysian man, nicknamed 'Da Xiang', was arrested for masterminding a scam and money laundering syndicate operating in Singapore involving impersonation of government officials."
-{"subject_country": "Singapore", "bearing_on_target": "direct", "risk_area": "none", "one_person_case": true, "reason": "One suspect's arrest in a scam case, with no consequence for Singapore's institutions or economy.", "label": "irrelevant"}
-
-Country: Thailand
-Article: Australian man accused of teenage girl's murder appears in Thailand court - ABC News. "An Australian man appeared in court for the first time Friday on charges of murder and concealment of a body in connection with the death of a teenage girl in an eastern tourist city in Thailand, police said."
-{"subject_country": "Thailand", "bearing_on_target": "direct", "risk_area": "none", "one_person_case": true, "reason": "One foreign national's murder trial, with no institutional angle.", "label": "irrelevant"}
-
-Country: France
-Article: MOPGA 2027: Visiting Fellowship Program for Early Career Researchers - Campus France. "Since 2018, the Make Our Planet Great Again (MOPGA) initiative has continued to attract strong interest from the international scientific community... France is launching a new edition of the MOPGA programme."
-{"subject_country": "France", "bearing_on_target": "direct", "risk_area": "none", "one_person_case": false, "reason": "A call for fellowship applications, which says nothing about the risk of holding French assets.", "label": "irrelevant"}
-
-Country: Japan
-Article: Oregon, Big Ten Network and DAZN Expand Access for Fans in Japan - University of Oregon Athletics. "The University of Oregon, Big Ten Network and DAZN announced a coordinated content and distribution effort that builds on the momentum of Oregon football's summer trip to Japan."
-{"subject_country": "United States", "bearing_on_target": "none", "risk_area": "none", "one_person_case": false, "reason": "A US college football broadcasting deal in which Japan is the audience.", "label": "irrelevant"}
-
-Country: Hong Kong
+Country: Hong Kong SAR, China. Published: 2026-09-18.
 Article: Hong Kong Profits Tax Filing Guide 2026: Deadlines, Requirements and Preparation - China Briefing. "The Hong Kong Profits Tax Filing Guide 2026 helps businesses navigate the latest tax return deadlines, filing requirements, and compliance obligations."
-{"subject_country": "Hong Kong", "bearing_on_target": "direct", "risk_area": "friction", "one_person_case": false, "reason": "A compliance guide to existing filing deadlines, which reports no change in Hong Kong's tax regime.", "label": "irrelevant"}"""
+{"what_happened": "China Briefing explains Hong Kong's 2026 profits tax filing deadlines and requirements.", "exclusion": "E3", "test": "none", "high_impact_event": false, "ledger": "none", "reason": "\"helps businesses navigate the latest tax return deadlines\": an explainer of rules already in force."}
+
+Country: United States. Published: 2026-09-24.
+Article: Global trade is changing how the Canadian economy works - Bank of Canada. "Tariffs and other trade barriers are changing where goods are produced. International trade benefits the Canadian economy, but changes to our trade relationships are now forcing businesses to adjust to a new reality."
+{"what_happened": "The Bank of Canada says tariffs and trade barriers are changing how Canada's economy works.", "exclusion": "none", "test": "T5", "high_impact_event": false, "ledger": "friction", "reason": "\"Tariffs and other trade barriers are changing where goods are produced\" in Canada, the United States' top export partner."}
+
+Country: Portugal. Published: 2026-09-23.
+Article: Spain and Brazil take FISU World University beach handball titles in Portugal - IHF. "Honours were split between two of the world heavyweights in beach handball at the 2026 FISU World University Championship Beach Sports championships which concluded in Figueira da Foz, Portugal on Tuesday."
+{"what_happened": "Spain and Brazil won the beach handball titles at a university championship held in Portugal.", "exclusion": "E1", "test": "none", "high_impact_event": false, "ledger": "none", "reason": "\"beach handball titles\": sport, and Portugal is only the venue."}"""
+
+# The fourteen articles above. None of them may report the gate's accuracy.
+EXAMPLE_IDS = ("b21", "h12", "h21", "h10", "b02", "h01", "b29", "h11",
+               "b01", "b18", "b15", "b03", "h30", "h24")
 
 
 RELEVANCE_SCHEMA: Dict[str, Any] = {
@@ -182,18 +231,18 @@ RELEVANCE_SCHEMA: Dict[str, Any] = {
     "schema": {
         "type": "object",
         "additionalProperties": False,
-        # Order is the instrument: the model says who the story is about and
-        # whether it touches the country before it is allowed to label it.
+        # Order is the instrument: the model says what happened, then whether an
+        # exclusion applies, before it is asked which test passes.
         "properties": {
-            "subject_country": {"type": "string"},
-            "bearing_on_target": {"type": "string", "enum": list(BEARINGS)},
-            "risk_area": {"type": "string", "enum": list(RISK_AREAS)},
-            "one_person_case": {"type": "boolean"},
+            "what_happened": {"type": "string"},
+            "exclusion": {"type": "string", "enum": list(EXCLUSIONS)},
+            "test": {"type": "string", "enum": list(TESTS)},
+            "high_impact_event": {"type": "boolean"},
+            "ledger": {"type": "string", "enum": list(RISK_AREAS)},
             "reason": {"type": "string"},
-            "label": {"type": "string", "enum": list(LABELS)},
         },
-        "required": ["subject_country", "bearing_on_target", "risk_area",
-                     "one_person_case", "reason", "label"],
+        "required": ["what_happened", "exclusion", "test", "high_impact_event",
+                     "ledger", "reason"],
     },
     "strict": True,
 }
@@ -203,13 +252,24 @@ RELEVANCE_SCHEMA: Dict[str, Any] = {
 RELEVANCE_PROMPT_VERSION = content_hash(RELEVANCE_PROMPT)
 
 
-def cache_version(model: str, input_mode: str) -> str:
-    """The cache's version column: the prompt, the model and the input mode.
+def label_of(verdict: Dict[str, Any]) -> str:
+    """The rule, in code: relevant only when nothing excludes and a test passes."""
+    if verdict.get("exclusion") == "none" and verdict.get("test") not in (None, "none"):
+        return "relevant"
+    return "irrelevant"
 
-    The cache used to be keyed on the prompt alone, so a changed model would have
-    been served the previous model's verdicts as its own.
+
+def cache_version(model: str, input_mode: str) -> str:
+    """The cache's version column: the prompt, the exposure cards, the model and
+    the input mode.
+
+    The run date is in the prompt but not in the version, so a verdict earned on
+    one day is served on another. Only E8 ("nothing new is happening") leans on
+    the date, and a verdict a week old is judged against the week it was read.
     """
-    return content_hash(f"{RELEVANCE_PROMPT_VERSION}\n{model}\n{input_mode}")
+    return content_hash(
+        f"{RELEVANCE_PROMPT_VERSION}\n{EXPOSURE_CARDS_VERSION}\n{model}\n{input_mode}"
+    )
 
 
 def effective_input_mode(article: Dict[str, Any], input_mode: str = DEFAULT_INPUT_MODE) -> str:
@@ -268,12 +328,37 @@ def _client(model: str, api_key: Optional[str], seed: int) -> Any:
     )
 
 
-def gate_prompt(country_name: str, article: Dict[str, Any], input_mode: str = DEFAULT_INPUT_MODE) -> str:
+def _listed(values: Sequence[str]) -> str:
+    return ", ".join(values) if values else "none"
+
+
+def gate_prompt(
+    country_name: str,
+    iso2: str,
+    article: Dict[str, Any],
+    input_mode: str = DEFAULT_INPUT_MODE,
+    run_date: Optional[dt.date] = None,
+) -> str:
     """The whole message the gate sends for one article."""
+    card = EXPOSURE_CARDS.get(iso2) or {}
+    published = str(article.get("page_published_at") or article.get("published") or "")[:10]
+    fields = {
+        "{country}": country_name,
+        "{export_partners}": _listed(card.get("export_partners", [])),
+        "{import_partners}": _listed(card.get("import_partners", [])),
+        "{main_exports}": _listed(card.get("main_exports", [])),
+        "{neighbours}": _listed(card.get("neighbours", [])),
+        "{security_rivals}": _listed(card.get("security_rivals", [])),
+        "{published_date}": published or "unknown",
+        "{run_date}": (run_date or dt.date.today()).isoformat(),
+    }
+    text = RELEVANCE_PROMPT
+    for placeholder, value in fields.items():
+        text = text.replace(placeholder, value)
     return (
-        f"{RELEVANCE_PROMPT.replace('{country}', country_name)}\n\n"
+        f"{text}\n\n"
         f"NOW THE ARTICLE TO JUDGE\n\n"
-        f"Country: {country_name}\n"
+        f"Country: {country_name}. Published: {published or 'unknown'}.\n"
         f"Article:\n{article_input_text(article, input_mode)}"
     )
 
@@ -285,6 +370,7 @@ def classify(
     *,
     model: str = DEFAULT_MODEL,
     input_mode: str = DEFAULT_INPUT_MODE,
+    run_date: Optional[dt.date] = None,
     api_key: Optional[str] = None,
     seed: int = 42,
     meter: Optional[usage.Meter] = None,
@@ -296,19 +382,20 @@ def classify(
     Args:
         articles: The candidate pool from `news_fetching.core.fetch_candidates`.
         country_name: Display name, put to the model.
-        iso2: Roster code, part of the cache key.
+        iso2: Roster code, part of the cache key, and whose exposure card is sent.
         model: Dated model id. Part of the cache version.
         input_mode: 'snippet' or 'body'. Part of the cache version.
+        run_date: "Today" in the prompt; defaults to the current date.
         meter: Records real token usage if supplied.
         use_cache: False re-asks the model for everything, for measurement.
         mode: 'named' or 'masked'; part of the cache key.
 
     Returns:
-        ``{relevance_key: {subject_country, bearing_on_target, risk_area,
-        one_person_case, reason, label, ledgers, input_mode, cached}}``.
-        `input_mode` is the mode the article was actually read in. An article
-        the model failed on is absent, and is treated downstream as ineligible
-        rather than as passing.
+        ``{relevance_key: {what_happened, exclusion, test, high_impact_event,
+        ledger, reason, label, ledgers, input_mode, cached}}``. `label` is
+        computed by `label_of`, not answered by the model. `input_mode` is the
+        mode the article was actually read in. An article the model failed on is
+        absent, and is treated downstream as ineligible rather than as passing.
     """
     if not articles:
         return {}
@@ -352,9 +439,9 @@ def classify(
     for article in todo:
         key = keys[id(article)]
         try:
-            response = structured.invoke(
-                [SystemMessage(content=gate_prompt(country_name, article, input_mode))]
-            )
+            response = structured.invoke([SystemMessage(
+                content=gate_prompt(country_name, iso2, article, input_mode, run_date)
+            )])
         except Exception as e:
             logger.warning("relevance call failed for %s: %s", article.get("title"), e)
             continue
@@ -363,13 +450,15 @@ def classify(
             meter.add_response(model, response)
 
         parsed = response.get("parsed") if isinstance(response, dict) else response
-        if not isinstance(parsed, dict) or parsed.get("label") not in LABELS:
+        if not isinstance(parsed, dict) or parsed.get("exclusion") not in EXCLUSIONS \
+                or parsed.get("test") not in TESTS:
             logger.warning("relevance returned an unusable answer for %s", article.get("title"))
             continue
 
+        parsed["label"] = label_of(parsed)
         # The ledger that selection spreads the budget over, derived from the
         # area. An irrelevant article bears on none, whatever area it named.
-        area = parsed.get("risk_area")
+        area = parsed.get("ledger")
         parsed["ledgers"] = (
             [LEDGER_OF_AREA[area]] if parsed["label"] == "relevant" and area in LEDGER_OF_AREA else []
         )
@@ -421,14 +510,18 @@ def select(
 
     The order:
 
-    1. **Round-robin across the ledgers each article bears on**, newest
+    1. **High-impact events first, always.** A coup attempt, a military attack
+       on the country's territory, a sovereign default or the killing of a
+       candidate or senior official is read before anything else, and so takes
+       the full-text slots.
+    2. **Then round-robin across the ledgers each article bears on**, newest
        first within each ledger, until the budget fills. Twenty newest articles
        on a busy country can be eight versions of one story; interleaving by
        ledger spreads the budget without ever admitting something ineligible.
        A ledger with nothing eligible is simply skipped, and its count says zero.
-    2. **Prefer a publisher not already selected** when two candidates tie, so
+    3. **Prefer a publisher not already selected** when two candidates tie, so
        one outlet cannot take the whole budget.
-    3. **Tie-break on URL**, so the order is deterministic for a given eligible
+    4. **Tie-break on URL**, so the order is deterministic for a given eligible
        set.
 
     Articles that are relevant but bear on no ledger are not discarded; they
@@ -463,7 +556,14 @@ def select(
 
     buckets: Dict[str, List[Dict[str, Any]]] = {led: [] for led in LEDGERS}
     buckets["(none)"] = []
-    for a in sorted(eligible, key=order_key, reverse=True):
+    events = sorted(
+        [a for a in eligible if a["relevance"].get("high_impact_event")],
+        key=order_key,
+        reverse=True,
+    )
+    rest = [a for a in eligible if not a["relevance"].get("high_impact_event")]
+
+    for a in sorted(rest, key=order_key, reverse=True):
         led = a["relevance"].get("ledgers") or []
         if not led:
             buckets["(none)"].append(a)
@@ -484,6 +584,11 @@ def select(
         publishers_used[pub] = publishers_used.get(pub, 0) + 1
         selected.append(article)
         return True
+
+    for article in events:
+        if len(selected) >= budget:
+            break
+        take(article)
 
     def next_from(bucket: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """First article in `bucket` not already taken, preferring an unused
@@ -547,10 +652,11 @@ def select(
             "label": verdict.get("label", "unclassified"),
             "reason": verdict.get("reason", ""),
             "ledgers": verdict.get("ledgers", []),
-            "subject_country": verdict.get("subject_country", ""),
-            "bearing_on_target": verdict.get("bearing_on_target", ""),
-            "risk_area": verdict.get("risk_area", ""),
-            "one_person_case": bool(verdict.get("one_person_case")),
+            "what_happened": verdict.get("what_happened", ""),
+            "exclusion": verdict.get("exclusion", ""),
+            "test": verdict.get("test", ""),
+            "high_impact_event": bool(verdict.get("high_impact_event")),
+            "ledger": verdict.get("ledger", ""),
             # What the gate actually read: `body` can fall back to `snippet`.
             "input_mode": verdict.get("input_mode", ""),
             # Which theme queries found it, for this country. A fact about the

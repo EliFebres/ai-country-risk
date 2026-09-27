@@ -365,3 +365,27 @@ Article Next Article". It stays in the held-out set because it was already
 labelled. No length floor was added: 37dd309 chose the digest's judgement over a
 phrase list, and a floor would be the same kind of rule.
 
+### The actor-test gate, 2026-09-27
+
+The model is fixed at `gpt-4o-mini-2024-07-18` in `body` mode, and only the
+prompt and the harness change. The prompt is Eli's actor test, used verbatim. It
+asks who acted and on whom, as eight exclusions and five tests. The label is
+computed in code: `relevant` only when no exclusion applies and a test passes.
+Fourteen of Eli's articles are worked examples, in contrasting pairs.
+
+**Measured on tuned data.** The rule was derived from all 60 labels, so no
+held-out set exists, and Eli declined further labelling. The decision is taken on
+the 46 articles that are not worked examples. All 60 are reported separately.
+
+- **Adopt** if, on the 46, agreement is at least 80% **and** recall on relevant is
+  at least 90%, **and** at most 2 of the 60 labels flip across three passes. The
+  first pass reads and writes the cache, and passes 2 and 3 bypass it.
+- If it fails, report it and stop. The prompt is not edited and re-run.
+
+## 18. Exposure cards go stale
+
+`backend/llm/exposure_cards.json` holds each country's main trade partners,
+exports, neighbours and security rivals, for the gate's spillover test (T5).
+Refresh the cards yearly: rerun `python -m backend.data_fetching.exposure_cards_build`
+and re-read the hand-written rivals and sea neighbours.
+
