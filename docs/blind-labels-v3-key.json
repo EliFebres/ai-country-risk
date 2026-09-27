@@ -1,0 +1,308 @@
+{
+  "_note": "SEALED. Do not read before Eli's v3 labels are committed.",
+  "generated_at": "2026-09-27T19:35:38.921716+00:00",
+  "seed": 20260927,
+  "draw": "v3 held-out: test-set pools, full articles, one per story, at most 6 per country, stratified on the old gate's label",
+  "rows": [
+    {
+      "id": "h01",
+      "url": "https://www.kyivpost.com/post/85245",
+      "country_iso2": "TW",
+      "title": "Taiwan Cement Giant Makes Rare Wartime Investment in Ukraine - Kyiv Post",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "02adb8ba05d6df915721e83ef52aa24d05a27ef0e6bc6900f708fe4a243be8ad"
+    },
+    {
+      "id": "h02",
+      "url": "https://www.pbs.org/newshour/politics/trump-administrations-ban-of-three-prominent-news-outlets-from-white-house-is-in-court",
+      "country_iso2": "US",
+      "title": "Judge questions Trump's ban of three prominent news outlets from White House - PBS",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "2e5543ab06daa13f4e86edd989206cebed0fa5dc5968461b0f63a812ff2a403e"
+    },
+    {
+      "id": "h03",
+      "url": "https://www.theportugalnews.com/news/2026-09-25/inflation-is-expected-to-accelerate-in-portugal/1091206",
+      "country_iso2": "PT",
+      "title": "Inflation is expected to accelerate in Portugal - The Portugal News",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "0c1c25204e3118754d2024378e89ae06d5ad7a21e1d5755caea88928d9d8e1f2"
+    },
+    {
+      "id": "h04",
+      "url": "https://www.deloitte.com/us/en/insights/topics/economy/global-economic-outlook/weekly-update.html",
+      "country_iso2": "US",
+      "title": "What’s happening this week in economics? - Deloitte",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "c1d4e1a05f70345b24d87a335a835f36b427bc2c161b2ad1f9a5eb7bca9d94cc"
+    },
+    {
+      "id": "h05",
+      "url": "https://shabellemedia.com/somalia-kuwait-discuss-cooperation-to-combat-corruption/",
+      "country_iso2": "KW",
+      "title": "Somalia, Kuwait Discuss Cooperation to Combat Corruption - Shabelle Media Network",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "0632e7faa416dc40020fa1f474e70102132bc047a60eb808082148821bb81ab7"
+    },
+    {
+      "id": "h06",
+      "url": "https://understandingwar.org/research/china-taiwan/china-taiwan-update-september-11-2026/",
+      "country_iso2": "TW",
+      "title": "China & Taiwan Update, September 11, 2026 - Institute for the Study of War",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "b2444f58fa76cbf3c1d96e71b1f4fce7afb6ddc81648788fb8e722ac0c0569d9"
+    },
+    {
+      "id": "h07",
+      "url": "https://www.veterans.senate.gov/2026/9/chairman-moran-leads-nomination-hearing-for-chair-of-the-board-of-veterans-appeals-judges-on-the-united-states-court-of-appeals-for-veterans-claims",
+      "country_iso2": "US",
+      "title": "Chairman Moran Leads Nomination Hearing for Chair of the Board of Veterans’ App... - Senate Committee on Veterans' Affairs (.gov)",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "e5379907e52ea85bf9e0500402c3bc0733702c99562d780a4bebc210a0cbebf3"
+    },
+    {
+      "id": "h08",
+      "url": "https://kuwaittimes.com/article/50326/kuwait/other-news/nazaha-trains-teachers-to-promote-positive-values/",
+      "country_iso2": "KW",
+      "title": "Nazaha trains teachers to promote positive values - Kuwait Times",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "074e705ef9bfd128c36c8df2e7dc7c807ac063d6a196a13ea14778cd5caf2f6b"
+    },
+    {
+      "id": "h09",
+      "url": "https://uk.finance.yahoo.com/news/portugal-says-entry-grid-operator-065938905.html",
+      "country_iso2": "PT",
+      "title": "Portugal says entry into grid operator REN won't affect China's State Grid - Yahoo Finance UK",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "efea72c89557c82a186544ed559368e5c048dd5e07d4a9e146a460f7e6d751c7"
+    },
+    {
+      "id": "h10",
+      "url": "https://www.customs.gov.hk/en/customs-announcement/press-release/index_id_5654.html",
+      "country_iso2": "HK",
+      "title": "Hong Kong Customs seizes suspected ketamine and suspected illicit cigarettes worth about $2.2 million (with photos) - customs.gov.hk",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "incident",
+      "body_quality": "full",
+      "content_sha256": "dbd62b97f343e36e0610e523e51f6ccac58d50439221e09e6d2579e7b6bb7808"
+    },
+    {
+      "id": "h11",
+      "url": "https://www.cnbc.com/2026/09/24/chinaf-f35-components-hong-kong.html",
+      "country_iso2": "HK",
+      "title": "Chinese authorities reportedly in possession of F-35 components in Hong Kong - cnbc.com",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "eea15f64d68d5cd5477404aabf2a4a0e1d99858d0d1baadf5e7c9a826bcf2ccb"
+    },
+    {
+      "id": "h12",
+      "url": "https://rsf.org/en/where-hong-kong-journalist-minnie-chan-who-disappeared-three-years-ago-china",
+      "country_iso2": "HK",
+      "title": "Where is Hong Kong journalist Minnie Chan, who disappeared three years ago in China? - RSF",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "23532c255c8459e12a46fdbacf0509d376bcf95f367a33f2c247eb1bd1b384dc"
+    },
+    {
+      "id": "h13",
+      "url": "https://www.chinadailyasia.com/article/640170",
+      "country_iso2": "HK",
+      "title": "Tailored strategy needed to extend border crossing operations - chinadailyasia.com",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "ad8b381762583b3983a28fa8bf4fd27db2f4e47ae48a483c5efd82f5ea8e86fd"
+    },
+    {
+      "id": "h14",
+      "url": "https://abc7ny.com/post/iran-president-set-speak-united-nations-netanyahu-visit-nears/19860483/",
+      "country_iso2": "US",
+      "title": "Iran president says US made Iranians 'victims of terrorism' in address to UN General Assembly - ABC7 New York",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "d85691598d60e4adc3161aaa6f0dd7e5ae081a019aea9d1dc17d6c620a07bef0"
+    },
+    {
+      "id": "h15",
+      "url": "https://www.jurist.org/news/2026/08/amnesty-international-warns-kuwaits-counter-terrorism-crackdown-amid-iran-conflict-endangers-fundamental-human-rights/",
+      "country_iso2": "KW",
+      "title": "Amnesty International warns Kuwait’s counter-terrorism crackdown amid Iran conflict endangers fundamental human rights - Jurist.org",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "5d2011f6652aaed62b7de5e984550f719679471932434b69464263f7aa1b5491"
+    },
+    {
+      "id": "h16",
+      "url": "https://www.aljazeera.com/news/2026/9/24/has-china-received-us-f-35-parts-by-diverting-an-australian-shipment",
+      "country_iso2": "HK",
+      "title": "Has China received US F-35 parts by diverting an Australian shipment? - Al Jazeera",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "incident",
+      "body_quality": "full",
+      "content_sha256": "1047196d49645a479e35e1ac4f4b44b4a64f3374ed9c63405515f46058039eef"
+    },
+    {
+      "id": "h17",
+      "url": "https://www.scmp.com/news/china/military/article/3368829/xi-presses-trump-take-next-step-taiwan-oppose-independence",
+      "country_iso2": "TW",
+      "title": "Xi presses Trump to take the next step on Taiwan: oppose independence - South China Morning Post",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "1d87927b8e52862ffdad24275a824360bfdca56fc8a3cc8f4c2954db46a24bf8"
+    },
+    {
+      "id": "h18",
+      "url": "https://www.taipeitimes.com/News/taiwan/archives/2026/09/25/2003864868",
+      "country_iso2": "TW",
+      "title": "Cabinet approves NT$3.6 billion for school security - Taipei Times",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "ce6d331ce09cbc8267b82831a29430e0b12cdd76bd056f6999973841b2ec0aca"
+    },
+    {
+      "id": "h19",
+      "url": "https://kuwaittimes.com/article/50401/kuwait/other-news/kuwait-stresses-palestinian-child-protection-education-at-un-meetings/",
+      "country_iso2": "KW",
+      "title": "Kuwait stresses Palestinian child protection, education at UN meetings - Kuwait Times",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "3c3ed4420d650d384dc9e498d7fdb783c59eee89ec739d68c11894bb17383a58"
+    },
+    {
+      "id": "h20",
+      "url": "https://www.airandspaceforces.com/affordable-munitions-mixed-attack-usaf-taiwan-experts/",
+      "country_iso2": "TW",
+      "title": "Experts: Affordable Munitions Could Help USAF in Taiwan Conflict, but More Is Needed - Air & Space Forces Magazine",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "2f88aeab0dee43eaabbb32490709da617742970434a3e4b289fbd18fdc2c9afe"
+    },
+    {
+      "id": "h21",
+      "url": "https://www.justice.gov/opa/pr/four-aliens-charged-election-fraud",
+      "country_iso2": "US",
+      "title": "Office of Public Affairs | Four Aliens Charged With Election Fraud - Department of Justice (.gov)",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "incident",
+      "body_quality": "full",
+      "content_sha256": "14538056c7c9f8f9d1698ca17fad45eb9b961a1889b4d9ef68c2f5c129f1741e"
+    },
+    {
+      "id": "h22",
+      "url": "https://www.fox26medford.com/news/politics/klopp-denied-on-germany-debut-as-portugal-win-in-nations-league/article_092b0c16-7808-54d3-b116-83dd5f5ff82d.html",
+      "country_iso2": "PT",
+      "title": "Klopp denied on Germany debut as Portugal win in Nations League - KMVU FOX 26 Medford",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "b220c9674cd302ff72d728d65db22e870f5b05a534d2397cb1809b187eafefcb"
+    },
+    {
+      "id": "h23",
+      "url": "https://kuwaittimes.com/article/50309/business/europes-economy-resilient-amid-energy-shock/",
+      "country_iso2": "KW",
+      "title": "Europe’s economy resilient amid energy shock - Kuwait Times",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "94f851210b66a50a55ca2cb40400cef20c742114e312a7af8ffdb051412ad2a7"
+    },
+    {
+      "id": "h24",
+      "url": "https://www.ihf.info/media-center/news/spain-and-brazil-take-fisu-world-university-beach-handball-titles-portugal",
+      "country_iso2": "PT",
+      "title": "Spain and Brazil take FISU World University beach handball titles in Portugal - IHF",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "8a0fe0bdb497f01d4d6b5051e790f0e5b8b9933282506ba874045528ada0636c"
+    },
+    {
+      "id": "h25",
+      "url": "https://www.jll.com/en-hk/newsroom/hk-remains-among-the-world-s-most-transparent-real-estate-markets",
+      "country_iso2": "HK",
+      "title": "Hong Kong remains among the world's most transparent real estate markets, ranking 14th globally - JLL",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "fc0ead794cb6a38565281aa08208fad683af3f7827a7c517c81d94e47f5130e1"
+    },
+    {
+      "id": "h26",
+      "url": "https://www.portugalresident.com/ps-insistence-leads-government-to-concede-that-some-of-portugals-crude-oil-reserves-are-in-france/",
+      "country_iso2": "PT",
+      "title": "PS insistence leads government to concede that some of Portugal’s crude oil reserves are in France… - Portugal Resident",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "701f71a234a4134e4b2d32926936c4e75d00db3dc1e0c5eff02238db047619eb"
+    },
+    {
+      "id": "h27",
+      "url": "https://www.thetimes.com/world/europe/article/ees-eu-border-queues-bkxvcnwks",
+      "country_iso2": "PT",
+      "title": "EU lets nine countries delay EES border checks even further - The Times",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "468dffa16eae871dc7af93f2299e1a232dc8373325858dc5cb3bccdf28bb1404"
+    },
+    {
+      "id": "h28",
+      "url": "https://www.tradingview.com/news/te_news:581973:0-taiwan-inflation-rate-at-4-month-low/",
+      "country_iso2": "TW",
+      "title": "Taiwan Inflation Rate at 4-Month Low - TradingView",
+      "stratum": "likely relevant",
+      "old_gate_label": "structural",
+      "body_quality": "full",
+      "content_sha256": "d195e4b6ba01ffc06363ef1b6cef1a5f7987ec5b6d1a76ccae3da29fa63f2792"
+    },
+    {
+      "id": "h29",
+      "url": "https://www.newsofbahrain.com/bahrain/141812.html",
+      "country_iso2": "KW",
+      "title": "Bahrain-Kuwait Anti-Corruption - News of Bahrain",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "d61ea6d2832dd66fbff5c7d12d3b699c7dcb3aff89c1b869464f4c08750ba0a8"
+    },
+    {
+      "id": "h30",
+      "url": "https://www.bankofcanada.ca/2026/09/global-trade-is-changing-how-the-canadian-economy-works/",
+      "country_iso2": "US",
+      "title": "Global trade is changing how the Canadian economy works - Bank of Canada",
+      "stratum": "likely irrelevant",
+      "old_gate_label": "irrelevant",
+      "body_quality": "full",
+      "content_sha256": "4ffaf1409ba5b9234c50d0e3469499f1599db012baf93e6555b8abeef13a2966"
+    }
+  ]
+}
