@@ -281,3 +281,33 @@ The score is sensitive to volume, so a stricter bar changes what every country
 is scored on and not only which articles pass. The prompt is unchanged until Eli
 decides where the line is. Any prompt edit changes `RELEVANCE_PROMPT_VERSION`,
 and every verdict is re-earned on the next run.
+
+### The binary gate: pass line, pre-registered 2026-09-27
+
+Written and committed before any held-out article was scored.
+
+The gate is now binary (`relevant` / `irrelevant`), against Eli's definition:
+material to the target country's investable risk. The prompt carries ten of the
+v2 thirty as worked examples, and was tuned against the other twenty (the dev
+set). Neither can report accuracy. The held-out set is the v3 draw
+(`docs/blind-labels-v3-key.json`, sealed), labelled by Eli on
+`docs/blind-labels-v3.html`.
+
+The grid is run **once**: four models (`gpt-4o-mini-2024-07-18`,
+`gpt-4.1-mini-2025-04-14`, `gpt-4.1-2025-04-14`, `gpt-4o-2024-08-06`) by two input
+modes (`snippet`, `body`), with the old gate's stored labels as the baseline row.
+
+- **Pass** means agreement with Eli of at least **24 of 30** (80%) **and** recall on
+  Eli's `relevant` of at least **90%**. A failed call counts as `irrelevant`, as it
+  does in the pipeline.
+- Recall is the guard because a missed relevant article is evidence the scorer
+  never sees. A false admit costs one digest call.
+- Among the cells that pass, adopt the **cheapest** by projected weekly cost for 48
+  countries. The volume is the 2026-09-22/23 roster run's 2,444 candidates, and the
+  cost is the cell's metered cost per call. A tie on cost goes to higher agreement.
+- A winning `body` cell needs bodies before the gate. Retrieval already fetches
+  them, so report the added fetches per week, which should be none, and check it.
+- If **no** cell passes, report the table and the disagreements and stop. The line
+  is not loosened. The held-out thirty are not re-run under a revised prompt,
+  because a revised prompt needs a new held-out draw.
+
