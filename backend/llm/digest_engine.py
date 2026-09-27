@@ -49,6 +49,7 @@ __all__ = [
     "RETRY_CHARS",
     "digest_text",
     "digest_articles",
+    "cached_body_quality",
     "body_status_for",
     "BODY_QUALITIES",
 ]
@@ -250,6 +251,41 @@ def digest_text(
             )
 
     return None
+
+
+def cached_body_quality(
+    articles: Sequence[Dict[str, Any]],
+    *,
+    mode: str = "named",
+) -> Dict[str, str]:
+    """`body_quality` for the articles already digested, from the cache alone.
+
+    The gate in `body` mode runs before the digest, so the only verdict on a body
+    it can use is one a previous run paid for. No model is called. An article
+    with no cached digest is simply absent.
+
+    Returns:
+        ``{url: body_quality}``.
+    """
+    keyed = {}
+    for a in articles:
+        body = (a.get("text") or "")[:BODY_CAP_CHARS]
+        if body.strip():
+            keyed[a.get("publisher_link") or a.get("link")] = content_hash(body)
+    if not keyed:
+        return {}
+    try:
+        cached = store.read_artifacts(
+            list(keyed.values()), kind="digest", version=DIGEST_PROMPT_VERSION, mode=mode,
+        )
+    except Exception as e:
+        logger.warning("digest cache unavailable: %s", e)
+        return {}
+    return {
+        url: cached[h]["body_quality"]
+        for url, h in keyed.items()
+        if h in cached and (cached[h] or {}).get("body_quality")
+    }
 
 
 def digest_articles(

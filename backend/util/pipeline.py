@@ -505,8 +505,16 @@ def run_etl(
 
             # 2b) The relevance gate. Every candidate is classified once, for
             #     this country, before anything expensive touches it. Only
-            #     `structural` articles are eligible, and nothing tops up from
-            #     the rest: if six qualify, six are scored.
+            #     `relevant` articles are eligible, and nothing tops up from
+            #     the rest: if six qualify, six are scored. In `body` mode a
+            #     body a previous digest called `not_article` is read as a
+            #     snippet; the cache is the only digest available this early.
+            if relevance.DEFAULT_INPUT_MODE == "body":
+                known = digest_engine.cached_body_quality(candidates)
+                for c in candidates:
+                    q = known.get(c.get("publisher_link") or c.get("link"))
+                    if q:
+                        c["body_quality"] = q
             labels = relevance.classify(
                 candidates, country_name or iso2, iso2, meter=run_meter
             )
@@ -515,7 +523,7 @@ def run_etl(
             counts = gate["counts"]
             print(
                 f"[gate] {iso2}: {counts['candidates']} candidates -> "
-                f"{counts['eligible']} structural -> {counts['selected']} selected "
+                f"{counts['eligible']} relevant -> {counts['selected']} selected "
                 f"(budget {counts['budget']}); rejected {counts['rejected_by_label']}"
             )
             print(f"[gate] {iso2}: per-ledger {gate['per_ledger']} | per-theme {gate['per_theme']}")
@@ -638,6 +646,12 @@ def run_etl(
                     digest_prompt_version=digest_engine.DIGEST_PROMPT_VERSION,
                     relevance_prompt_version=relevance.RELEVANCE_PROMPT_VERSION,
                     seed=42,
+                    extra={
+                        "gate_input_mode": relevance.DEFAULT_INPUT_MODE,
+                        "gate_cache_version": relevance.cache_version(
+                            relevance.DEFAULT_MODEL, relevance.DEFAULT_INPUT_MODE
+                        ),
+                    },
                 ),
                 budget=relevance.ARTICLE_BUDGET,
             )

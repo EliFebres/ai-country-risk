@@ -148,7 +148,7 @@ def noise_that_got_through(run: Dict[str, Any]) -> List[Dict[str, Any]]:
         # come from the stored articles.
         stored = store.read_articles(labels)
         for url, row in labels.items():
-            if row.get("label") != "structural":
+            if row.get("label") != "relevant":
                 continue
             article = stored.get(url) or {}
             title = (article.get("title") or "").strip()

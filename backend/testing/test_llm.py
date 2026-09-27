@@ -29,14 +29,13 @@ def _article(url, title, *, publisher="Reuters", published="2026-09-20T00:00:00Z
 
 
 def _labels(pairs, iso2="PT"):
-    """Build a labels map: [(article, label, ledgers, is_event), ...]."""
+    """Build a labels map: [(article, label, ledgers), ...]."""
     out = {}
-    for article, label, ledgers, is_event in pairs:
+    for article, label, ledgers in pairs:
         out[relevance.relevance_key(article, iso2)] = {
             "label": label,
             "reason": "because",
             "ledgers": list(ledgers),
-            "is_structural_event": is_event,
         }
     return out
 
@@ -57,14 +56,14 @@ class TestPromptVersion:
 
     def test_the_prompt_carries_the_cases_that_draw_the_line(self):
         p = relevance.RELEVANCE_PROMPT
-        for case in ("school shooting", "corruption arrest", "factory closing",
-                     "coup", "obituaries"):
+        for case in ("killing of a candidate", "coup attempt", "mentioned in passing",
+                     "fellowships", "obituaries"):
             assert case in p
 
 
 class TestRelevanceKey:
     def test_the_same_article_has_a_different_key_per_country(self):
-        """A German election story that mentions Portugal once is structural for
+        """A German election story that mentions Portugal once is relevant for
         Germany and irrelevant for Portugal, so one row per text would be wrong."""
         a = _article("http://x/1", "German coalition collapses")
         assert relevance.relevance_key(a, "DE") != relevance.relevance_key(a, "PT")
@@ -75,13 +74,13 @@ class TestRelevanceKey:
 
 
 class TestSelectionEligibility:
-    def test_an_incident_never_reaches_the_scorer(self):
+    def test_an_irrelevant_article_never_reaches_the_scorer(self):
         """The consumer-side assertion: the label is acted on."""
         good = _article("http://x/1", "Prosecutions collapsing")
         bad = _article("http://x/2", "School shooting in Porto")
         labels = _labels([
-            (good, "structural", ["order"], False),
-            (bad, "incident", [], False),
+            (good, "relevant", ["order"]),
+            (bad, "irrelevant", []),
         ])
         out = relevance.select([good, bad], labels, "PT")
         assert [a["title"] for a in out["selected"]] == ["Prosecutions collapsing"]
@@ -91,8 +90,8 @@ class TestSelectionEligibility:
         good = [_article(f"http://g/{i}", f"Structural {i}") for i in range(6)]
         bad = [_article(f"http://b/{i}", f"Match report {i}") for i in range(40)]
         labels = _labels(
-            [(a, "structural", ["friction"], False) for a in good]
-            + [(a, "irrelevant", [], False) for a in bad]
+            [(a, "relevant", ["friction"]) for a in good]
+            + [(a, "irrelevant", []) for a in bad]
         )
         out = relevance.select(good + bad, labels, "PT")
         assert out["counts"]["selected"] == 6
@@ -108,7 +107,7 @@ class TestSelectionEligibility:
     def test_rejections_are_recorded_with_their_reason(self):
         """Without the record nobody can ask later whether the gate judged well."""
         bad = _article("http://x/2", "Benfica win 3-1")
-        labels = _labels([(bad, "irrelevant", [], False)])
+        labels = _labels([(bad, "irrelevant", [])])
         out = relevance.select([bad], labels, "PT")
         r = out["rejected"][0]
         assert r["title"] == "Benfica win 3-1"
@@ -118,19 +117,6 @@ class TestSelectionEligibility:
 
 
 class TestSelectionOrder:
-    def test_a_structural_event_is_read_first(self):
-        """A coup or a default takes the full-text slots before anything else."""
-        trend = _article("http://x/1", "Inflation easing over four quarters",
-                         published="2026-09-21T00:00:00Z")
-        coup = _article("http://x/2", "Government falls",
-                        published="2026-09-01T00:00:00Z")
-        labels = _labels([
-            (trend, "structural", ["friction"], False),
-            (coup, "structural", ["order"], True),
-        ])
-        out = relevance.select([trend, coup], labels, "PT")
-        assert out["selected"][0]["title"] == "Government falls"
-
     def test_the_budget_spreads_across_ledgers_rather_than_one_story(self):
         """Twenty newest on a busy country can be eight versions of one event."""
         friction = [
@@ -142,8 +128,8 @@ class TestSelectionOrder:
             for i in range(3)
         ]
         labels = _labels(
-            [(a, "structural", ["friction"], False) for a in friction]
-            + [(a, "structural", ["edge"], False) for a in edge]
+            [(a, "relevant", ["friction"]) for a in friction]
+            + [(a, "relevant", ["edge"]) for a in edge]
         )
         out = relevance.select(friction + edge, labels, "PT", budget=6)
         assert out["per_ledger"]["edge"] == 3, out["per_ledger"]
@@ -152,14 +138,14 @@ class TestSelectionOrder:
     def test_an_empty_ledger_is_skipped_and_counted_as_zero(self):
         """Round-robin is not a floor: it never admits anything ineligible."""
         a = _article("http://x/1", "Only friction here")
-        labels = _labels([(a, "structural", ["friction"], False)])
+        labels = _labels([(a, "relevant", ["friction"])])
         out = relevance.select([a], labels, "PT")
         assert out["per_ledger"] == {"friction": 1, "order": 0, "information": 0, "edge": 0}
 
-    def test_a_structural_article_with_no_ledger_is_still_selectable(self):
+    def test_a_relevant_article_with_no_ledger_is_still_selectable(self):
         """Eligible is eligible; it follows the ledgered ones rather than vanishing."""
         a = _article("http://x/1", "Structural but unledgered")
-        labels = _labels([(a, "structural", [], False)])
+        labels = _labels([(a, "relevant", [])])
         out = relevance.select([a], labels, "PT")
         assert len(out["selected"]) == 1
 
@@ -167,7 +153,7 @@ class TestSelectionOrder:
         many = [_article(f"http://r/{i}", f"Reuters piece {i}", publisher="Reuters")
                 for i in range(5)]
         one = [_article("http://b/1", "Bloomberg piece", publisher="Bloomberg")]
-        labels = _labels([(a, "structural", ["order"], False) for a in many + one])
+        labels = _labels([(a, "relevant", ["order"]) for a in many + one])
         out = relevance.select(many + one, labels, "PT", budget=2)
         pubs = {a["source"] for a in out["selected"]}
         assert pubs == {"Reuters", "Bloomberg"}
@@ -175,7 +161,7 @@ class TestSelectionOrder:
     def test_the_order_is_deterministic_for_a_given_eligible_set(self):
         arts = [_article(f"http://x/{i}", f"Story {i}", published="2026-09-20T00:00:00Z")
                 for i in range(8)]
-        labels = _labels([(a, "structural", ["order"], False) for a in arts])
+        labels = _labels([(a, "relevant", ["order"]) for a in arts])
         first = [a["title"] for a in relevance.select(arts, labels, "PT", budget=4)["selected"]]
         again = [a["title"] for a in relevance.select(arts, labels, "PT", budget=4)["selected"]]
         assert first == again
@@ -189,7 +175,7 @@ class TestSelectionOrder:
             a = _article(f"http://x/{i}", f"Story {i}",
                          published=f"2026-09-{(i % 28) + 1:02d}T00:00:00Z")
             pool.append(a)
-            labels.update(_labels([(a, "structural", [relevance.LEDGERS[i % 4]], False)]))
+            labels.update(_labels([(a, "relevant", [relevance.LEDGERS[i % 4]])]))
             n = relevance.select(pool, labels, "PT")["counts"]["selected"]
             assert n >= previous, f"adding article {i} reduced selection {previous} -> {n}"
             previous = n
@@ -198,7 +184,7 @@ class TestSelectionOrder:
     def test_the_full_text_slots_are_the_first_three_in_that_order(self):
         arts = [_article(f"http://x/{i}", f"Story {i}",
                          published=f"2026-09-{20 - i:02d}T00:00:00Z") for i in range(6)]
-        labels = _labels([(a, "structural", ["order"], False) for a in arts])
+        labels = _labels([(a, "relevant", ["order"]) for a in arts])
         out = relevance.select(arts, labels, "PT")
         assert out["selected"][:relevance.FULL_TEXT_K] == out["selected"][:3]
         assert len(out["selected"]) == 6
@@ -215,8 +201,7 @@ class TestClassifyCaching:
             relevance.store,
             "read_artifacts",
             lambda hashes, **kw: {
-                k: {"label": "structural", "reason": "r", "ledgers": ["order"],
-                    "is_structural_event": False}
+                k: {"label": "relevant", "reason": "r", "ledgers": ["order"]}
                 for k in keys
             },
         )
