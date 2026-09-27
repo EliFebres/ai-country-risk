@@ -648,6 +648,7 @@ def run_etl(
                     seed=42,
                     extra={
                         "gate_input_mode": relevance.DEFAULT_INPUT_MODE,
+                        "exposure_cards_version": relevance.EXPOSURE_CARDS_VERSION,
                         "gate_cache_version": relevance.cache_version(
                             relevance.DEFAULT_MODEL, relevance.DEFAULT_INPUT_MODE
                         ),
