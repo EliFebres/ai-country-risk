@@ -311,3 +311,57 @@ modes (`snippet`, `body`), with the old gate's stored labels as the baseline row
   is not loosened. The held-out thirty are not re-run under a revised prompt,
   because a revised prompt needs a new held-out draw.
 
+### The binary gate: result, 2026-09-27 — **fail**
+
+Run once on Eli's v3 labels (`docs/blind-labels-v3.csv`: 22 relevant, 8
+irrelevant). Cost per call is metered. The weekly projection is 2,444 candidates.
+
+| cell | agree | recall (rel) | precision (rel) | cost / 30 | weekly, 48 countries |
+|---|---:|---:|---:|---:|---:|
+| old gate (3-label, `structural` admitted) | 19/30 | 13/22 | 13/15 | ~$0.009 est. | ~$0.76 est. |
+| gpt-4o-mini · snippet | 20/30 | 17/22 | 17/22 | $0.0103 | $0.84 |
+| gpt-4o-mini · body | 22/30 | 20/22 | 20/26 | $0.0116 | $0.95 |
+| gpt-4.1-mini · snippet | 18/30 | 14/22 | 14/18 | $0.0277 | $2.26 |
+| gpt-4.1-mini · body | 21/30 | 18/22 | 18/23 | $0.0312 | $2.54 |
+| gpt-4.1 · snippet | 17/30 | 12/22 | 12/15 | $0.1391 | $11.34 |
+| gpt-4.1 · body | 22/30 | 19/22 | 19/24 | $0.1572 | $12.81 |
+| gpt-4o · snippet | 22/30 | 17/22 | 17/20 | $0.1718 | $13.99 |
+| gpt-4o · body | 23/30 | 20/22 | 20/25 | $0.1929 | $15.72 |
+
+No cell reaches 24/30. The line is not loosened and these thirty are not
+re-scored. Nothing was adopted, and the pipeline's gate settings are unchanged
+(`gpt-4o-mini-2024-07-18`, `body`).
+
+Of the best cell's seven misses, the written definition sides with the model on
+four (h12, h13, h23, h30), with Eli on one (h01), and leans to Eli on two that
+are one story (h11, h16). The definition is most of the gap. Edits proposed for
+the next prompt version, which needs its own held-out draw:
+
+- Press freedom and violence against journalists count when {country}'s own
+  authorities act. Another state's treatment of a {country} national is not
+  about {country}'s institutions (h12; b18 and b19 in v2).
+- Proposals, recommendations and advocacy that no authority has adopted are
+  irrelevant (h13).
+- A {country} company's investment abroad is company news (h01).
+- An event that only happened on {country}'s territory, with its consequences
+  falling on other states, is a passing mention (h11, h16).
+- Loosen spillover: a story about a major partner's or region's economy or trade
+  policy counts when the consequence for {country} is evident, even if unnamed,
+  such as energy demand for an energy exporter or tariffs {country} imposed (h23,
+  h30; b27 and b30 in v2).
+
+## 16. Selection lost the structural-events-first rule
+
+The binary schema has no `is_structural_event`, so a coup or a default no longer
+takes the first slots. Round-robin across ledgers is the fallback. Restore it
+with the next gate prompt version and its own held-out draw. Adding an output
+field now would change the prompt that was just measured.
+
+## 17. Truncated bodies pass as `full`
+
+The digest's `body_quality` can call a wall `full`. Evidence: v3 held-out **h27**
+(PT, The Times), 193 characters, which is a headline, a standfirst and "Previous
+Article Next Article". It stays in the held-out set because it was already
+labelled. No length floor was added: 37dd309 chose the digest's judgement over a
+phrase list, and a floor would be the same kind of rule.
+

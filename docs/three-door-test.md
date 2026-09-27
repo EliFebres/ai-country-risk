@@ -89,6 +89,9 @@ credible fiscal consolidation passes Door 2 exactly as a windfall tax does.
    `order`, `friction` and `information`. `edge` — whether the system is
    learning — has no door, which is arguably correct because edge is observed
    and never penalised, and arguably a gap.
+   Decided 2026-09-27: intended. Edge has no news door and runs on data (PISA,
+   business formation, emigration series), so the relevance gate admitting no
+   article to the `edge` ledger is correct.
 2. **Should a door have a magnitude?** At present a door is binary and
    `bearing` (0–100) carries magnitude separately. A very small windfall levy
    passes Door 2 identically to a large one.
