@@ -91,21 +91,42 @@ week and compare *eligible* counts rather than fetched ones.
 That belongs with Part 7's verification, where the gate is being measured
 anyway.
 
-## 4. The three candidate gate models agree with each other on only 69–75% of articles
+## 4. The three candidate gate models agree with each other on only 69–75% of articles — **closed 2026-09-27**
 
-`gate_bakeoff.py`, 2026-09-22, 99 articles from US, PT and KW. Each model is
-96–98% self-consistent across three repeats, and they agree with each other far
-less than that.
+Closed by Eli's blind labels (`docs/blind-labels.csv`, v2 draw, 30 full
+articles): 2 structural, 17 incident, 11 irrelevant. Which model is right is
+not the question the labels answer, because none of them draws Eli's line.
 
-Reproducible is not the same as right. Nothing measured so far establishes which
-model is correct, only that each is reliably itself. Part 7's hand-labelled
-sample is the thing that decides, and the per-article labels and reasons are
-written out so the two can be joined.
+| labeller | vs Eli, all rows | vs Eli, Eli's structural+incident rows | vs Claude's sealed labels |
+|---|---:|---:|---:|
+| `gpt-4o-mini-2024-07-18` | 7/30 | 5/19 | 21/30 |
+| `gpt-4.1-mini-2025-04-14` | 0/9 | 0/5 | 5/9 |
+| `gpt-4.1-nano-2025-04-14` | 3/9 | 0/5 | 1/9 |
+| Claude, sealed | 7/30 | 5/19 | — |
 
-The pattern in the disagreements is worth reading before labelling: the cases
-that split are policy-speech and institutional-change stories — a defence deal,
-a court's approval rating, a president's position on regulation — where
-"an event happened" and "the country's position changed" are both true readings.
+The two 4.1 models have labels on the nine "models disagreed" rows only;
+`blind_sample` ran them over eight fixed countries, and the other 21 rows are
+`gpt-4o-mini` alone. On those nine, `gpt-4o-mini` is 1/9.
+
+**The mechanism is the bar, not the model.** Of the articles each model called
+structural, Eli called none structural: `gpt-4o-mini` 0 of 8 (6 incident, 2
+irrelevant), `gpt-4.1-mini` 0 of 7, `gpt-4.1-nano` 0 of 4. Eli's two structural
+rows (b20, b24: Russian drone strikes at the Poland–Ukraine border) are ones the
+gate called `incident`, by the prompt's own rule that a single occurrence
+"however dramatic" is an incident. Claude's sealed labels, read against the
+prompt's definitions, agree with `gpt-4o-mini` 21/30 and with Eli 7/30. The gate
+is executing its prompt faithfully, and the prompt does not describe Eli's line.
+7/30 is below the ~11 that chance would give from the two label mixes. The
+labelling page is id-keyed and its ids match the key, and no shifted alignment
+does better, so this is not a misalignment.
+
+The decision rule, applied as written, picks `gpt-4.1-nano` (3/9 against 1/9
+and 0/9). It was not applied. The comparison covers nine contested rows, nano's
+three agreements are all `irrelevant`, and it uses `incident` on none of the
+nine, which is the collapse the tie-break exists to prevent. A model switch
+does not fix a bar that no model meets. `DEFAULT_MODEL` stays
+`gpt-4o-mini-2024-07-18`, already pinned, so the relevance cache key is
+unchanged. The open question moves to §15.
 
 ## 5. `_rank_ids_by` raises on mixed timezone-awareness
 
@@ -244,3 +265,19 @@ ones week one had re-labelled. Their country existed only inside the content
 hash, so which of them the five-country run replaced cannot be established, and
 no lookup could reach any of them. The 909 digest rows, where `''` is correct,
 were not touched.
+
+## 15. The gate's structural bar is not Eli's — decision owed by Eli
+
+Found closing §4. On the 48-country roster run of 2026-09-22/23 the gate called
+1,236 of 2,444 candidates structural and 919 were selected, which puts the median
+country at the full budget of 20. Applying the rates from Eli's labels (0 of 8
+gate-structural rows kept, 2 of 14 gate-incident rows promoted) projects a median
+of about 1 structural article per country, 3 at most (SA), and no country near
+20. If the true keep rate on gate-structural were 1 in 8, the median would be about
+4.5. Both of Eli's structural rows are one kind of story from one country, in the
+disagreement stratum, so the promotion rate is not general.
+
+The score is sensitive to volume, so a stricter bar changes what every country
+is scored on and not only which articles pass. The prompt is unchanged until Eli
+decides where the line is. Any prompt edit changes `RELEVANCE_PROMPT_VERSION`,
+and every verdict is re-earned on the next run.
