@@ -266,7 +266,7 @@ hash, so which of them the five-country run replaced cannot be established, and
 no lookup could reach any of them. The 909 digest rows, where `''` is correct,
 were not touched.
 
-## 15. The gate's structural bar is not Eli's — decision owed by Eli
+## 15. The gate's structural bar is not Eli's — **closed 2026-09-27**
 
 Found closing §4. On the 48-country roster run of 2026-09-22/23 the gate called
 1,236 of 2,444 candidates structural and 919 were selected, which puts the median
@@ -350,12 +350,15 @@ the next prompt version, which needs its own held-out draw:
   such as energy demand for an energy exporter or tariffs {country} imposed (h23,
   h30; b27 and b30 in v2).
 
-## 16. Selection lost the structural-events-first rule
+## 16. Selection lost the structural-events-first rule — **closed 2026-09-27**
 
 The binary schema has no `is_structural_event`, so a coup or a default no longer
 takes the first slots. Round-robin across ledgers is the fallback. Restore it
 with the next gate prompt version and its own held-out draw. Adding an output
 field now would change the prompt that was just measured.
+
+Closed by the actor-test prompt, which carries `high_impact_event`. Selection
+reads it first again. On the test set it fired once, in KW.
 
 ## 17. Truncated bodies pass as `full`
 
@@ -381,6 +384,47 @@ the 46 articles that are not worked examples. All 60 are reported separately.
   at least 90%, **and** at most 2 of the 60 labels flip across three passes. The
   first pass reads and writes the cache, and passes 2 and 3 bypass it.
 - If it fails, report it and stop. The prompt is not edited and re-run.
+
+### The actor-test gate: result, 2026-09-27 — **adopted**
+
+The measurement used tuned data. The rule was derived from all 60 labels, no
+held-out set exists, and Eli declined further labelling.
+
+| set | agreement | recall (relevant) | precision (relevant) |
+|---|---:|---:|---:|
+| 46 not used as examples (decides) | 39/46 (85%) | 33/34 (97%) | 33/39 |
+| all 60 | 52/60 | 40/41 | 40/47 |
+
+Across three passes (the first cached, the other two not), **0 of 60** labels
+changed. All three lines pass, so the gate is `gpt-4o-mini-2024-07-18`, `body`, on
+the actor-test prompt.
+
+Of the eight misses, four are the ones Eli's hand rule also misses (b07, b17,
+b25, h13). The other four are the model misapplying the rule:
+- **b08** skipped E5 (extradition of a private person) and took T1.
+- **b16** skipped E2 (research centres) and took T1.
+- **h16** skipped E7 (only the place where it happened) and took T4. Its
+  sibling h11 is a worked example marked E7.
+- **b18** is a worked example, and the model contradicted it. E8 excludes a
+  protest abroad only "when nothing new is happening inside {country}". This
+  article reports more than 100 arrests inside Turkey that week, so by E8's own
+  words it is not excluded. The prompt's line and its example disagree.
+
+**Test set, gate only (fresh retrieval, no scorer):** 238 candidates, 197
+admitted (83%), 41 rejected, 0 unclassified. Every country fills the budget of 20.
+
+| country | candidates | admitted | rejected | high-impact | by test | by exclusion |
+|---|---:|---:|---:|---:|---|---|
+| US | 47 | 36 | 11 | 0 | T1 11, T2 7, T3 10, T4 5, T5 3 | E1 2, E2 3, E3 1, E4 3, E6 2 |
+| PT | 45 | 31 | 14 | 0 | T1 17, T2 9, T3 2, T4 1, T5 2 | E1 8, E2 6 |
+| KW | 58 | 49 | 9 | 1 | T1 26, T2 2, T3 2, T4 12, T5 7 | E1 3, E5 3, E6 1, E7 1, E8 1 |
+| HK | 56 | 44 | 12 | 0 | T1 17, T2 11, T3 6, T4 6, T5 4 | E1 1, E3 1, E4 1, E5 2, E6 3, E7 2, E8 2 |
+| TW | 44 | 37 | 7 | 0 | T1 11, T2 7, T3 1, T4 15, T5 3 | E1 1, E2 3, E4 1, E6 2 |
+
+The pass rate is higher than the old gate's (about half) and a little above the
+share of Eli's labels that are relevant (41 of 60). T1 carries it: "routine
+official activity counts". Watch whether a full budget from T1 alone dilutes the
+score.
 
 ## 18. Exposure cards go stale
 
