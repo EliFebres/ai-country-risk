@@ -501,5 +501,9 @@ COUNTRY_ROSTER: list[dict] = [
 # Convenience lookups derived from the roster.
 ISO3_BY_ISO2: dict[str, str] = {c["iso2"]: c["iso3"] for c in COUNTRY_ROSTER}
 COUNTRY_NAME_BY_ISO2: dict[str, str] = {c["iso2"]: c["name"] for c in COUNTRY_ROSTER}
+
+# The five countries week one was verified on (docs/series-integrity.md). A run
+# over these is `etl --test-set`; the full roster is a separate decision.
+TEST_SET: tuple[str, ...] = ("US", "PT", "KW", "HK", "TW")
 TIER_BY_ISO2: dict[str, str] = {c["iso2"]: c["tier"] for c in COUNTRY_ROSTER}
 

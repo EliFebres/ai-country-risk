@@ -88,6 +88,11 @@ def _build_parser() -> argparse.ArgumentParser:
                 "--once", action="store_true",
                 help="run a single tick and exit, instead of looping",
             )
+        if name == "etl":
+            sub.add_argument(
+                "--test-set", action="store_true",
+                help="run only the test-set countries (constants.TEST_SET)",
+            )
     return parser
 
 
@@ -105,6 +110,9 @@ def main(argv: list[str] | None = None) -> None:
     handler = _resolve(args.command)
     if args.command == "prices":
         handler(once=args.once)
+    elif args.command == "etl" and args.test_set:
+        from backend.util import constants
+        handler(only=list(constants.TEST_SET))
     else:
         handler()
 
