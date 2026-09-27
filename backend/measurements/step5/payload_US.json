@@ -1,0 +1,1455 @@
+{
+ "iso2": "US",
+ "country": "United States",
+ "run_date": "2026-09-27",
+ "payload_fingerprint": "a7172dae7b1eb0783777daa5d4ef3650abf739b8725d47bfe258ac70b8844622",
+ "payload_sha256": "c5dfd46fcdc4bde88185e1b79226acd0d18b28c94f72cfdce442f2732a881b90",
+ "payload_tokens": 8775,
+ "versions": {
+  "git_sha": "047072131346f524a33b75c0885dc6643d3ad759",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "360a84838ecddc01bcad98fcd02d48890ba05499180362b005fd794b1b07f081",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "schema_violations": 0,
+  "payload_tokens": 8775
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://unn.ua/en/news/trump-plans-to-loosen-biden-era-fuel-economy-requirements-for-vehicles-in-the-united-states",
+   "title": "Trump plans to loosen Biden-era fuel economy requirements for vehicles in the United States - Українські Національні Новини (УНН)",
+   "publisher": "Українські Національні Новини (УНН)",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Trump administration plans to lower fuel economy requirements for vehicles in the United States from 50 to 34.5 miles per gallon.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.aljazeera.com/news/2026/9/27/atrocious-crime-cuban-official-decries-possibility-of-us-military-action",
+   "title": "‘Atrocious’ crime: Cuban official decries possibility of US military action - Al Jazeera",
+   "publisher": "Al Jazeera",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba, calling it an international crime and criticizing US sanctions as equivalent to genocide.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.reuters.com/world/china/china-us-agree-30-billion-tariff-cut-ai-dialogue-during-xi-visit-2026-09-26/",
+   "title": "China, US agree to AI dialogue, tariff cuts on $30 billion in goods during Xi visit - Reuters",
+   "publisher": "Reuters",
+   "published": "2026-09-26",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "China and the United States agreed to initiate AI dialogue and cut tariffs on $30 billion in goods during Xi Jinping's visit.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a4",
+   "url": "https://www.politico.com/news/2026/09/27/mike-waltz-iran-rejected-deal-sanctions-01094152",
+   "title": "Waltz says Iran wanted sanctions relief up front in rejected deal; Tehran pushes back - politico.com",
+   "publisher": "politico.com",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Iran sought upfront sanctions relief in a rejected deal, and Tehran is pushing back against this stance.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://michiganindependent.com/economy/trumps-trade-war-threatens-auto-manufacturing-jobs/",
+   "title": "Trump’s trade war threatens auto manufacturing jobs - The Michigan Independent",
+   "publisher": "The Michigan Independent",
+   "published": "2026-09-25",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "President Trump announced a new 50% tariff on all cars, trucks, and auto parts manufactured in Canada, threatening jobs in the American automotive industry.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.scmp.com/news/china/military/article/3368940/keep-out-why-greenland-us-militarys-new-eyes-arctic-china",
+   "title": "Keep out: why Greenland is the US military’s new eyes in the Arctic on China - South China Morning Post",
+   "publisher": "South China Morning Post",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The US, Denmark, and Greenland signed a defense pact allowing the US to build two military bases in Greenland to counter potential military cooperation between China and Russia.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://www.latimes.com/entertainment-arts/business/story/2026-09-24/hollywood-to-get-20-federal-film-tax-credit-under-new-bill-trump-runaway-production",
+   "title": "Hollywood would get 20% federal film tax credit under proposed new bill - Los Angeles Times",
+   "publisher": "Los Angeles Times",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "A bipartisan group of Congressional leaders introduced a bill to create a 20% federal tax credit for film and TV productions in the U.S.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://www.lemonde.fr/en/international/article/2026/09/27/trump-administration-is-trying-to-reshape-election-rules-to-its-advantage-ahead-of-midterm-elections_6758005_4.html",
+   "title": "Trump administration is trying to reshape election rules to its advantage ahead of midterm elections - Le Monde.fr",
+   "publisher": "Le Monde.fr",
+   "published": "2026-09-27",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Trump administration is attempting to change election rules to benefit its position ahead of the midterm elections.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://www.nytimes.com/2026/09/24/business/canada-goose-tariffs-trade-war.html",
+   "title": "Canada’s Coat Makers Find Themselves in the Middle of a Trade War - The New York Times",
+   "publisher": "The New York Times",
+   "published": "2026-09-24",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Canada's coat makers are caught in the middle of a trade war affecting their business operations.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://www.cbc.ca/news/canada/british-columbia/canadian-detained-at-bc-border-for-hours-9.7359371",
+   "title": "Canadian citizen detained at U.S. border crossing, questioned for hours about voting - CBC",
+   "publisher": "CBC",
+   "published": "2026-09-26",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "A Canadian citizen was detained at the U.S. border and questioned about her voting history, raising concerns about the treatment of non-citizens at the border.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.cfr.org/articles/guide-trumps-section-232-tariffs-nine-maps",
+   "title": "A Guide to Trump’s Section 232 Tariffs, in Maps - Council on Foreign Relations",
+   "publisher": "Council on Foreign Relations",
+   "published": "2026-09-17",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "President Trump launched Section 232 tariffs to protect U.S. national security, affecting various imports including steel and aluminum.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://usafacts.org/answers/are-wages-keeping-up-with-inflation/country/united-states/",
+   "title": "Are wages keeping up with inflation? - USAFacts",
+   "publisher": "USAFacts",
+   "published": "2026-09-25",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Average weekly wages in the United States grew 3.7% year-over-year in August 2026, outpacing inflation at 3.4%.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://www.theregreview.org/2026/09/14/rodricks-rebuilding-food-safety-regulation-in-the-united-states/",
+   "title": "Rebuilding Food Safety Regulation in the United States - The Regulatory Review",
+   "publisher": "The Regulatory Review",
+   "published": "2026-09-14",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the need for a unified food safety agency in the United States to improve food safety regulation.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://www.scotusblog.com/2026/09/supreme-court-clears-way-for-trump-administration-to-use-modified-voter-verification-database/",
+   "title": "Supreme Court clears way for Trump administration to use modified voter verification database - SCOTUSblog",
+   "publisher": "SCOTUSblog",
+   "published": "2026-09-25",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Supreme Court allowed the Trump administration to use a modified database for verifying voters' citizenship, overriding a lower court's ruling that blocked the plan.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://www.aljazeera.com/news/2026/9/26/trump-says-he-is-rolling-back-biden-era-us-fuel-economy-rules-for-cars",
+   "title": "Trump says he is rolling back Biden-era US fuel economy rules for cars - Al Jazeera",
+   "publisher": "Al Jazeera",
+   "published": "2026-09-26",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "President Trump announced the rollback of Biden-era fuel economy rules for cars, ending the electric vehicle mandate and introducing new standards.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://blogs.lse.ac.uk/usappblog/2026/09/25/donald-trump-presidential-power-corruption/",
+   "title": "Donald Trump: Triple Threat corrupter of presidential power - LSE Blogs",
+   "publisher": "LSE Blogs",
+   "published": "2026-09-25",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Ron Pruessen argues that Donald Trump has corrupted presidential power by attacking institutions and reversing policies during his terms in office.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://www.aljazeera.com/news/2026/9/25/us-court-rules-against-kalshi-says-states-can-regulate-prediction-markets",
+   "title": "US court rules against Kalshi, says states can regulate prediction markets - Al Jazeera",
+   "publisher": "Al Jazeera",
+   "published": "2026-09-25",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "A US appeals court ruled that states can regulate prediction markets, denying Kalshi's bid for exemption from state gambling laws.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://www.pbs.org/newshour/world/iran-has-suggested-a-deal-to-reopen-the-strait-of-hormuz-in-7-days",
+   "title": "Iran has suggested a deal to reopen the Strait of Hormuz in 7 days - PBS",
+   "publisher": "PBS",
+   "published": "2026-09-25",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Iran proposed a deal to reopen the Strait of Hormuz in exchange for the United States lifting its naval blockade and sanctions on Iranian oil sales.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://www.nerdwallet.com/finance/learn/state-of-the-economy",
+   "title": "How Is the Economy Doing Right Now? - nerdwallet.com",
+   "publisher": "nerdwallet.com",
+   "published": "2026-09-25",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the current state of the U.S. economy, noting job growth and elevated inflation.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.kff.org/womens-health-policy/key-facts-on-abortion-in-the-united-states/",
+   "title": "Who gets abortions? - Key Facts on Abortion in the United States - kff.org",
+   "publisher": "kff.org",
+   "published": "2026-09-25",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "kff.org provides key facts on abortion in the United States, detailing methods and statistics related to the procedure.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 7
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 2,
+    "resolved": 2
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 1
+   }
+  },
+  "dropped": [],
+  "as_of_schemes": {
+   "publication-lag-estimate": 7,
+   "first-seen": 4,
+   "source-published": 2
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 38,
+  "stories": 36,
+  "multi": 2,
+  "dropped": 2,
+  "slots_freed": 1,
+  "selected": 20,
+  "same_story_as": {
+   "https://www.cbsnews.com/news/trump-greenland-deal-denmark-united-nations/": "https://www.scmp.com/news/china/military/article/3368940/keep-out-why-greenland-us-militarys-new-eyes-arctic-china",
+   "https://www.bbc.com/news/articles/ck05rrj3jeylo": "https://www.scotusblog.com/2026/09/supreme-court-clears-way-for-trump-administration-to-use-modified-voter-verification-database/"
+  }
+ },
+ "payload": {
+  "country": {
+   "iso2": "US",
+   "name": "United States"
+  },
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "United States",
+   "regime": "own currency, floating",
+   "region": "North America",
+   "sovereignty": "full",
+   "tier": "DM"
+  },
+  "economics_by_ledger": {
+   "friction": {
+    "question": "What is taken, and how well does it convert?",
+    "indicators": [
+     {
+      "code": "FP.CPI.TOTL.ZG",
+      "label": "Inflation (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 2.9495,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 1.2336
+       },
+       {
+        "year": 2021,
+        "value": 4.6979
+       },
+       {
+        "year": 2022,
+        "value": 8.0028
+       },
+       {
+        "year": 2023,
+        "value": 4.1163
+       },
+       {
+        "year": 2024,
+        "value": 2.9495
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SI.POV.GINI",
+      "label": "Income inequality (Gini)",
+      "unit": "index",
+      "source": "World Bank WDI",
+      "value": 41.8,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 40.0
+       },
+       {
+        "year": 2021,
+        "value": 39.7
+       },
+       {
+        "year": 2022,
+        "value": 41.7
+       },
+       {
+        "year": 2023,
+        "value": 41.8
+       },
+       {
+        "year": 2024,
+        "value": 41.8
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "label": "Interest payments (% revenue)",
+      "unit": "% revenue",
+      "source": "World Bank WDI",
+      "value": 20.2909,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 10.9043
+       },
+       {
+        "year": 2021,
+        "value": 11.3815
+       },
+       {
+        "year": 2022,
+        "value": 13.4189
+       },
+       {
+        "year": 2023,
+        "value": 18.0186
+       },
+       {
+        "year": 2024,
+        "value": 20.2909
+       }
+      ],
+      "direction": "rising",
+      "accelerating": true,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OWID.VDEM.CORRUPTION",
+      "label": "Political corruption index (0-1, higher = more corrupt)",
+      "unit": "index (0-1)",
+      "source": "V-Dem via OWID",
+      "value": 0.06,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 0.068
+       },
+       {
+        "year": 2022,
+        "value": 0.061
+       },
+       {
+        "year": 2023,
+        "value": 0.055
+       },
+       {
+        "year": 2024,
+        "value": 0.051
+       },
+       {
+        "year": 2025,
+        "value": 0.06
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "order": {
+    "question": "How much doubt is there about the load-bearing rules?",
+    "indicators": [
+     {
+      "code": "GOV_WGI_PV.EST",
+      "label": "Political stability (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": -0.0951,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": -0.1468
+       },
+       {
+        "year": 2021,
+        "value": -0.1264
+       },
+       {
+        "year": 2022,
+        "value": -0.1626
+       },
+       {
+        "year": 2023,
+        "value": -0.1931
+       },
+       {
+        "year": 2024,
+        "value": -0.0951
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GOV_WGI_RL.EST",
+      "label": "Rule of law (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 0.9618,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 1.0044
+       },
+       {
+        "year": 2021,
+        "value": 1.028
+       },
+       {
+        "year": 2022,
+        "value": 1.0518
+       },
+       {
+        "year": 2023,
+        "value": 0.9607
+       },
+       {
+        "year": 2024,
+        "value": 0.9618
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SL.UEM.TOTL.ZS",
+      "label": "Unemployment (% labour force)",
+      "unit": "%",
+      "source": "World Bank WDI",
+      "value": 4.198,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 5.349
+       },
+       {
+        "year": 2022,
+        "value": 3.65
+       },
+       {
+        "year": 2023,
+        "value": 3.638
+       },
+       {
+        "year": 2024,
+        "value": 4.022
+       },
+       {
+        "year": 2025,
+        "value": 4.198
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "NY.GDP.PCAP.KD.ZG",
+      "label": "GDP per-capita growth (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 1.629,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 5.9852
+       },
+       {
+        "year": 2022,
+        "value": 1.9422
+       },
+       {
+        "year": 2023,
+        "value": 2.0911
+       },
+       {
+        "year": 2024,
+        "value": 1.811
+       },
+       {
+        "year": 2025,
+        "value": 1.629
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "information": {
+    "question": "Can the country's own instruments be trusted?",
+    "indicators": [
+     {
+      "code": "IQ.SPI.OVRL",
+      "label": "Statistical performance (0-100)",
+      "unit": "score",
+      "source": "World Bank SPI",
+      "value": 90.0588,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 86.8983
+       },
+       {
+        "year": 2021,
+        "value": 92.75
+       },
+       {
+        "year": 2022,
+        "value": 91.8754
+       },
+       {
+        "year": 2023,
+        "value": 93.4304
+       },
+       {
+        "year": 2024,
+        "value": 90.0588
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "RSF.PRESS.SCORE",
+      "label": "Press freedom (0-100, higher = freer)",
+      "unit": "score",
+      "source": "RSF World Press Freedom Index",
+      "value": 62.61,
+      "period": 2025,
+      "as_of": "2026-05-03",
+      "as_of_scheme": "source-published",
+      "staleness_days": 147,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 72.74
+       },
+       {
+        "year": 2022,
+        "value": 71.22
+       },
+       {
+        "year": 2023,
+        "value": 66.59
+       },
+       {
+        "year": 2024,
+        "value": 65.49
+       },
+       {
+        "year": 2025,
+        "value": 62.61
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "edge": {
+    "question": "Is the system learning?",
+    "indicators": [
+     {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "label": "FDI inflow (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 1.3017,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 2.0145
+       },
+       {
+        "year": 2022,
+        "value": 1.6001
+       },
+       {
+        "year": 2023,
+        "value": 1.3014
+       },
+       {
+        "year": 2024,
+        "value": 1.0139
+       },
+       {
+        "year": 2025,
+        "value": 1.3017
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "label": "Education spending (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 5.4204,
+      "period": 2021,
+      "as_of": "2023-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 1183,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2017,
+        "value": 5.093
+       },
+       {
+        "year": 2018,
+        "value": 4.895
+       },
+       {
+        "year": 2019,
+        "value": 4.9575
+       },
+       {
+        "year": 2020,
+        "value": 5.3953
+       },
+       {
+        "year": 2021,
+        "value": 5.4204
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OECD.PISA.MEAN",
+      "label": "PISA mean score (maths/reading/science)",
+      "unit": "score",
+      "source": "OECD PISA",
+      "value": 489.41,
+      "period": 2022,
+      "as_of": "2023-12-05",
+      "as_of_scheme": "source-published",
+      "staleness_days": 1027,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2018,
+        "value": "unknown"
+       },
+       {
+        "year": 2019,
+        "value": "unknown"
+       },
+       {
+        "year": 2020,
+        "value": "unknown"
+       },
+       {
+        "year": 2021,
+        "value": "unknown"
+       },
+       {
+        "year": 2022,
+        "value": 489.41
+       }
+      ],
+      "direction": "unknown",
+      "accelerating": null,
+      "observed": 1,
+      "missing": 4
+     }
+    ]
+   }
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 6,
+    "order": 3,
+    "security": 5,
+    "information": 0,
+    "edge": 1,
+    "broad": 5
+   },
+   "selected_per_ledger": {
+    "friction": 9,
+    "order": 11,
+    "information": 0,
+    "edge": 0
+   },
+   "candidates_fetched": 51,
+   "passed_the_gate": 38,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "Українські Національні Новини (УНН)",
+    "published": "2026-09-27",
+    "title": "Trump plans to loosen Biden-era fuel economy requirements for vehicles in the United States - Українські Національні Новини (УНН)",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The Trump administration plans to lower the fuel economy requirements for 2031 vehicles from 50 to 34.5 miles per gallon, repealing stricter standards set during Biden's presidency. This change is expected to make new cars cheaper but may lead to higher costs for drivers due to less fuel-efficient vehicles.",
+     "institutions": [
+      "Trump administration"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "fuel-economy standard lowered from 50 to 34.5 miles per gallon",
+      "gasoline prices rose to record levels in September",
+      "diesel fuel exceeded $6 per gallon for the first time"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "Al Jazeera",
+    "published": "2026-09-27",
+    "title": "‘Atrocious’ crime: Cuban official decries possibility of US military action - Al Jazeera",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Cuba's deputy foreign minister, Carlos Fernandez de Cossio, condemned the possibility of US military action against Cuba, calling it an international crime and criticizing US sanctions as equivalent to genocide. He stated that Cuba is prepared for potential military aggression and emphasized the need for respectful diplomatic engagement with the US.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "more than 10 million population",
+      "60 years of US economic pressure",
+      "nine months of US sanctions"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Reuters",
+    "published": "2026-09-26",
+    "title": "China, US agree to AI dialogue, tariff cuts on $30 billion in goods during Xi visit - Reuters",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a4",
+    "publisher": "politico.com",
+    "published": "2026-09-27",
+    "title": "Waltz says Iran wanted sanctions relief up front in rejected deal; Tehran pushes back - politico.com",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a5",
+    "publisher": "The Michigan Independent",
+    "published": "2026-09-25",
+    "title": "Trump’s trade war threatens auto manufacturing jobs - The Michigan Independent",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "President Trump's trade war with Canada is set to escalate with a proposed 50% tariff on cars, trucks, and auto parts manufactured in Canada, which could lead to significant job losses in the automotive industry. Experts warn that this could result in factory closures and layoffs across the U.S. and Canada, as the automotive sector heavily relies on cross-border trade.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "50% tariff on cars, trucks and auto parts",
+      "25% tariff on cars manufactured in Canada",
+      "average price of a new car increased by 10% since March"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "South China Morning Post",
+    "published": "2026-09-27",
+    "title": "Keep out: why Greenland is the US military’s new eyes in the Arctic on China - South China Morning Post",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The US, Denmark, and Greenland signed a defence deal that allows the US to build two new military bases in Greenland, aimed at countering potential military cooperation between China and Russia in the Arctic. This deal updates a 1951 defence agreement and includes the expansion of the Pituffik US Space Force Base.",
+     "institutions": [
+      "US",
+      "Denmark",
+      "Greenland"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "two new military bases",
+      "expansion and modernisation of the Pituffik US Space Force Base"
+     ]
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "Los Angeles Times",
+    "published": "2026-09-24",
+    "title": "Hollywood would get 20% federal film tax credit under proposed new bill - Los Angeles Times",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A bipartisan group of Congressional leaders introduced a bill to create a 20% federal tax credit for film and TV productions in the U.S. The credit aims to reduce the loss of film jobs to other countries and is supported by various industry groups and unions.",
+     "institutions": [
+      "U.S. Congress",
+      "Producers Guild of America",
+      "Directors Guild of America",
+      "International Alliance of Theatrical Stage Employees",
+      "SAG-AFTRA",
+      "Motion Picture Assn."
+     ],
+     "direction": "improving",
+     "numbers": [
+      "20% tax credit on U.S. labor for film and TV productions",
+      "$125 billion increase in U.S. production spending by 2035",
+      "143,000 jobs added by 2035",
+      "$10 million in qualified compensation in 10 or more states"
+     ]
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "Le Monde.fr",
+    "published": "2026-09-27",
+    "title": "Trump administration is trying to reshape election rules to its advantage ahead of midterm elections - Le Monde.fr",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a9",
+    "publisher": "The New York Times",
+    "published": "2026-09-24",
+    "title": "Canada’s Coat Makers Find Themselves in the Middle of a Trade War - The New York Times",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a10",
+    "publisher": "CBC",
+    "published": "2026-09-26",
+    "title": "Canadian citizen detained at U.S. border crossing, questioned for hours about voting - CBC",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A Canadian citizen, Paige Adamson, was detained at the U.S. border for nearly six hours and questioned about her voting history, with allegations from the Department of Homeland Security that she falsely claimed U.S. citizenship to register to vote. This incident is part of a broader trend, with immigration lawyers noting an increase in similar detentions of Canadians at the border over voting concerns.",
+     "institutions": [
+      "Department of Homeland Security",
+      "U.S. Customs and Border Protection",
+      "Washington Department of Licensing"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "nearly six-hour-long process",
+      "three people detained in the past week and a half",
+      "25 years of career experience for immigration lawyer"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "Council on Foreign Relations",
+    "published": "2026-09-17",
+    "title": "A Guide to Trump’s Section 232 Tariffs, in Maps - Council on Foreign Relations",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "President Donald Trump has implemented a series of Section 232 tariffs aimed at protecting U.S. national security, affecting various products including steel, aluminum, copper, and automobiles. These tariffs have been adjusted over time, with specific rates and exemptions for certain countries and products.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": [
+      "25 percent tariffs on steel",
+      "10 percent tariffs on aluminum",
+      "50 percent tariffs on semi-finished copper products",
+      "25 percent tariffs on imported cars",
+      "10 percent tariff on softwood timber and lumber",
+      "100 percent tariffs on patented pharmaceuticals",
+      "25 percent tariff on semiconductors"
+     ]
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "USAFacts",
+    "published": "2026-09-25",
+    "title": "Are wages keeping up with inflation? - USAFacts",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "In August 2026, average weekly wages grew by 3.7% year-over-year, outpacing the inflation rate of 3.4%. This indicates that wages are keeping up with inflation during this period. Additionally, real wages increased in 33 states and Washington, DC.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "average weekly wages grew 3.7% YoY",
+      "inflation rate of 3.4%",
+      "nominal average wage grew by $613 per week",
+      "adjusted for inflation, that's $150",
+      "New Mexico +8%",
+      "Hawaii +7.6%",
+      "District of Columbia +5.6%",
+      "Missouri +5.5%",
+      "Louisiana +5.5%",
+      "Maryland +4.2%",
+      "Virginia +4.1%",
+      "Texas +3.6%",
+      "Wyoming +3.5%",
+      "Florida +3.3%"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "The Regulatory Review",
+    "published": "2026-09-14",
+    "title": "Rebuilding Food Safety Regulation in the United States - The Regulatory Review",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses the need for a unified food safety agency in the U.S. to improve the effectiveness of food safety regulations, which are currently fragmented across multiple agencies. It highlights the historical context of the existing system and the arguments for merging the food safety programs of the FDA, USDA, and EPA into a single agency called FOODS.",
+     "institutions": [
+      "U.S. Food and Drug Administration (FDA)",
+      "U.S. Department of Agriculture (USDA)",
+      "U.S. Environmental Protection Agency (EPA)",
+      "Government Accountability Office"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "SCOTUSblog",
+    "published": "2026-09-25",
+    "title": "Supreme Court clears way for Trump administration to use modified voter verification database - SCOTUSblog",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Supreme Court allowed the Trump administration to proceed with a modified database for verifying voters' citizenship, overriding a lower court's ruling that had blocked its use due to privacy law violations. The decision came just weeks before the upcoming elections, with dissenting justices expressing concern over potential voter disenfranchisement.",
+     "institutions": [
+      "Supreme Court",
+      "Department of Homeland Security",
+      "Social Security Administration",
+      "U.S. Court of Appeals for the District of Columbia Circuit",
+      "U.S. District Court"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "Al Jazeera",
+    "published": "2026-09-26",
+    "title": "Trump says he is rolling back Biden-era US fuel economy rules for cars - Al Jazeera",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "US President Donald Trump announced new fuel economy standards that roll back the requirements set by former President Joe Biden, claiming this will lower automobile prices and encourage production in the US. He stated that the new standards would terminate what he referred to as Biden's 'EV mandate' and criticized the previous administration for imposing costly requirements on car manufacturers.",
+     "institutions": [
+      "United States President",
+      "US Congress",
+      "US Transportation Department"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "39.1 miles per gallon (mpg) to about 50.4mpg by 2031",
+      "34.5mpg by 2031"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "LSE Blogs",
+    "published": "2026-09-25",
+    "title": "Donald Trump: Triple Threat corrupter of presidential power - LSE Blogs",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses how Donald Trump has corrupted presidential power during his terms, attacking core institutions and reversing key policies for personal profit. It highlights the negative impact of his actions on American values, ethical standards, and analytical capacities within the government.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "$1.4-2.2 billion growth in Trump family businesses since January 2025",
+      "$2 billion investment by the UAE in Binance"
+     ]
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "Al Jazeera",
+    "published": "2026-09-25",
+    "title": "US court rules against Kalshi, says states can regulate prediction markets - Al Jazeera",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A United States appeals court ruled that states can regulate prediction markets, rejecting Kalshi's attempt to exempt its event contracts from state gambling laws. This ruling adds to the ongoing debate about the regulation of prediction markets and may lead to a Supreme Court review.",
+     "institutions": [
+      "6th US Circuit Court of Appeals",
+      "Kalshi",
+      "state of New York",
+      "Polymarket"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "PBS",
+    "published": "2026-09-25",
+    "title": "Iran has suggested a deal to reopen the Strait of Hormuz in 7 days - PBS",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Iran has proposed to reopen the Strait of Hormuz and resume nuclear talks in seven days if the U.S. lifts its naval blockade, waives sanctions on oil sales, and observes a ceasefire including Lebanon. This proposal was detailed by Iran's Foreign Minister Abbas Araghchi during a private meeting at the U.N. General Assembly.",
+     "institutions": [
+      "U.S. government",
+      "Iran's U.N. mission",
+      "Quincy Institute",
+      "International Crisis Group"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "a fifth of the world's traded oil and gas transited before the war",
+      "60-day interim period"
+     ]
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "nerdwallet.com",
+    "published": "2026-09-25",
+    "title": "How Is the Economy Doing Right Now? - nerdwallet.com",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The U.S. economy is expanding again after a dip in Q1 2025, with modest growth in 2026. Job additions are occurring, but not at previous levels, and inflation remains below its peak but persistent. The economy is not currently in a recession, although there are concerns about new tariffs and a potential trade war.",
+     "institutions": [],
+     "direction": "mixed",
+     "numbers": [
+      "Q1 2026: +2.1%",
+      "Q2 2026 GDP: +1.5%",
+      "U.S. trade deficit in July 2026: $88.6 billion — up 24.4% from June 2026",
+      "Exports in July 2026: down 1.8% from June 2026",
+      "Imports in July 2026: up 3.8% from June 2026",
+      "unemployment rate has topped 4% since May 2024"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "kff.org",
+    "published": "2026-09-25",
+    "title": "Who gets abortions? - Key Facts on Abortion in the United States - kff.org",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article provides an overview of abortion, describing it as a medical termination of pregnancy and detailing various methods of abortion categorized by the National Academy of Sciences, Engineering, and Medicine (NASEM). It explains medication abortion, aspiration, dilation and evacuation, and induction abortions, along with statistics on the prevalence of medication abortion.",
+     "institutions": [
+      "National Academy of Sciences, Engineering, and Medicine",
+      "U.S. Food and Drug Administration",
+      "Guttmacher Institute"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "65% of all abortions are medication abortions",
+      "up to 70 days (10 weeks) of pregnancy",
+      "up to 14-16 weeks of gestation"
+     ]
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Trump plans to loosen Biden-era fuel economy requirements for vehicles in the United States - Українські Національні Новини (УНН)",
+    "publisher": "Українські Національні Новини (УНН)",
+    "body_status": "full",
+    "chars_read": 1641,
+    "chars_original": 1641,
+    "text": "Trump plans to loosen Biden-era fuel economy requirements for vehicles in the United States\nKyiv • UNN\nThe Trump administration may lower the requirements for 2031 vehicles from 50 to 34.5 miles per gallon. Environmentalists warn of higher costs for drivers.\nThe administration of U.S. President Donald Trump plans to repeal some of the stricter vehicle fuel-efficiency standards introduced during Joe Biden’s presidency. The new rules are expected to be unveiled on Monday, Bloomberg reports, according to UNN.\nDetails\nIf the final requirements correspond to the plan presented earlier, the fuel-economy standard for 2031 model-year vehicles will be lowered from approximately 50 to 34.5 miles per gallon.\nTrump claims that easing the requirements will allow automakers to reduce costs and make new cars cheaper for Americans.\nCars will be able to consume more fuel\nIn practice, the changes will mean that manufacturers will find it easier to sell traditional gasoline-powered vehicles with higher fuel consumption. The Biden rules, by contrast, encouraged automakers to produce more fuel-efficient vehicles and increase the share of electric vehicles.\nThe decision is expected to be welcomed by the automotive and oil industries, which criticized the previous requirements as too strict.\nAt the same time, environmental organizations warn that less fuel-efficient vehicles could mean higher costs for drivers at the pump. This issue is particularly relevant amid high fuel prices in the United States — according to Bloomberg, gasoline prices rose to record levels in September, while diesel fuel exceeded $6 per gallon for the first time."
+   },
+   {
+    "id": "a2",
+    "title": "‘Atrocious’ crime: Cuban official decries possibility of US military action - Al Jazeera",
+    "publisher": "Al Jazeera",
+    "body_status": "full",
+    "chars_read": 2627,
+    "chars_original": 2627,
+    "text": "‘Atrocious’ crime: Cuban official decries possibility of US military action\nCuba’s deputy foreign minister slams US sanctions, labelling them ‘equivalent to genocide’.\nA senior official in Cuba has warned that any prospective United States military action taken against the island nation would constitute a serious international crime, and has rejected claims made by US President Donald Trump that Cuba is a failed state.\nOn Sunday, Carlos Fernandez de Cossio, the country’s deputy foreign minister, told the US cable television channel C-SPAN’s flagship programme, Washington Journal, that it would be an “atrocious international crime for the US to use military force against Cuba, which is a peaceful neighbouring country”.\nHis comments come after Trump said during his Tuesday speech at the United Nations General Assembly (UNGA) that “freedom will be coming” to the island. His remarks prompted the Cuban delegation to exit the assembly hall. On Saturday, Trump brought up military action, telling reporters, “I don’t think we’ll need the military. Cuba is failing very badly.”\nFernandez de Cossio said that coercing nations who do not “submit” by disrupting their commercial shipments, attempting to handicap a population through starvation, depriving it of stable healthcare and withholding fuel, as the US has “done for nine months now”, is “equivalent to a genocide”.\nThe US has maintained a foreign policy of maximum economic pressure against Cuba for more than 60 years. The Trump administration has previously said that it wants a shake-up in Cuba’s government. Earlier this year, the administration enforced an additional oil and fuel blockade against the island, which has crippled the nation’s infrastructure, causing widespread fuel scarcity and rolling power outages. Government officials in Cuba cited systemic difficulties in securing food supplies and other basic necessities for the country of more than 10 million.\nFernandez de Cossio said Havana must ready its citizens for the prospect of US military aggression, adding that while Cuba recognises it might stand alone, it will still exercise its legitimate right to self-defence.\nHe explained that bilateral diplomatic channels with the US remain open but have yielded minimal results due to the economic stranglehold of ongoing sanctions, adding that Havana remains willing to engage with Washington in a “respectful manner” only if discussions accommodate mutual dignity, benefit both populations, and respect state sovereignty.\nSeveral countries condemned the US’s continued economic sanctions and blockade of Cuba during the UNGA earlier this week."
+   },
+   {
+    "id": "a5",
+    "title": "Trump’s trade war threatens auto manufacturing jobs - The Michigan Independent",
+    "publisher": "The Michigan Independent",
+    "body_status": "full",
+    "chars_read": 4613,
+    "chars_original": 4613,
+    "text": "Trump’s trade war threatens auto manufacturing jobs\nThe impasse could end up throwing thousands of people out of jobs, one expert says.\nPresident Donald Trump’s trade war with Canada is sending shockwaves through the American automotive industry, which has long been heavily interconnected with manufacturing north of the border.\nIn August, Trump announced a new 50% tariff on all cars, trucks and auto parts manufactured in Canada, as well as on Canadian steel, to take effect on Jan. 1, 2027. That would double the current 25% tariff on cars manufactured in Canada that Trump imposed last year.\nThe current tariffs regime is already costing Americans: CBT News, a website for automobile retailers, reported in March that the average price of a new car had increased by 10% since the introduction of Trump’s tariffs. Prices for vehicles manufactured in the United States rose as well, in part due to tariffs on imported materials used in their production.\nParts and vehicles compliant with the United States-Mexico-Canada Agreement (USCMA) on trade have so far been exempt from those added tariffs; the 25% duty has applied only to the components of automobiles that originate outside of the U.S. Trump’s new proposed tariffs may not have exemptions for USCMA-compliant parts, auto industry expert Patrick Anderson told the Michigan Independent, which would cause a lot of pain and raise costs for automotive manufacturers.\n“States like Michigan and the Canadian province of Ontario have tremendous cross-border trade on a regular basis, and Americans are used to buying cars that are either assembled in Canada or have parts from Canada, or both, and considering them American cars, because they are American cars,” said Anderson, CEO of the auto industry consulting firm Anderson Economic Group. “They’re built by American companies, sold in the United States by American dealers, often designed in the United States, and with a substantial portion of the components from the United States, and also having some parts or entire assemblies put together in Canada.”\nLast year, before the latest spat between Trump and Canada, the Wall Street Journal tracked the assembly process for a single component of an automobile transmission that involved six border crossings of materials and parts between the U.S. and its northern neighbor, as well as one crossing from Mexico to the U.S. The transmission module was finally put into a vehicle at a plant in Ontario before being shipped back to the U.S. one last time for sale.\n“The potential for a 50% tariff on autos and auto parts would be catastrophic for much of the Canadian auto industry and for many American companies and workers as well, because so much of the automobile industry in the United States depends on the ability to trade with Canada on an almost seamless basis for autos and auto parts,” Anderson said. “If in fact there was a 50% tariff put on, you would see entire factories closed on both sides of the border, and you would see layoffs in many companies, including a lot of small companies, throughout Michigan, Ohio, Illinois, Indiana and Texas.”\nEven if the planned tariffs were canceled tomorrow, damage is already being done to the industry, said Rudi Leuschner, associate professor of supply chain management at Rutgers University Business School in New Jersey.\n“Executives hate uncertainty, and that’s all it introduces at this point to the individual companies,” said Leuschner told the Michigan Independent. “We would like to have a planning horizon, and we know that if we make a certain decision, it’s going to be the ideal decision for at least the foreseeable future. And all of this talk of tariffs on, tariffs off is just making planning a lot harder.\n“Because they have not yet hit, and we haven’t yet seen them, we also have to factor in there, there’s a chance that they never take place,” Leuschner continued. “So at this point, there’s going to be a whole bunch of people who are scrambling, and there’s going to be a whole bunch of people who are making alternative plans that we may never have to use.”\n“Unfortunately, you have the prime minister of Canada, the premier of Ontario, and the president of the United States all talking in trade war rhetoric that could, if it was actually converted into policy, end up throwing thousands of people out of jobs,” Anderson said. “That uncertainty and that harshness does not support employment on either side of the border, and makes companies very reluctant to invest in the kind of plant equipment and technology that would improve our ability to build cars here in America.”"
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.495,
+    "indicator_resolution": 1.0,
+    "freshness": 0.8462
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

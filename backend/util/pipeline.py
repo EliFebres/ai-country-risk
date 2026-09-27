@@ -326,6 +326,305 @@ def seed_roster() -> int:
     return written
 
 
+def assemble_country(
+    country_name: str,
+    iso2: str,
+    run_as_of,
+    run_meter: usage.Meter,
+    dump_dir: Optional[pathlib.Path] = None,
+) -> Dict:
+    """Build one country's scoring payload: everything before the scorer call.
+
+    Economics, retrieval, the gate, one story per article, selection, digests,
+    the census and the payload, in that order. It writes the article bodies,
+    the indicator series and the gate and digest caches, as the weekly run
+    does. It does not score, and it writes neither `risk_snapshot` nor
+    `run_ledger`, so a measurement can freeze a payload with it and score the
+    frozen file as often as it needs to.
+
+    Returns:
+        ``{"items", "gate", "stories", "econ", "census", "scoring_payload",
+        "article_ids", "payload_tokens", "candidates", "labels"}``.
+    """
+    # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
+    #    the merged non-WB indicators (Political Corruption Index) so they
+    #    reach both the LLM payload and the DB upsert.
+    payload = data_retrieval.prepare_llm_payload_pretty(
+        country_iso=iso2,
+        indicators=constants.ALL_INDICATORS,
+        since=2015,
+        lookback=10,
+        deltas=(1, 5),
+    )
+
+    # 1b) The economics block: the same numbers, grouped by ledger, each
+    #     carrying five years of history with the direction stated in
+    #     words, and the date it became knowable rather than the date we
+    #     fetched it. A ledger that resolved nothing says so here and is
+    #     counted below.
+    econ = payload_builder.build_economics_block(
+        data_retrieval.panel_values(iso2, lookback=10),
+        curated_loader.load_for_country(iso2),
+        today=run_as_of,
+        first_seen=store.read_first_seen(iso2),
+    )
+    res = econ["resolution"]
+    print(
+        f"[econ] {iso2}: resolved {res['resolved_by_ledger']} of "
+        f"{res['expected_by_ledger']} | dates {res['as_of_schemes']}"
+    )
+    if res["empty_ledgers"]:
+        print(
+            f"[econ] {iso2}: LEDGER WITH NO INDICATORS: "
+            f"{', '.join(res['empty_ledgers'])} — "
+            f"dropped: {[d['code'] + ' (' + d['reason'] + ')' for d in res['dropped']]}"
+        )
+
+    # 2) Fetch relevant news using multi-query strategy with relevance filtering (+ BROAD query)
+    candidates, pool_report = _fetch_candidate_pool(country_name or iso2, iso2)
+
+    # 2b) The relevance gate. Every candidate is classified once, for
+    #     this country, before anything expensive touches it. Only
+    #     `relevant` articles are eligible, and nothing tops up from
+    #     the rest: if six qualify, six are scored. In `body` mode a
+    #     body a previous digest called `not_article` is read as a
+    #     snippet; the cache is the only digest available this early.
+    if relevance.DEFAULT_INPUT_MODE == "body":
+        known = digest_engine.cached_body_quality(candidates)
+        for c in candidates:
+            q = known.get(c.get("publisher_link") or c.get("link"))
+            if q:
+                c["body_quality"] = q
+    labels = relevance.classify(
+        candidates, country_name or iso2, iso2, meter=run_meter
+    )
+    # 2b') One story, one article, before the budget is filled. A story
+    #      five outlets carried is one event, and five slots would make it
+    #      read as a trend. The copies set aside free their slots for the
+    #      next eligible article.
+    stories = relevance.dedupe_stories(
+        candidates, labels, country_name or iso2, iso2, meter=run_meter
+    )
+    sc = stories["counts"]
+    print(
+        f"[gate] {iso2}: {sc['eligible']} relevant in {sc['stories']} stories, "
+        f"{sc['dropped']} set aside as the same story"
+        + (f" (title fallback: {stories['problem']})" if stories["method"] != "llm" else "")
+    )
+    gate = relevance.select(
+        candidates, labels, iso2, same_story_as=stories["same_story_as"]
+    )
+    items = gate["selected"]
+    counts = gate["counts"]
+    print(
+        f"[gate] {iso2}: {counts['candidates']} candidates -> "
+        f"{counts['eligible']} relevant -> {counts['selected']} selected "
+        f"(budget {counts['budget']}); rejected {counts['rejected_by_label']}"
+    )
+    print(f"[gate] {iso2}: per-ledger {gate['per_ledger']} | per-theme {gate['per_theme']}")
+    dupes = relevance.duplicate_story_report(items)
+    if dupes["duplicated_slots"]:
+        print(
+            f"[gate] {iso2}: {dupes['duplicated_slots']} of {len(items)} slots "
+            f"hold a story another selected article also tells"
+        )
+
+    # 2c) Stage one: digest every admitted article, then choose the few
+    #     to read in full. Breadth from the digests, depth from three —
+    #     twenty full bodies is unaffordable and twenty headlines throws
+    #     away the reporting already paid for.
+    #
+    #     The digest comes first because it says what each body is. Only
+    #     a body the digest calls `full` can be read in full, so the
+    #     three full reads go to the first three such articles in the
+    #     gate's order. A `partial` body (the article, cut off by a
+    #     wall) is digest-only; a `not_article` body (the wall itself)
+    #     is title-only and its digest is not sent. An article whose
+    #     digest failed is not vouched for, so it is not read in full.
+    digested = digest_engine.digest_articles(items, meter=run_meter)
+    full_reads = 0
+    for it in items:
+        key = it.get("publisher_link") or it.get("link")
+        digest = digested["digests"].get(key)
+        quality = (digest or {}).get("body_quality") if (it.get("text") or "").strip() else None
+        it["body_quality"] = quality
+        it["digest"] = None if quality == "not_article" else digest
+        reads_full = quality == "full" and full_reads < relevance.FULL_TEXT_K
+        status, clipped, original = digest_engine.body_status_for(
+            it, full_text=reads_full, quality=quality
+        )
+        it["body_status"] = status
+        it["body_clipped"] = clipped
+        it["body_chars_original"] = original
+        full_reads += status in ("full", "clipped")
+
+    # Keep the evidence. Without it a score is unauditable after the
+    # fact and last week's scoring cannot be re-run on what it saw.
+    try:
+        store.upsert_articles(_article_rows(candidates))
+    except Exception as e:
+        print(f"[{iso2}] could not store articles: {e}")
+
+    dc = digested["counts"]
+    status_mix: Dict[str, int] = {}
+    quality_mix: Dict[str, int] = {}
+    for it in items:
+        status_mix[it["body_status"]] = status_mix.get(it["body_status"], 0) + 1
+        if (it.get("text") or "").strip():   # no body is counted as no_body
+            q = it["body_quality"] or "unassessed"
+            quality_mix[q] = quality_mix.get(q, 0) + 1
+    print(
+        f"[digest] {iso2}: {dc['generated']} generated, {dc['cached']} cached, "
+        f"{dc['truncated_retry']} truncated-retry, {dc['failed']} failed, "
+        f"{dc['no_body']} without a body | bodies {status_mix} | quality {quality_mix}"
+    )
+    pool_report["digests"] = dc
+    pool_report["body_status"] = status_mix
+
+    pool_report["gate"] = counts
+    pool_report["per_ledger"] = gate["per_ledger"]
+    pool_report["rejected"] = gate["rejected"]
+    pool_report["duplicate_slots"] = dupes["duplicated_slots"]
+    pool_report["same_story"] = {"method": stories["method"],
+                                 "problem": stories["problem"], **sc}
+
+    # --- Resolve and do light enrichment using ONLY the simple scraper ---
+    with requests.Session() as _sess:
+        # a) Replace news.google.com wrappers with publisher URLs
+        for it in items:
+            link = it.get("link")
+            if isinstance(link, str) and "news.google.com" in link:
+                it["link"] = resolve_google_news_url(link, session=_sess)
+
+        # a2) Defense-in-depth: drop denylisted sources now that links are
+        #     resolved, in case a wrapper couldn't be resolved earlier.
+        before = len(items)
+        items = [it for it in items if not is_blocked_url(it.get("link"))]
+        removed = before - len(items)
+        if removed:
+            print(f"[{iso2}] Blocked {removed} article(s) from denylisted sources.")
+
+        # b) Ensure summary/content and thumbnail (simple scraper, single GET)
+        for it in items:
+            link = it.get("link")
+            if not isinstance(link, str) or not link.startswith("http"):
+                continue
+
+            cur_sum = (it.get("summary") or "").strip()
+            source  = (it.get("source")  or "").strip()
+            need_summary = (not cur_sum) or (len(cur_sum.split()) < 8) or (cur_sum.lower() == source.lower())
+            need_image = not it.get("image")
+
+            if need_summary or need_image:
+                thumb, summary, full_text = get_article_assets(link, session=_sess, max_words=160)
+                if need_summary and summary:
+                    it["summary"] = summary
+                if full_text:
+                    it["content"] = full_text[:24000]
+                if need_image and thumb:
+                    it["image"] = thumb
+
+    # 2d) The census: what the registry promised against what reached
+    #      the model. Stored, and read back — a census nobody stores
+    #      cannot be compared against last week, and comparison is the
+    #      only way to tell a source that broke from a quiet country.
+    census = payload_health.build_census(
+        iso2,
+        run_as_of,
+        economics=econ,
+        pool_report=pool_report,
+        gate=gate,
+        digests=dc,
+        versions=provenance.run_versions(
+            scoring_model=SCORING_MODEL,
+            digest_model=digest_engine.DEFAULT_MODEL,
+            gate_model=relevance.DEFAULT_MODEL,
+            prompt_version=ai_constants.PROMPT_VERSION,
+            digest_prompt_version=digest_engine.DIGEST_PROMPT_VERSION,
+            relevance_prompt_version=relevance.RELEVANCE_PROMPT_VERSION,
+            seed=42,
+            extra={
+                "gate_input_mode": relevance.DEFAULT_INPUT_MODE,
+                "exposure_cards_version": relevance.EXPOSURE_CARDS_VERSION,
+                "gate_cache_version": relevance.cache_version(
+                    relevance.DEFAULT_MODEL, relevance.DEFAULT_INPUT_MODE
+                ),
+            },
+        ),
+        budget=relevance.ARTICLE_BUDGET,
+    )
+    print(payload_health.format_census(census))
+
+    # The census travels inside the snapshot's manifest rather than in a
+    # table of its own that nothing joined to. Comparison against the
+    # country's own history is the quality report's job, at the end of
+    # the run, where it can be read as a block instead of scrolling past
+    # one country at a time.
+
+    # The macro half of the evidence, kept as a series. `as_of` is in
+    # the key, so a revision arrives as a new row and this week's score
+    # stays re-readable against the numbers as they stood.
+    try:
+        store.upsert_indicator_series(_series_rows(iso2, econ))
+    except Exception as e:
+        print(f"[series] {iso2} could not store indicators: {e}")
+
+    # Assign stable ids ("a1","a2",...)
+    for i, it in enumerate(items, start=1):
+        it["id"] = f"a{i}"
+
+    # 3) Assemble the payload and score.
+    #    Structural facts first, so everything after is read against
+    #    them; then the economics by ledger, the theme counts, the
+    #    digests, the top-k full texts, and the computed coverage.
+    scoring_payload = payload_builder.build_scoring_payload(
+        iso2,
+        country_name,
+        structural=structural_facts.for_country(iso2),
+        economics=econ,
+        pool_report=pool_report,
+        gate=gate,
+        coverage=census["coverage_components"],
+        full_text_k=relevance.FULL_TEXT_K,
+        body_cap_chars=digest_engine.BODY_CAP_CHARS,
+    )
+    article_ids = [a["id"] for a in scoring_payload["articles"]]
+
+    # What the self-hosted scorer would have to serve, measured on the
+    # compact JSON that actually goes out rather than on a pretty-printed
+    # copy, which would overstate it by about a third.
+    payload_tokens = payload_builder.count_tokens(
+        json.dumps(scoring_payload, ensure_ascii=False, default=str)
+    )["tokens"]
+    census["versions"]["payload_tokens"] = payload_tokens
+
+    if dump_dir is not None:
+        # Exactly the bytes the model is about to be handed.
+        dump_dir.mkdir(parents=True, exist_ok=True)
+        (dump_dir / f"{iso2}-payload.json").write_text(
+            json.dumps(scoring_payload, indent=2, ensure_ascii=False,
+                       default=str),
+            encoding="utf-8",
+        )
+        (dump_dir / f"{iso2}-census.json").write_text(
+            json.dumps(census, indent=2, ensure_ascii=False, default=str),
+            encoding="utf-8",
+        )
+
+    return {
+        "items": items,
+        "gate": gate,
+        "stories": stories,
+        "econ": econ,
+        "census": census,
+        "scoring_payload": scoring_payload,
+        "article_ids": article_ids,
+        "payload_tokens": payload_tokens,
+        "candidates": candidates,
+        "labels": labels,
+    }
+
+
 def run_etl(
     only: Optional[List[str]] = None,
     dump_dir: Optional[pathlib.Path] = None,
@@ -466,253 +765,11 @@ def run_etl(
         tokens_before = (run_meter.input_tokens, run_meter.output_tokens)
         outcome = "ok"
         try:
-            # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
-            #    the merged non-WB indicators (Political Corruption Index) so they
-            #    reach both the LLM payload and the DB upsert.
-            payload = data_retrieval.prepare_llm_payload_pretty(
-                country_iso=iso2,
-                indicators=constants.ALL_INDICATORS,
-                since=2015,
-                lookback=10,
-                deltas=(1, 5),
-            )
-
-            # 1b) The economics block: the same numbers, grouped by ledger, each
-            #     carrying five years of history with the direction stated in
-            #     words, and the date it became knowable rather than the date we
-            #     fetched it. A ledger that resolved nothing says so here and is
-            #     counted below.
-            econ = payload_builder.build_economics_block(
-                data_retrieval.panel_values(iso2, lookback=10),
-                curated_loader.load_for_country(iso2),
-                today=run_as_of,
-                first_seen=store.read_first_seen(iso2),
-            )
-            res = econ["resolution"]
-            print(
-                f"[econ] {iso2}: resolved {res['resolved_by_ledger']} of "
-                f"{res['expected_by_ledger']} | dates {res['as_of_schemes']}"
-            )
-            if res["empty_ledgers"]:
-                print(
-                    f"[econ] {iso2}: LEDGER WITH NO INDICATORS: "
-                    f"{', '.join(res['empty_ledgers'])} — "
-                    f"dropped: {[d['code'] + ' (' + d['reason'] + ')' for d in res['dropped']]}"
-                )
-
-            # 2) Fetch relevant news using multi-query strategy with relevance filtering (+ BROAD query)
-            candidates, pool_report = _fetch_candidate_pool(country_name or iso2, iso2)
-
-            # 2b) The relevance gate. Every candidate is classified once, for
-            #     this country, before anything expensive touches it. Only
-            #     `relevant` articles are eligible, and nothing tops up from
-            #     the rest: if six qualify, six are scored. In `body` mode a
-            #     body a previous digest called `not_article` is read as a
-            #     snippet; the cache is the only digest available this early.
-            if relevance.DEFAULT_INPUT_MODE == "body":
-                known = digest_engine.cached_body_quality(candidates)
-                for c in candidates:
-                    q = known.get(c.get("publisher_link") or c.get("link"))
-                    if q:
-                        c["body_quality"] = q
-            labels = relevance.classify(
-                candidates, country_name or iso2, iso2, meter=run_meter
-            )
-            gate = relevance.select(candidates, labels, iso2)
-            items = gate["selected"]
-            counts = gate["counts"]
-            print(
-                f"[gate] {iso2}: {counts['candidates']} candidates -> "
-                f"{counts['eligible']} relevant -> {counts['selected']} selected "
-                f"(budget {counts['budget']}); rejected {counts['rejected_by_label']}"
-            )
-            print(f"[gate] {iso2}: per-ledger {gate['per_ledger']} | per-theme {gate['per_theme']}")
-            dupes = relevance.duplicate_story_report(items)
-            if dupes["duplicated_slots"]:
-                print(
-                    f"[gate] {iso2}: {dupes['duplicated_slots']} of {len(items)} slots "
-                    f"hold a story another selected article also tells"
-                )
-
-            # 2c) Stage one: digest every admitted article, then choose the few
-            #     to read in full. Breadth from the digests, depth from three —
-            #     twenty full bodies is unaffordable and twenty headlines throws
-            #     away the reporting already paid for.
-            #
-            #     The digest comes first because it says what each body is. Only
-            #     a body the digest calls `full` can be read in full, so the
-            #     three full reads go to the first three such articles in the
-            #     gate's order. A `partial` body (the article, cut off by a
-            #     wall) is digest-only; a `not_article` body (the wall itself)
-            #     is title-only and its digest is not sent. An article whose
-            #     digest failed is not vouched for, so it is not read in full.
-            digested = digest_engine.digest_articles(items, meter=run_meter)
-            full_reads = 0
-            for it in items:
-                key = it.get("publisher_link") or it.get("link")
-                digest = digested["digests"].get(key)
-                quality = (digest or {}).get("body_quality") if (it.get("text") or "").strip() else None
-                it["body_quality"] = quality
-                it["digest"] = None if quality == "not_article" else digest
-                reads_full = quality == "full" and full_reads < relevance.FULL_TEXT_K
-                status, clipped, original = digest_engine.body_status_for(
-                    it, full_text=reads_full, quality=quality
-                )
-                it["body_status"] = status
-                it["body_clipped"] = clipped
-                it["body_chars_original"] = original
-                full_reads += status in ("full", "clipped")
-
-            # Keep the evidence. Without it a score is unauditable after the
-            # fact and last week's scoring cannot be re-run on what it saw.
-            try:
-                store.upsert_articles(_article_rows(candidates))
-            except Exception as e:
-                print(f"[{iso2}] could not store articles: {e}")
-
-            dc = digested["counts"]
-            status_mix: Dict[str, int] = {}
-            quality_mix: Dict[str, int] = {}
-            for it in items:
-                status_mix[it["body_status"]] = status_mix.get(it["body_status"], 0) + 1
-                if (it.get("text") or "").strip():   # no body is counted as no_body
-                    q = it["body_quality"] or "unassessed"
-                    quality_mix[q] = quality_mix.get(q, 0) + 1
-            print(
-                f"[digest] {iso2}: {dc['generated']} generated, {dc['cached']} cached, "
-                f"{dc['truncated_retry']} truncated-retry, {dc['failed']} failed, "
-                f"{dc['no_body']} without a body | bodies {status_mix} | quality {quality_mix}"
-            )
-            pool_report["digests"] = dc
-            pool_report["body_status"] = status_mix
-
-            pool_report["gate"] = counts
-            pool_report["per_ledger"] = gate["per_ledger"]
-            pool_report["rejected"] = gate["rejected"]
-            pool_report["duplicate_slots"] = dupes["duplicated_slots"]
-
-            # --- Resolve and do light enrichment using ONLY the simple scraper ---
-            with requests.Session() as _sess:
-                # a) Replace news.google.com wrappers with publisher URLs
-                for it in items:
-                    link = it.get("link")
-                    if isinstance(link, str) and "news.google.com" in link:
-                        it["link"] = resolve_google_news_url(link, session=_sess)
-
-                # a2) Defense-in-depth: drop denylisted sources now that links are
-                #     resolved, in case a wrapper couldn't be resolved earlier.
-                before = len(items)
-                items = [it for it in items if not is_blocked_url(it.get("link"))]
-                removed = before - len(items)
-                if removed:
-                    print(f"[{iso2}] Blocked {removed} article(s) from denylisted sources.")
-
-                # b) Ensure summary/content and thumbnail (simple scraper, single GET)
-                for it in items:
-                    link = it.get("link")
-                    if not isinstance(link, str) or not link.startswith("http"):
-                        continue
-
-                    cur_sum = (it.get("summary") or "").strip()
-                    source  = (it.get("source")  or "").strip()
-                    need_summary = (not cur_sum) or (len(cur_sum.split()) < 8) or (cur_sum.lower() == source.lower())
-                    need_image = not it.get("image")
-
-                    if need_summary or need_image:
-                        thumb, summary, full_text = get_article_assets(link, session=_sess, max_words=160)
-                        if need_summary and summary:
-                            it["summary"] = summary
-                        if full_text:
-                            it["content"] = full_text[:24000]
-                        if need_image and thumb:
-                            it["image"] = thumb
-
-            # 2d) The census: what the registry promised against what reached
-            #      the model. Stored, and read back — a census nobody stores
-            #      cannot be compared against last week, and comparison is the
-            #      only way to tell a source that broke from a quiet country.
-            census = payload_health.build_census(
-                iso2,
-                run_as_of,
-                economics=econ,
-                pool_report=pool_report,
-                gate=gate,
-                digests=dc,
-                versions=provenance.run_versions(
-                    scoring_model=SCORING_MODEL,
-                    digest_model=digest_engine.DEFAULT_MODEL,
-                    gate_model=relevance.DEFAULT_MODEL,
-                    prompt_version=ai_constants.PROMPT_VERSION,
-                    digest_prompt_version=digest_engine.DIGEST_PROMPT_VERSION,
-                    relevance_prompt_version=relevance.RELEVANCE_PROMPT_VERSION,
-                    seed=42,
-                    extra={
-                        "gate_input_mode": relevance.DEFAULT_INPUT_MODE,
-                        "exposure_cards_version": relevance.EXPOSURE_CARDS_VERSION,
-                        "gate_cache_version": relevance.cache_version(
-                            relevance.DEFAULT_MODEL, relevance.DEFAULT_INPUT_MODE
-                        ),
-                    },
-                ),
-                budget=relevance.ARTICLE_BUDGET,
-            )
-            print(payload_health.format_census(census))
-
-            # The census travels inside the snapshot's manifest rather than in a
-            # table of its own that nothing joined to. Comparison against the
-            # country's own history is the quality report's job, at the end of
-            # the run, where it can be read as a block instead of scrolling past
-            # one country at a time.
-
-            # The macro half of the evidence, kept as a series. `as_of` is in
-            # the key, so a revision arrives as a new row and this week's score
-            # stays re-readable against the numbers as they stood.
-            try:
-                store.upsert_indicator_series(_series_rows(iso2, econ))
-            except Exception as e:
-                print(f"[series] {iso2} could not store indicators: {e}")
-
-            # Assign stable ids ("a1","a2",...)
-            for i, it in enumerate(items, start=1):
-                it["id"] = f"a{i}"
-
-            # 3) Assemble the payload and score.
-            #    Structural facts first, so everything after is read against
-            #    them; then the economics by ledger, the theme counts, the
-            #    digests, the top-k full texts, and the computed coverage.
-            scoring_payload = payload_builder.build_scoring_payload(
-                iso2,
-                country_name,
-                structural=structural_facts.for_country(iso2),
-                economics=econ,
-                pool_report=pool_report,
-                gate=gate,
-                coverage=census["coverage_components"],
-                full_text_k=relevance.FULL_TEXT_K,
-                body_cap_chars=digest_engine.BODY_CAP_CHARS,
-            )
-            article_ids = [a["id"] for a in scoring_payload["articles"]]
-
-            # What the self-hosted scorer would have to serve, measured on the
-            # compact JSON that actually goes out rather than on a pretty-printed
-            # copy, which would overstate it by about a third.
-            payload_tokens = payload_builder.count_tokens(
-                json.dumps(scoring_payload, ensure_ascii=False, default=str)
-            )["tokens"]
-            census["versions"]["payload_tokens"] = payload_tokens
-
-            if dump_dir is not None:
-                # Exactly the bytes the model is about to be handed.
-                dump_dir.mkdir(parents=True, exist_ok=True)
-                (dump_dir / f"{iso2}-payload.json").write_text(
-                    json.dumps(scoring_payload, indent=2, ensure_ascii=False,
-                               default=str),
-                    encoding="utf-8",
-                )
-                (dump_dir / f"{iso2}-census.json").write_text(
-                    json.dumps(census, indent=2, ensure_ascii=False, default=str),
-                    encoding="utf-8",
-                )
+            built = assemble_country(country_name, iso2, run_as_of, run_meter, dump_dir)
+            items, gate, stories = built["items"], built["gate"], built["stories"]
+            econ, census = built["econ"], built["census"]
+            scoring_payload, article_ids = built["scoring_payload"], built["article_ids"]
+            payload_tokens = built["payload_tokens"]
 
             scored = langchain_llm.score_country(
                 iso2=iso2,
@@ -833,6 +890,11 @@ def run_etl(
                         for a in items
                     ],
                     "rejected": gate["rejected"],
+                    # Eligible articles set aside as another outlet's telling of
+                    # a story that was kept, and how the stories were found.
+                    "same_story": {"method": stories["method"],
+                                   "problem": stories["problem"],
+                                   "articles": gate["same_story"]},
                     "indicators": [
                         {"code": i["code"], "period": i["period"],
                          "as_of": i["as_of"], "as_of_scheme": i["as_of_scheme"]}

@@ -1,0 +1,1243 @@
+{
+ "iso2": "TW",
+ "country": "Taiwan",
+ "run_date": "2026-09-27",
+ "payload_fingerprint": "a9ad6182c5a182e10276f78e602afe5a26e95997af0c7821269c48f4ff4b900e",
+ "payload_sha256": "05ca3c6d8bbcc80828ee24a30c10509f8c2ba500c066a49df5642789d3b6b584",
+ "payload_tokens": 9297,
+ "versions": {
+  "git_sha": "047072131346f524a33b75c0885dc6643d3ad759",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "360a84838ecddc01bcad98fcd02d48890ba05499180362b005fd794b1b07f081",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "schema_violations": 0,
+  "payload_tokens": 9297
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://understandingwar.org/research/china-taiwan/china-taiwan-update-september-25-2026/",
+   "title": "China & Taiwan Update, September 25, 2026 - Institute for the Study of War",
+   "publisher": "Institute for the Study of War",
+   "published": "2026-09-25",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The United States and China agreed to extend a trade truce and discussed bilateral cooperation on various issues, including AI security, during a meeting between Xi Jinping and Donald Trump.",
+   "body_quality": "full",
+   "body_status": "clipped"
+  },
+  {
+   "id": "a2",
+   "url": "https://caliber.az/en/post/wsj-beijing-sees-rare-window-to-shape-taiwan-s-politics",
+   "title": "WSJ: Beijing sees \"rare window\" to shape Taiwan’s politics - Caliber.Az",
+   "publisher": "Caliber.Az",
+   "published": "2026-09-28",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Beijing is intensifying efforts to influence Taiwan's political landscape by cultivating ties with the Kuomintang (KMT) and exploiting uncertainty over US support for Taiwan.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.taiwannews.com.tw/news/6441498",
+   "title": "Taiwan extends commodity and fuel tax cuts for 6 months as inflation rises - Taiwan News",
+   "publisher": "Taiwan News",
+   "published": "2026-09-17",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Cabinet extended tax cuts on key raw materials for six months to combat rising inflation and international oil prices.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://focustaiwan.tw/politics/202609270008",
+   "title": "U.S. Taiwan policy unchanged after Trump-Xi summit: Deputy FM - focustaiwan.tw",
+   "publisher": "focustaiwan.tw",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's deputy foreign minister stated that U.S. policy toward Taiwan remains unchanged after the Trump-Xi summit, despite China's efforts to influence it.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.dw.com/en/no-public-mentions-of-taiwan-at-official-xi-and-trump-meeting/a-79445378",
+   "title": "No public mentions of Taiwan at official Xi and Trump meeting - DW.com",
+   "publisher": "DW.com",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "US President Donald Trump and Chinese President Xi Jinping met, with no public mention of Taiwan, highlighting its contentious status between the US and China.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.japantimes.co.jp/news/2026/09/27/asia-pacific/south-korea-taiwan-us-conflict/",
+   "title": "Can South Korea stay out of war over Taiwan? - The Japan Times",
+   "publisher": "The Japan Times",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Chinese leader Xi Jinping pressed U.S. President Donald Trump to oppose Taiwan's independence, raising concerns about potential conflict involving South Korea.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://asiatimes.com/2026/09/the-politics-limiting-us-arms-deliveries-to-taiwan/",
+   "title": "The politics limiting US arms deliveries to Taiwan - Asia Times",
+   "publisher": "Asia Times",
+   "published": "2026-09-26",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the limitations and delays in US arms deliveries to Taiwan, specifically regarding the F-16 jets.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://thediplomat.com/2026/09/taiwan-isnt-giving-up-its-pulling-apart/",
+   "title": "Taiwan Isn’t Giving Up, It’s Pulling Apart - The Diplomat – Asia-Pacific Current Affairs Magazine",
+   "publisher": "The Diplomat – Asia-Pacific Current Affairs Magazine",
+   "published": "2026-09-26",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the complexities of Taiwanese public opinion and defense attitudes in the context of potential military conflict with China.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://www.tennessean.com/story/news/politics/2026/09/25/taiwan-tennessee-economic-ties/91780517007/",
+   "title": "As Chinese President Xi visits, why has Taiwan deepened ties with TN? - The Tennessean",
+   "publisher": "The Tennessean",
+   "published": "2026-09-25",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan has deepened its ties with TN as Chinese President Xi visits the region.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://www.nbr.org/publication/a-look-ahead-to-taiwans-2026-local-elections/",
+   "title": "A Look Ahead to Taiwan’s 2026 Local Elections - nbr.org",
+   "publisher": "nbr.org",
+   "published": "2026-09-24",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the upcoming local elections in Taiwan scheduled for 2026.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.reuters.com/world/china/taiwan-thanks-us-its-support-ahead-trump-xi-summit-2026-09-24/",
+   "title": "Chinese defence ministry urges 'extreme caution' over arms sales to Taiwan ahead of Trump-Xi summit - Reuters",
+   "publisher": "Reuters",
+   "published": "2026-09-24",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Chinese defence ministry urged caution regarding arms sales to Taiwan ahead of a summit between Trump and Xi.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://www.taipeitimes.com/News/biz/archives/2026/09/24/2003864783",
+   "title": "ADB raises GDP growth for Taiwan to 11% this year - Taipei Times",
+   "publisher": "Taipei Times",
+   "published": "2026-09-23",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Asian Development Bank raised its GDP growth forecast for Taiwan to 11% this year, citing a surge in technology exports driven by the global AI boom.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://www.washingtontimes.com/news/2026/sep/23/mitch-mcconnell-urges-trump-team-provide-taiwan-military-funding/",
+   "title": "McConnell urges Trump team to provide Taiwan military funding - Washington Times",
+   "publisher": "Washington Times",
+   "published": "2026-09-23",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Senate Minority Leader Mitch McConnell urged the Trump administration to provide military funding to Taiwan.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://www.airandspaceforces.com/affordable-munitions-mixed-attack-usaf-taiwan-experts/",
+   "title": "Experts: Affordable Munitions Could Help USAF in Taiwan Conflict, but More Is Needed - Air & Space Forces Magazine",
+   "publisher": "Air & Space Forces Magazine",
+   "published": "2026-09-22",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "A think tank report recommends the U.S. increase its stockpile of drones and munitions to prepare for a potential conflict with China over Taiwan.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://english.cw.com.tw/article/article.action?id=5010",
+   "title": "Why Taiwan's AI Boom Pits Inflation Control Against Inequality｜Politics & Society｜2026-09-18｜web only - 天下雜誌",
+   "publisher": "天下雜誌",
+   "published": "2026-09-17",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's central bank decided to keep interest rates unchanged despite inflation concerns, citing the challenges posed by an uneven economy.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://www.bloomberg.com/news/articles/2026-09-17/taiwan-poised-for-hawkish-hold-after-headline-inflation-slowed",
+   "title": "Taiwan Poised for Hawkish Hold After Headline Inflation Slowed - Bloomberg",
+   "publisher": "Bloomberg",
+   "published": "2026-09-17",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan is expected to maintain a hawkish monetary policy stance following a slowdown in headline inflation.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://arizonadigitalfreepress.com/gateway-community-college-taiwan-university-launch-semiconductor-workforce-partnership/",
+   "title": "GateWay Community College, Taiwan university launch semiconductor workforce partnership - Arizona Digital Free Press",
+   "publisher": "Arizona Digital Free Press",
+   "published": "2026-09-15",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "GateWay Community College and Minghsin University of Science and Technology in Taiwan formed a partnership to enhance semiconductor workforce development and academic collaboration.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://www.aljazeera.com/news/2026/9/11/taiwan-vice-president-makes-rare-europe-visit-for-conference-on-democracy",
+   "title": "Taiwan vice president makes rare Europe visit for conference on democracy - Al Jazeera",
+   "publisher": "Al Jazeera",
+   "published": "2026-09-11",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Vice President Hsiao Bi-khim made a rare visit to Europe to attend a democracy conference, which was kept secret to protect her participation from potential backlash from Beijing.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://think.ing.com/articles/asia-week-ahead-110926/",
+   "title": "Asia week ahead: Japan and Taiwan rate decisions, key data on China and India - ING Think",
+   "publisher": "ING Think",
+   "published": "2026-09-10",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's interest rate decision is uncertain as markets focus on economic data, including inflation and trade surplus.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.tradingview.com/news/te_news:581973:0-taiwan-inflation-rate-at-4-month-low/",
+   "title": "Taiwan Inflation Rate at 4-Month Low - TradingView",
+   "publisher": "TradingView",
+   "published": "2026-09-08",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's annual inflation rate slowed to 2.04% in August 2026, marking the lowest reading since April, while still remaining above the central bank's target.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 1,
+   "order": 2,
+   "information": 1,
+   "edge": 1
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 0
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 2,
+    "resolved": 2
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 0
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 1
+   }
+  },
+  "dropped": [
+   {
+    "code": "FP.CPI.TOTL.ZG",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Inflation (% y/y)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "SI.POV.GINI",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Income inequality (Gini)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Interest payments (% revenue)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "SL.UEM.TOTL.ZS",
+    "ledger": "order",
+    "source": "World Bank WDI",
+    "label": "Unemployment (% labour force)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "NY.GDP.PCAP.KD.ZG",
+    "ledger": "order",
+    "source": "World Bank WDI",
+    "label": "GDP per-capita growth (% y/y)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "IQ.SPI.OVRL",
+    "ledger": "information",
+    "source": "World Bank SPI",
+    "label": "Statistical performance (0-100)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "BX.KLT.DINV.WD.GD.ZS",
+    "ledger": "edge",
+    "source": "World Bank WDI",
+    "label": "FDI inflow (% GDP)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "SE.XPD.TOTL.GD.ZS",
+    "ledger": "edge",
+    "source": "World Bank WDI",
+    "label": "Education spending (% GDP)",
+    "reason": "unmapped"
+   }
+  ],
+  "as_of_schemes": {
+   "publication-lag-estimate": 3,
+   "source-published": 2
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 38,
+  "stories": 27,
+  "multi": 5,
+  "dropped": 11,
+  "slots_freed": 7,
+  "selected": 20,
+  "same_story_as": {
+   "https://wtvbam.com/2026/09/26/us-very-much-understands-taiwans-defence-needs-taipei-official-says/": "https://www.dw.com/en/no-public-mentions-of-taiwan-at-official-xi-and-trump-meeting/a-79445378",
+   "https://www.cnbc.com/2026/09/26/arming-taiwan-is-an-important-us-interest-taipei-official-says.html": "https://www.dw.com/en/no-public-mentions-of-taiwan-at-official-xi-and-trump-meeting/a-79445378",
+   "https://www.scmp.com/news/china/military/article/3368829/xi-presses-trump-take-next-step-taiwan-oppose-independence": "https://www.dw.com/en/no-public-mentions-of-taiwan-at-official-xi-and-trump-meeting/a-79445378",
+   "https://www.clickorlando.com/news/politics/2026/09/23/taiwan-is-watching-closely-as-xi-and-trump-meet-and-hopes-us-will-keep-up-its-arms-sales/": "https://www.dw.com/en/no-public-mentions-of-taiwan-at-official-xi-and-trump-meeting/a-79445378",
+   "https://focustaiwan.tw/politics/202609260010": "https://www.dw.com/en/no-public-mentions-of-taiwan-at-official-xi-and-trump-meeting/a-79445378",
+   "https://www.jpost.com/international/article-909681": "https://www.japantimes.co.jp/news/2026/09/27/asia-pacific/south-korea-taiwan-us-conflict/",
+   "https://www.taipeitimes.com/News/taiwan/archives/2026/09/24/2003864828": "https://focustaiwan.tw/politics/202609240005",
+   "https://sme.asia/taiwan-inflation-eases-to-2-04-in-august/": "https://www.tradingview.com/news/te_news:581973:0-taiwan-inflation-rate-at-4-month-low/",
+   "https://www.focus-economics.com/countries/taiwan/news/inflation/taiwan-consumer-prices-09-09-2026-inflation-eases-in-august-from-july/": "https://www.tradingview.com/news/te_news:581973:0-taiwan-inflation-rate-at-4-month-low/",
+   "https://www.bloomberg.com/news/articles/2026-09-08/taiwan-inflation-sticks-above-alert-level-before-rate-decision": "https://www.tradingview.com/news/te_news:581973:0-taiwan-inflation-rate-at-4-month-low/",
+   "https://www.digitimes.com/news/a20260918PD201/taiwan-inflation-2026-2027-economy.html": "https://english.cw.com.tw/article/article.action?id=5010"
+  }
+ },
+ "payload": {
+  "country": {
+   "iso2": "TW",
+   "name": "Taiwan"
+  },
+  "structural_facts": {
+   "classification_source": "not a World Bank member; region and income group assigned here to match the World Bank's own categories for comparable economies",
+   "income_group": "High income",
+   "name": "Taiwan",
+   "regime": "own currency, floating",
+   "region": "East Asia & Pacific",
+   "sovereignty": "full",
+   "tier": "EM"
+  },
+  "economics_by_ledger": {
+   "friction": {
+    "question": "What is taken, and how well does it convert?",
+    "indicators": [
+     {
+      "code": "OWID.VDEM.CORRUPTION",
+      "label": "Political corruption index (0-1, higher = more corrupt)",
+      "unit": "index (0-1)",
+      "source": "V-Dem via OWID",
+      "value": 0.22,
+      "period": 2024,
+      "as_of": "2026-04-01",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 179,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 0.189
+       },
+       {
+        "year": 2021,
+        "value": 0.217
+       },
+       {
+        "year": 2022,
+        "value": 0.222
+       },
+       {
+        "year": 2023,
+        "value": 0.244
+       },
+       {
+        "year": 2024,
+        "value": 0.22
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "order": {
+    "question": "How much doubt is there about the load-bearing rules?",
+    "indicators": [
+     {
+      "code": "GOV_WGI_PV.EST",
+      "label": "Political stability (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 0.9167,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 1.0701
+       },
+       {
+        "year": 2021,
+        "value": 1.0569
+       },
+       {
+        "year": 2022,
+        "value": 1.0312
+       },
+       {
+        "year": 2023,
+        "value": 1.0434
+       },
+       {
+        "year": 2024,
+        "value": 0.9167
+       }
+      ],
+      "direction": "falling",
+      "accelerating": true,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GOV_WGI_RL.EST",
+      "label": "Rule of law (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 1.2881,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 1.2881
+       },
+       {
+        "year": 2021,
+        "value": 1.2993
+       },
+       {
+        "year": 2022,
+        "value": 1.2589
+       },
+       {
+        "year": 2023,
+        "value": 1.2768
+       },
+       {
+        "year": 2024,
+        "value": 1.2881
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "information": {
+    "question": "Can the country's own instruments be trusted?",
+    "indicators": [
+     {
+      "code": "RSF.PRESS.SCORE",
+      "label": "Press freedom (0-100, higher = freer)",
+      "unit": "score",
+      "source": "RSF World Press Freedom Index",
+      "value": 75.44,
+      "period": 2025,
+      "as_of": "2026-05-03",
+      "as_of_scheme": "source-published",
+      "staleness_days": 147,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 74.08
+       },
+       {
+        "year": 2022,
+        "value": 75.54
+       },
+       {
+        "year": 2023,
+        "value": 76.13
+       },
+       {
+        "year": 2024,
+        "value": 77.04
+       },
+       {
+        "year": 2025,
+        "value": 75.44
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "edge": {
+    "question": "Is the system learning?",
+    "indicators": [
+     {
+      "code": "OECD.PISA.MEAN",
+      "label": "PISA mean score (maths/reading/science)",
+      "unit": "score",
+      "source": "OECD PISA",
+      "value": 533.21,
+      "period": 2022,
+      "as_of": "2023-12-05",
+      "as_of_scheme": "source-published",
+      "staleness_days": 1027,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2018,
+        "value": "unknown"
+       },
+       {
+        "year": 2019,
+        "value": "unknown"
+       },
+       {
+        "year": 2020,
+        "value": "unknown"
+       },
+       {
+        "year": 2021,
+        "value": "unknown"
+       },
+       {
+        "year": 2022,
+        "value": 533.21
+       }
+      ],
+      "direction": "unknown",
+      "accelerating": null,
+      "observed": 1,
+      "missing": 4
+     }
+    ]
+   }
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 5,
+    "order": 3,
+    "security": 5,
+    "information": 0,
+    "edge": 2,
+    "broad": 6
+   },
+   "selected_per_ledger": {
+    "friction": 2,
+    "order": 18,
+    "information": 0,
+    "edge": 0
+   },
+   "candidates_fetched": 51,
+   "passed_the_gate": 38,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "Institute for the Study of War",
+    "published": "2026-09-25",
+    "title": "China & Taiwan Update, September 25, 2026 - Institute for the Study of War",
+    "themes": [
+     "security",
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "clipped",
+    "digest": {
+     "what_happened": "Chinese Communist Party General Secretary Xi Jinping met with US President Donald Trump in Washington, DC, from September 22 to 24, where they agreed to extend the US-PRC trade truce by two months. The PRC announced new regulations on shipping precursor chemicals to the US, and Xi emphasized the importance of bilateral cooperation, particularly in AI security and Taiwan policy.",
+     "institutions": [
+      "Chinese Communist Party (CCP)",
+      "US Treasury",
+      "People’s Republic of China (PRC)",
+      "Taiwanese Ministry of National Defense"
+     ],
+     "direction": "mixed",
+     "numbers": [
+      "trade truce extended two months",
+      "$14 billion arms sale to Taiwan delayed",
+      "100,000 American students to visit PRC over five years"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "Caliber.Az",
+    "published": "2026-09-28",
+    "title": "WSJ: Beijing sees \"rare window\" to shape Taiwan’s politics - Caliber.Az",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Beijing is increasing its efforts to influence Taiwan's political landscape by engaging with the Kuomintang (KMT) party, particularly through KMT chairwoman Cheng Li-wun's recent visit to mainland China. This visit is part of a broader strategy to sway Taiwanese public opinion in favor of China amid uncertainties regarding US support for Taiwan.",
+     "institutions": [
+      "Kuomintang (KMT)",
+      "Taiwan’s Mainland Affairs Council",
+      "Taiwan’s National Security Bureau"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "six-day visit to mainland China in April",
+      "45,000 suspected accounts in cognitive warfare campaign in 2025",
+      "28,000 suspected accounts the previous year"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Taiwan News",
+    "published": "2026-09-17",
+    "title": "Taiwan extends commodity and fuel tax cuts for 6 months as inflation rises - Taiwan News",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The Cabinet has extended tax cuts on key raw materials for six months due to rising international oil prices and inflation concerns. The measures include exemptions from business tax on imported goods and reductions in commodity taxes to help lower operating costs for businesses.",
+     "institutions": [
+      "Cabinet",
+      "Ministry of Economic Affairs",
+      "Directorate-General of Budget, Accounting and Statistics"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "Brent and West Texas Intermediate crude oil prices above NT$3,190 (US$100) per barrel",
+      "gasoline prices rose NT$0.70 per liter",
+      "diesel prices rose NT$0.60 per liter",
+      "CPI increase by more than 2% year on year for four consecutive months from May through August",
+      "2.07% increase in CPI forecast for this year",
+      "commodity tax on gasoline reduced by NT$3.415 per liter",
+      "commodity tax on diesel reduced by NT$1.995 per liter",
+      "tariffs on butter, baking milk powder, and beef cut by 50%"
+     ]
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "focustaiwan.tw",
+    "published": "2026-09-27",
+    "title": "U.S. Taiwan policy unchanged after Trump-Xi summit: Deputy FM - focustaiwan.tw",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Taiwan's deputy foreign minister stated that the recent Trump-Xi summit did not change U.S. policy toward Taiwan, despite China's attempts to influence Washington's stance on Taiwan independence. U.S. officials have reiterated that the policy remains unchanged, and discussions at the summit primarily focused on economic and trade issues.",
+     "institutions": [
+      "Taiwan's Ministry of Foreign Affairs"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "US$14 billion arms package for Taiwan"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "DW.com",
+    "published": "2026-09-27",
+    "title": "No public mentions of Taiwan at official Xi and Trump meeting - DW.com",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "During a meeting between US President Donald Trump and Chinese President Xi Jinping, Taiwan was not openly discussed, although it remains a significant issue between the two nations. Xi reportedly conveyed China's opposition to US military support for Taiwan behind closed doors, while Trump did not mention Taiwan publicly. The meeting highlighted the delicate balance of US-China relations, especially regarding Taiwan's status.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": [
+      "$14-billion arms deal",
+      "$43 billion worth of soy, beef, wood and other goods from the US in 2023"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "The Japan Times",
+    "published": "2026-09-27",
+    "title": "Can South Korea stay out of war over Taiwan? - The Japan Times",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Chinese leader Xi Jinping emphasized Taiwan's status during a summit with U.S. President Donald Trump, urging Washington to oppose Taiwan's independence. This has caused concern among America's regional allies, particularly Japan and South Korea, as the potential for conflict over Taiwan could impact the Korean Peninsula.",
+     "institutions": [
+      "U.S. government",
+      "China government",
+      "Japan",
+      "South Korea"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "Asia Times",
+    "published": "2026-09-26",
+    "title": "The politics limiting US arms deliveries to Taiwan - Asia Times",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "On March 28, 2025, a ceremony took place at Lockheed Martin’s F-16 production facility in South Carolina to mark the handover of two F-16V block 70 jets to Taiwan. However, the delivery of these jets has faced significant delays, and as of now, they have not yet reached Taiwan due to various issues, including supply bottlenecks and manufacturing problems.",
+     "institutions": [
+      "Lockheed Martin",
+      "Taiwan’s Defense Ministry",
+      "Taiwan’s US representative"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "66 F-16s ordered",
+      "almost US$8 billion cost",
+      "first 16 ATACMS missiles delivered in 2024",
+      "second batch of ATACMS in 2025"
+     ]
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "The Diplomat – Asia-Pacific Current Affairs Magazine",
+    "published": "2026-09-26",
+    "title": "Taiwan Isn’t Giving Up, It’s Pulling Apart - The Diplomat – Asia-Pacific Current Affairs Magazine",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses the changing attitudes of Taiwanese citizens regarding their willingness to defend Taiwan in the face of potential Chinese aggression. It highlights a rise in fatalistic passivity among the population, particularly among supporters of the Kuomintang (KMT), and emphasizes the importance of trust in the government, fellow citizens, and military capability as key factors influencing these attitudes.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "26 percent to nearly 37 percent choosing fatalistic passivity",
+      "31 to 48 percent believing the national economy had gotten worse",
+      "69 to 74 percent doubting Taiwan's military could defend the island on its own",
+      "KMT passivity rose from 22 percent to 40 percent",
+      "DPP passivity rose from 26 to 30.5 percent"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "The Tennessean",
+    "published": "2026-09-25",
+    "title": "As Chinese President Xi visits, why has Taiwan deepened ties with TN? - The Tennessean",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a10",
+    "publisher": "nbr.org",
+    "published": "2026-09-24",
+    "title": "A Look Ahead to Taiwan’s 2026 Local Elections - nbr.org",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a11",
+    "publisher": "Reuters",
+    "published": "2026-09-24",
+    "title": "Chinese defence ministry urges 'extreme caution' over arms sales to Taiwan ahead of Trump-Xi summit - Reuters",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a12",
+    "publisher": "Taipei Times",
+    "published": "2026-09-23",
+    "title": "ADB raises GDP growth for Taiwan to 11% this year - Taipei Times",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Taiwan's economy is projected to grow by 11 percent this year, driven by a surge in technology exports and investment related to the global AI boom. The Asian Development Bank has raised its growth forecasts for Taiwan, marking the fastest growth among Asia-Pacific economies.",
+     "institutions": [
+      "Asian Development Bank",
+      "Nuclear Safety Commission",
+      "Taiwan Power Co",
+      "Microsoft Corp"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "growth forecast 11 percent for this year",
+      "growth forecast 5 percent for next year",
+      "growth 14.1 percent in the first half",
+      "tech exports jumped 65 percent in US dollar terms during the first half",
+      "real exports rose 28 percent",
+      "imports increased 22 percent",
+      "private consumption grew almost 6 percent in the first half",
+      "fixed investment increased almost 10 percent",
+      "inflation forecast at 2 percent for this year",
+      "inflation projection cut to 1.7 percent for next year",
+      "inflation averaged 1.5 percent in the first five months",
+      "inflation accelerated to 2.6 percent in June",
+      "inflation at 2.5 percent in July"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "Washington Times",
+    "published": "2026-09-23",
+    "title": "McConnell urges Trump team to provide Taiwan military funding - Washington Times",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a14",
+    "publisher": "Air & Space Forces Magazine",
+    "published": "2026-09-22",
+    "title": "Experts: Affordable Munitions Could Help USAF in Taiwan Conflict, but More Is Needed - Air & Space Forces Magazine",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A new report from the Center for a New American Security calls for an increase in U.S. drones and munitions to prepare for a potential conflict with China over Taiwan. The report highlights a gap between the number of targets the U.S. would need to strike and its diminishing stockpiles of weapons, recommending stockpiling high-end missiles and massing cheaper drones to counter a Chinese attack.",
+     "institutions": [
+      "Center for a New American Security",
+      "Pentagon",
+      "White House",
+      "Air Force",
+      "Lockheed Martin",
+      "Anduril",
+      "CoAspire",
+      "Zone 5 Technologies"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "5,300 missiles a year by 2028",
+      "nearly 8,000 missiles a year by 2031",
+      "more than $12 billion for nearly 27,000 missiles"
+     ]
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "天下雜誌",
+    "published": "2026-09-17",
+    "title": "Why Taiwan's AI Boom Pits Inflation Control Against Inequality｜Politics & Society｜2026-09-18｜web only - 天下雜誌",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Taiwan's central bank decided to keep interest rates unchanged despite inflation concerns, citing the challenges posed by the K-shaped economy. The bank is managing monetary conditions through reserve money instead of raising rates, which could disproportionately affect traditional industries and small businesses.",
+     "institutions": [
+      "Taiwan Central Bank",
+      "Taiwan Stock Exchange",
+      "International Monetary Fund (IMF)"
+     ],
+     "direction": "mixed",
+     "numbers": [
+      "inflation 2%",
+      "headline inflation rate 2.03% for 2026",
+      "core inflation 2.16%",
+      "GDP growth rate 11.48%",
+      "NT$1.27 trillion in net stock sales during the first eight months of 2026",
+      "NT$955 billion net outward remittances in July",
+      "US$29.57 billion net outward remittances in July",
+      "US$16.7 billion net inward remittances in August",
+      "65% year-on-year earnings growth in 2026",
+      "31% annual growth expected next year"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "Bloomberg",
+    "published": "2026-09-17",
+    "title": "Taiwan Poised for Hawkish Hold After Headline Inflation Slowed - Bloomberg",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a17",
+    "publisher": "Arizona Digital Free Press",
+    "published": "2026-09-15",
+    "title": "GateWay Community College, Taiwan university launch semiconductor workforce partnership - Arizona Digital Free Press",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "GateWay Community College and Minghsin University of Science and Technology have formed a partnership to enhance semiconductor workforce development and academic collaboration between Arizona and Taiwan. The agreement aims to prepare students for careers in the global semiconductor industry and includes various initiatives such as study abroad opportunities and cultural immersion experiences.",
+     "institutions": [
+      "GateWay Community College",
+      "Minghsin University of Science and Technology",
+      "Arizona Commerce Authority",
+      "Maricopa Community Colleges"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "$20 million investment in Future48 Workforce Accelerator",
+      "scheduled to open in January 2027"
+     ]
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "Al Jazeera",
+    "published": "2026-09-11",
+    "title": "Taiwan vice president makes rare Europe visit for conference on democracy - Al Jazeera",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Taiwanese Vice President Hsiao Bi-khim is visiting Europe to attend the Ventotene Conference for Freedom and Democracy in Italy, accompanied by the foreign minister. Her visit was kept secret until her arrival to avoid backlash from Beijing.",
+     "institutions": [
+      "European Parliament",
+      "Taiwan's presidential office"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "ING Think",
+    "published": "2026-09-10",
+    "title": "Asia week ahead: Japan and Taiwan rate decisions, key data on China and India - ING Think",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Bank of Japan is expected to raise its policy rate by 25 basis points to 1.25% amid ongoing price pressures. Taiwan's central bank is also considering a rate hike, but the outcome remains uncertain due to mixed inflation signals. In India, CPI inflation is anticipated to rise to 4.7% due to food and fuel price pressures.",
+     "institutions": [
+      "Bank of Japan",
+      "Central Bank of the Republic of China"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "25bp rate hike",
+      "1.25% policy rate",
+      "4.7% CPI inflation",
+      "-7.4% FAI growth",
+      "0.7% YoY retail sales",
+      "4.9% YoY industrial production"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "TradingView",
+    "published": "2026-09-08",
+    "title": "Taiwan Inflation Rate at 4-Month Low - TradingView",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Taiwan's annual inflation rate decreased to 2.04% in August 2026 from 2.54% in July, marking the lowest rate since April. Despite this decline, inflation has remained above the central bank's 2% target for four consecutive months, leading to expectations of a potential rate hike.",
+     "institutions": [
+      "Central Bank of the Republic of China"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "inflation 2.04% in August 2026",
+      "inflation 2.54% in July 2026",
+      "food prices 0.79%",
+      "food prices 2.49% in July",
+      "housing 2.31%",
+      "housing 2.32%",
+      "health 0.61%",
+      "health 0.76%",
+      "miscellaneous goods and services 2.73%",
+      "miscellaneous goods and services 3.27%",
+      "education and entertainment 3.22%",
+      "transportation and communication 2.77%",
+      "transportation and communication 2.72%",
+      "clothing and footwear 2.09%",
+      "clothing and footwear 1.66%",
+      "consumer prices rose 0.13%",
+      "consumer prices 0.19% in July"
+     ]
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "China & Taiwan Update, September 25, 2026 - Institute for the Study of War",
+    "publisher": "Institute for the Study of War",
+    "body_status": "clipped",
+    "chars_read": 12000,
+    "chars_original": 19250,
+    "text": "Toplines\nChinese Communist Party (CCP) General Secretary Xi Jinping met with US President Donald Trump in Washington, DC, from September 22 through 24. The People’s Republic of China (PRC) and the United States agreed to an extended trade truce, with both sides praising positive US-PRC relations. US Treasury Secretary Scott Bessent met with PRC Vice Premier He Lifeng on September 23.[1] The United States and the PRC agreed to extend the trade truce two months beyond the original November 10 end date.[2] Bessent also reported that the United States may be open to considering a more comprehensive US-PRC trade deal.[3] Bessent stated that the PRC was meeting its commitments on purchasing US soybeans, but had yet to commit fully to the originally agreed-upon purchases of other agricultural goods.[4]\nBessent and He previously met to discuss other bilateral concerns, including artificial intelligence (AI) safeguards and establishing a bilateral dialogue on AI security, on September 20.[5] Xi similarly emphasized the importance of bilateral cooperation on AI security during his summit with Trump. Xi said that the United States and PRC should ensure that the development of AI technology remains “under human control” and serves the interests of the people.[6] Xi stated that the United States and PRC have “intertwined interests” and benefit from cooperation, rhetoric consistent with that of the last Xi-Trump meeting in May 2026.[7]\nThe PRC appears to have taken a more conciliatory approach toward certain areas of significant US concern prior to the summit, announcing a new set of regulations surrounding illegal drug components — a significant component of US-PRC relations amid the US fentanyl crisis.[8] The PRC announced on September 22 that it would require permits to ship two precursor chemicals to the United States, Mexico, and Canada, supplementing similar legislation from 2025.[9] Xi also called for 100,000 American students to visit the PRC over the next five years.[10] Xi similarly announced the delivery of two new pandas to the United States, consistent with past instances of “panda diplomacy” meant to showcase positive PRC bilateral relations with the recipient nation.[11] Xi’s statements also referenced the “Thucydides trap” — the notion that a rising power inevitably clashes with an existing one — when calling for increased bilateral cooperation to reduce the risk of future conflict.[12]\nXi’s rhetoric emphasized bilateral cooperation and highlighted the common goals of the United States and PRC, likely in an attempt to highlight similarities between the two states and suggest that the two share common strategic interests. Xi’s September 24 speech highlighted the US and PRC’s dual role as great powers and emphasized that both must maintain a “constructive and stable relationship.”[13] Xi stated that the resolution of global issues hinges on US-PRC cooperation and that the international community supported a positive US-PRC relationship.[14] Xi confirmed Trump’s invitation to an APEC Economic Leaders’ Meeting in the PRC in November.[15] Xi’s September 24 dinner address echoed these themes, emphasizing the shared history between the United States and PRC, including their alliance against Japan in World War II.[16] Xi drew a connection between Trump’s “Make America Great Again” movement and the PRC’s push for national rejuvenation, stating that both movements could “complement” one another.[17]\nThe PRC may take advantage of seemingly warming US-PRC ties to attempt to influence US policy on Taiwan. Xi warned Trump on September 24 to “oppose” “Taiwan independence,” the first time he has used such direct phrasing.[18] The PRC typically warns the United States not to “support” “Taiwan independence.” This wording change, while minor, could represent a renewed PRC effort to change US policy on Taiwan.\nThe Xi-Trump talks did not produce any changes in the US’ Taiwan policy. The PRC could perceive US openness to continued dialogue as an opportunity to extract concessions on Taiwan in the future, however. The United States has already delayed an arms sale to Taiwan worth $14 billion.[19] Trump has previously called arms sales to Taiwan a “negotiating chip” in reference to dialogue with the PRC.[20] US officials have blamed Taiwanese arms sale delays on supply chain constraints imposed by other conflicts.[21] US Secretary of State Marco Rubio referenced supply chain challenges when asked about arms deliveries to Taiwan on September 23.[22] Taiwanese Ministry of National Defense deputy spokesperson Chiao Fu-chun said on September 23 that Taiwan would maintain “close contact” with the United States to receive updates on the status of these arms sales.[23]\nUS arms sales to Taiwan are authorized under the 1979 Taiwan Relations Act (TRA), which stipulates that the United States will provide Taiwan with defense articles that enable Taiwan to “maintain a sufficient self-defense capability.”[24] US arms sales to Taiwan receive bipartisan support from the US Congress. Four Republican senators called on Trump on September 23 to release Taiwan’s security funding.[25] Delays in arms shipments to Taiwan pose an ongoing threat to Taiwan’s defense and risk fueling PRC information operations aimed at undermining US-Taiwan ties.\nKey Takeaways\n- US-PRC Relations: US President Donald Trump and Chinese Communist Party (CCP) General Secretary Xi Jinping held a summit in Washington, DC, from September 22 to 24. The United States and People’s Republic of China (PRC) agreed to increase cooperation in a number of sectors and extend the US-PRC trade truce another two months. The PRC could view increased US-PRC cooperation as an opportunity to influence the US’ Taiwan policy.\nCross-Strait Relations\nTaiwan\nTaiwanese Minister of Labor Hung Sun-han attended the Asia-Pacific Economic Cooperation (APEC) forum in Nanjing, PRC, on September 21 — the first official trip to the PRC by a ministry head within the William Lai Ching-te administration. Hung’s presence at APEC represents the maintenance of the status quo for Cross-Strait relations, given Taiwan’s long-standing attendance at APEC. Hung and the Taiwanese delegation participated in the meeting under the name “Chinese Taipei.” Hung stated upon his return to Taiwan that the delegation was able to fully participate in the forum and receive the same treatment as other member economies without being “bullied.”[26] The meeting centered on the development of human resources during ongoing labor market disruptions caused by AI and technological and demographic changes. Hung spoke at the summit on AI guidelines and risk management to prevent a negative impact on workers’ rights.[27] Taiwan’s previous trade representative and minister-without-portfolio Yang Jen-ni also attended a May 2026 APEC meeting of commerce ministers in Suzhou without incident.[28]\nHung’s participation in the meeting did not represent a significant change in the status quo for Taiwan’s international position or Cross-Strait relations. Taiwan’s designation as “Chinese Taipei” at APEC meetings has remained since Taiwan joined APEC in 1991.[29] The PRC has not altered its stance on Taiwan’s participation in APEC despite its rhetoric towards the ruling Democratic Progressive Party (DPP), which it views as a party of “separatists.” Hung is a former DPP legislator with a record of speaking out on issues politically sensitive to the PRC.[30] Hung stated that the summit was an important element of Taiwanese international participation. Hung also clarified that the delegation’s visit to the PRC was a representation of the importance of the forum, rather than a signal of warming cross-Strait relations.[31] The PRC’s engagement with DPP delegations at APEC appears to be an exception to its typical assertion that cross-Strait engagement must align with the 1992 Consensus. The 1992 Consensus is a semi-official agreement between the CCP and the Kuomintang (KMT) based on an agreement that there is “One China,” but disagreeing on what “China” means. The DPP does not officially accept the 1992 consensus.\nChina\nFormer US Army soldier Ruoyu Duan pled guilty to conspiring to spy for the PRC on September 16. The PRC seeks to acquire information on US and allied military units and systems that could impede a future PRC invasion of Taiwan. Duan recruited two active-duty soldiers to gather US military secrets for the PRC from 2021 to 2025, including technical manuals on high mobility artillery rocket systems (HIMARS), information on Bradley and Stryker fighting vehicles, and information on US military readiness for a potential conflict with the PRC.[32] The soldiers also stole several classified hard drives and an encryption-capable computer to sell to the PRC. US authorities arrested and charged the three co-conspirators in March 2025.[33]\nPRC espionage operations seek to acquire US military secrets and advanced technology, likely to improve the People’s Liberation Army (PLA)’s military capabilities and discover vulnerabilities in US and allied forces that the PRC could exploit to defeat potential US and allied intervention in a future Taiwan conflict.[34] US, Australian, and Taiwanese armed forces currently field HIMARS, and Japan, the Philippines, and South Korea have hosted US-operated HIMARS during combined training exercises.[35] Taiwan is planning forward deployment of HIMARS to its outlying islands, allowing Taiwan to strike PLA Navy (PLAN) bases along the PRC’s east coast and stationary PLA amphibious landing ships during an invasion, significantly degrading the invading PLA force.[36] US and allied forces can also rapidly forward-deploy HIMARS directly from transport aircraft to aid in a Taiwan scenario.[37]\nSoutheast Asia\nPhilippines\nThe Philippines and Taiwan are likely expanding bilateral cooperation in ways that could improve their ability to combat PRC coercion. The PRC likely views enhanced Philippine-Taiwan ties as a threat to its regional ambitions. Taiwanese media reported on September 22 that an unnamed source confirmed reports that the Taiwanese Coast Guard Administration (CGA) had transferred a decommissioned patrol vessel to the Philippine Coast Guard (PCG).[38] The vessel is a 500-ton patrol ship that was in service with the CGA since 2008.[39] Taiwan typically only transfers decommissioned vessels to states that officially recognize Taiwan’s statehood, which the Philippines does not.[40] Taiwan’s CGA also plans to visit the Philippines in 2027, the first such visit since the Philippines switched its recognition from Taiwan to the PRC in 1975.[41] Taiwanese Foreign Minister Lin Chia-lung also announced on September 15 that Taiwan would establish its second Philippine representative office in Cebu.[42] These developments may indicate that the Philippines and Taiwan are enhancing their bilateral relations, despite the Philippines’ recognition of the PRC.\nTaiwan and the Philippines face a common coercive threat from the PRC that cooperation, particularly between coast guards, could help address. The China Coast Guard (CCG) and PLAN frequently operate around the Philippines and Taiwan’s sovereign territory and claimed exclusive economic zones (EEZ).[43] The CCG often uses its vessels’ numerical and size advantage over CGA and PCG vessels to attempt to support the PRC’s territorial claims and aggressive maritime exercises.[44] Enhanced CGA-PCG cooperation could allow Taiwan and the Philippines to coordinate effective responses to PRC coercive activity in the South China Sea and Taiwan Strait.\nThe PRC likely views this kind of cooperation as a significant threat to its regional ambitions. The PRC’s Taiwan Affairs Office criticized both the vessel transfer and Taiwan’s plan to open a representative office in Cebu, stating that the Philippines was failing to adhere to the one-China principle.[45] The PRC has expressed significant concern regarding strengthening ties within the first island chain, includin"
+   },
+   {
+    "id": "a2",
+    "title": "WSJ: Beijing sees \"rare window\" to shape Taiwan’s politics - Caliber.Az",
+    "publisher": "Caliber.Az",
+    "body_status": "full",
+    "chars_read": 3845,
+    "chars_original": 3845,
+    "text": "WSJ: Beijing sees \"rare window\" to shape Taiwan’s politics\nBeijing is intensifying efforts to influence Taiwan’s political landscape by cultivating ties with the island’s main opposition party, the Kuomintang (KMT), while exploiting uncertainty over the strength of US support for Taiwan, according to The Wall Street Journal analysis.\nThe effort has focused in part on KMT chairwoman Cheng Li-wun, whose six-day visit to mainland China in April marked the first such trip by a major Taiwanese opposition leader in nearly a decade. During the high-profile visit, Cheng met Chinese President Xi Jinping, toured Chinese technology and industrial facilities and was presented with a kangaroo mascot by the chairman of Meituan.\nAccording to the WSJ, Chinese officials had met KMT negotiators months before the trip to discuss language Cheng would use during her visit. People familiar with the matter told the newspaper that Cheng shared prepared remarks in advance, including statements opposing Taiwan independence.\nCheng later described Xi’s hands as “soft as clouds.”\nThe visit illustrates what the WSJ describes as a broader Chinese strategy aimed at influencing Taiwanese society without resorting to military conflict. Beijing continues to apply military pressure around the island while simultaneously seeking to persuade Taiwanese that resistance to Chinese control is futile.\nA key factor, according to the analysis, is uncertainty over US policy under President Donald Trump. Beijing sees Trump’s second term as a potential opportunity to influence Taiwanese public opinion, while concerns have grown in Taiwan about Washington’s long-term commitment.\n“Beijing sees Trump’s second term as a ‘rare window of opportunity’ to sway Taiwanese opinion in the mainland’s favor,” Taiwan’s Mainland Affairs Council Minister Chiu Chui-cheng told the WSJ.\n“They think Trump’s unpredictability on U.S. commitments gives Xi more room to operate.”\nThe newspaper notes that US-Taiwan ties have also deepened in some areas. Taiwan has begun acknowledging previously undisclosed US military training on the island, while American officials have publicly highlighted cooperation with Taiwan’s coast guard.\nAt the same time, Beijing is seeking greater influence inside Taiwan through political engagement and online information campaigns. Taiwan’s National Security Bureau said Beijing conducted an “all-out” cognitive warfare campaign in 2025, identifying 45,000 suspected accounts, compared with about 28,000 the previous year.\nThe WSJ also reports that Taiwanese security officials detected AI-generated disinformation and online campaigns supporting Cheng during last year’s KMT leadership election. Beijing has denied involvement in disinformation operations.\nCheng’s political evolution makes her particularly significant. She began as a student activist involved in pro-democracy protests against the KMT and advocated Taiwanese independence before leaving the Democratic Progressive Party and eventually joining the KMT.\nAs party chairwoman, she has promoted closer relations with Beijing while arguing that Taiwan should not have to choose between China and the United States.\n“Why can’t I choose both? Why must I choose a side?” Cheng said.\n“We will never forget the friendship and generosity of the United States,” she added. “But at the same time, mainland China is our family, and we could never bring ourselves to harm our own flesh and blood.”\nThe WSJ analysis suggests Beijing’s strategy carries risks. Excessive pressure or an overly pro-China posture could deepen public resistance to the mainland, including within the KMT itself.\n“Most party members, including younger ones, still regard Beijing as just communists,” said Alexander Huang, a former senior KMT official, describing Cheng’s position as “solid but small.”\nBy Sabina Mammadli"
+   },
+   {
+    "id": "a3",
+    "title": "Taiwan extends commodity and fuel tax cuts for 6 months as inflation rises - Taiwan News",
+    "publisher": "Taiwan News",
+    "body_status": "full",
+    "chars_read": 2503,
+    "chars_original": 2503,
+    "text": "TAIPEI (Taiwan News) — The Cabinet has extended tax cuts on key raw materials for six months as rising international oil prices and persistent inflation fuel concerns about further price increases.\nVice Premier Cheng Li-chiun (鄭麗君) announced the extension Wednesday during a meeting of the Cabinet's price stabilization task force, per UDN. She also ordered the Ministry of Economic Affairs to strengthen monitoring of petrochemical products, industrial paper, and steel, and instructed joint price inspection teams to intervene promptly if irregularities emerge.\nBrent and West Texas Intermediate crude oil prices remained above NT$3,190 (US$100) per barrel Wednesday. Domestic gasoline and diesel prices rose NT$0.70 and NT$0.60 per liter this week after remaining frozen for six consecutive weeks.\nThe sustained rise in international oil prices could add to inflationary pressure, with the consumer price index increasing by more than 2% year on year for four consecutive months from May through August, UDN reported. The Directorate-General of Budget, Accounting and Statistics forecasts a 2.07% increase in the CPI this year.\nThe tax reductions, the 18th round of such measures, will remain in effect through March 2027, per Newtalk. They include exemptions from business tax on imported soybeans, wheat, and corn.\nThe government will exempt wheat from import tariffs and cut tariffs on butter, baking milk powder, and beef by 50%. It will also reduce the commodity tax on gasoline by NT$3.415 per liter and diesel by NT$1.995 per liter.\nCommodity taxes on cement and liquefied petroleum gas will be halved, Newtalk reported. The measures aim to lower operating costs for businesses and limit the impact of global commodity price fluctuations on domestic prices.\nThe Cabinet said its response to the situation in the Middle East is organized around seven priorities, including stabilizing energy supplies, oil and gas prices, and essential goods, per SET News. Other measures include cutting industrial costs, strengthening price monitoring, maintaining market order, and assisting affected industries.\nCheng said the government will maintain domestic fuel prices at the lowest level among neighboring Asian countries, with CPC absorbing part of international crude oil price increases under a special stabilization mechanism. Household natural gas and LPG sold in cylinders will remain frozen through the end of the year to limit the impact of energy price volatility on households and businesses."
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.4675,
+    "indicator_resolution": 0.3958,
+    "freshness": 0.8
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

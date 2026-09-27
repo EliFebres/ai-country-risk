@@ -204,7 +204,18 @@ round, and the round-number share is exactly the kind of thing that should be a
 line in the determinism study rather than something chased by hand. Re-measure
 it there, across more than two countries.
 
-## 10. Kuwait scored 58 and then 54 on consecutive runs a few minutes apart
+**Re-measured 2026-09-27** (`docs/scorer-measurement.md`, M2): 60 repeat calls
+over six countries, plus the 5 stored snapshots. Composites 31 of 130 (24%),
+ledgers 180 of 260 (69%): friction 32%, order 68%, information 82%, edge 95%. The
+composites dodge the rule by sitting one point inside a band edge (38, 54, 68),
+and 55% of `score_12m` values are within 2 of one. The fix is the anchors
+(step 5b item 1), not this sentence.
+
+## 10. Kuwait scored 58 and then 54 on consecutive runs a few minutes apart — **closed 2026-09-27**
+
+Measured properly in `docs/scorer-measurement.md` (M1): ten calls on one frozen
+KW payload returned 47 six times, 54 three times and 48 once, an SD of 3.33. The
+4-point move was the scorer, not the week.
 
 Same week, near-identical evidence — the article set differed by one, and the
 payload fingerprint changed accordingly, so this is not a clean repeat. It is
@@ -398,6 +409,12 @@ held-out set exists, and Eli declined further labelling.
 Across three passes (the first cached, the other two not), **0 of 60** labels
 changed. All three lines pass, so the gate is `gpt-4o-mini-2024-07-18`, `body`, on
 the actor-test prompt.
+
+**Wording fixes, 2026-09-27: adopted.** E8 now excludes an article "when the
+article's main subject is the people or groups outside {country}, not events
+inside it", and T1 lists "bills introduced in the legislature". Re-checked the
+same way: 40/46 (87%), recall 33/34, 0 of 60 flips. h16 now agrees. b18, the
+example the E8 edit was written for, still comes out T1.
 
 Of the eight misses, four are the ones Eli's hand rule also misses (b07, b17,
 b25, h13). The other four are the model misapplying the rule:

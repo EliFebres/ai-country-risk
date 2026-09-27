@@ -1,0 +1,66 @@
+{
+ "run_date": "2026-09-27",
+ "countries": {
+  "US": {
+   "method": "llm",
+   "problem": null,
+   "eligible": 38,
+   "stories": 36,
+   "multi": 2,
+   "dropped": 2,
+   "slots_freed": 1,
+   "selected": 20
+  },
+  "PT": {
+   "method": "llm",
+   "problem": null,
+   "eligible": 31,
+   "stories": 28,
+   "multi": 2,
+   "dropped": 3,
+   "slots_freed": 2,
+   "selected": 20
+  },
+  "KW": {
+   "method": "llm",
+   "problem": null,
+   "eligible": 48,
+   "stories": 43,
+   "multi": 3,
+   "dropped": 5,
+   "slots_freed": 2,
+   "selected": 20
+  },
+  "HK": {
+   "method": "llm",
+   "problem": null,
+   "eligible": 39,
+   "stories": 30,
+   "multi": 6,
+   "dropped": 9,
+   "slots_freed": 5,
+   "selected": 20
+  },
+  "TW": {
+   "method": "llm",
+   "problem": null,
+   "eligible": 38,
+   "stories": 27,
+   "multi": 5,
+   "dropped": 11,
+   "slots_freed": 7,
+   "selected": 20
+  },
+  "RU": {
+   "method": "llm",
+   "problem": null,
+   "eligible": 56,
+   "stories": 56,
+   "multi": 0,
+   "dropped": 0,
+   "slots_freed": 0,
+   "selected": 20
+  }
+ },
+ "spend_usd": 0.059112599999999994
+}

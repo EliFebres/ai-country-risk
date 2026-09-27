@@ -1,0 +1,3596 @@
+{
+ "rows": [
+  {
+   "id": "b01",
+   "iso2": "PE",
+   "truth": "relevant"
+  },
+  {
+   "id": "b02",
+   "iso2": "NZ",
+   "truth": "relevant"
+  },
+  {
+   "id": "b03",
+   "iso2": "HK",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b04",
+   "iso2": "PE",
+   "truth": "relevant"
+  },
+  {
+   "id": "b05",
+   "iso2": "SG",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b06",
+   "iso2": "CZ",
+   "truth": "relevant"
+  },
+  {
+   "id": "b07",
+   "iso2": "IN",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b08",
+   "iso2": "ES",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b09",
+   "iso2": "FR",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b10",
+   "iso2": "AU",
+   "truth": "relevant"
+  },
+  {
+   "id": "b11",
+   "iso2": "TH",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b12",
+   "iso2": "AU",
+   "truth": "relevant"
+  },
+  {
+   "id": "b13",
+   "iso2": "MY",
+   "truth": "relevant"
+  },
+  {
+   "id": "b14",
+   "iso2": "MX",
+   "truth": "relevant"
+  },
+  {
+   "id": "b15",
+   "iso2": "CA",
+   "truth": "relevant"
+  },
+  {
+   "id": "b16",
+   "iso2": "IN",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b17",
+   "iso2": "GR",
+   "truth": "relevant"
+  },
+  {
+   "id": "b18",
+   "iso2": "TR",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b19",
+   "iso2": "TR",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b20",
+   "iso2": "PL",
+   "truth": "relevant"
+  },
+  {
+   "id": "b21",
+   "iso2": "TR",
+   "truth": "relevant"
+  },
+  {
+   "id": "b22",
+   "iso2": "IT",
+   "truth": "relevant"
+  },
+  {
+   "id": "b23",
+   "iso2": "CL",
+   "truth": "relevant"
+  },
+  {
+   "id": "b24",
+   "iso2": "PL",
+   "truth": "relevant"
+  },
+  {
+   "id": "b25",
+   "iso2": "BE",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b26",
+   "iso2": "JP",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "b27",
+   "iso2": "ZA",
+   "truth": "relevant"
+  },
+  {
+   "id": "b28",
+   "iso2": "RU",
+   "truth": "relevant"
+  },
+  {
+   "id": "b29",
+   "iso2": "NO",
+   "truth": "relevant"
+  },
+  {
+   "id": "b30",
+   "iso2": "AE",
+   "truth": "relevant"
+  },
+  {
+   "id": "h01",
+   "iso2": "TW",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h02",
+   "iso2": "US",
+   "truth": "relevant"
+  },
+  {
+   "id": "h03",
+   "iso2": "PT",
+   "truth": "relevant"
+  },
+  {
+   "id": "h04",
+   "iso2": "US",
+   "truth": "relevant"
+  },
+  {
+   "id": "h05",
+   "iso2": "KW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h06",
+   "iso2": "TW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h07",
+   "iso2": "US",
+   "truth": "relevant"
+  },
+  {
+   "id": "h08",
+   "iso2": "KW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h09",
+   "iso2": "PT",
+   "truth": "relevant"
+  },
+  {
+   "id": "h10",
+   "iso2": "HK",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h11",
+   "iso2": "HK",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h12",
+   "iso2": "HK",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h13",
+   "iso2": "HK",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h14",
+   "iso2": "US",
+   "truth": "relevant"
+  },
+  {
+   "id": "h15",
+   "iso2": "KW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h16",
+   "iso2": "HK",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h17",
+   "iso2": "TW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h18",
+   "iso2": "TW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h19",
+   "iso2": "KW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h20",
+   "iso2": "TW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h21",
+   "iso2": "US",
+   "truth": "relevant"
+  },
+  {
+   "id": "h22",
+   "iso2": "PT",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h23",
+   "iso2": "KW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h24",
+   "iso2": "PT",
+   "truth": "irrelevant"
+  },
+  {
+   "id": "h25",
+   "iso2": "HK",
+   "truth": "relevant"
+  },
+  {
+   "id": "h26",
+   "iso2": "PT",
+   "truth": "relevant"
+  },
+  {
+   "id": "h27",
+   "iso2": "PT",
+   "truth": "relevant"
+  },
+  {
+   "id": "h28",
+   "iso2": "TW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h29",
+   "iso2": "KW",
+   "truth": "relevant"
+  },
+  {
+   "id": "h30",
+   "iso2": "US",
+   "truth": "relevant"
+  }
+ ],
+ "example_ids": [
+  "b21",
+  "h12",
+  "h21",
+  "h10",
+  "b02",
+  "h01",
+  "b29",
+  "h11",
+  "b01",
+  "b18",
+  "b15",
+  "b03",
+  "h30",
+  "h24"
+ ],
+ "prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+ "cells": {
+  "gpt-4o-mini-2024-07-18:body": {
+   "score": {
+    "all": {
+     "n": 60,
+     "agree": 53,
+     "recall_relevant": 0.975609756097561,
+     "precision_relevant": 0.8695652173913043,
+     "tp": 40,
+     "fp": 6,
+     "fn": 1,
+     "failed_calls": 0
+    },
+    "not_examples": {
+     "n": 46,
+     "agree": 40,
+     "recall_relevant": 0.9705882352941176,
+     "precision_relevant": 0.868421052631579,
+     "tp": 33,
+     "fp": 5,
+     "fn": 1,
+     "failed_calls": 0
+    },
+    "flipped": [],
+    "spend_usd": 0.11089515,
+    "calls": 180,
+    "tokens": {
+     "input": 679941,
+     "output": 14840
+    }
+   },
+   "verdicts": {
+    "b01": {
+     "what_happened": "A gunman shot dead regional candidate Susy Aponte Polo at a campaign event in Peru.",
+     "exclusion": "none",
+     "test": "T3",
+     "high_impact_event": true,
+     "ledger": "order_security",
+     "reason": "\"shot dead ... while participating in a campaign event\": political violence, the killing of a candidate.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b02": {
+     "what_happened": "New Zealand's Real Estate Authority fined One Up Realty $18,000 for breaching the Real Estate Agents Act.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"fined $18,000 ... Real Estate Agents Act 2008\": a New Zealand regulator acting on a company.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b03": {
+     "what_happened": "China Briefing provides guidance on Hong Kong's 2026 profits tax filing deadlines and requirements for businesses.",
+     "exclusion": "E3",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"guidance on Hong Kong's 2026 profits tax filing deadlines and requirements\": an explainer of rules already in force.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b04": {
+     "what_happened": "Peruvian authorities arrested two individuals for their alleged involvement in the murder of journalist and regional candidate Susy Aponte Polo during a campaign event.",
+     "exclusion": "none",
+     "test": "T3",
+     "high_impact_event": true,
+     "ledger": "order_security",
+     "reason": "\"murder of journalist and candidate in regional elections\": political violence, the killing of a candidate.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b05": {
+     "what_happened": "A Malaysian man, nicknamed 'Da Xiang', was arrested for masterminding a scam and money laundering syndicate operating in Singapore, involving impersonation of government officials.",
+     "exclusion": "E5",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "'mastermind of a scam and money laundering syndicate' and 'arrested' refer to ordinary crime involving private individuals.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b06": {
+     "what_happened": "Czech President Petr Pavel discussed defense cooperation between Armenia and the Czech Republic during a joint press conference with Armenian President Vahagn Khachaturyan.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Czech President Petr Pavel discussed defense cooperation\": an official act by Czechia's head of state.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b07": {
+     "what_happened": "The US government confirmed a temporary 10 percent tariff on India following a Supreme Court ruling, replacing previous tariffs.",
+     "exclusion": "none",
+     "test": "T5",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"temporary 10 percent tariff on India\" indicates a change in trade policy affecting business conditions.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b08": {
+     "what_happened": "Spain allowed a US extradition request for anti-Israel donor James Cox Chambers to proceed to court, despite protests from the government’s left-wing coalition partners.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Spain allowed a US extradition request ... to proceed to court\": Spain's own state acting on a politically sensitive extradition case.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b09": {
+     "what_happened": "France is launching a new edition of the Make Our Planet Great Again (MOPGA) fellowship program to attract international researchers for climate-related studies.",
+     "exclusion": "E2",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"Visiting Fellowship Program for Early Career Researchers\": an academic program announcement, not a new rule or change.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b10": {
+     "what_happened": "Iain Ross, a member of the Reserve Bank of Australia's monetary policy board, stated there is no evidence of a wage-price spiral in Australia, rejecting concerns about runaway wage growth contributing to inflation.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"no evidence of the emergence of a wage-price spiral\" indicates an assessment of Australia's economic conditions.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b11": {
+     "what_happened": "An Australian man appeared in a Thai court charged with the murder of a teenage girl and concealment of her body.",
+     "exclusion": "E5",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"murder and concealment of a body\" and \"charges of indecent acts on a minor\": ordinary crime involving private individuals.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b12": {
+     "what_happened": "EY Australia submitted its views to Treasury regarding proposed regulations on accounting partnerships, arguing that capping partners would weaken audit quality.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"submitted its views to Treasury regarding proposed regulations on accounting partnerships\": Australia's own state is involved in regulatory discussions affecting the accounting sector.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b13": {
+     "what_happened": "Malaysia's Attorney-General states that former PM Najib Razak has not paid the required fine to serve his prison term under house arrest, and the house-arrest order is facing legal challenges.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Malaysia's Attorney-General states that former PM Najib Razak has not paid the required fine\": an official statement regarding a legal matter involving a former prime minister.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b14": {
+     "what_happened": "The Trump administration has begun construction of the border wall in the Big Bend region of Texas, impacting the U.S.-Mexico border.",
+     "exclusion": "none",
+     "test": "T4",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"border wall construction\" and \"impacting the U.S.-Mexico border\": an outside state acts on Mexico's territory.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b15": {
+     "what_happened": "Canadian provinces are expanding pay transparency laws, as a survey finds pay cynicism has doubled since 2024.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"Canada's own patchwork of provincial pay transparency laws continues to expand\": new rules from Canadian governments.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b16": {
+     "what_happened": "India launched a research centre for space observations in Assam, enhancing its space observation capabilities.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"India launches research centre for space observations\": an official action by India's government.",
+     "label": "relevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b17": {
+     "what_happened": "Fugitive Kosta Diamantis, who fled to Greece, accused Connecticut Governor Ned Lamont of corruption in a 10-page email.",
+     "exclusion": "E5",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"fugitive Kosta Diamantis accused Gov. Ned Lamont of corruption\": ordinary crime involving a private individual.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b18": {
+     "what_happened": "Greek LGBTQI+ groups plan a protest outside the Turkish Embassy in Athens in response to a crackdown on LGBTQI+ rights in Turkey, where over 100 people have been detained.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Turkish authorities launched a wave of raids and arrests targeting LGBTQI+ rights organizations\": Turkey's own state is acting against its citizens.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b19": {
+     "what_happened": "Turkish authorities raided LGBTQ+ and HIV organizations, detaining dozens, which prompted protests in New York against Turkey's crackdown on the LGBTQ+ community.",
+     "exclusion": "E8",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"protests in New York against Turkey's crackdown on the LGBTQ+ community\": people outside Turkey acting about Turkey.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b20": {
+     "what_happened": "A Russian drone hit a gas station near the Poland-Ukraine border, prompting condemnation from Ukrainian officials and highlighting the ongoing conflict's proximity to Poland.",
+     "exclusion": "none",
+     "test": "T4",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Russia's barbaric strikes at the Ukraine-Poland border crossing point\" indicates military threats against Poland's territory.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b21": {
+     "what_happened": "The Committee to Protect Journalists calls on Turkish authorities to release journalist Ahmet Polad, who was transferred from Syria and is reported to be in poor health.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "information",
+     "reason": "\"calls on Turkish authorities to immediately release Ahmet Polad\": Turkey's own authorities are involved in the detention of the journalist.",
+     "label": "relevant",
+     "ledgers": [
+      "information"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b22": {
+     "what_happened": "Italy has implemented the EU Pay Transparency Directive, leading Europe in salary transparency among major economies.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"Italy, the only major European economy to have implemented the directive\": Italy's own government has acted on a public matter regarding pay transparency.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b23": {
+     "what_happened": "Weak economic activity and high unemployment in Chile are increasing pressure on President José Antonio Kast's government to achieve its economic goals.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Weak economic activity and employment figures in Chile are increasing pressure on President José Antonio Kast's government\": a measurement of Chile's economy and its impact on governance.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b24": {
+     "what_happened": "A Russian drone struck a train near the Ukraine-Poland border shortly after a diplomatic train carrying senior officials passed through.",
+     "exclusion": "none",
+     "test": "T4",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Russian drone struck a train near the Ukraine-Poland border\": an outside force (Russia) acted on Poland's security.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b25": {
+     "what_happened": "Belgium's king and foreign minister stated they cannot evacuate 13 Gaza students despite other European countries successfully doing so.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Belgium's king and the country’s foreign minister both say they can do no more to evacuate 13 Gaza students\": Belgium's own state officials are involved in a public matter regarding the evacuation of students.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b26": {
+     "what_happened": "The University of Oregon, Big Ten Network, and DAZN announced an expansion of access to Oregon football games for fans in Japan following a summer trip to Tokyo.",
+     "exclusion": "E1",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"Oregon football to fans in Japan\": the article is about sports and entertainment.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b27": {
+     "what_happened": "Zimbabwe secured funding for a $65 million border upgrade with Zambia to modernize the Chirundu border post, which is crucial for trade routes connecting to South Africa.",
+     "exclusion": "none",
+     "test": "T5",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"crucial for connecting the central African Copperbelt to southern African ports\": the upgrade impacts trade routes that involve South Africa.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b28": {
+     "what_happened": "Russia's ruling United Russia party won the parliamentary election, securing 57.83% of the vote amid a crackdown on opposition and rising prices.",
+     "exclusion": "none",
+     "test": "T3",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"the ruling United Russia party has won the parliamentary election\" and \"the opposition was barred from taking part\": this relates to Russia's political process and elections.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b29": {
+     "what_happened": "Russia's Foreign Ministry identified US missile sites in Norway as potential targets in a military conflict.",
+     "exclusion": "none",
+     "test": "T4",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"identified US missile deployment sites ... in Norway as potential targets\": an outside power threatens Norway's territory.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "b30": {
+     "what_happened": "Ethiopia and the UAE are expanding cooperation in investment, trade, tourism, and technology to strengthen their economic ties.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"expanding cooperation in investment, trade, tourism and technology\": a measurement of UAE's economic conditions and opportunities.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h01": {
+     "what_happened": "Taiwan Cement Corporation is set to invest €750 million in Ukraine's leading cement manufacturer, PJSC Ivano-Frankivskcement, amid the ongoing war in Ukraine.",
+     "exclusion": "E6",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"set to become a strategic investor in ... Ukraine's leading cement manufacturer\": a company's own deal abroad.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h02": {
+     "what_happened": "A federal judge is questioning President Trump's ban of three news outlets from White House grounds, considering whether the administration provided adequate due process.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "information",
+     "reason": "\"Judge questions Trump's ban of three prominent news outlets from White House\": a federal judge is acting on a public matter involving the administration's treatment of the press.",
+     "label": "relevant",
+     "ledgers": [
+      "information"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h03": {
+     "what_happened": "The CFP forecasts inflation in Portugal to rise to 3.2% in 2026, influenced by energy prices and potential food inflation due to external factors.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"forecasts the Harmonised Index of Consumer Prices (HICP) to rise to 3.2% in 2026\": a measurement of Portugal's economy.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h04": {
+     "what_happened": "The Federal Reserve announced its decision on interest rates, indicating a potential rate hike, which affected US equity prices and was seen as a reinforcement of the Fed's independence.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"The American economy appears to be strengthening\" and interest rate predictions indicate changes in economic conditions.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h05": {
+     "what_happened": "Somalia's Minister of Justice held talks with Kuwait's anti-corruption authority to strengthen cooperation against corruption.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "information",
+     "reason": "\"talks with Rana Al-Fares, head of Kuwait’s anti-corruption authority\": Kuwait's own state acts on public matters regarding corruption.",
+     "label": "relevant",
+     "ledgers": [
+      "information"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h06": {
+     "what_happened": "Taiwan's Executive Yuan proposed a supplementary budget of $4.6 billion USD to accelerate the development and procurement of its domestic defense industry.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"proposed a supplementary budget aimed at accelerating the development and procurement project timelines within Taiwan’s domestic defense industry\": Taiwan's government is acting on public matters related to national defense.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h07": {
+     "what_happened": "Senator Jerry Moran led a nomination hearing for the Chair of the Board of Veterans’ Appeals and judges on the United States Court of Appeals for Veterans Claims.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"led the committee in considering the nominations\" indicates official activity by a U.S. Senator regarding veterans' affairs.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h08": {
+     "what_happened": "The Kuwait Anti-Corruption Authority (Nazaha) organized training workshops for teachers to promote positive values among primary school students as part of a project with the Ministry of Education and National Bank of Kuwait.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "information",
+     "reason": "Nazaha, a government authority, is actively organizing workshops to promote integrity and transparency in education.",
+     "label": "relevant",
+     "ledgers": [
+      "information"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h09": {
+     "what_happened": "Portugal's government announced its acquisition of a stake in power and gas grid operator REN, stating it will not affect China's State Grid's existing 25% stake.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Portugal's government said its acquisition of a stake in power and gas grid operator REN\" indicates official government action regarding a strategic sector.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h10": {
+     "what_happened": "Hong Kong Customs seized about 5.7 kilograms of suspected ketamine and 27,600 suspected illicit cigarettes, arresting three individuals connected to the case.",
+     "exclusion": "E5",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"dangerous drug trafficking case\" and \"three persons were arrested\": ordinary crime by private individuals.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h11": {
+     "what_happened": "Chinese authorities reportedly possess F-35 components that were diverted to Hong Kong during shipment.",
+     "exclusion": "E7",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"diverted to Hong Kong\": Hong Kong is only where it happened, and the consequences fall on China, the US, and Australia.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h12": {
+     "what_happened": "RSF expresses concern over the disappearance of Hong Kong journalist Minnie Chan, who is believed to be detained by Chinese authorities.",
+     "exclusion": "E8",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"disappearance of Hong Kong journalist Minnie Chan\" and \"detained by the Chinese authorities\": a foreign NGO appeal about China's action, with nothing new happening in Hong Kong.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h13": {
+     "what_happened": "Experts recommend extending operating hours at key passenger and cargo land border crossings between Hong Kong and Shenzhen to boost economic activity and facilitate trade.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"extend operating hours at key passenger and cargo land border crossings\" indicates an assessment of Hong Kong's economic conditions and trade facilitation.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h14": {
+     "what_happened": "Iran's president accused the United States of terrorism against Iranians during a speech at the UN General Assembly.",
+     "exclusion": "none",
+     "test": "T4",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Iran's president accused the United States of terrorism\" indicates an outside state acting on the United States.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h15": {
+     "what_happened": "Amnesty International condemned Kuwait's new counter-terrorism law, which may endanger fundamental human rights and freedoms of assembly and expression.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Kuwait’s new counter-terrorism law ... may have grave repercussions for the freedoms of assembly and expression\": Kuwait's own state acts on public matters affecting rights and security.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h16": {
+     "what_happened": "The US is investigating reports that F-35 parts were mistakenly diverted to Hong Kong from Australia, raising concerns about sensitive military technology access by China.",
+     "exclusion": "E7",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"diverted to Hong Kong\" and \"concerns over sensitive military technology\": Hong Kong is only where it happened, and the consequences fall on the US and Australia.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h17": {
+     "what_happened": "Chinese President Xi Jinping pressed US President Donald Trump to explicitly oppose Taiwan independence during a meeting, which could affect American arms sales to Taiwan.",
+     "exclusion": "none",
+     "test": "T4",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"pressed ... to explicitly oppose Taiwan independence\": an outside state (China) acting on Taiwan.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h18": {
+     "what_happened": "The Executive Yuan of Taiwan approved a NT$3.6 billion plan to increase school security personnel in junior-high schools.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Cabinet approves NT$3.6 billion for school security\": Taiwan's own government is acting on public safety matters.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h19": {
+     "what_happened": "Kuwait's Foreign Minister participated in UN meetings focusing on the protection and education of Palestinian children.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "Kuwait's Foreign Minister's participation in UN meetings represents an official action by Kuwait's government.",
+     "label": "relevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h20": {
+     "what_happened": "A think tank report recommends the U.S. increase its stockpile of drones and munitions to prepare for a potential conflict with China over Taiwan.",
+     "exclusion": "none",
+     "test": "T4",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"potential fight against the Chinese military over Taiwan\": an outside state (China) is acting on Taiwan.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h21": {
+     "what_happened": "A US Attorney charged four non-citizens with voting illegally in US elections.",
+     "exclusion": "none",
+     "test": "T3",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"charged with election-related crimes\": an election crime.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h22": {
+     "what_happened": "Portugal's national football team won against Wales in a UEFA Nations League match.",
+     "exclusion": "E1",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"Portugal's national football team won against Wales\": the article is about a sports event.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h23": {
+     "what_happened": "The article discusses the resilience of Europe's economy amid energy shocks and conflicts in the Middle East, highlighting business activity growth in the euro zone.",
+     "exclusion": "none",
+     "test": "T5",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"conflicts in the Middle East and Ukraine drive up energy costs\" indicates spillover effects from regional conflicts that could impact Kuwait's economy.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h24": {
+     "what_happened": "Spain and Brazil won the beach handball titles at a university championship held in Portugal.",
+     "exclusion": "E1",
+     "test": "none",
+     "high_impact_event": false,
+     "ledger": "none",
+     "reason": "\"beach handball titles\": sport, and Portugal is only the venue.",
+     "label": "irrelevant",
+     "ledgers": [],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h25": {
+     "what_happened": "JLL released its Global Real Estate Transparency Index, showing Hong Kong ranks 14th globally in real estate transparency.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"Hong Kong ranks 14th globally with a composite score of 1.97\": an assessment of Hong Kong's market transparency.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h26": {
+     "what_happened": "Portugal's Energy Minister admitted that the country has sent part of its strategic fuel reserves to France due to reduced storage capacity after the closure of a refinery.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"Portugal was forced to send part of its reserves to France\" indicates an official government action regarding energy resources.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h27": {
+     "what_happened": "The EU allows nine countries, including Portugal, to further delay the implementation of EES border checks.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"EU lets nine countries delay EES border checks\" indicates an official action by Portugal's government regarding border control regulations.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h28": {
+     "what_happened": "Taiwan's annual inflation rate slowed to 2.04% in August 2026, marking the lowest reading since April, while still remaining above the central bank's target.",
+     "exclusion": "none",
+     "test": "T2",
+     "high_impact_event": false,
+     "ledger": "order_security",
+     "reason": "\"Taiwan's annual inflation rate slowed to 2.04%\": a measurement of Taiwan's economy.",
+     "label": "relevant",
+     "ledgers": [
+      "order"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h29": {
+     "what_happened": "Kuwait's Nazaha President Dr. Rana Abdullah Al Fares met with Bahrain's Interior Deputy Minister to discuss anti-corruption cooperation.",
+     "exclusion": "none",
+     "test": "T1",
+     "high_impact_event": false,
+     "ledger": "information",
+     "reason": "\"discuss strengthening direct cooperation between the anti-corruption authorities in Bahrain and Kuwait\": Kuwait's own state acting on public matters regarding anti-corruption.",
+     "label": "relevant",
+     "ledgers": [
+      "information"
+     ],
+     "input_mode": "body",
+     "cached": false
+    },
+    "h30": {
+     "what_happened": "The Bank of Canada reports that tariffs and trade barriers are changing how the Canadian economy operates, affecting international trade.",
+     "exclusion": "none",
+     "test": "T5",
+     "high_impact_event": false,
+     "ledger": "friction",
+     "reason": "\"tariffs and other trade barriers are changing how goods are produced\" in Canada, which is a main trade partner of the United States.",
+     "label": "relevant",
+     "ledgers": [
+      "friction"
+     ],
+     "input_mode": "body",
+     "cached": false
+    }
+   },
+   "passes": [
+    {
+     "b01": {
+      "what_happened": "A gunman shot dead regional candidate Susy Aponte Polo at a campaign event in Peru.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": true,
+      "ledger": "order_security",
+      "reason": "\"shot dead ... while participating in a campaign event\": political violence, the killing of a candidate.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b02": {
+      "what_happened": "New Zealand's Real Estate Authority fined One Up Realty $18,000 for breaching the Real Estate Agents Act.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"fined $18,000 ... Real Estate Agents Act 2008\": a New Zealand regulator acting on a company.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b03": {
+      "what_happened": "China Briefing provides guidance on Hong Kong's 2026 profits tax filing deadlines and requirements for businesses.",
+      "exclusion": "E3",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"guidance on Hong Kong's 2026 profits tax filing deadlines and requirements\": an explainer of rules already in force.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b04": {
+      "what_happened": "Peruvian authorities arrested two individuals for their alleged involvement in the murder of journalist and regional candidate Susy Aponte Polo during a campaign event.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": true,
+      "ledger": "order_security",
+      "reason": "\"murder of journalist and candidate in regional elections\": political violence, the killing of a candidate.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b05": {
+      "what_happened": "A Malaysian man, nicknamed 'Da Xiang', was arrested for masterminding a scam and money laundering syndicate operating in Singapore, involving impersonation of government officials.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "'mastermind of a scam and money laundering syndicate' and 'arrested' refer to ordinary crime involving private individuals.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b06": {
+      "what_happened": "Czech President Petr Pavel discussed defense cooperation between Armenia and the Czech Republic during a joint press conference with Armenian President Vahagn Khachaturyan.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Czech President Petr Pavel discussed defense cooperation\": an official act by Czechia's head of state.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b07": {
+      "what_happened": "The US government confirmed a temporary 10 percent tariff on India following a Supreme Court ruling, replacing previous tariffs.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"temporary 10 percent tariff on India\" indicates a change in trade policy affecting business conditions.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b08": {
+      "what_happened": "Spain allowed a US extradition request for anti-Israel donor James Cox Chambers to proceed to court, despite protests from the government’s left-wing coalition partners.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Spain allowed a US extradition request ... to proceed to court\": Spain's own state acting on a politically sensitive extradition case.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b09": {
+      "what_happened": "France is launching a new edition of the Make Our Planet Great Again (MOPGA) fellowship program to attract international researchers for climate-related studies.",
+      "exclusion": "E2",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Visiting Fellowship Program for Early Career Researchers\": an academic program announcement, not a new rule or change.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b10": {
+      "what_happened": "Iain Ross, a member of the Reserve Bank of Australia's monetary policy board, stated there is no evidence of a wage-price spiral in Australia, rejecting concerns about runaway wage growth contributing to inflation.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"no evidence of the emergence of a wage-price spiral\" indicates an assessment of Australia's economic conditions.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b11": {
+      "what_happened": "An Australian man appeared in a Thai court charged with the murder of a teenage girl and concealment of her body.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"murder and concealment of a body\" and \"charges of indecent acts on a minor\": ordinary crime involving private individuals.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b12": {
+      "what_happened": "EY Australia submitted its views to Treasury regarding proposed regulations on accounting partnerships, arguing that capping partners would weaken audit quality.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"submitted its views to Treasury regarding proposed regulations on accounting partnerships\": Australia's own state is involved in regulatory discussions affecting the accounting sector.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b13": {
+      "what_happened": "Malaysia's Attorney-General states that former PM Najib Razak has not paid the required fine to serve his prison term under house arrest, and the house-arrest order is facing legal challenges.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Malaysia's Attorney-General states that former PM Najib Razak has not paid the required fine\": an official statement regarding a legal matter involving a former prime minister.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b14": {
+      "what_happened": "The Trump administration has begun construction of the border wall in the Big Bend region of Texas, impacting the U.S.-Mexico border.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"border wall construction\" and \"impacting the U.S.-Mexico border\": an outside state acts on Mexico's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b15": {
+      "what_happened": "Canadian provinces are expanding pay transparency laws, as a survey finds pay cynicism has doubled since 2024.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Canada's own patchwork of provincial pay transparency laws continues to expand\": new rules from Canadian governments.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b16": {
+      "what_happened": "India launched a research centre for space observations in Assam, enhancing its space observation capabilities.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"India launches research centre for space observations\": an official action by India's government.",
+      "label": "relevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b17": {
+      "what_happened": "Fugitive Kosta Diamantis, who fled to Greece, accused Connecticut Governor Ned Lamont of corruption in a 10-page email.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"fugitive Kosta Diamantis accused Gov. Ned Lamont of corruption\": ordinary crime involving a private individual.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b18": {
+      "what_happened": "Greek LGBTQI+ groups plan a protest outside the Turkish Embassy in Athens in response to a crackdown on LGBTQI+ rights in Turkey, where over 100 people have been detained.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Turkish authorities launched a wave of raids and arrests targeting LGBTQI+ rights organizations\": Turkey's own state is acting against its citizens.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b19": {
+      "what_happened": "Turkish authorities raided LGBTQ+ and HIV organizations, detaining dozens, which prompted protests in New York against Turkey's crackdown on the LGBTQ+ community.",
+      "exclusion": "E8",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"protests in New York against Turkey's crackdown on the LGBTQ+ community\": people outside Turkey acting about Turkey.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b20": {
+      "what_happened": "A Russian drone hit a gas station near the Poland-Ukraine border, prompting condemnation from Ukrainian officials and highlighting the ongoing conflict's proximity to Poland.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Russia's barbaric strikes at the Ukraine-Poland border crossing point\" indicates military threats against Poland's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b21": {
+      "what_happened": "The Committee to Protect Journalists calls on Turkish authorities to release journalist Ahmet Polad, who was transferred from Syria and is reported to be in poor health.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"calls on Turkish authorities to immediately release Ahmet Polad\": Turkey's own authorities are involved in the detention of the journalist.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b22": {
+      "what_happened": "Italy has implemented the EU Pay Transparency Directive, leading Europe in salary transparency among major economies.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Italy, the only major European economy to have implemented the directive\": Italy's own government has acted on a public matter regarding pay transparency.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b23": {
+      "what_happened": "Weak economic activity and high unemployment in Chile are increasing pressure on President José Antonio Kast's government to achieve its economic goals.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Weak economic activity and employment figures in Chile are increasing pressure on President José Antonio Kast's government\": a measurement of Chile's economy and its impact on governance.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b24": {
+      "what_happened": "A Russian drone struck a train near the Ukraine-Poland border shortly after a diplomatic train carrying senior officials passed through.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Russian drone struck a train near the Ukraine-Poland border\": an outside force (Russia) acted on Poland's security.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b25": {
+      "what_happened": "Belgium's king and foreign minister stated they cannot evacuate 13 Gaza students despite other European countries successfully doing so.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Belgium's king and the country’s foreign minister both say they can do no more to evacuate 13 Gaza students\": Belgium's own state officials are involved in a public matter regarding the evacuation of students.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b26": {
+      "what_happened": "The University of Oregon, Big Ten Network, and DAZN announced an expansion of access to Oregon football games for fans in Japan following a summer trip to Tokyo.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Oregon football to fans in Japan\": the article is about sports and entertainment.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b27": {
+      "what_happened": "Zimbabwe secured funding for a $65 million border upgrade with Zambia to modernize the Chirundu border post, which is crucial for trade routes connecting to South Africa.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"crucial for connecting the central African Copperbelt to southern African ports\": the upgrade impacts trade routes that involve South Africa.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b28": {
+      "what_happened": "Russia's ruling United Russia party won the parliamentary election, securing 57.83% of the vote amid a crackdown on opposition and rising prices.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"the ruling United Russia party has won the parliamentary election\" and \"the opposition was barred from taking part\": this relates to Russia's political process and elections.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b29": {
+      "what_happened": "Russia's Foreign Ministry identified US missile sites in Norway as potential targets in a military conflict.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"identified US missile deployment sites ... in Norway as potential targets\": an outside power threatens Norway's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b30": {
+      "what_happened": "Ethiopia and the UAE are expanding cooperation in investment, trade, tourism, and technology to strengthen their economic ties.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"expanding cooperation in investment, trade, tourism and technology\": a measurement of UAE's economic conditions and opportunities.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h01": {
+      "what_happened": "Taiwan Cement Corporation is set to invest €750 million in Ukraine's leading cement manufacturer, PJSC Ivano-Frankivskcement, amid the ongoing war in Ukraine.",
+      "exclusion": "E6",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"set to become a strategic investor in ... Ukraine's leading cement manufacturer\": a company's own deal abroad.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h02": {
+      "what_happened": "A federal judge is questioning President Trump's ban of three news outlets from White House grounds, considering whether the administration provided adequate due process.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"Judge questions Trump's ban of three prominent news outlets from White House\": a federal judge is acting on a public matter involving the administration's treatment of the press.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h03": {
+      "what_happened": "The CFP forecasts inflation in Portugal to rise to 3.2% in 2026, influenced by energy prices and potential food inflation due to external factors.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"forecasts the Harmonised Index of Consumer Prices (HICP) to rise to 3.2% in 2026\": a measurement of Portugal's economy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h04": {
+      "what_happened": "The Federal Reserve announced its decision on interest rates, indicating a potential rate hike, which affected US equity prices and was seen as a reinforcement of the Fed's independence.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"The American economy appears to be strengthening\" and interest rate predictions indicate changes in economic conditions.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h05": {
+      "what_happened": "Somalia's Minister of Justice held talks with Kuwait's anti-corruption authority to strengthen cooperation against corruption.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"talks with Rana Al-Fares, head of Kuwait’s anti-corruption authority\": Kuwait's own state acts on public matters regarding corruption.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h06": {
+      "what_happened": "Taiwan's Executive Yuan proposed a supplementary budget of $4.6 billion USD to accelerate the development and procurement of its domestic defense industry.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"proposed a supplementary budget aimed at accelerating the development and procurement project timelines within Taiwan’s domestic defense industry\": Taiwan's government is acting on public matters related to national defense.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h07": {
+      "what_happened": "Senator Jerry Moran led a nomination hearing for the Chair of the Board of Veterans’ Appeals and judges on the United States Court of Appeals for Veterans Claims.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"led the committee in considering the nominations\" indicates official activity by a U.S. Senator regarding veterans' affairs.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h08": {
+      "what_happened": "The Kuwait Anti-Corruption Authority (Nazaha) organized training workshops for teachers to promote positive values among primary school students as part of a project with the Ministry of Education and National Bank of Kuwait.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "Nazaha, a government authority, is actively organizing workshops to promote integrity and transparency in education.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h09": {
+      "what_happened": "Portugal's government announced its acquisition of a stake in power and gas grid operator REN, stating it will not affect China's State Grid's existing 25% stake.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Portugal's government said its acquisition of a stake in power and gas grid operator REN\" indicates official government action regarding a strategic sector.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h10": {
+      "what_happened": "Hong Kong Customs seized about 5.7 kilograms of suspected ketamine and 27,600 suspected illicit cigarettes, arresting three individuals connected to the case.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"dangerous drug trafficking case\" and \"three persons were arrested\": ordinary crime by private individuals.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h11": {
+      "what_happened": "Chinese authorities reportedly possess F-35 components that were diverted to Hong Kong during shipment.",
+      "exclusion": "E7",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"diverted to Hong Kong\": Hong Kong is only where it happened, and the consequences fall on China, the US, and Australia.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h12": {
+      "what_happened": "RSF expresses concern over the disappearance of Hong Kong journalist Minnie Chan, who is believed to be detained by Chinese authorities.",
+      "exclusion": "E8",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"disappearance of Hong Kong journalist Minnie Chan\" and \"detained by the Chinese authorities\": a foreign NGO appeal about China's action, with nothing new happening in Hong Kong.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h13": {
+      "what_happened": "Experts recommend extending operating hours at key passenger and cargo land border crossings between Hong Kong and Shenzhen to boost economic activity and facilitate trade.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"extend operating hours at key passenger and cargo land border crossings\" indicates an assessment of Hong Kong's economic conditions and trade facilitation.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h14": {
+      "what_happened": "Iran's president accused the United States of terrorism against Iranians during a speech at the UN General Assembly.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Iran's president accused the United States of terrorism\" indicates an outside state acting on the United States.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h15": {
+      "what_happened": "Amnesty International condemned Kuwait's new counter-terrorism law, which may endanger fundamental human rights and freedoms of assembly and expression.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Kuwait’s new counter-terrorism law ... may have grave repercussions for the freedoms of assembly and expression\": Kuwait's own state acts on public matters affecting rights and security.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h16": {
+      "what_happened": "The US is investigating reports that F-35 parts were mistakenly diverted to Hong Kong from Australia, raising concerns about sensitive military technology access by China.",
+      "exclusion": "E7",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"diverted to Hong Kong\" and \"concerns over sensitive military technology\": Hong Kong is only where it happened, and the consequences fall on the US and Australia.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h17": {
+      "what_happened": "Chinese President Xi Jinping pressed US President Donald Trump to explicitly oppose Taiwan independence during a meeting, which could affect American arms sales to Taiwan.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"pressed ... to explicitly oppose Taiwan independence\": an outside state (China) acting on Taiwan.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h18": {
+      "what_happened": "The Executive Yuan of Taiwan approved a NT$3.6 billion plan to increase school security personnel in junior-high schools.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Cabinet approves NT$3.6 billion for school security\": Taiwan's own government is acting on public safety matters.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h19": {
+      "what_happened": "Kuwait's Foreign Minister participated in UN meetings focusing on the protection and education of Palestinian children.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "Kuwait's Foreign Minister's participation in UN meetings represents an official action by Kuwait's government.",
+      "label": "relevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h20": {
+      "what_happened": "A think tank report recommends the U.S. increase its stockpile of drones and munitions to prepare for a potential conflict with China over Taiwan.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"potential fight against the Chinese military over Taiwan\": an outside state (China) is acting on Taiwan.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h21": {
+      "what_happened": "A US Attorney charged four non-citizens with voting illegally in US elections.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"charged with election-related crimes\": an election crime.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h22": {
+      "what_happened": "Portugal's national football team won against Wales in a UEFA Nations League match.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Portugal's national football team won against Wales\": the article is about a sports event.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h23": {
+      "what_happened": "The article discusses the resilience of Europe's economy amid energy shocks and conflicts in the Middle East, highlighting business activity growth in the euro zone.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"conflicts in the Middle East and Ukraine drive up energy costs\" indicates spillover effects from regional conflicts that could impact Kuwait's economy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h24": {
+      "what_happened": "Spain and Brazil won the beach handball titles at a university championship held in Portugal.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"beach handball titles\": sport, and Portugal is only the venue.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h25": {
+      "what_happened": "JLL released its Global Real Estate Transparency Index, showing Hong Kong ranks 14th globally in real estate transparency.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Hong Kong ranks 14th globally with a composite score of 1.97\": an assessment of Hong Kong's market transparency.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h26": {
+      "what_happened": "Portugal's Energy Minister admitted that the country has sent part of its strategic fuel reserves to France due to reduced storage capacity after the closure of a refinery.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Portugal was forced to send part of its reserves to France\" indicates an official government action regarding energy resources.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h27": {
+      "what_happened": "The EU allows nine countries, including Portugal, to further delay the implementation of EES border checks.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"EU lets nine countries delay EES border checks\" indicates an official action by Portugal's government regarding border control regulations.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h28": {
+      "what_happened": "Taiwan's annual inflation rate slowed to 2.04% in August 2026, marking the lowest reading since April, while still remaining above the central bank's target.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Taiwan's annual inflation rate slowed to 2.04%\": a measurement of Taiwan's economy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h29": {
+      "what_happened": "Kuwait's Nazaha President Dr. Rana Abdullah Al Fares met with Bahrain's Interior Deputy Minister to discuss anti-corruption cooperation.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"discuss strengthening direct cooperation between the anti-corruption authorities in Bahrain and Kuwait\": Kuwait's own state acting on public matters regarding anti-corruption.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h30": {
+      "what_happened": "The Bank of Canada reports that tariffs and trade barriers are changing how the Canadian economy operates, affecting international trade.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"tariffs and other trade barriers are changing how goods are produced\" in Canada, which is a main trade partner of the United States.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     }
+    },
+    {
+     "b01": {
+      "what_happened": "A gunman shot dead regional candidate Susy Aponte Polo at a campaign event in Peru.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": true,
+      "ledger": "order_security",
+      "reason": "\"shot dead ... while participating in a campaign event\": political violence, the killing of a candidate.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b02": {
+      "what_happened": "New Zealand's Real Estate Authority fined One Up Realty $18,000 for breaching the Real Estate Agents Act.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"fined $18,000 ... Real Estate Agents Act 2008\": a New Zealand regulator acting on a company.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b03": {
+      "what_happened": "China Briefing provides guidance on Hong Kong's 2026 profits tax filing deadlines and requirements for businesses.",
+      "exclusion": "E3",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"helps businesses navigate the latest tax return deadlines\": an explainer of rules already in force.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b04": {
+      "what_happened": "Peruvian authorities arrested two individuals in connection with the murder of journalist and regional candidate Susy Aponte Polo during a campaign event.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": true,
+      "ledger": "order_security",
+      "reason": "\"murder of journalist and candidate in regional elections\": political violence, the killing of a candidate.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b05": {
+      "what_happened": "A Malaysian man, nicknamed 'Da Xiang', was arrested for masterminding a scam and money laundering syndicate operating in Singapore, involving impersonation of government officials.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "'mastermind of a scam and money laundering syndicate': ordinary crime involving private individuals.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b06": {
+      "what_happened": "Czech President Petr Pavel discussed defense cooperation between Armenia and the Czech Republic during a joint press conference with Armenian President Vahagn Khachaturyan.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Czech President Petr Pavel discussed defense cooperation\": an official act by Czechia's head of state.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b07": {
+      "what_happened": "The US government confirmed a temporary 10 percent tariff on India following a Supreme Court ruling, replacing previous tariffs.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"temporary 10 percent tariff on India\" indicates a change in trade policy affecting business conditions.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b08": {
+      "what_happened": "Spain allowed a US extradition request for anti-Israel donor James Cox Chambers to proceed to court, despite protests from the government’s left-wing coalition partners.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Spain allowed a US extradition request ... to proceed to court\": Spain's government is acting on a politically sensitive extradition case.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b09": {
+      "what_happened": "France is launching a new edition of the Make Our Planet Great Again (MOPGA) fellowship program to attract international researchers for climate-related projects.",
+      "exclusion": "E2",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Visiting Fellowship Program for Early Career Researchers\": an academic program announcement, not a new rule or change.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b10": {
+      "what_happened": "Iain Ross, a member of the Reserve Bank of Australia's monetary policy board, stated there is no evidence of a wage-price spiral in Australia, rejecting concerns about runaway wage growth contributing to inflation.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"no evidence of the emergence of a wage-price spiral\" indicates an assessment of Australia's economic conditions.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b11": {
+      "what_happened": "An Australian man appeared in a Thai court on charges of murder and concealment of a body related to the death of a teenage girl.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"charges of murder and concealment of a body\": ordinary crime involving a private individual.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b12": {
+      "what_happened": "EY Australia submitted its views to Treasury regarding proposed regulations on accounting partnerships, arguing that capping partners would weaken audit quality.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"submitted its views to Treasury regarding proposed regulations\": Australia's own state is involved in regulating accounting firms.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b13": {
+      "what_happened": "Malaysia's Attorney-General states that former PM Najib Razak has not paid the required fine to serve his prison term under house arrest, and the house-arrest order is facing legal challenges.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Malaysia's Attorney-General states that former PM Najib Razak has not paid the required fine\": an official statement regarding a legal matter involving a former prime minister.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b14": {
+      "what_happened": "The Trump administration has begun construction of the border wall in the Big Bend region of Texas, impacting the U.S.-Mexico border.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"border wall construction\" and \"impacting the U.S.-Mexico border\": an outside state acts on Mexico's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b15": {
+      "what_happened": "Canadian provinces are expanding pay transparency laws, as a survey finds pay cynicism has doubled since 2024.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Canada's own patchwork of provincial pay transparency laws continues to expand\": new rules from Canadian governments.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b16": {
+      "what_happened": "India launched a research centre for space observations in Assam as part of a national scientific programme.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"India launches research centre for space observations\" indicates an official action by India's government.",
+      "label": "relevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b17": {
+      "what_happened": "Fugitive Kosta Diamantis, who fled to Greece, accused Connecticut Governor Ned Lamont of corruption in a 10-page email.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"fugitive Kosta Diamantis accused ... of corruption\" and \"fled to Greece\": ordinary crime involving a private individual.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b18": {
+      "what_happened": "Greek LGBTQI+ groups plan a protest outside the Turkish Embassy in Athens in response to a crackdown on LGBTQI+ rights in Turkey, where over 100 people have been detained.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Turkish authorities launched a wave of raids and arrests targeting LGBTQI+ rights organizations\": Turkey's own state is acting on public matters.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b19": {
+      "what_happened": "Turkish authorities raided LGBTQ+ and HIV organizations, detaining dozens, which prompted protests in New York against Turkey's crackdown on the LGBTQ+ community.",
+      "exclusion": "E8",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"protests in New York against Turkey's crackdown\": people abroad acting about Turkey.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b20": {
+      "what_happened": "A Russian drone hit a gas station near the Poland-Ukraine border, prompting condemnation from Ukrainian officials and highlighting the ongoing military conflict.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Russia's barbaric strikes at the Ukraine-Poland border crossing point\" indicates military threats against Poland's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b21": {
+      "what_happened": "Turkish authorities are holding journalist Ahmet Polad after his transfer from Syria, and the Committee to Protect Journalists calls for his release.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"calls on Turkish authorities to immediately release\": Turkey's own authorities hold the journalist.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b22": {
+      "what_happened": "Italy has implemented the EU Pay Transparency Directive, leading Europe in salary transparency among major economies.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Italy, the only major European economy to have implemented the directive\": Italy's own government has acted on a public matter regarding pay transparency.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b23": {
+      "what_happened": "Weak economic activity and rising unemployment in Chile are increasing pressure on President José Antonio Kast's government to achieve its economic goals.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Weak economic activity and employment figures in Chile are increasing pressure on President José Antonio Kast's government\": a measurement of Chile's economy and its impact on governance.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b24": {
+      "what_happened": "A Russian drone struck a train near the Ukraine-Poland border shortly after a diplomatic train carrying senior officials passed through.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Russian drone struck a train near the Ukraine-Poland border\": an outside force (Russia) acted on Poland's security.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b25": {
+      "what_happened": "Belgium's king and foreign minister stated they cannot evacuate 13 Gaza students despite other European countries successfully doing so.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Belgium's king and the country’s foreign minister both say they can do no more to evacuate 13 Gaza students\": Belgium's own state officials are involved in a public matter regarding the evacuation of students.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b26": {
+      "what_happened": "The University of Oregon, Big Ten Network, and DAZN announced an expansion of access to Oregon football games for fans in Japan following a summer trip to Tokyo.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "The article focuses on a sports event and expansion of media access, which falls under lifestyle and entertainment.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b27": {
+      "what_happened": "Zimbabwe secured funding for a $65 million border upgrade with Zambia to modernize the Chirundu border post, which is crucial for trade routes connecting to South Africa.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"crucial for connecting the central African Copperbelt to southern African ports\": the upgrade impacts trade routes that include South Africa.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b28": {
+      "what_happened": "Russia's ruling United Russia party won the parliamentary election, securing 57.83% of the vote amid a crackdown on opposition and rising prices.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"the ruling United Russia party has won the parliamentary election\" and \"the opposition was barred from taking part\": this relates to Russia's political process and the conduct of elections.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b29": {
+      "what_happened": "Russia's Foreign Ministry identified US missile sites in Norway as potential targets in a military conflict.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"identified US missile deployment sites ... in Norway as potential targets\": an outside power threatens Norway's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b30": {
+      "what_happened": "Ethiopia and the UAE are expanding cooperation in investment, trade, tourism, and technology to strengthen their economic ties.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"expanding cooperation in investment, trade, tourism and technology\": a measurement of UAE's economic conditions and its bilateral relations.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h01": {
+      "what_happened": "Taiwan Cement Corporation is set to invest €750 million in Ukraine's leading cement manufacturer, PJSC Ivano-Frankivskcement, amid the ongoing war in Ukraine.",
+      "exclusion": "E6",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"set to become a strategic investor in ... Ukraine's leading cement manufacturer\": a company's own deal abroad.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h02": {
+      "what_happened": "A federal judge is questioning President Trump's ban of three news outlets from White House grounds, considering whether the administration provided adequate due process.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"Judge questions Trump's ban of three prominent news outlets from White House\": a federal judge is acting on a public matter involving the administration's treatment of the press.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h03": {
+      "what_happened": "The CFP forecasts inflation in Portugal to rise to 3.2% in 2026, influenced by energy prices and potential risks from the conflict between Russia and Ukraine affecting cereal exports.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"the risk of a halt in cereal exports through the Black Sea\" indicates potential economic instability affecting Portugal.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h04": {
+      "what_happened": "The Federal Reserve announced its decision on interest rates, indicating a potential rate hike, which affected US equity prices and was seen as a reinforcement of the Fed's independence.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"The American economy appears to be strengthening\" and interest rate predictions indicate changes in economic conditions.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h05": {
+      "what_happened": "Somalia's Minister of Justice held talks with Kuwait's anti-corruption authority to strengthen cooperation against corruption.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"talks with Rana Al-Fares, head of Kuwait’s anti-corruption authority\": Kuwait's own state acts on public matters regarding corruption.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h06": {
+      "what_happened": "Taiwan's Executive Yuan proposed a supplementary budget of $4.6 billion USD to accelerate the development and procurement of its domestic defense industry.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"proposed a supplementary budget aimed at accelerating the development and procurement project timelines within Taiwan’s domestic defense industry\": Taiwan's government is acting on public matters related to national defense.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h07": {
+      "what_happened": "Senator Jerry Moran led a nomination hearing for the Chair of the Board of Veterans’ Appeals and judges on the United States Court of Appeals for Veterans Claims.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"led the committee in considering the nominations\" indicates official activity by a U.S. Senator regarding veterans' affairs.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h08": {
+      "what_happened": "The Kuwait Anti-Corruption Authority (Nazaha) organized training workshops for teachers to promote positive values among primary school students as part of a project in partnership with the Ministry of Education and National Bank of Kuwait.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "Nazaha, a government authority, is actively organizing workshops to promote integrity and transparency in education.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h09": {
+      "what_happened": "Portugal's government announced its acquisition of a stake in power and gas grid operator REN, stating it will not affect China's State Grid's existing 25% stake.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Portugal's government said its acquisition of a stake in power and gas grid operator REN\" indicates official state action regarding energy infrastructure.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h10": {
+      "what_happened": "Hong Kong Customs seized about 5.7 kilograms of suspected ketamine and 27,600 suspected illicit cigarettes, arresting three individuals connected to the case.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"dangerous drug trafficking case\" and \"three persons were arrested\": ordinary crime by private individuals.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h11": {
+      "what_happened": "Chinese authorities reportedly possess F-35 components that were diverted to Hong Kong during shipment.",
+      "exclusion": "E7",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"diverted to Hong Kong\": Hong Kong is only where it happened, and the consequences fall on China, the US, and Australia.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h12": {
+      "what_happened": "RSF expresses concern over the disappearance of Hong Kong journalist Minnie Chan, who is believed to be detained by Chinese authorities.",
+      "exclusion": "E8",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"disappearance of Hong Kong journalist Minnie Chan\" and \"detained by the Chinese authorities\": a foreign NGO appeal about China's action, with nothing new happening in Hong Kong.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h13": {
+      "what_happened": "Experts recommend extending operating hours at key passenger and cargo land border crossings between Hong Kong and Shenzhen to boost economic activity and facilitate trade.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"extend operating hours at key passenger and cargo land border crossings\" indicates an assessment of Hong Kong's economic conditions and trade facilitation.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h14": {
+      "what_happened": "Iran's president accused the United States of terrorism against Iran during a speech at the UN General Assembly, following threats from President Trump.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Iran's president accused the United States of terrorism\" and \"Trump said he could 'annihilate' the Islamic republic\": an outside state (Iran) acts on the United States with military threats.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h15": {
+      "what_happened": "Amnesty International condemned Kuwait's new counter-terrorism law, which may endanger fundamental human rights and freedoms of assembly and expression.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Kuwait’s new counter-terrorism law that may have grave repercussions for the freedoms of assembly and expression\": Kuwait's own state acts on public matters affecting rights and security.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h16": {
+      "what_happened": "The US is investigating reports that F-35 parts were mistakenly diverted to Hong Kong from Australia, raising concerns about sensitive military technology access by China.",
+      "exclusion": "E7",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"diverted to Hong Kong\" and \"concerns over sensitive military technology\": Hong Kong is only where it happened, and the consequences fall on the US and Australia.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h17": {
+      "what_happened": "Chinese President Xi Jinping pressed US President Donald Trump to explicitly oppose Taiwan independence during a meeting, which could affect American arms sales to Taiwan.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"pressed Trump to take the next step on Taiwan: oppose independence\" indicates pressure from an outside state (China) on Taiwan.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h18": {
+      "what_happened": "The Executive Yuan of Taiwan approved a NT$3.6 billion plan to increase school security personnel in junior-high schools.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Cabinet approves NT$3.6 billion for school security\": Taiwan's own government is acting on public safety matters.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h19": {
+      "what_happened": "Kuwait's Foreign Minister participated in UN meetings focusing on the protection and education of Palestinian children.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Kuwait stresses Palestinian child protection, education at UN meetings\": Kuwait's own state acts officially at the UN.",
+      "label": "relevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h20": {
+      "what_happened": "A think tank report recommends the U.S. increase its stockpile of drones and munitions to prepare for a potential conflict with China over Taiwan.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"U.S.-China conflict over Taiwan\" indicates military threats against Taiwan from China.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h21": {
+      "what_happened": "Four non-citizens, including two illegal aliens, have been charged with election-related crimes in the United States.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"charged with election-related crimes\": an election crime in the United States.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h22": {
+      "what_happened": "Portugal's national football team won against Wales in a UEFA Nations League match.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Portugal's national football team won against Wales\": the article is about a sports event.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h23": {
+      "what_happened": "The article discusses the resilience of Europe's economy amid energy shocks and conflicts in the Middle East, highlighting business activity growth in the euro zone.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"conflicts in the Middle East\" and \"energy price shock\" indicate potential spillover effects on Kuwait's economy and trade.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h24": {
+      "what_happened": "Spain and Brazil won the beach handball titles at a university championship held in Portugal.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"beach handball titles\": sport, and Portugal is only the venue.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h25": {
+      "what_happened": "JLL released its Global Real Estate Transparency Index, showing Hong Kong ranks 14th globally in real estate transparency.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Hong Kong ranks 14th globally with a composite score of 1.97\": a measurement of Hong Kong's market transparency.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h26": {
+      "what_happened": "Portugal's Energy Minister admitted that the country has sent part of its strategic fuel reserves to France due to reduced storage capacity after the closure of a refinery.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Portugal has sent part of its strategic fuel reserves to France\" indicates an official government action regarding energy resources.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h27": {
+      "what_happened": "The EU allows nine countries, including Portugal, to further delay EES border checks despite the expiration of a safety valve.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"EU lets nine countries delay EES border checks\" indicates an official action by Portugal's government regarding border control regulations.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h28": {
+      "what_happened": "Taiwan's annual inflation rate slowed to 2.04% in August 2026, marking the lowest reading since April, while still above the central bank's target, leading to expectations of a rate hike.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Taiwan's annual inflation rate slowed to 2.04% ... reinforcing expectations of a rate hike\": a measurement of Taiwan's economy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h29": {
+      "what_happened": "Kuwait's Nazaha President Dr. Rana Abdullah Al Fares met with Bahrain's Interior Deputy Minister to discuss anti-corruption cooperation.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"discuss strengthening direct cooperation between the anti-corruption authorities in Bahrain and Kuwait\": Kuwait's own state acting on public matters regarding anti-corruption.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h30": {
+      "what_happened": "The Bank of Canada reports that global trade changes are impacting how the Canadian economy operates, particularly due to tariffs and trade barriers.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"tariffs and other trade barriers are changing where goods are produced\" in Canada, which is a main trade partner of the United States.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     }
+    },
+    {
+     "b01": {
+      "what_happened": "A gunman shot dead regional candidate Susy Aponte Polo at a campaign event in Peru.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": true,
+      "ledger": "order_security",
+      "reason": "\"shot dead ... while participating in a campaign event\": political violence, the killing of a candidate.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b02": {
+      "what_happened": "New Zealand's Real Estate Authority fined One Up Realty $18,000 for breaching the Real Estate Agents Act.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"fined $18,000 ... Real Estate Agents Act 2008\": a New Zealand regulator acting on a company.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b03": {
+      "what_happened": "China Briefing provides a guide for businesses on Hong Kong's 2026 profits tax filing deadlines and requirements.",
+      "exclusion": "E3",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"helps businesses navigate the latest tax return deadlines\": an explainer of rules already in force.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b04": {
+      "what_happened": "Peruvian authorities arrested two individuals for their alleged involvement in the murder of journalist and regional candidate Susy Aponte Polo during a campaign event.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": true,
+      "ledger": "order_security",
+      "reason": "\"murder of journalist and candidate in regional elections\": political violence, the killing of a candidate.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b05": {
+      "what_happened": "A Malaysian man, nicknamed 'Da Xiang', was arrested for masterminding a scam and money laundering syndicate operating in Singapore, involving impersonation of government officials.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "'masterminding a scam and money laundering syndicate': ordinary crime involving private individuals.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b06": {
+      "what_happened": "Czech President Petr Pavel discussed defense cooperation between Armenia and the Czech Republic during a joint press conference with Armenian President Vahagn Khachaturyan.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Czech President Petr Pavel discussed defense cooperation\": an official act by Czechia's head of state.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b07": {
+      "what_happened": "The US government confirmed a temporary 10 percent tariff on India following a Supreme Court ruling, replacing previous tariffs.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"temporary 10 percent tariff on India\" indicates a change in trade policy affecting business conditions.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b08": {
+      "what_happened": "Spain allowed a US extradition request for anti-Israel donor James Cox Chambers to proceed to court, despite protests from the government’s left-wing coalition partners.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Spain allowed a US extradition request ... to proceed to court\": Spain's own state acting on a politically sensitive extradition case.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b09": {
+      "what_happened": "France is launching a new edition of the Make Our Planet Great Again (MOPGA) fellowship program to attract international researchers for climate-related projects.",
+      "exclusion": "E2",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Visiting Fellowship Program for Early Career Researchers\": an academic program announcement, which falls under academic or science programmes.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b10": {
+      "what_happened": "Iain Ross, a member of the Reserve Bank of Australia's monetary policy board, stated there is no evidence of a wage-price spiral in Australia, rejecting concerns about runaway wage growth contributing to inflation.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"no evidence of the emergence of a wage-price spiral in the present circumstances\": an assessment of Australia's economy and inflation risks.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b11": {
+      "what_happened": "An Australian man appeared in a Thai court on charges of murder and concealment of a body related to the death of a teenage girl in Pattaya City.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"murder and concealment of a body\" and \"charges of indecent acts on a minor\": ordinary crime involving a private individual.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b12": {
+      "what_happened": "EY Australia submitted its views to Treasury regarding proposed regulations on accounting partnerships, arguing that capping partners would weaken audit quality.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"submitted its views to Treasury regarding proposed regulations on accounting partnerships\": Australia's own state is involved in regulatory discussions affecting the accounting sector.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b13": {
+      "what_happened": "Malaysia's Attorney-General states that former PM Najib Razak has not paid the required fine to serve his prison term under house arrest, and the order is facing legal challenges.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Malaysia's Attorney-General states\" indicates an official action regarding a high-profile political figure.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b14": {
+      "what_happened": "The Trump administration has begun construction of the border wall in the Big Bend region of Texas, impacting the U.S.-Mexico border.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"border wall construction\" and \"impacting the U.S.-Mexico border\": an outside state acts on Mexico through border security measures.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b15": {
+      "what_happened": "Canadian provinces are expanding pay transparency laws, as a survey finds pay cynicism has doubled since 2024.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Canada's own patchwork of provincial pay transparency laws continues to expand\": new rules from Canadian governments.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b16": {
+      "what_happened": "India launched a research centre for space observations in Assam as part of a national scientific programme.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"India launches research centre for space observations\": India's own state is acting officially to enhance its space capabilities.",
+      "label": "relevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b17": {
+      "what_happened": "Fugitive Kosta Diamantis, who fled to Greece, accused Connecticut Governor Ned Lamont of corruption in a 10-page email.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"fugitive Kosta Diamantis accused ... of corruption\" and \"fled to Greece\": ordinary crime involving a private individual.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b18": {
+      "what_happened": "Greek LGBTQI+ groups plan a protest outside the Turkish Embassy in Athens in response to a crackdown on LGBTQI+ rights in Turkey, where over 100 people have been detained.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Turkish authorities launched a wave of raids and arrests targeting LGBTQI+ rights organizations\": Turkey's own state is acting against its citizens.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b19": {
+      "what_happened": "Turkish authorities raided LGBTQ+ and HIV organizations, detaining dozens, which prompted protests in New York against Turkey's crackdown on the LGBTQ+ community.",
+      "exclusion": "E8",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"protests in New York against Turkey's crackdown on the LGBTQ+ community\": people abroad acting about Turkey.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b20": {
+      "what_happened": "A Russian drone hit a gas station near the Poland-Ukraine border, prompting condemnation from Ukrainian officials and highlighting the ongoing military conflict.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Russia's barbaric strikes at the Ukraine-Poland border crossing point\" indicates military threats against Poland's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b21": {
+      "what_happened": "The Committee to Protect Journalists calls on Turkish authorities to release journalist Ahmet Polad, who was transferred from Syria and is reported to be in poor health.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"calls on Turkish authorities to immediately release Ahmet Polad\": Turkey's own authorities are involved in the detention of the journalist.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b22": {
+      "what_happened": "Italy has implemented the EU's Pay Transparency Directive, leading Europe in salary transparency among major economies.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Italy, the only major European economy to have implemented the directive\": Italy's own government has acted on a public matter regarding pay transparency.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b23": {
+      "what_happened": "Weak economic activity and high unemployment figures are increasing pressure on President José Antonio Kast's government in Chile.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Weak economic activity and employment figures in Chile are increasing pressure on President José Antonio Kast's government\": a measurement of Chile's economy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b24": {
+      "what_happened": "A Russian drone struck a train near the Ukraine-Poland border shortly after a diplomatic train carrying senior officials passed through.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Russian drone struck a train near the Ukraine-Poland border\": an outside force (Russia) acted on Poland's security.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b25": {
+      "what_happened": "Belgium's king and foreign minister stated they cannot evacuate 13 Gaza students despite other European countries successfully doing so.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Belgium's king and the country’s foreign minister both say they can do no more to evacuate 13 Gaza students\": Belgium's own state officials are involved in a public matter regarding the evacuation of students.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b26": {
+      "what_happened": "The University of Oregon, Big Ten Network, and DAZN announced an expansion of access to Oregon football games for fans in Japan following a summer showcase event in Tokyo.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Oregon football to fans in Japan\" and \"Tokyo Oregon Football Showcase\": the article is about sports and entertainment.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b27": {
+      "what_happened": "Zimbabwe secured funding for a $65 million border upgrade with Zambia to modernize the Chirundu border post, which is crucial for trade routes connecting to South Africa.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"crucial for connecting the central African Copperbelt to southern African ports\": the upgrade impacts trade routes that include South Africa.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b28": {
+      "what_happened": "Russia's ruling United Russia party won the parliamentary election, securing 57.83% of the vote amid a crackdown on opposition and rising prices.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"the ruling United Russia party has won the parliamentary election\" and \"the opposition was barred from taking part\": this relates to Russia's political process and the conduct of elections.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b29": {
+      "what_happened": "Russia's Foreign Ministry identified US missile sites in Norway as potential targets in a military conflict.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"identified US missile deployment sites ... in Norway as potential targets\": an outside power threatens Norway's territory.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "b30": {
+      "what_happened": "Ethiopia and the UAE are expanding cooperation in investment, trade, tourism, and technology to strengthen their economic ties.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"expanding cooperation in investment, trade, tourism and technology\": a measurement of UAE's economic conditions and its bilateral relations.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h01": {
+      "what_happened": "Taiwan Cement Corporation is set to invest €750 million in Ukraine's leading cement manufacturer, PJSC Ivano-Frankivskcement, amid the ongoing war in Ukraine.",
+      "exclusion": "E6",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"set to become a strategic investor in ... Ukraine's leading cement manufacturer\": a company's own deal abroad.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h02": {
+      "what_happened": "A federal judge is questioning President Trump's ban of three news outlets from White House grounds, considering whether the administration provided adequate due process.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"Judge questions Trump's ban of three prominent news outlets from White House\": a federal judge is acting on a public matter involving the administration's actions.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h03": {
+      "what_happened": "The CFP forecasts inflation in Portugal to rise to 3.2% in 2026, influenced by energy prices and potential risks from the conflict between Russia and Ukraine affecting cereal exports.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"the risk of a halt in cereal exports through the Black Sea\" indicates potential economic instability affecting Portugal.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h04": {
+      "what_happened": "The Federal Reserve announced its decision on interest rates, indicating a strengthening American economy and potential future rate hikes, which led to a decline in US equity prices.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"the American economy appears to be strengthening\" and predictions of interest rate changes indicate an assessment of the US economy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h05": {
+      "what_happened": "Somalia's Minister of Justice held talks with Kuwait's anti-corruption authority to strengthen cooperation against corruption.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"talks with Rana Al-Fares, head of Kuwait’s anti-corruption authority\": Kuwait's own state acts on public matters regarding corruption.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h06": {
+      "what_happened": "Taiwan's Executive Yuan proposed a supplementary budget of $4.6 billion USD to accelerate the development and procurement of its domestic defense industry.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"proposed a supplementary budget aimed at accelerating the development and procurement project timelines within Taiwan’s domestic defense industry\": Taiwan's government is acting on public matters related to national defense.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h07": {
+      "what_happened": "Senator Jerry Moran led a nomination hearing for the Chair of the Board of Veterans’ Appeals and judges on the United States Court of Appeals for Veterans Claims.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"led the committee in considering the nominations\" indicates an official action by a U.S. government body.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h08": {
+      "what_happened": "The Kuwait Anti-Corruption Authority (Nazaha) organized training workshops for teachers to promote positive values among primary school students as part of a project in partnership with the Ministry of Education and National Bank of Kuwait.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "Nazaha, a government authority, is conducting workshops to promote integrity and transparency in education.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h09": {
+      "what_happened": "Portugal's government announced its acquisition of a stake in power and gas grid operator REN, stating it will not affect China's State Grid's existing 25% stake.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Portugal's government said its acquisition of a stake in power and gas grid operator REN\" indicates an official action by the Portuguese government regarding a strategic sector.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h10": {
+      "what_happened": "Hong Kong Customs seized ketamine and illicit cigarettes worth about $2.2 million and arrested three individuals connected to the case.",
+      "exclusion": "E5",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"dangerous drug trafficking case\" and \"three persons were arrested\": ordinary crime by private individuals.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h11": {
+      "what_happened": "Chinese authorities reportedly possess F-35 components that were diverted to Hong Kong during shipment.",
+      "exclusion": "E7",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"diverted to Hong Kong\": Hong Kong is only where it happened, and the consequences fall on China, the US, and Australia.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h12": {
+      "what_happened": "RSF expresses concern over the disappearance of Hong Kong journalist Minnie Chan, who is believed to be detained by Chinese authorities.",
+      "exclusion": "E8",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"disappearance of Hong Kong journalist Minnie Chan\" and \"detained by the Chinese authorities\": a foreign NGO appeal about China's action, with nothing new happening in Hong Kong.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h13": {
+      "what_happened": "Experts recommend extending operating hours at key passenger and cargo land border crossings between Hong Kong and Shenzhen to boost economic activity and facilitate trade.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"extend operating hours at key passenger and cargo land border crossings\" indicates an assessment of Hong Kong's economic conditions and trade facilitation.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h14": {
+      "what_happened": "Iran's president accused the United States of terrorism against Iranians during a speech at the UN General Assembly.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Iran's president accused the United States of terrorism\" indicates an outside state acting on the United States.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h15": {
+      "what_happened": "Amnesty International condemned Kuwait's new counter-terrorism law, which may endanger fundamental human rights and freedoms of assembly and expression.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Kuwait’s new counter-terrorism law ... may have grave repercussions for the freedoms of assembly and expression\": Kuwait's own state acts on public matters affecting rights and security.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h16": {
+      "what_happened": "The US is investigating reports that F-35 parts were mistakenly diverted to Hong Kong from Australia, raising concerns about sensitive military technology potentially accessed by China.",
+      "exclusion": "E7",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"diverted to Hong Kong\" and \"concerns over sensitive military technology\": Hong Kong is only where it happened, and the consequences fall on the US and Australia.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h17": {
+      "what_happened": "Chinese President Xi Jinping pressed US President Donald Trump to explicitly oppose Taiwan independence during a meeting, which could affect American arms sales to Taiwan.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"pressed ... to explicitly oppose Taiwan independence\": an outside state (China) acting on Taiwan by influencing US policy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h18": {
+      "what_happened": "Taiwan's Executive Yuan approved a NT$3.6 billion plan to increase school security personnel in junior-high schools.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Cabinet approves NT$3.6 billion for school security\": Taiwan's own state is acting officially to enhance school safety.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h19": {
+      "what_happened": "Kuwait's Foreign Minister participated in UN meetings focusing on the protection and education of Palestinian children.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Kuwait's Foreign Minister participated in UN meetings\": Kuwait's own state acted officially at the UN.",
+      "label": "relevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h20": {
+      "what_happened": "A think tank report recommends the U.S. increase its stockpile of drones and munitions to prepare for a potential conflict with China over Taiwan.",
+      "exclusion": "none",
+      "test": "T4",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"U.S.-China conflict over Taiwan\" and \"thwart a takeover of Taiwan\": an outside state (China) is acting on Taiwan.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h21": {
+      "what_happened": "A US Attorney charged four non-citizens with voting illegally in US elections.",
+      "exclusion": "none",
+      "test": "T3",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"charged with election-related crimes\": an election crime.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h22": {
+      "what_happened": "Portugal's national football team won against Wales in a UEFA Nations League match.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"Portugal's national football team won against Wales\": the article is about a sports event.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h23": {
+      "what_happened": "The article discusses the resilience of Europe's economy amid energy shocks and conflicts in the Middle East, highlighting business activity growth in the euro zone.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"conflicts in the Middle East\" and \"energy price shock\" indicate potential spillover effects on Kuwait's economy and trade.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h24": {
+      "what_happened": "Spain and Brazil won the beach handball titles at a university championship held in Portugal.",
+      "exclusion": "E1",
+      "test": "none",
+      "high_impact_event": false,
+      "ledger": "none",
+      "reason": "\"beach handball titles\": sport, and Portugal is only the venue.",
+      "label": "irrelevant",
+      "ledgers": [],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h25": {
+      "what_happened": "JLL released its Global Real Estate Transparency Index, showing Hong Kong ranks 14th globally in real estate transparency.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Hong Kong ranks 14th globally with a composite score of 1.97\": a measurement of Hong Kong's market transparency.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h26": {
+      "what_happened": "Portugal's Energy Minister admitted that the country has sent part of its strategic fuel reserves to France due to reduced storage capacity after the closure of a refinery.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"Portugal has sent part of its strategic fuel reserves to France\" indicates an official action by Portugal's government regarding energy resources.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h27": {
+      "what_happened": "The EU allows nine countries, including Portugal, to further delay the implementation of EES border checks.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"EU lets nine countries delay EES border checks\" indicates an official action by Portugal's government regarding border control regulations.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h28": {
+      "what_happened": "Taiwan's annual inflation rate slowed to 2.04% in August 2026, marking the lowest reading since April, but still above the central bank's target, raising expectations of a rate hike.",
+      "exclusion": "none",
+      "test": "T2",
+      "high_impact_event": false,
+      "ledger": "order_security",
+      "reason": "\"Taiwan's annual inflation rate slowed to 2.04% ... raising expectations of a rate hike\": a measurement of Taiwan's economy.",
+      "label": "relevant",
+      "ledgers": [
+       "order"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h29": {
+      "what_happened": "Kuwait's Nazaha President Dr. Rana Abdullah Al Fares met with Bahrain's Interior Deputy Minister to discuss anti-corruption cooperation.",
+      "exclusion": "none",
+      "test": "T1",
+      "high_impact_event": false,
+      "ledger": "information",
+      "reason": "\"discuss strengthening direct cooperation between the anti-corruption authorities in Bahrain and Kuwait\": Kuwait's own state acting on public matters.",
+      "label": "relevant",
+      "ledgers": [
+       "information"
+      ],
+      "input_mode": "body",
+      "cached": false
+     },
+     "h30": {
+      "what_happened": "The Bank of Canada reports that global trade changes are impacting how the Canadian economy operates, particularly due to tariffs and trade barriers.",
+      "exclusion": "none",
+      "test": "T5",
+      "high_impact_event": false,
+      "ledger": "friction",
+      "reason": "\"tariffs and other trade barriers are changing where goods are produced\" in Canada, which is a main trade partner of the United States.",
+      "label": "relevant",
+      "ledgers": [
+       "friction"
+      ],
+      "input_mode": "body",
+      "cached": false
+     }
+    }
+   ]
+  }
+ }
+}

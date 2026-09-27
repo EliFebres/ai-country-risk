@@ -1,0 +1,1432 @@
+{
+ "iso2": "RU",
+ "country": "Russia",
+ "run_date": "2026-09-27",
+ "payload_fingerprint": "79d2d682ff51aa92e9195e1027032d0a29d2c98e434fe21a71434b36d1c69dc1",
+ "payload_sha256": "e77837bb09cbb3b2512533d6489c85cb492c2324fde76546e99eff34404c1d65",
+ "payload_tokens": 8559,
+ "versions": {
+  "git_sha": "047072131346f524a33b75c0885dc6643d3ad759",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "360a84838ecddc01bcad98fcd02d48890ba05499180362b005fd794b1b07f081",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "schema_violations": 0,
+  "payload_tokens": 8559
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://africa.businessinsider.com/local/markets/ibrahim-traore-forces-ngos-to-invest-80-of-their-budgets-in-burkina-faso-as-russia/zd3r6kc",
+   "title": "Ibrahim Traoré forces NGOs to invest 80% of their budgets in Burkina Faso as Russia-backed military government tightens control of foreign aid - Business Insider Africa",
+   "publisher": "Business Insider Africa",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Burkina Faso's government, backed by Russia, has imposed new regulations requiring NGOs to invest 80% of their budgets directly in field activities, limiting their administrative spending.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://nationalinterest.org/feature/dont-be-fooled-by-russias-latest-election-results",
+   "title": "Don’t Be Fooled by Russia’s Latest Election Results - The National Interest",
+   "publisher": "The National Interest",
+   "published": "2026-09-27",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Vladimir Putin's ruling United Russia party won nearly 58 percent of the vote in the latest State Duma elections, which were characterized as stage-managed and predetermined.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.kyivpost.com/videos/85318",
+   "title": "Russia Solved the Censorship Problem - Kyiv Post",
+   "publisher": "Kyiv Post",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "The article discusses how Russia's Internet Research Agency has developed a system for spreading misinformation and manipulating online engagement.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://www.theguardian.com/world/2026/sep/27/swiss-vote-reject-stricter-neutrality-rules-nato",
+   "title": "Swiss voters reject stricter neutrality rules that would have curbed Nato cooperation - The Guardian",
+   "publisher": "The Guardian",
+   "published": "2026-09-27",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Swiss voters rejected a proposal to define neutrality that would have limited cooperation with NATO and sanctions against Russia.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.economist.com/europe/2026/09/27/ireland-is-helping-supply-russias-war-machine",
+   "title": "Ireland is helping supply Russia’s war machine - The Economist",
+   "publisher": "The Economist",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Ireland is reportedly supplying materials that contribute to Russia's military efforts in its ongoing conflict.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.hrw.org/news/2026/09/24/russia-crackdown-on-bypassing-online-censorship",
+   "title": "Russia Crackdown on Bypassing Online Censorship - Human Rights Watch",
+   "publisher": "Human Rights Watch",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "Russian authorities are intensifying efforts to block Virtual Private Network (VPN) services to suppress freedom of expression and access to information.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://mezha.net/eng/news/38982058_ukraine-s_foreign_minister/",
+   "title": "Ukraine’s Foreign Minister Says Russia Hit McDonald’s Logistics Site Twice, Undermining Investment - Межа. Новини України.",
+   "publisher": "Межа. Новини України.",
+   "published": "2026-09-26",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Ukraine's Foreign Minister Andrii Sybiha stated that Russian attacks on a logistics hub serving McDonald's are damaging international investment and harming businesses in Ukraine.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://www.reuters.com/world/russia-says-it-struck-military-infrastructure-vessels-ukraine-2026-09-27/",
+   "title": "Russia says it struck military infrastructure, vessels in Ukraine - Reuters",
+   "publisher": "Reuters",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russia announced it struck military infrastructure and vessels in Ukraine.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://cybernews.com/security/grapheneos-russia-censorship-servers-blocked/",
+   "title": "Russia internet filtering threatens GrapheneOS access - Cybernews",
+   "publisher": "Cybernews",
+   "published": "2026-08-31",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "GrapheneOS reports that Russia's internet censorship is becoming more aggressive, potentially making its services inaccessible in the country.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://euperspectives.eu/2026/09/trumps-russia-tariff-weapon-leaves-europe-guessing/",
+   "title": "Trump’s Russia tariff weapon leaves Europe guessing - EU Perspectives",
+   "publisher": "EU Perspectives",
+   "published": "2026-09-25",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The US signed a new sanctions law that could impose tariffs on European imports of Russian crude oil and natural gas, leaving Europe uncertain about the impact on its exports.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.theatlantic.com/international/2026/09/ukraine-war-russia-occupation-construction/688739/",
+   "title": "The Hidden State Russia Is Building Inside Ukraine - The Atlantic",
+   "publisher": "The Atlantic",
+   "published": "2026-09-27",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the state-building efforts by Russia inside Ukraine.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://www.mining.com/web/russia-to-make-miners-pay-for-high-war-spending-via-new-tax/",
+   "title": "Russia to make miners pay for high war spending via new tax - Mining.com",
+   "publisher": "Mining.com",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Russia's Finance Ministry proposed a new windfall tax on miners to address a budget deficit caused by high military spending and declining oil revenue.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://www.dw.com/en/russia-expected-to-intensify-hybrid-war-on-europe/a-79444596",
+   "title": "Russia expected to intensify hybrid war on Europe - DW.com",
+   "publisher": "DW.com",
+   "published": "2026-09-26",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russia is expected to intensify its hybrid warfare tactics against European countries, with increased drone overflights and acts of sabotage reported in nations bordering Ukraine.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://www.nytimes.com/2026/09/24/business/russia-sanctions-evasion-a7.html",
+   "title": "The ‘Monster’ Behind Russia’s Global Effort to Evade Western Sanctions - The New York Times",
+   "publisher": "The New York Times",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Russia is implementing strategies to evade Western sanctions imposed on it.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://www.rferl.org/a/ukraine-russia-war-sanctions-attacks/33864871.html",
+   "title": "Zelenskyy Calls On Trump To Enact Russia Sanctions After Deadly Attacks Across Ukraine - Radio Free Europe/Radio Liberty",
+   "publisher": "Radio Free Europe/Radio Liberty",
+   "published": "2026-09-26",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Ukrainian President Zelenskyy called on US President Trump to impose sanctions on Russia following deadly attacks across Ukraine.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://news.bloombergtax.com/tariff-news/trump-signs-russia-sanctions-bill-granting-new-tariff-powers",
+   "title": "Trump Signs Russia Sanctions Bill Granting New Tariff Powers - news.bloombergtax.com",
+   "publisher": "news.bloombergtax.com",
+   "published": "2026-09-18",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The US Congress passed a sanctions bill granting new tariff powers that could impact major purchasers of Russian petroleum products, including China and Turkey, amid ongoing tensions related to the war in Ukraine.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://www.nbcnews.com/world/europe/europe-frets-kremlin-pushes-limits-hybrid-warfare-rcna599351",
+   "title": "Europe frets as the Kremlin pushes the limits of its hybrid warfare - NBC News",
+   "publisher": "NBC News",
+   "published": "2026-09-26",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Kremlin is intensifying its hybrid warfare tactics against Europe, raising concerns about potential military actions against NATO countries.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://www.transparency.org/en/blog/crypto-money-laundering-sanctions-evasion-russia",
+   "title": "Crypto is just one channel: how Russia launders corrupt wealth past sanctions - Transparency.org",
+   "publisher": "Transparency.org",
+   "published": "2026-09-18",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Transparency.org discusses how Russia uses cryptocurrency to launder corrupt wealth in order to bypass sanctions.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-september-25-2026/",
+   "title": "Russian Offensive Campaign Assessment, September 25, 2026 - Institute for the Study of War",
+   "publisher": "Institute for the Study of War",
+   "published": "2026-09-26",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russian forces are intensifying their long-range strike campaign against Ukrainian data centers and telecommunications infrastructure, aiming to degrade Ukraine's economy.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.cnbc.com/2026/09/17/trump-russia-sanctions-india-china-oil-tariffs.html",
+   "title": "Trump gains a tariff weapon against China and India. Will he use it? - CNBC",
+   "publisher": "CNBC",
+   "published": "2026-09-17",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The U.S. House passed a sanctions bill allowing President Trump to impose tariffs on countries purchasing oil from Russia, targeting China and India.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 2
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 7
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 2,
+    "resolved": 2
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 0
+   }
+  },
+  "dropped": [
+   {
+    "code": "OECD.PISA.MEAN",
+    "ledger": "edge",
+    "source": "OECD PISA",
+    "label": "PISA mean score (maths/reading/science)",
+    "reason": "no row"
+   }
+  ],
+  "as_of_schemes": {
+   "first-seen": 5,
+   "publication-lag-estimate": 6,
+   "source-published": 1
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 56,
+  "stories": 56,
+  "multi": 0,
+  "dropped": 0,
+  "slots_freed": 0,
+  "selected": 20,
+  "same_story_as": {}
+ },
+ "payload": {
+  "country": {
+   "iso2": "RU",
+   "name": "Russia"
+  },
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "Russia",
+   "regime": "own currency, floating",
+   "region": "Europe & Central Asia",
+   "sovereignty": "full",
+   "tier": "Special"
+  },
+  "economics_by_ledger": {
+   "friction": {
+    "question": "What is taken, and how well does it convert?",
+    "indicators": [
+     {
+      "code": "FP.CPI.TOTL.ZG",
+      "label": "Inflation (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 8.7199,
+      "period": 2025,
+      "as_of": "2026-09-27",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 0,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 6.6945
+       },
+       {
+        "year": 2022,
+        "value": 13.7437
+       },
+       {
+        "year": 2023,
+        "value": 5.8657
+       },
+       {
+        "year": 2024,
+        "value": 8.4349
+       },
+       {
+        "year": 2025,
+        "value": 8.7199
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SI.POV.GINI",
+      "label": "Income inequality (Gini)",
+      "unit": "index",
+      "source": "World Bank WDI",
+      "value": 33.0,
+      "period": 2023,
+      "as_of": "2025-07-01",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 453,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2019,
+        "value": 35.7
+       },
+       {
+        "year": 2020,
+        "value": 33.7
+       },
+       {
+        "year": 2021,
+        "value": 35.1
+       },
+       {
+        "year": 2022,
+        "value": 33.9
+       },
+       {
+        "year": 2023,
+        "value": 33.0
+       }
+      ],
+      "direction": "flat",
+      "accelerating": true,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "label": "Interest payments (% revenue)",
+      "unit": "% revenue",
+      "source": "World Bank WDI",
+      "value": 2.3613,
+      "period": 2020,
+      "as_of": "2022-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 1548,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2016,
+        "value": 2.5753
+       },
+       {
+        "year": 2017,
+        "value": 2.5063
+       },
+       {
+        "year": 2018,
+        "value": 2.3635
+       },
+       {
+        "year": 2019,
+        "value": 2.6182
+       },
+       {
+        "year": 2020,
+        "value": 2.3613
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OWID.VDEM.CORRUPTION",
+      "label": "Political corruption index (0-1, higher = more corrupt)",
+      "unit": "index (0-1)",
+      "source": "V-Dem via OWID",
+      "value": 0.783,
+      "period": 2025,
+      "as_of": "2026-09-27",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 0,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 0.701
+       },
+       {
+        "year": 2022,
+        "value": 0.732
+       },
+       {
+        "year": 2023,
+        "value": 0.78
+       },
+       {
+        "year": 2024,
+        "value": 0.795
+       },
+       {
+        "year": 2025,
+        "value": 0.783
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "order": {
+    "question": "How much doubt is there about the load-bearing rules?",
+    "indicators": [
+     {
+      "code": "GOV_WGI_PV.EST",
+      "label": "Political stability (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": -0.9033,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": -0.5069
+       },
+       {
+        "year": 2021,
+        "value": -0.5062
+       },
+       {
+        "year": 2022,
+        "value": -0.7409
+       },
+       {
+        "year": 2023,
+        "value": -0.8184
+       },
+       {
+        "year": 2024,
+        "value": -0.9033
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GOV_WGI_RL.EST",
+      "label": "Rule of law (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": -1.1565,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": -0.8254
+       },
+       {
+        "year": 2021,
+        "value": -0.9028
+       },
+       {
+        "year": 2022,
+        "value": -1.0549
+       },
+       {
+        "year": 2023,
+        "value": -1.0734
+       },
+       {
+        "year": 2024,
+        "value": -1.1565
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SL.UEM.TOTL.ZS",
+      "label": "Unemployment (% labour force)",
+      "unit": "%",
+      "source": "World Bank WDI",
+      "value": 2.133,
+      "period": 2025,
+      "as_of": "2026-09-27",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 0,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 4.749
+       },
+       {
+        "year": 2022,
+        "value": 3.867
+       },
+       {
+        "year": 2023,
+        "value": 3.076
+       },
+       {
+        "year": 2024,
+        "value": 2.43
+       },
+       {
+        "year": 2025,
+        "value": 2.133
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "NY.GDP.PCAP.KD.ZG",
+      "label": "GDP per-capita growth (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 1.1144,
+      "period": 2025,
+      "as_of": "2026-09-27",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 0,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 6.2186
+       },
+       {
+        "year": 2022,
+        "value": -1.0967
+       },
+       {
+        "year": 2023,
+        "value": 4.3616
+       },
+       {
+        "year": 2024,
+        "value": 5.0392
+       },
+       {
+        "year": 2025,
+        "value": 1.1144
+       }
+      ],
+      "direction": "falling",
+      "accelerating": true,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "information": {
+    "question": "Can the country's own instruments be trusted?",
+    "indicators": [
+     {
+      "code": "IQ.SPI.OVRL",
+      "label": "Statistical performance (0-100)",
+      "unit": "score",
+      "source": "World Bank SPI",
+      "value": 81.5008,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 77.855
+       },
+       {
+        "year": 2021,
+        "value": 81.5004
+       },
+       {
+        "year": 2022,
+        "value": 80.9946
+       },
+       {
+        "year": 2023,
+        "value": 80.9458
+       },
+       {
+        "year": 2024,
+        "value": 81.5008
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "RSF.PRESS.SCORE",
+      "label": "Press freedom (0-100, higher = freer)",
+      "unit": "score",
+      "source": "RSF World Press Freedom Index",
+      "value": 23.15,
+      "period": 2025,
+      "as_of": "2026-05-03",
+      "as_of_scheme": "source-published",
+      "staleness_days": 147,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 38.82
+       },
+       {
+        "year": 2022,
+        "value": 34.77
+       },
+       {
+        "year": 2023,
+        "value": 29.86
+       },
+       {
+        "year": 2024,
+        "value": 24.57
+       },
+       {
+        "year": 2025,
+        "value": 23.15
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "edge": {
+    "question": "Is the system learning?",
+    "indicators": [
+     {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "label": "FDI inflow (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 0.8953,
+      "period": 2025,
+      "as_of": "2026-09-27",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 0,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 2.2114
+       },
+       {
+        "year": 2022,
+        "value": -1.7361
+       },
+       {
+        "year": 2023,
+        "value": -0.4909
+       },
+       {
+        "year": 2024,
+        "value": -0.4276
+       },
+       {
+        "year": 2025,
+        "value": 0.8953
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "label": "Education spending (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 4.1645,
+      "period": 2023,
+      "as_of": "2025-07-01",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 453,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2019,
+        "value": 3.6956
+       },
+       {
+        "year": 2020,
+        "value": 4.0164
+       },
+       {
+        "year": 2021,
+        "value": 3.9948
+       },
+       {
+        "year": 2022,
+        "value": 4.054
+       },
+       {
+        "year": 2023,
+        "value": 4.1645
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   }
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 4,
+    "order": 2,
+    "security": 8,
+    "information": 4,
+    "edge": 2,
+    "broad": 0
+   },
+   "selected_per_ledger": {
+    "friction": 9,
+    "order": 8,
+    "information": 3,
+    "edge": 0
+   },
+   "candidates_fetched": 60,
+   "passed_the_gate": 56,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "Business Insider Africa",
+    "published": "2026-09-27",
+    "title": "Ibrahim Traoré forces NGOs to invest 80% of their budgets in Burkina Faso as Russia-backed military government tightens control of foreign aid - Business Insider Africa",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Burkina Faso's government has implemented new regulations requiring NGOs to allocate at least 80% of their budgets to field investments, limiting their spending on administrative costs. Organizations have two years to comply with these rules and will be subject to audits during this period.",
+     "institutions": [
+      "Burkina Faso government",
+      "Minister of Economy and Finance",
+      "Transition Legislative Assembly"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "80% of budgets to field investments",
+      "two years to comply",
+      "87-article law on freedom of association"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "The National Interest",
+    "published": "2026-09-27",
+    "title": "Don’t Be Fooled by Russia’s Latest Election Results - The National Interest",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Vladimir Putin's ruling United Russia party won nearly 58 percent of the vote in the recent State Duma elections, capturing 355 of the 450 seats. However, the elections are described as stage-managed, with significant electoral fraud likely inflating these results, as independent analyses suggest United Russia may have only received around 34 percent of the votes without fraud.",
+     "institutions": [
+      "United Russia",
+      "Russia's Supreme Court"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "58 percent of the vote for United Russia",
+      "355 of the 450 seats in the Duma",
+      "13.81 percent for the Communist Party",
+      "9 percent for the Liberal Democratic Party of Russia",
+      "7.96 percent for the New People party",
+      "just over five percent for the Just Russia party",
+      "34 percent of votes for United Russia without electoral fraud",
+      "2.8 percent support for United Russia from independent exit polls",
+      "5.5 percent support for United Russia from another exit poll"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Kyiv Post",
+    "published": "2026-09-24",
+    "title": "Russia Solved the Censorship Problem - Kyiv Post",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The article discusses how Russia's Internet Research Agency has developed a systematic approach to spreading false information online, using fake identities and manufactured engagement to influence public perception. It highlights the challenges faced by content creators on platforms like YouTube, where changes in recommendation systems can limit their reach, especially when competing narratives flood the digital space.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "The Guardian",
+    "published": "2026-09-27",
+    "title": "Swiss voters reject stricter neutrality rules that would have curbed Nato cooperation - The Guardian",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Swiss voters have rejected a proposal to define neutrality strictly, which would have limited cooperation with NATO and banned sanctions against Russia. About 70% of voters and all cantons opposed the measure, which was backed by the far-right Swiss People’s party (SVP).",
+     "institutions": [
+      "Swiss People’s party (SVP)",
+      "Swiss government",
+      "Federal Statistical Office"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "70% of voters rejected the proposal",
+      "2m francs spent on the campaign",
+      "€2.1m spent on the campaign",
+      "£1.8m spent on the campaign"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "The Economist",
+    "published": "2026-09-27",
+    "title": "Ireland is helping supply Russia’s war machine - The Economist",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a6",
+    "publisher": "Human Rights Watch",
+    "published": "2026-09-24",
+    "title": "Russia Crackdown on Bypassing Online Censorship - Human Rights Watch",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russian authorities are intensifying their efforts to suppress freedom of expression by blocking Virtual Private Network (VPN) services and pressuring foreign technology companies to remove VPN apps from their stores. This crackdown includes bulk blocking of IP addresses used by VPNs and a coordinated attack on popular VPN services, creating significant challenges for users seeking uncensored internet access.",
+     "institutions": [
+      "Human Rights Watch",
+      "Ministry of Digital Development, Communications and Mass Media",
+      "Roskomnadzor"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "20 VPN providers faced service disruptions",
+      "469 VPNs blocked by authorities",
+      "22.8 million rubles fine for Google",
+      "1,213 applications removed from App Store in response to government requests",
+      "40 percent of Russia’s population—57 million people—estimated to use VPN"
+     ]
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "Межа. Новини України.",
+    "published": "2026-09-26",
+    "title": "Ukraine’s Foreign Minister Says Russia Hit McDonald’s Logistics Site Twice, Undermining Investment - Межа. Новини України.",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Ukraine's Foreign Minister Andrii Sybiha reported that Russian attacks have targeted a logistics facility serving McDonald's in Ukraine twice, which is harming the economy and undermining investment. He emphasized that these actions are disrupting daily life and threatening jobs in Ukraine.",
+     "institutions": [
+      "Ukraine's Foreign Ministry"
+     ],
+     "direction": "deteriorating",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "Reuters",
+    "published": "2026-09-27",
+    "title": "Russia says it struck military infrastructure, vessels in Ukraine - Reuters",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a9",
+    "publisher": "Cybernews",
+    "published": "2026-08-31",
+    "title": "Russia internet filtering threatens GrapheneOS access - Cybernews",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "GrapheneOS reports that Russia's internet censorship is becoming more severe than China's, with regulators blocking entire hosting providers and aiming to restrict access to 92% of VPNs by 2030. The company suggests that its services may gradually become inaccessible in Russia due to these aggressive filtering measures. Despite currently being available, GrapheneOS expresses concern about the future of its services in the country.",
+     "institutions": [
+      "GrapheneOS",
+      "Roskomnadzor"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "92% of VPNs to be blocked by 2030"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "EU Perspectives",
+    "published": "2026-09-25",
+    "title": "Trump’s Russia tariff weapon leaves Europe guessing - EU Perspectives",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The European Commission is seeking assurances from the US regarding the impact of new sanctions on European exports following the signing of the Lindsey O. Graham Sanctioning Russia and Iran Act by President Trump. Hungary is lobbying for an exemption from potential tariffs on Russian crude oil imports as it diversifies its energy supplies.",
+     "institutions": [
+      "European Commission",
+      "US Congress",
+      "Hungarian government"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "€1.2bn paid by EU for fossil fuels in August",
+      "100 per cent duties on goods from largest importers of Russian crude oil and natural gas",
+      "30 days after Mr Trump signed the law for tariffs to apply"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "The Atlantic",
+    "published": "2026-09-27",
+    "title": "The Hidden State Russia Is Building Inside Ukraine - The Atlantic",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a12",
+    "publisher": "Mining.com",
+    "published": "2026-09-24",
+    "title": "Russia to make miners pay for high war spending via new tax - Mining.com",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russia will implement a windfall tax on key commodities producers to address a budget deficit that has increased due to military spending on the war in Ukraine and declining oil revenue. The Finance Ministry proposed a 20% tax on gold revenue and a 30% levy on some other miners and fertilizer producers, aiming to keep the 2027 deficit around 2% of GDP.",
+     "institutions": [
+      "Finance Ministry",
+      "Bank of Russia"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "20% tax rate on revenue from gold",
+      "30% levy on some other miners and fertilizer producers",
+      "deficit at about 2.5% of GDP in January-August",
+      "federal budget revenue expected to reach 43.3 trillion rubles ($510 billion) next year",
+      "spending projected at 48.8 trillion rubles",
+      "deficit to 2.2% of GDP",
+      "240 billion rubles ($2.8 billion) on budget categories for machine tools and unmanned aerial systems"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "DW.com",
+    "published": "2026-09-26",
+    "title": "Russia expected to intensify hybrid war on Europe - DW.com",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russia is expected to intensify its hybrid warfare tactics against Europe, with increased drone activity and airspace violations reported in countries like Moldova and Romania. Politicians in affected countries are acknowledging the deliberate nature of these actions, and there are concerns about potential attacks on Western Europe.",
+     "institutions": [
+      "NATO",
+      "Polish military",
+      "Polish government",
+      "Moldovan government",
+      "Romanian government",
+      "CIA"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "four drones entering Moldovan airspace",
+      "two drones violated Romanian airspace",
+      "42 seconds Polish airspace violation",
+      "40 kilometers (ca. 25 miles) south of Warsaw"
+     ]
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "The New York Times",
+    "published": "2026-09-24",
+    "title": "The ‘Monster’ Behind Russia’s Global Effort to Evade Western Sanctions - The New York Times",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a15",
+    "publisher": "Radio Free Europe/Radio Liberty",
+    "published": "2026-09-26",
+    "title": "Zelenskyy Calls On Trump To Enact Russia Sanctions After Deadly Attacks Across Ukraine - Radio Free Europe/Radio Liberty",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Ukrainian President Volodymyr Zelenskyy has urged US President Donald Trump to impose sanctions on Russia due to its escalating attacks on Ukraine, which have intensified as winter approaches. Recent strikes have resulted in casualties and damage to civilian infrastructure across multiple regions in Ukraine.",
+     "institutions": [
+      "U.S. Government",
+      "Ukrainian Government"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "at least four people killed",
+      "more than a dozen injured",
+      "eight Ukrainian regions affected"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "news.bloombergtax.com",
+    "published": "2026-09-18",
+    "title": "Trump Signs Russia Sanctions Bill Granting New Tariff Powers - news.bloombergtax.com",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The US Congress has passed new sanctions legislation aimed at increasing pressure on Russia amid its ongoing invasion of Ukraine. The law allows the president to impose significant tariffs on Russian goods and extends existing sanctions against Iran.",
+     "institutions": [
+      "US Congress",
+      "White House"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "500% tariff on Russian goods",
+      "100% tariff on top five energy importers",
+      "Iran Sanctions Act extended through 2031"
+     ]
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "NBC News",
+    "published": "2026-09-26",
+    "title": "Europe frets as the Kremlin pushes the limits of its hybrid warfare - NBC News",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Kremlin is reportedly testing Europe's limits through covert attacks and sabotage, with warnings from leaders that Moscow may escalate its hybrid warfare tactics. An assessment by the Danish Defence Intelligence Service indicates a growing risk of limited military attacks against NATO countries, while incidents of aggression have raised alarms among U.S. allies.",
+     "institutions": [
+      "Kremlin",
+      "Danish Defence Intelligence Service",
+      "NATO",
+      "CIA",
+      "U.S. State Department"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "low but growing risk of limited military attack against NATO countries",
+      "near-daily drone incursions into European airspace"
+     ]
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "Transparency.org",
+    "published": "2026-09-18",
+    "title": "Crypto is just one channel: how Russia launders corrupt wealth past sanctions - Transparency.org",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a19",
+    "publisher": "Institute for the Study of War",
+    "published": "2026-09-26",
+    "title": "Russian Offensive Campaign Assessment, September 25, 2026 - Institute for the Study of War",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Ukrainian President Volodymyr Zelensky announced that US President Donald Trump has made a decision to grant Ukraine licenses to produce Patriot air defense systems interceptor missiles. Meanwhile, Russian forces are intensifying their attacks on Ukrainian data centers and telecommunications infrastructure, aiming to disrupt the economy and digital services.",
+     "institutions": [
+      "Ukrainian General Staff",
+      "Russian Ministry of Defense",
+      "Ukrainian Verkhovna Rada",
+      "Ulyanovsk Oblast Governor",
+      "Perm Krai Governor"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "7.5 million tons annual capacity of Novoshakhtinsky Oil Refinery",
+      "13 million tons annual processing capacity of Lukoil-Permnefteorgsintez Oil Refinery",
+      "295 drones launched against Ukraine overnight"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "CNBC",
+    "published": "2026-09-17",
+    "title": "Trump gains a tariff weapon against China and India. Will he use it? - CNBC",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The U.S. House passed a sanctions bill allowing President Trump to impose tariffs of up to 100% on countries buying oil from Russia, targeting China and India. This legislation raises concerns for these countries, which have increased their Russian oil imports since the Ukraine war, as they may face economic pressure from the U.S.",
+     "institutions": [
+      "U.S. House",
+      "Hinrich Foundation",
+      "Hoover Institution",
+      "Center for Research on Energy and Clean Air",
+      "ISEAS Yusof Ishak Institute",
+      "Observer Research Foundation",
+      "DGA Albright Stonebridge Group"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "100% tariffs on Russian oil",
+      "one-third share of Russian oil imports by India and China",
+      "3.5 million barrels per day of Russian seaborne supply",
+      "600,000 bpd China imports via pipeline",
+      "50% of India's crude purchases from Russia in June and July",
+      "40% of India's crude purchases from Russia in August",
+      "25% punitive tariff on India last August",
+      "50% duties on imports from New Delhi",
+      "18% duties in February"
+     ]
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Ibrahim Traoré forces NGOs to invest 80% of their budgets in Burkina Faso as Russia-backed military government tightens control of foreign aid - Business Insider Africa",
+    "publisher": "Business Insider Africa",
+    "body_status": "full",
+    "chars_read": 2951,
+    "chars_original": 2951,
+    "text": "- Burkina Faso's government now requires NGOs to spend at least 80% of their budgets directly on field investments.\n- These rules aim to reduce administrative overhead and ensure more effective delivery of foreign aid to local populations.\n- Aid groups must meet stricter legal criteria and are limited in how much they can spend on internal running costs.\n- Organizations have two years to comply with the new regulations and are subject to audits during this transition period.\nRead Also\nApproved during a Council of Ministers session on September 24, 2026, in Ouagadougou, the measures aim to curb the menace of administrative overhead so that foreign assistance reaches target populations more effectively.\nBurkina Faso enforces massive spending shift for foreign aid groups\nUnder the updated rules, aid groups operating in the nation will no longer be permitted to allocate large portions of their revenue toward internal running costs.\nDON'T MISS THIS: Traoré once stood ready to face a ‘standby’ army, as it came close to blows with its neighbours; now, it seems ready to listen to Nigeria’s proposal\nAccording to reporting by La Nouvelle Tribune, Burkinabè authorities stated that resources raised in the name of the public must \"directly fund the activities for which they are intended.\"\nTo secure or maintain official recognition, organizations must fulfill stricter legal criteria.\nThe Minister of Economy and Finance, Aboubacar Nacanabo, explained that local associations governed by Burkinabè law are required to \"conclude a framework agreement with the state,\" whereas foreign entities will be regulated through a dedicated \"headquarters agreement\".\nAdditionally, organizations must meet a mandatory minimum threshold of cumulative investments to qualify for official NGO status.\nBurkina Faso gives aid groups two years to comply\nAid organizations currently operating within Burkina Faso will have a two-year transition period to align their administration, finances, and field activities with the new directive.\nDON'T MISS THIS: Traore's Russian-backed Burkina Faso rejects Western armored vehicles and unveils locally made war equipment\nDuring this window, state authorities reserve the right to audit organizations across administrative, financial, and technical levels to verify compliance.\nThis policy expands upon a series of legal reforms that began in 2025.\nLa Nouvelle Tribune reported that on July 17, 2025, the Transition Legislative Assembly enacted an 87-article law on freedom of association, replacing legislation that had been in force since 2015 and imposing tighter controls on foreign groups.\nDON'T MISS THIS: Burkina Faso’s leader, Traoré, shows off a new weapon supplied by the world’s 3rd most powerful military nation\nLater, in October 2025, the government mandated that all approved NGOs and associations deposit their financial reserves, grants, and donations into official accounts at the Treasury Deposit Bank."
+   },
+   {
+    "id": "a2",
+    "title": "Don’t Be Fooled by Russia’s Latest Election Results - The National Interest",
+    "publisher": "The National Interest",
+    "body_status": "full",
+    "chars_read": 4794,
+    "chars_original": 4794,
+    "text": "Don’t Be Fooled by Russia’s Latest Election Results\nVladimir Putin’s victory at the polls should not be taken as evidence of widespread Russian satisfaction with the regime.\nIn Russia, we know elections are stage-managed affairs, with outcomes predetermined well in advance and then triumphantly presented as evidence of pluralism and representative government. That’s especially the case these days, because the Kremlin is at pains to demonstrate that Vladimir Putin’s war of choice against Ukraine—which has cost the country tremendously in both blood and treasure—remains a popular enterprise.\nThat is why the outcome of Russia’s latest State Duma elections, held from September 18 to 20, was never really in doubt.\nOfficially, Putin’s ruling United Russia party won nearly 58 percent of the vote, capturing 355 of the 450 seats in the Duma. Russia’s Communist Party came in a distant second at 13.81 percent, followed by the ultra-nationalist Liberal Democratic Party of Russia—which is anything but—at nearly 9 percent. The New People party took 7.96 percent, and the Just Russia party came in at just over five, barely clearing the legislative threshold needed for representation.\nThose results significantly expand United Russia’s already-substantial constitutional majority, giving it even greater power to pass laws and initiate amendments to the constitution without forming coalitions with other parties. The faction has held a parliamentary majority since Russia’s pre-war 2021 elections, but last weekend’s results have now given it the largest parliamentary bloc in its history.\nNot that there’s much political competition to begin with. Over the past decade, and especially since February 2022, Putin’s government has systematically dismantled its political opposition, imprisoning or eliminating leading critics, blacklisting institutions geared toward holding the government accountable, and otherwise making meaningful participation in political life increasingly untenable. (A good example is Yabloko, Russia’s only openly anti-war political party, which Russia’s Supreme Court barred from participating in the elections altogether in August.)\nThe numbers reflect the real scope of the political fix the Kremlin has just orchestrated. For instance, Novaya Gazeta Europe conducted a statistical analysis vetted by independent experts and concluded that “United Russia” may have received only around 34 percent of votes without electoral fraud—far below the commanding lead Putin and his cronies are now touting.\nMeanwhile, Russians outside the country have an even dimmer view. EuroNews reports that two independent exit polls of Russians voting at embassies and consulates across 22 countries found an overwhelming rejection of Putin’s preferred political order. One survey placed support for United Russia at as little as 2.8 percent. Another had a slightly higher tally: 5.5 percent.\nTo be sure, Russian expats are a self-selected group. Vladimir Putin’s “partial mobilization” of September 2022—designed to drum up manpower for the Kremlin’s “special military operation” against Ukraine—resulted in an exodus that The Washington Post has compared to the emigration wave that followed the 1917 Bolshevik revolution and the one that accompanied the 1991 Soviet collapse.\nThose Russians departed for all sorts of reasons, ranging from conscientious objection to Putin’s assault on Ukraine to a more basic desire to avoid conscription into the conflict. Their political preferences, therefore, shouldn’t be taken as representative of what Russians who have remained behind really think.\nEven so, the contrast is instructive. It provides a useful reminder that there is a significant constituency of Russians that has a very different vision of their country’s future. Most of them, however, live outside Russia’s borders. The rest, meanwhile, are about to face an even more absolutist, totalitarian Kremlin.\nIndeed, the politics of Putin’s war—in which Russia now finds itself on the back foot against a reinvigorated and technologically capable Ukraine—necessitate it. As such, the results of the latest Duma elections may be a bellwether for what Putin needs next: greater mobilization, additional economic sacrifice, and an ever more compliant and passive population.\nAbout the Author: Ilan Berman\nIlan Berman is senior vice president at the American Foreign Policy Council in Washington, DC. An expert on regional security in the Middle East, Central Asia, and the Russian Federation, he has consulted for the Central Intelligence Agency and the Departments of State and Defense. Mr. Berman is a member of the associated faculty at Missouri State University’s Department of Defense and Strategic Studies, as well as an adjunct professor at the Institute of World Politics."
+   },
+   {
+    "id": "a3",
+    "title": "Russia Solved the Censorship Problem - Kyiv Post",
+    "publisher": "Kyiv Post",
+    "body_status": "full",
+    "chars_read": 1572,
+    "chars_original": 1572,
+    "text": "Russia Solved the Censorship Problem\nWhen a channel’s audience is still there but YouTube suddenly stops sending new viewers, the real question is what changed inside the recommendation system.\nWhen a channel’s audience is still there but YouTube suddenly stops sending new viewers, the real question is what changed inside the recommendation system.\nData scientist Marijn breaks down how platforms decide what gets distributed, why certain words can reduce reach, and how content can stay online while becoming much harder to find. His examples show why creators increasingly change the way they speak just to avoid being buried by automated systems.\nThat problem becomes far more serious when the same digital environment is deliberately flooded with false information. Using MH17 as the central example, Marijn traces how multiple conflicting stories appeared almost immediately, blaming Ukraine, NATO, the CIA and even claiming the disaster itself had been staged. Rather than pushing one version, the tactic overwhelms people with enough competing claims that many stop trying to work out what actually happened.\nFollow our coverage of the war on the @Kyivpost_official.\nRussia’s Internet Research Agency turned that approach into an organized system built around fake identities, manufactured engagement and accounts posing as ordinary Western citizens. Apparent popularity can become real visibility, real influence and eventually real money, giving both propagandists and opportunists a reason to keep the cycle going. As Marijn puts it, “Lying is a profit model.”"
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.475,
+    "indicator_resolution": 0.9167,
+    "freshness": 0.75
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

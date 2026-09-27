@@ -1,0 +1,1322 @@
+{
+ "iso2": "KW",
+ "country": "Kuwait",
+ "run_date": "2026-09-27",
+ "payload_fingerprint": "32c6796f77de1c647b79bb4c6ea0763c609aec81d951123d6f939c64316e91f5",
+ "payload_sha256": "ed7312c9930b12bd95de0a263e06c57e0d6e0db1e84cb19bac45c154283244bb",
+ "payload_tokens": 9026,
+ "versions": {
+  "git_sha": "047072131346f524a33b75c0885dc6643d3ad759",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "360a84838ecddc01bcad98fcd02d48890ba05499180362b005fd794b1b07f081",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "schema_violations": 0,
+  "payload_tokens": 9026
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://kuwaittimes.com/article/50539/kuwait/other-news/court-strikes-down-delivery-penalties-raising-fears-of-weak-enforcement/",
+   "title": "Court strikes down delivery penalties, raising fears of weak enforcement - Kuwait Times",
+   "publisher": "Kuwait Times",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's Administrative Court annulled a section of new delivery regulations that imposed penalties on delivery platforms and merchants, raising concerns about enforcement.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.arabnews.com/archive/295403",
+   "title": "Newsline: Kuwait Keeps Markets Guessing on Currency - Arab News",
+   "publisher": "Arab News",
+   "published": "2026-09-26",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's markets are uncertain about the future of its currency, leading to speculation among investors.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.aps.dz/en/algeria/national-news/mue33ala-algeria-kuwait-hold-anti-corruption-talks-in-doha",
+   "title": "Algeria, Kuwait hold anti-corruption talks in Doha - aps.dz",
+   "publisher": "aps.dz",
+   "published": "2026-09-23",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "Algeria and Kuwait held anti-corruption talks in Doha, focusing on transparency and corruption prevention.",
+   "body_quality": "partial",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a4",
+   "url": "https://sudanhorizon.com/sudan-begins-exporting-meat-to-kuwait/",
+   "title": "Sudan Begins Exporting Meat to Kuwait - Sudan Horizon",
+   "publisher": "Sudan Horizon",
+   "published": "2026-09-27",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Sudan's Ministry of Animal Resources and Fisheries announced the start of meat exports to Kuwait as part of a strategy to expand into Gulf markets.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.cbsnews.com/news/iran-drone-strike-kuwait-commander-rejected-plans-rebase/",
+   "title": "Commander rejected plans to rebase farther from Iran before deadly drone strike, sources say - CBS News",
+   "publisher": "CBS News",
+   "published": "2026-09-25",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "U.S. troops stationed in Kuwait faced a drone strike from Iran, with plans to relocate to safer positions rejected by their commander.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a6",
+   "url": "https://shabellemedia.com/somalia-kuwait-discuss-cooperation-to-combat-corruption/",
+   "title": "Somalia, Kuwait Discuss Cooperation to Combat Corruption - Shabelle Media",
+   "publisher": "Shabelle Media",
+   "published": "2026-09-23",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "Somalia's Minister of Justice held talks with Kuwait's anti-corruption authority to strengthen cooperation against corruption.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://www.bnpbd.org/all-news/6ab774d78ae14b9107d00ab1",
+   "title": "PM, Kuwait Crown Prince discuss expanding manpower, trade, investment ties - bnpbd",
+   "publisher": "bnpbd",
+   "published": "2026-09-26",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's Crown Prince and Bangladesh's Prime Minister discussed expanding manpower exports, trade, and investment ties between the two countries.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://www.cicnews.com/2026/09/canada-lifts-temporary-halt-on-removals-to-bahrain-kuwait-qatar-and-the-uae-0980662.html",
+   "title": "Canada lifts temporary halt on removals to Bahrain, Kuwait, Qatar, and the UAE - CIC News",
+   "publisher": "CIC News",
+   "published": "2026-09-24",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Canada has resumed deportations of inadmissible individuals to Kuwait and three other Gulf countries after lifting a temporary halt.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://www.tbsnews.net/foreign-policy/tarique-kuwait-crown-prince-agree-deepen-manpower-trade-and-investment-ties-1553786",
+   "title": "Tarique, Kuwait Crown Prince agree to deepen manpower, trade and investment ties - The Business Standard",
+   "publisher": "The Business Standard",
+   "published": "2026-09-25",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's Crown Prince and Bangladesh's Prime Minister agreed to deepen manpower, trade, and investment ties during a bilateral meeting.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://egyptian-gazette.com/egypt/pm-kuwait-crown-prince-discuss-investment-regional-co-ordination-at-unga/",
+   "title": "PM, Kuwait Crown Prince discuss investment, regional co‑ordination at UNGA - Egyptian Gazette",
+   "publisher": "Egyptian Gazette",
+   "published": "2026-09-23",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's Crown Prince and Egypt's Prime Minister discussed strengthening bilateral cooperation and regional security at the UN General Assembly.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.gdnonline.com/Details/1407566/Kuwait-court-upholds-10-year-prison-terms-in-KD602m-money-laundering-cases",
+   "title": "Kuwait court upholds 10-year prison terms in KD602m money laundering cases - GDNOnline",
+   "publisher": "GDNOnline",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Kuwaiti Court of Appeal upheld 10-year prison sentences for multiple defendants in two major money laundering cases involving KD602 million.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://english.globalarabnetwork.com/2026/09/15/uae-and-kuwait-foreign-ministers-discuss-regional-developments-2/",
+   "title": "UAE and Kuwait Foreign Ministers Discuss Regional Developments - Global Arab Network",
+   "publisher": "Global Arab Network",
+   "published": "2026-09-16",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Foreign Ministers of the UAE and Kuwait discussed regional developments affecting both countries.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://www.egypttoday.com/Article/1/149664/Egypt-eyes-more-direct-Kuwaiti-investment-stronger-trade-PM-to",
+   "title": "Egypt eyes more direct Kuwaiti investment, stronger trade: PM to Kuwait’s crown prince - Egypt Today",
+   "publisher": "Egypt Today",
+   "published": "2026-09-23",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Egypt's Prime Minister Mostafa Madbouly discussed attracting more Kuwaiti investment and enhancing trade with Kuwait's Crown Prince Sheikh Sabah Khaled Al-Hamad Al-Sabah during a meeting at the UNGA.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://english.aawsat.com/gulf/5315480-kuwait-court-orders-imprisonment-former-mps-including-musallam-al-barrak",
+   "title": "Kuwait Court Orders Imprisonment of Former MPs, Including Musallam Al-Barrak - ASHARQ AL-AWSAT English",
+   "publisher": "ASHARQ AL-AWSAT English",
+   "published": "2026-09-07",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Kuwaiti Court of Cassation sentenced several former MPs to prison for charges related to contesting the rights of the Emir and spreading malicious news detrimental to the nation's stability.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://english.ahram.org.eg/NewsContentP/1/577334/Egypt/Egypt-PM,-Kuwait-crown-prince-discuss-expanding-in.aspx",
+   "title": "Egypt PM, Kuwait crown prince discuss expanding investment, trade ties in New York - Foreign Affairs - Egypt - Ahram Online",
+   "publisher": "Ahram Online",
+   "published": "2026-09-23",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Prime Minister of Egypt and the Crown Prince of Kuwait discussed expanding investment and trade ties during a meeting in New York.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://www.unionleader.com/news/business/economy/iran-buries-victims-of-reported-us-wedding-attack-fires-on-kuwait/article_5a21624f-bbb0-5034-93cf-c93e4e64bf04.html",
+   "title": "Iran buries victims of reported US wedding attack, fires on Kuwait - UnionLeader.com",
+   "publisher": "UnionLeader.com",
+   "published": "2026-09-04",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Iran launched missiles and drones at a U.S. base in Kuwait following a U.S. airstrike that reportedly killed civilians at a wedding in Iran.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://www.tradingview.com/news/reuters.com,2026:newsml_FWN45F08H:0-efg-says-it-reached-final-settlement-in-kuwait-pension-fund-corruption-lawsuit/",
+   "title": "EFG says it reached final settlement in Kuwait pension fund corruption lawsuit - TradingView",
+   "publisher": "TradingView",
+   "published": "2026-09-23",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "EFG reached a final settlement in a corruption lawsuit related to a pension fund in Kuwait.",
+   "body_quality": "not_article",
+   "body_status": "title-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://www.washingtonpost.com/world/2026/09/03/iran-fires-missiles-drones-kuwait-strikes-resume-us-war/",
+   "title": "Under pressure, Iran lashes out and ramps up rhetoric - The Washington Post",
+   "publisher": "The Washington Post",
+   "published": "2026-09-03",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Iran ramps up rhetoric amid pressure, potentially affecting regional stability and security dynamics.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://www.agbi.com/banking-finance/2026/09/kuwait-sukuk-law-widens-government-financing-options/",
+   "title": "Kuwait sukuk law widens government financing options - Arabian Gulf Business Insight | AGBI",
+   "publisher": "Arabian Gulf Business Insight | AGBI",
+   "published": "2026-09-22",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Kuwait approved its first sukuk law to allow the issuance of Islamic bonds as part of its efforts to expand government financing options amid a liquidity shortage.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.bloomberg.com/news/articles/2026-09-01/kuwait-decree-allows-government-to-borrow-from-wealth-fund",
+   "title": "Kuwait Decree Allows Government to Borrow From Wealth Fund - Bloomberg",
+   "publisher": "Bloomberg",
+   "published": "2026-09-01",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's government issued a decree allowing it to borrow from its sovereign wealth fund to support state finances amid the US-Iran war.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 2,
+   "order": 4,
+   "information": 2,
+   "edge": 2
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 5
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 2,
+    "resolved": 2
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 0
+   }
+  },
+  "dropped": [
+   {
+    "code": "SI.POV.GINI",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Income inequality (Gini)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Interest payments (% revenue)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "OECD.PISA.MEAN",
+    "ledger": "edge",
+    "source": "OECD PISA",
+    "label": "PISA mean score (maths/reading/science)",
+    "reason": "no row"
+   }
+  ],
+  "as_of_schemes": {
+   "first-seen": 5,
+   "publication-lag-estimate": 4,
+   "source-published": 1
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 48,
+  "stories": 43,
+  "multi": 3,
+  "dropped": 5,
+  "slots_freed": 2,
+  "selected": 20,
+  "same_story_as": {
+   "https://www.stripes.com/theaters/us/2026-09-22/democrats-hearing-deadly-strike-kuwait-22932510.html": "https://www.cbsnews.com/news/iran-drone-strike-kuwait-commander-rejected-plans-rebase/",
+   "https://www.theguardian.com/world/2026/sep/03/iran-targets-us-bases-as-israel-warns-sanctions-could-drive-tehran-to-desperate-steps": "https://www.cbsnews.com/news/new-photos-damage-u-s-kuwait-saudi-arabia-iran-drone-missile-attacks/",
+   "https://spectrumlocalnews.com/us/snplus/politics/2026/09/03/iran-targets-kuwait": "https://www.unionleader.com/news/business/economy/iran-buries-victims-of-reported-us-wedding-attack-fires-on-kuwait/article_5a21624f-bbb0-5034-93cf-c93e4e64bf04.html",
+   "https://www.cnbc.com/2026/09/03/us-iran-war-trump-hormuz-israel-middle-east-europe-kuwait.html": "https://www.unionleader.com/news/business/economy/iran-buries-victims-of-reported-us-wedding-attack-fires-on-kuwait/article_5a21624f-bbb0-5034-93cf-c93e4e64bf04.html",
+   "https://www.tasnimnews.ir/en/news/2026/09/02/3686687/irgc-strikes-us-commander-s-quarters-in-kuwait": "https://www.unionleader.com/news/business/economy/iran-buries-victims-of-reported-us-wedding-attack-fires-on-kuwait/article_5a21624f-bbb0-5034-93cf-c93e4e64bf04.html"
+  }
+ },
+ "payload": {
+  "country": {
+   "iso2": "KW",
+   "name": "Kuwait"
+  },
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "Kuwait",
+   "regime": "peg to an undisclosed currency basket",
+   "region": "Middle East, North Africa, Afghanistan & Pakistan",
+   "sovereignty": "constrained",
+   "tier": "EM"
+  },
+  "economics_by_ledger": {
+   "friction": {
+    "question": "What is taken, and how well does it convert?",
+    "indicators": [
+     {
+      "code": "FP.CPI.TOTL.ZG",
+      "label": "Inflation (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 2.362,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 3.4236
+       },
+       {
+        "year": 2022,
+        "value": 3.9806
+       },
+       {
+        "year": 2023,
+        "value": 3.6422
+       },
+       {
+        "year": 2024,
+        "value": 2.8986
+       },
+       {
+        "year": 2025,
+        "value": 2.362
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OWID.VDEM.CORRUPTION",
+      "label": "Political corruption index (0-1, higher = more corrupt)",
+      "unit": "index (0-1)",
+      "source": "V-Dem via OWID",
+      "value": 0.346,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 0.462
+       },
+       {
+        "year": 2022,
+        "value": 0.315
+       },
+       {
+        "year": 2023,
+        "value": 0.315
+       },
+       {
+        "year": 2024,
+        "value": 0.315
+       },
+       {
+        "year": 2025,
+        "value": 0.346
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "order": {
+    "question": "How much doubt is there about the load-bearing rules?",
+    "indicators": [
+     {
+      "code": "GOV_WGI_PV.EST",
+      "label": "Political stability (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 0.2939,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 0.1554
+       },
+       {
+        "year": 2021,
+        "value": 0.1542
+       },
+       {
+        "year": 2022,
+        "value": 0.1042
+       },
+       {
+        "year": 2023,
+        "value": 0.2907
+       },
+       {
+        "year": 2024,
+        "value": 0.2939
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GOV_WGI_RL.EST",
+      "label": "Rule of law (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 0.2308,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 0.1469
+       },
+       {
+        "year": 2021,
+        "value": 0.1195
+       },
+       {
+        "year": 2022,
+        "value": 0.2237
+       },
+       {
+        "year": 2023,
+        "value": 0.1911
+       },
+       {
+        "year": 2024,
+        "value": 0.2308
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SL.UEM.TOTL.ZS",
+      "label": "Unemployment (% labour force)",
+      "unit": "%",
+      "source": "World Bank WDI",
+      "value": 2.181,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 2.97
+       },
+       {
+        "year": 2022,
+        "value": 2.133
+       },
+       {
+        "year": 2023,
+        "value": 2.08
+       },
+       {
+        "year": 2024,
+        "value": 2.151
+       },
+       {
+        "year": 2025,
+        "value": 2.181
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "NY.GDP.PCAP.KD.ZG",
+      "label": "GDP per-capita growth (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 3.4068,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 2.5908
+       },
+       {
+        "year": 2022,
+        "value": 1.4371
+       },
+       {
+        "year": 2023,
+        "value": -6.9866
+       },
+       {
+        "year": 2024,
+        "value": -2.3561
+       },
+       {
+        "year": 2025,
+        "value": 3.4068
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "information": {
+    "question": "Can the country's own instruments be trusted?",
+    "indicators": [
+     {
+      "code": "IQ.SPI.OVRL",
+      "label": "Statistical performance (0-100)",
+      "unit": "score",
+      "source": "World Bank SPI",
+      "value": 63.3754,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 60.1775
+       },
+       {
+        "year": 2021,
+        "value": 66.2354
+       },
+       {
+        "year": 2022,
+        "value": 59.9104
+       },
+       {
+        "year": 2023,
+        "value": 62.4379
+       },
+       {
+        "year": 2024,
+        "value": 63.3754
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "RSF.PRESS.SCORE",
+      "label": "Press freedom (0-100, higher = freer)",
+      "unit": "score",
+      "source": "RSF World Press Freedom Index",
+      "value": 40.44,
+      "period": 2025,
+      "as_of": "2026-05-03",
+      "as_of_scheme": "source-published",
+      "staleness_days": 147,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 37.87
+       },
+       {
+        "year": 2022,
+        "value": 38.84
+       },
+       {
+        "year": 2023,
+        "value": 44.66
+       },
+       {
+        "year": 2024,
+        "value": 44.06
+       },
+       {
+        "year": 2025,
+        "value": 40.44
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "edge": {
+    "question": "Is the system learning?",
+    "indicators": [
+     {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "label": "FDI inflow (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 0.2628,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": -0.1836
+       },
+       {
+        "year": 2022,
+        "value": 0.4099
+       },
+       {
+        "year": 2023,
+        "value": 1.278
+       },
+       {
+        "year": 2024,
+        "value": 0.382
+       },
+       {
+        "year": 2025,
+        "value": 0.2628
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "label": "Education spending (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 6.4359,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 6.2451
+       },
+       {
+        "year": 2021,
+        "value": 7.7625
+       },
+       {
+        "year": 2022,
+        "value": 6.5824
+       },
+       {
+        "year": 2023,
+        "value": 5.0263
+       },
+       {
+        "year": 2024,
+        "value": 6.4359
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   }
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 4,
+    "order": 4,
+    "security": 2,
+    "information": 0,
+    "edge": 5,
+    "broad": 5
+   },
+   "selected_per_ledger": {
+    "friction": 9,
+    "order": 9,
+    "information": 2,
+    "edge": 0
+   },
+   "candidates_fetched": 58,
+   "passed_the_gate": 48,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "Kuwait Times",
+    "published": "2026-09-27",
+    "title": "Court strikes down delivery penalties, raising fears of weak enforcement - Kuwait Times",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Kuwait's Administrative Court annulled Article 15 of the new delivery regulations, which set penalties for violations by delivery platforms and merchants. The ruling raises concerns among industry representatives about the enforcement of the remaining regulations without these penalties in place.",
+     "institutions": [
+      "Kuwait’s Administrative Court",
+      "Ministry of Commerce and Industry"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "KD 1 cap on consumer delivery fees",
+      "10 to 17 percent limit on commissions"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "Arab News",
+    "published": "2026-09-26",
+    "title": "Newsline: Kuwait Keeps Markets Guessing on Currency - Arab News",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a3",
+    "publisher": "aps.dz",
+    "published": "2026-09-23",
+    "title": "Algeria, Kuwait hold anti-corruption talks in Doha - aps.dz",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A delegation from Algeria's High Authority for Transparency, Prevention, and the Fight against Corruption met with the President of the Kuwait Anti-Corruption Authority in Doha, Qatar, to discuss anti-corruption efforts.",
+     "institutions": [
+      "High Authority for Transparency, Prevention, and the Fight against Corruption",
+      "Kuwait Anti-Corruption Authority"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "Sudan Horizon",
+    "published": "2026-09-27",
+    "title": "Sudan Begins Exporting Meat to Kuwait - Sudan Horizon",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Sudan has officially begun exporting meat to Kuwait, as announced by the Ministry of Animal Resources and Fisheries. This marks a first step towards expanding into Gulf markets, with seven slaughterhouses ready to meet health requirements.",
+     "institutions": [
+      "Ministry of Animal Resources and Fisheries",
+      "General Department of Quarantine and Meat Health"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "seven slaughterhouses ready and comply with approved health requirements"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "CBS News",
+    "published": "2026-09-25",
+    "title": "Commander rejected plans to rebase farther from Iran before deadly drone strike, sources say - CBS News",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The article reports that U.S. troops in Kuwait were not relocated to safer positions in Saudi Arabia before a deadly Iranian drone strike, despite intelligence warnings. The decision by the unit's commanding general led to six U.S. troops being killed and more than 20 wounded in the attack.",
+     "institutions": [
+      "U.S. Army Central",
+      "Third Army",
+      "103rd Sustainment Command",
+      "Department of Defense"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "six U.S. troops killed",
+      "more than 20 wounded",
+      "49-50 vote in Senate"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "Shabelle Media",
+    "published": "2026-09-23",
+    "title": "Somalia, Kuwait Discuss Cooperation to Combat Corruption - Shabelle Media",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Somalia’s Minister of Justice and Constitutional Affairs Hassan Maalim Mohamud met with Rana Al-Fares, head of Kuwait’s anti-corruption authority, to discuss strengthening cooperation in combating corruption and improving government accountability. They focused on sharing expertise, building institutional capacity, and promoting transparency within government institutions.",
+     "institutions": [
+      "Somalia’s Ministry of Justice and Constitutional Affairs",
+      "Kuwait’s anti-corruption authority"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "bnpbd",
+    "published": "2026-09-26",
+    "title": "PM, Kuwait Crown Prince discuss expanding manpower, trade, investment ties - bnpbd",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "BNP Chairman and Prime Minister Tarique Rahman and Kuwait’s Crown Prince Sheikh Sabah Khaled Al-Hamad Al-Sabah discussed increasing manpower exports to Kuwait, expanding trade and investment, and strengthening economic cooperation between Bangladesh and Kuwait during a meeting in New York.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "CIC News",
+    "published": "2026-09-24",
+    "title": "Canada lifts temporary halt on removals to Bahrain, Kuwait, Qatar, and the UAE - CIC News",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Canada has lifted a temporary halt on removals to Bahrain, Kuwait, Qatar, and the UAE, allowing the Canada Border Services Agency (CBSA) to resume deportations of inadmissible individuals from these countries as of September 23, 2026. This change follows the removal of these countries from the CBSA’s exclusion list, which had previously been in place due to humanitarian concerns.",
+     "institutions": [
+      "Canada Border Services Agency (CBSA)"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "September 23, 2026 removals resume",
+      "March 24, 2026 ADR introduced"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "The Business Standard",
+    "published": "2026-09-25",
+    "title": "Tarique, Kuwait Crown Prince agree to deepen manpower, trade and investment ties - The Business Standard",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Prime Minister Tarique Rahman of Bangladesh and Kuwait's Crown Prince Sheikh Sabah Khaled Al-Hamad Al-Sabah agreed to strengthen the bilateral relationship between Bangladesh and Kuwait, focusing on expanding labor migration, trade, investment, and economic cooperation. They discussed various mutual interests and emphasized the importance of regular communication and high-level contacts between the two countries.",
+     "institutions": [
+      "Bangladesh",
+      "Kuwait"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "Egyptian Gazette",
+    "published": "2026-09-23",
+    "title": "PM, Kuwait Crown Prince discuss investment, regional co‑ordination at UNGA - Egyptian Gazette",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "During the 81st session of the United Nations General Assembly, Prime Minister Mostafa Madbouly of Egypt met with Sheikh Sabah Khaled Al‑Hamad Al‑Sabah, Crown Prince of Kuwait, to discuss strengthening bilateral cooperation and regional issues. Madbouly emphasized the importance of Egypt-Kuwait relations and the security of Kuwait as part of Egypt's national security, while the Crown Prince praised Egypt's development under President El-Sisi's leadership.",
+     "institutions": [
+      "United Nations General Assembly",
+      "Egyptian government",
+      "Kuwaiti government"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "GDNOnline",
+    "published": "2026-09-24",
+    "title": "Kuwait court upholds 10-year prison terms in KD602m money laundering cases - GDNOnline",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Kuwaiti Court of Appeal has upheld 10-year prison sentences for multiple defendants in two major money laundering cases involving unlicensed banking activities and illicit funds totalling KD602 million. The court confirmed sentences for 21 defendants in the first case and upheld sentences against a Kuwaiti citizen and Egyptian defendants in the second case, along with significant fines.",
+     "institutions": [
+      "Kuwaiti Court of Appeal",
+      "Kuwaiti General Department for Combating Terrorism and Money Laundering",
+      "Criminal Execution Investigations Department"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "KD602 million total illicit funds",
+      "KD202 million fines in first case",
+      "KD199.5 million fines in second case"
+     ]
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "Global Arab Network",
+    "published": "2026-09-16",
+    "title": "UAE and Kuwait Foreign Ministers Discuss Regional Developments - Global Arab Network",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a13",
+    "publisher": "Egypt Today",
+    "published": "2026-09-23",
+    "title": "Egypt eyes more direct Kuwaiti investment, stronger trade: PM to Kuwait’s crown prince - Egypt Today",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Prime Minister Mostafa Madbouly met with Kuwait’s Crown Prince Sheikh Sabah Khaled Al-Hamad Al-Sabah during the UN General Assembly to discuss enhancing bilateral relations, attracting more Kuwaiti investment, and increasing trade between Egypt and Kuwait. Madbouly emphasized Egypt's commitment to strengthening ties and highlighted the importance of the Egyptian community in Kuwait.",
+     "institutions": [
+      "Egyptian government",
+      "Kuwait government",
+      "UN General Assembly"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "ASHARQ AL-AWSAT English",
+    "published": "2026-09-07",
+    "title": "Kuwait Court Orders Imprisonment of Former MPs, Including Musallam Al-Barrak - ASHARQ AL-AWSAT English",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Kuwaiti Court of Cassation sentenced several former MPs to prison, overturning their previous acquittals. The defendants were found guilty of charges related to contesting the rights of the Emir and spreading harmful news against the nation's interests.",
+     "institutions": [
+      "Kuwaiti Court of Cassation"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "three years in prison for Muhannad Talal Al-Sayer",
+      "two years in prison for Saleh Mohammed Al-Mulla",
+      "three years in prison for Musallam Al-Barrak and Salem Al-Namlan",
+      "one year of hard labor for Bader Al-Dahoum"
+     ]
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "Ahram Online",
+    "published": "2026-09-23",
+    "title": "Egypt PM, Kuwait crown prince discuss expanding investment, trade ties in New York - Foreign Affairs - Egypt - Ahram Online",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a16",
+    "publisher": "UnionLeader.com",
+    "published": "2026-09-04",
+    "title": "Iran buries victims of reported US wedding attack, fires on Kuwait - UnionLeader.com",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Iranian mourners held a funeral for victims of a U.S. airstrike that reportedly struck a wedding party, resulting in five deaths and nearly 70 injuries. In response, Iran launched missiles and drones at a U.S. base in Kuwait, marking a significant escalation in the ongoing conflict.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "5 deaths from airstrike",
+      "nearly 70 wounded",
+      "Brent crude futures over $96 a barrel"
+     ]
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "TradingView",
+    "published": "2026-09-23",
+    "title": "EFG says it reached final settlement in Kuwait pension fund corruption lawsuit - TradingView",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a18",
+    "publisher": "The Washington Post",
+    "published": "2026-09-03",
+    "title": "Under pressure, Iran lashes out and ramps up rhetoric - The Washington Post",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a19",
+    "publisher": "Arabian Gulf Business Insight | AGBI",
+    "published": "2026-09-22",
+    "title": "Kuwait sukuk law widens government financing options - Arabian Gulf Business Insight | AGBI",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Kuwait has approved its first law governing sovereign sukuk, allowing the government to issue Sharia-compliant debt to expand its borrowing program amid a liquidity shortage due to declining oil income. The law establishes a framework for issuing various types of Islamic bonds, which is expected to stimulate the debt market and engage Islamic banks in the country.",
+     "institutions": [
+      "Kuwait Finance House (KFH)",
+      "Kuwait International Bank",
+      "Boubyan Bank",
+      "Warba Bank",
+      "Union of Arab Banks",
+      "Kuwait's state general reserve fund"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "KD8.6 billion ($28 billion) debt at the end of June",
+      "KD7 billion budget deficit for 2025-26",
+      "nearly 13 percent increase in budget deficit",
+      "revenue almost 10 percent below prior forecast"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "Bloomberg",
+    "published": "2026-09-01",
+    "title": "Kuwait Decree Allows Government to Borrow From Wealth Fund - Bloomberg",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Kuwait's government has issued a decree that allows it to borrow from its sovereign wealth fund, which is over $1 trillion, to support state finances amid the impact of the US-Iran war. This decree amends a 1976 law regarding the wealth fund, known as the Future Generations Fund, managed by the Kuwait Investment Authority.",
+     "institutions": [
+      "Kuwait Investment Authority"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Court strikes down delivery penalties, raising fears of weak enforcement - Kuwait Times",
+    "publisher": "Kuwait Times",
+    "body_status": "full",
+    "chars_read": 5675,
+    "chars_original": 5675,
+    "text": "KUWAIT: Industry representatives are wary of a new court ruling that struck down the section of Kuwait’s new delivery regulations setting penalties for violations. The ruling, handed down on Sunday by Kuwait’s Administrative Court in a lawsuit filed by delivery app talabat, annulled Article 15 of Ministerial Decision No. 109/2026.\nThe regulations, which came into effect Sept 1, cap consumer delivery fees for online orders through platforms such as talabat at KD 1 and limit commissions charged to businesses to between 10 and 17 percent. The regulations also prohibit platforms from charging additional amounts under names such as operational, processing or other administrative fees.\nThe court ruled that the Minister of Commerce and Industry can regulate services and issue decisions needed to implement the law but cannot create new punitive administrative penalties without an explicit legislative basis. “Article 15 had been issued beyond the legally defined authority of the body that issued it and it must be annulled, along with all resulting legal consequences,” the court said in its ruling.\nArticle 15 established a progressive system of administrative penalties for delivery platforms and participating merchants. For platforms, the measures ranged from an official warning to administrative closure and, ultimately, license cancellation and a permanent ban on operating in Kuwait.\nFor merchants, the penalties ranged from warnings to business closures or activity suspensions, including a requirement to stop displaying their products on delivery platforms, and ultimately license revocation and a permanent ban from delivery apps.\nThe court said existing legislation already sets out penalties for violations of regulatory and pricing rules and determines which authorities can impose them. Depending on the circumstances and within the limits set by law, the courts can order measures including the closure of a business or cancellation of its license.\nThe court rejected talabat’s remaining requests, the court ruling said, without providing details about their nature. Because the ruling was issued by a court of first instance, the Ministry of Commerce and Industry can appeal it. The ruling does not invalidate the rest of the delivery regulations. However, industry representatives said enforcement could become more difficult without the penalties in Article 15.\n“I’m worried that the regulations won’t be enforced effectively without these penalties in place,” said Khalid Hussein, a financial manager with more than 30 years of experience in Kuwait’s food and beverage industry. Hussein said compliance with the new rules has been slow since they took effect Sept 1.\nPressure on delivery fleets\nFor third-party logistics (3PL) companies that provide delivery fleets, the ruling does not resolve the broader uncertainty surrounding the new regulations. Major delivery platforms in Kuwait rely on 3PL providers, which typically supply drivers and vehicles and are paid by platforms on a per-order basis.\nA representative of a local 3PL provider said the company would prefer to see the commission and fee limits removed altogether. “What we want is for these regulations, specifically the decrease in commissions charged to restaurants, to be cancelled all together,” said the representative, who spoke on condition of anonymity. The regulations cap what platforms can charge consumers and the commissions they can charge merchants, but do not set minimum rates for what platforms must pay 3PL companies.\n3PL representatives who previously spoke with Kuwait Times warned that platforms could respond to the commission limits by reducing the per-order rates they pay delivery fleets. “Even if the court ruling was not appealed, the platforms are looking for an excuse to make more money so they will still reduce the fee per order,” the representative said.\nThe representative said some platforms have already begun revising contracts to lower per-order payments to 3PL companies. He expects his company’s platform partner to follow suit soon. The representatives fear platforms could continue charging merchants high commissions while reducing the rates paid to delivery fleets, particularly now that Article 15’s penalties have been annulled.\nA door for legal challenges\nThe uncertainty is particularly difficult for local delivery companies, which carry significant fixed costs including vehicle financing, maintenance, office rent and driver salaries. The 3PL representative said previous verbal commitments from former Commerce Minister Osama Boodai to revise the framework and provide greater protection for fleet operators disappeared following his resignation. But the court case could give 3PLs a potential avenue to challenge the regulations, he said.\nThe court stressed that an administrative authority’s power to impose punitive penalties must come from an explicit legislative provision. It also rejected the Ministry of Commerce and Industry’s argument that similar provisions exist in other laws, saying authority cannot be assumed or extended by analogy from legislation governing different sectors.\nThe representative said the ruling could therefore open the door for other service providers to challenge parts of the regulatory framework. For now, some delivery companies are taking a wait-and-see approach. The representative said his company has put expansion plans on hold and paused efforts to secure bank facilities or other financing as it waits to see how its contracts with delivery platforms develop. “We’re all extremely confused,” he said. “The outlook remains unpredictable. It’s like driving through thick fog at night.”"
+   },
+   {
+    "id": "a4",
+    "title": "Sudan Begins Exporting Meat to Kuwait - Sudan Horizon",
+    "publisher": "Sudan Horizon",
+    "body_status": "full",
+    "chars_read": 1695,
+    "chars_original": 1695,
+    "text": "Sudan Begins Exporting Meat to Kuwait\nKhartoum – Sudanhorizon\nThe Ministry of Animal Resources and Fisheries announced on Sunday the start of actual exports of Sudanese meat to Kuwait.\nDirector General of the Ministry of Animal Resources and Fisheries’ General Department of Quarantine and Meat Health, Dr. Hussein Mohammed Al-Bashir, revealed that exports to Kuwait have officially begun as a first step toward expanding into Gulf markets.\nThe announcement came during the first coordination meeting of heads of inspection departments and quality officials at export slaughterhouses, organized by the General Department of Quarantine and Meat Health under the theme, “Unified Procedures – Effective Oversight – Safe Meat,” under the patronage of Minister of Animal Resources and Fisheries Professor Ahmed Al-Tijani Al-Mansouri.\nAl-Bashir announced that seven slaughterhouses are currently ready and comply with approved health requirements, with a focus on activating central laboratories to ensure accurate testing. He stressed the ministry’s commitment to international standards in preparation for opening new markets.\nFor his part, Undersecretary of the Ministry of Animal Resources, Dr. Ammar Al-Sheikh Idris, said the ministry’s upcoming strategy is based on expanding meat exports and maximizing the use of slaughter by-products through processing and value addition to the national economy.\nAl-Sheikh stressed the importance of concerted efforts to rehabilitate slaughterhouses in accordance with international quality standards to ensure the safety of meat both domestically and internationally during the post-war and reconstruction phase.\nShortlink: https://sudanhorizon.com/?p=18420"
+   },
+   {
+    "id": "a5",
+    "title": "Commander rejected plans to rebase farther from Iran before deadly drone strike, sources say - CBS News",
+    "publisher": "CBS News",
+    "body_status": "full",
+    "chars_read": 8484,
+    "chars_original": 8484,
+    "text": "Commander rejected plans to rebase farther from Iran before deadly drone strike, sources say\nThe dozens of U.S. troops bombarded by Iranian drones at a small Kuwaiti port in the opening days of the Iran war could have relocated to safer positions in western Saudi Arabia, multiple sources told CBS News, but those plans were rejected by the unit's commanding general despite intelligence warning of a potential attack on their post.\nAbout one week before the launch of Operation Epic Fury, most American soldiers and Air Force personnel stationed in Kuwait were moved to Jordan and Saudi Arabia — farther away from Iranian missile range. At least two options were scouted, planned and presented to the leadership of the 103rd Sustainment Command, the Army Reserve unit that ran logistics for U.S. Central Command: one was Logistical Support Area (LSA) Jenkins, a U.S. military base near the southwest port city of Yanbu, and another was Prince Sultan Air Force Base, just southeast of the Saudi capital city Riyadh.\nA third option, supported by the commander, Brig. Gen. Clint Barnes, was to follow the playbook from the unit that was previously deployed to Kuwait before the 103rd arrived in September 2025. During the 12-day war between Israel and Iran that July, the active unit briefly moved from their home base at Camp Arifjan in Kuwait to Port of Shuaiba, roughly 30 miles south of Kuwait City and just 65 miles southwest of Iran.\n\"That was a totally different scenario,\" one service member, speaking on condition of anonymity because he was not authorized to speak with the media, told CBS News. \"Missiles and drones were flying overhead between Iran and Israel and we were more worried about one of them being intercepted and falling out of the sky.\"\nThe U.S., Israel and other allies joined in shooting down dozens of the Iranian ballistic missiles fired at Israel that summer, but Iran never directly targeted U.S. positions in the Mideast.\nBy late fall 2025, however, Army intelligence began to map out potential Iranian retaliation scenarios in the event the U.S. became more engaged in military activity against the Iranian regime.\nIn January, the sources said Army intelligence began briefing Barnes that Port of Shuaiba was a potential target, but in the days before the launch of Operation Epic Fury, he nonetheless chose to move the unit there instead of Saudi Arabia.\n\"Shuaiba was the easy button,\" another service member said.\nThe Army on Thursday declined comment. CBS News has also reached out to Barnes but has not received a response.\nThe revelations are the latest in a series of whistleblower accounts made by active and reserve service members regarding the decision-making process leading up to and following the deadliest attack of the war. Six U.S. troops were killed in the strike on March 1, and more than 20 were wounded.\nNotably, Prince Sultan Air Force Base, one of the other options for the unit's relocation, was also attacked by Iranian fire. Pictures obtained exclusively by CBS News showed damage to a large Air Force jet. The attack on the base — which occurred on the same day as the hit on Shuaiba — killed one U.S. soldier.\nU.S. Army Central and Third Army this summer ordered a Pentagon probe \"to determine the facts and circumstances\" of the Iranian attack at Port of Shuaiba, but before the review was underway, a CBS News investigation began shedding light on what several survivors of the attack described as \"strategic failures\" ahead of, during and after the strike.\nOne day after the deadly strike, Defense Secretary Pete Hegseth described the Iranian drone as a \"squirter\" — suggesting that the drone managed to slip past the defenses of a fortified unit inside Kuwait. In April, one of the injured soldiers told CBS News that \"painting a picture that 'one squeaked through'\" was not accurate. The soldier said the unit was \"unprepared to provide any defense for itself. It was not a fortified position.\"\nJim and Stacey Khork, the Gold Star parents of Maj. Cody Khork, told CBS News in an exclusive interview that their son, as one of the unit's force protection officers, was among the key soldiers warning Barnes of the site's vulnerability.\n\"My son died unnecessarily,\" Stacey Khork lamented. \"Yes, he died for my country. Yes, he was a patriot. Yes, he was a hero. I hate to use the word murder because it's strong, but if a loved one of yours was murdered, our justice system is built to have accountability and to have atonement for that and for the grief of the family.\"\nCBS News spoke with other survivors of the blast who detailed requests to leadership for more resources ahead of the strike. Those requests focused on the number of medical personnel as well as the availability and accessibility of medical supplies.\n\"This was a failure,\" Maj. Stephen Ramsbottom said in an interview with CBS News in May, adding he believed Master Sgt. Nicole Amor, another of the six soldiers killed, could have survived her wounds had there been a doctor, a fixed aid station or more than one ambulance at the post. The soldiers, according to witnesses, instead triaged themselves with makeshift bandages, braces and tourniquets. They commandeered civilian vehicles to drive the wounded to two local Kuwaiti hospitals.\nThe Pentagon has repeatedly pushed back on claims that the Army tried to downplay the incident. In a post on X in March addressing prior CBS News reporting on the strike, Pentagon spokesperson Sean Parnell said \"every possible measure has been taken to safeguard our troops — at every level\" and that \"[t]he secure facility was fortified with 6-foot walls.\"\nEarlier this month, an Army spokesperson confirmed to the Khorks and CBS News that its probe into the deadly Iranian attack was completed in early July, but officials have yet to release it. In a statement to CBS News, an Army spokesperson asked for \"patience\" and said the Pentagon \"will not comment on specific details, individual accounts, or leaked portions of the report at this time.\"\nA spokesperson for the Iowa-based 103rd Sustainment Command declined comment, while multiple requests to Brig. Gen. Barnes have gone unanswered.\nCongressional Democrats urge committee hearings\nAs families like the Khorks await findings from the Army, more than 20 congressional Democrats from both chambers are urging the House and Senate Armed Services Committees to hold investigative hearings on the deadly strike.\nA new letter sent this week to GOP Sen. Roger Wicker of Kansas and Rep. Mike Rogers of Alabama, the chairmen of their respective committees, cited multiple CBS News reports on the attack. Lawmakers who signed the letter include military veterans Rep. Pat Ryan of New York and Rep. Jason Crow of Colorado. Signatories also include Senators Amy Klobuchar and Tina Smith of Minnesota, the home state of Master Sgt. Nicole Amor.\n\"It is critical that Congress gets answers on the failures that led to the attacks, and on the subsequent mistreatment of survivors and families of those killed,\" the letter reads. \"We urge you to hold public hearings to determine why [the Department of Defense] was not properly prepared for this attack and why it has failed to ensure that injured service members get access to the care they need. As the administration continues to ask Congress for more resources for this war, we can no longer afford to wait for DoD to deign when they are going to answer these questions.\"\nThe chairmen's respective offices did not respond to inquiries from CBS News about the letter.\nThe Senate on Thursday again rejected a resolution aimed at limiting President Trump's war powers in Iran, though the Democrat-led effort picked up one new GOP supporter.\nIn a 49-50 vote, four Republicans — Sens. Susan Collins of Maine, Lisa Murkowski of Alaska, Rand Paul of Kentucky and Thom Tillis of North Carolina — joined Democrats in voting to advance the measure. Sen. John Fetterman of Pennsylvania was the sole Democrat to oppose.\nThe resolution would have directed the president to \"remove the use of United States Armed Forces from hostilities against the Islamic Republic of Iran or any part of its government or military, including potential ground forces in a combat role or used for occupation, unless explicitly authorized by a declaration of war or specific authorization for use of military force against Iran.\"\nEditor's note: This story has been updated with the death toll in the attack on Prince Sultan Air Base in Saudi Arabia."
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.475,
+    "indicator_resolution": 0.7917,
+    "freshness": 1.0
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

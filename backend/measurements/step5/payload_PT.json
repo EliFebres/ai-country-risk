@@ -1,0 +1,1473 @@
+{
+ "iso2": "PT",
+ "country": "Portugal",
+ "run_date": "2026-09-27",
+ "payload_fingerprint": "fbf2a2f474011b69961b000926e24c5cfc6bd4d63e4ca43556ad9f22affd39ba",
+ "payload_sha256": "7a7ee36943d73ef10a05f61dc4873d73a6778117c38cd186075a8612e54c3810",
+ "payload_tokens": 8634,
+ "versions": {
+  "git_sha": "047072131346f524a33b75c0885dc6643d3ad759",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "360a84838ecddc01bcad98fcd02d48890ba05499180362b005fd794b1b07f081",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "schema_violations": 0,
+  "payload_tokens": 8634
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://www.theportugalnews.com/news/2026-09-27/portugal-municipality-working-on-implementing-tourist-tax/1091226",
+   "title": "Portugal municipality working on implementing tourist tax - The Portugal News",
+   "publisher": "The Portugal News",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The municipality of Alijó in Portugal is implementing a tourist tax to address infrastructure strain and visitor expectations, with regulations approved and set to take effect in January 2027.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://defence-industry.eu/european-defence-agency-to-test-drones-and-loitering-munitions-in-portugal-with-more-than-200-military-and-industry-participants/",
+   "title": "European Defence Agency to test drones and loitering munitions in Portugal with more than 200 military and industry participants - Defence Industry Europe",
+   "publisher": "Defence Industry Europe",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The European Defence Agency is testing drones and loitering munitions in Portugal with military and industry participants.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.nation.com.pk/26-Sep-2026/sifc-advances-pakistan-portugal-investment-cooperation",
+   "title": "SIFC advances Pakistan-Portugal investment cooperation - The Nation (Pakistan )",
+   "publisher": "The Nation (Pakistan )",
+   "published": "2026-09-26",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Special Investment Facilitation Council of Pakistan and Portuguese Ambassador Paulo Domingues discussed enhancing bilateral economic, trade, and investment cooperation between Pakistan and Portugal.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://defencesecurityasia.com/en/portugal-f16-replacement-f35-rafale-typhoon-gripen/",
+   "title": "F-35 vs Rafale, Typhoon and Gripen: Portugal’s F-16 Choice Tests NATO Air Power - Defence Security Asia",
+   "publisher": "Defence Security Asia",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Portugal is evaluating four potential successors to its F-16 fleet, impacting NATO air power and European defense sovereignty.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://migflug.com/afterburner/dassault-rafale-portugal-aed-cluster-mou-f-16-replacement-2026/",
+   "title": "Rafale for Portugal: Dassault Signs a Deal With Portuguese Industry - MiGFlug",
+   "publisher": "MiGFlug",
+   "published": "2026-09-25",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Dassault Aviation signed a Memorandum of Understanding with AED Cluster Portugal to explore industrial cooperation related to the Rafale aircraft.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.brusselstimes.com/eu-affairs/2333597/eu-trials-cutting-edge-defence-tech-in-live-fire-multi-domain-scenarios-in-portugal",
+   "title": "EU trials cutting-edge defence tech in live-fire, multi-domain scenarios in Portugal - The Brussels Times",
+   "publisher": "The Brussels Times",
+   "published": "2026-09-25",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The EU conducted trials of advanced defense technology in live-fire scenarios in Portugal.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://www.portugalresident.com/government-urges-portuguese-to-use-less-fuel-to-help-bring-down-prices/",
+   "title": "Government urges Portuguese to use less fuel to help bring down prices - Portugal Resident",
+   "publisher": "Portugal Resident",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Portugal's Economy Minister urged families and businesses to reduce fuel consumption to help lower prices amid rising costs driven by reduced supply.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://www.coe.int/en/web/portal/-/prince-albert-of-monaco-and-president-seguro-of-portugal-to-address-parliamentary-assembly",
+   "title": "Prince Albert of Monaco and President Martins Seguro of Portugal to address Parliamentary Assembly - coe.int",
+   "publisher": "coe.int",
+   "published": "2026-09-24",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Prince Albert of Monaco and President Martins Seguro of Portugal are set to address the Parliamentary Assembly.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://www.imidaily.com/analysis/how-long-citizenship-takes-once-you-count-the-queue/",
+   "title": "Citizenship Processing Time by Country in 2026 - IMI Daily",
+   "publisher": "IMI Daily",
+   "published": "2026-09-23",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Portugal's parliament revised the Nationality Law, affecting the citizenship processing timeline for foreign nationals.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://uk.finance.yahoo.com/news/portugal-says-entry-grid-operator-065938905.html",
+   "title": "Portugal says entry into grid operator REN won't affect China's State Grid - Yahoo Finance UK",
+   "publisher": "Yahoo Finance UK",
+   "published": "2026-09-23",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Portugal's government announced its acquisition of a stake in power and gas grid operator REN, stating it will not affect China's State Grid's existing 25% stake.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.gov.uk/government/news/tra-closes-investigation-on-creamywhite-limestone-from-portugal",
+   "title": "TRA closes investigation on creamy/white limestone from Portugal - GOV.UK",
+   "publisher": "GOV.UK",
+   "published": "2026-09-21",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The UK Trade Remedies Authority closed its investigation into creamy/white limestone from Portugal, finding no evidence of countervailable subsidies.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://www.tradingview.com/news/te_news:584994:0-portugal-producer-inflation-accelerates-again/",
+   "title": "Portugal Producer Inflation Accelerates Again - TradingView",
+   "publisher": "TradingView",
+   "published": "2026-09-18",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Portugal's industrial producer inflation rose to 7.2% year-on-year in August 2026, marking the second consecutive month of acceleration.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://clubofmozambique.com/news/mozambique-portugal-ccm-and-ccip-strengthen-ties-to-boost-business-and-investment/",
+   "title": "Mozambique-Portugal: CCM and CCIP strengthen ties to boost business and investment - CLUB OF MOZAMBIQUE",
+   "publisher": "CLUB OF MOZAMBIQUE",
+   "published": "2026-09-09",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The chambers of commerce from Mozambique and Portugal agreed to strengthen business ties through a Memorandum of Understanding.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://www.aol.com/articles/portugal-approves-918-million-pension-070054000.html",
+   "title": "Portugal approves $918 million pension bonus, tax cuts package - AOL.com",
+   "publisher": "AOL.com",
+   "published": "2026-09-18",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Portugal's government approved a $918 million pension bonus and tax cuts package to ease living-cost pressures for households.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://www.theportugalnews.com/news/2026-09-26/electronic-waste-could-strengthen-eus-circular-economy/1091801",
+   "title": "Electronic waste could strengthen EU’s circular economy - The Portugal News",
+   "publisher": "The Portugal News",
+   "published": "2026-09-26",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Researchers found that improving collection and recycling of electronic waste in Portugal could strengthen the EU's circular economy and reduce import dependence on certain metals.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://www.plataformamedia.com/en/2026/09/16/brazilian-tourists-portugal-record-revenues-first-half/",
+   "title": "Brazilian tourist arrivals and spending in Portugal reach historic highs - Plataforma Media",
+   "publisher": "Plataforma Media",
+   "published": "2026-09-16",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Brazilian tourist arrivals and spending in Portugal reached historic highs, with a 7% increase in overnight stays and an 18.4% growth in revenue compared to the first half of 2025.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://www.theportugalnews.com/news/2026-09-25/ryanair-threatens-united-kingdom-flight-cuts-over-taxes/1091615",
+   "title": "Ryanair threatens United Kingdom flight cuts over taxes - The Portugal News",
+   "publisher": "The Portugal News",
+   "published": "2026-09-25",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Ryanair's CEO warns that the airline may cut flights from the UK, including to Portugal, if the UK government imposes a new visitor levy on tourists.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://portugalglobal.pt/en/news/2026/setembro/how-portugals-economy-has-evolved-over-the-past-18-years/",
+   "title": "How Portugal's economy has evolved over the past 18 Years - AICEP",
+   "publisher": "AICEP",
+   "published": "2026-09-16",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "AICEP published the 200th issue of Portugalglobal Magazine, reflecting on the evolution of Portugal's economy and its internationalization over the past 18 years.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://www.theportugalnews.com/news/2026-09-24/portugal-among-hardest-hit-by-us-tariffs/1090937",
+   "title": "Portugal Among Hardest Hit by US Tariffs - The Portugal News",
+   "publisher": "The Portugal News",
+   "published": "2026-09-24",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Portugal's goods exports to the United States fell by around 5% in volume during 2025 due to US tariffs, impacting its economic growth.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.lemonde.fr/en/international/article/2026/09/09/eleven-european-countries-and-canada-impose-sanctions-on-israel-over-products-from-settlements-in-the-west-bank_6757323_4.html",
+   "title": "11 European countries and Canada sanction products from Israeli settlements in West Bank - Le Monde.fr",
+   "publisher": "Le Monde.fr",
+   "published": "2026-09-09",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Eleven European countries and Canada imposed sanctions on products from Israeli settlements in the West Bank.",
+   "body_quality": null,
+   "body_status": "title-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 7
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 2,
+    "resolved": 2
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 1
+   }
+  },
+  "dropped": [],
+  "as_of_schemes": {
+   "first-seen": 4,
+   "publication-lag-estimate": 7,
+   "source-published": 2
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 31,
+  "stories": 28,
+  "multi": 2,
+  "dropped": 3,
+  "slots_freed": 2,
+  "selected": 20,
+  "same_story_as": {
+   "https://aviationnews.eu/news/2026/09/airbus-plans-eurofighter-typhoon-proposal-as-portugal-prepares-to-replace-f-16-fleet/": "https://defencesecurityasia.com/en/portugal-f16-replacement-f35-rafale-typhoon-gripen/",
+   "https://migflug.com/afterburner/eurofighter-portugal-airbus-unsolicited-bid-f-16-replacement-2026/": "https://defencesecurityasia.com/en/portugal-f16-replacement-f35-rafale-typhoon-gripen/",
+   "https://www.reuters.com/business/energy/truckers-commuters-protest-portugal-against-soaring-fuel-prices-2026-09-25/": "https://www.portugalresident.com/portugal-hundreds-of-trucks-begin-go-slow-protest-over-fuel-prices/"
+  }
+ },
+ "payload": {
+  "country": {
+   "iso2": "PT",
+   "name": "Portugal"
+  },
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "Portugal",
+   "regime": "shared currency (euro area)",
+   "region": "Europe & Central Asia",
+   "sovereignty": "none",
+   "tier": "DM"
+  },
+  "economics_by_ledger": {
+   "friction": {
+    "question": "What is taken, and how well does it convert?",
+    "indicators": [
+     {
+      "code": "FP.CPI.TOTL.ZG",
+      "label": "Inflation (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 2.336,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 1.2657
+       },
+       {
+        "year": 2022,
+        "value": 7.8327
+       },
+       {
+        "year": 2023,
+        "value": 4.3113
+       },
+       {
+        "year": 2024,
+        "value": 2.4161
+       },
+       {
+        "year": 2025,
+        "value": 2.336
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SI.POV.GINI",
+      "label": "Income inequality (Gini)",
+      "unit": "index",
+      "source": "World Bank WDI",
+      "value": 33.9,
+      "period": 2023,
+      "as_of": "2025-07-01",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 453,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2019,
+        "value": 32.8
+       },
+       {
+        "year": 2020,
+        "value": 34.7
+       },
+       {
+        "year": 2021,
+        "value": 34.6
+       },
+       {
+        "year": 2022,
+        "value": 36.3
+       },
+       {
+        "year": 2023,
+        "value": 33.9
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "label": "Interest payments (% revenue)",
+      "unit": "% revenue",
+      "source": "World Bank WDI",
+      "value": 5.4069,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 7.4205
+       },
+       {
+        "year": 2021,
+        "value": 6.0058
+       },
+       {
+        "year": 2022,
+        "value": 4.9539
+       },
+       {
+        "year": 2023,
+        "value": 5.5098
+       },
+       {
+        "year": 2024,
+        "value": 5.4069
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OWID.VDEM.CORRUPTION",
+      "label": "Political corruption index (0-1, higher = more corrupt)",
+      "unit": "index (0-1)",
+      "source": "V-Dem via OWID",
+      "value": 0.166,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 0.131
+       },
+       {
+        "year": 2022,
+        "value": 0.139
+       },
+       {
+        "year": 2023,
+        "value": 0.172
+       },
+       {
+        "year": 2024,
+        "value": 0.166
+       },
+       {
+        "year": 2025,
+        "value": 0.166
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "order": {
+    "question": "How much doubt is there about the load-bearing rules?",
+    "indicators": [
+     {
+      "code": "GOV_WGI_PV.EST",
+      "label": "Political stability (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 0.5369,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 0.983
+       },
+       {
+        "year": 2021,
+        "value": 0.9584
+       },
+       {
+        "year": 2022,
+        "value": 0.8869
+       },
+       {
+        "year": 2023,
+        "value": 0.789
+       },
+       {
+        "year": 2024,
+        "value": 0.5369
+       }
+      ],
+      "direction": "falling",
+      "accelerating": true,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GOV_WGI_RL.EST",
+      "label": "Rule of law (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 1.0722,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 1.1831
+       },
+       {
+        "year": 2021,
+        "value": 1.1691
+       },
+       {
+        "year": 2022,
+        "value": 1.1257
+       },
+       {
+        "year": 2023,
+        "value": 1.0824
+       },
+       {
+        "year": 2024,
+        "value": 1.0722
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SL.UEM.TOTL.ZS",
+      "label": "Unemployment (% labour force)",
+      "unit": "%",
+      "source": "World Bank WDI",
+      "value": 6.164,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 6.712
+       },
+       {
+        "year": 2022,
+        "value": 6.138
+       },
+       {
+        "year": 2023,
+        "value": 6.498
+       },
+       {
+        "year": 2024,
+        "value": 6.5
+       },
+       {
+        "year": 2025,
+        "value": 6.164
+       }
+      ],
+      "direction": "flat",
+      "accelerating": true,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "NY.GDP.PCAP.KD.ZG",
+      "label": "GDP per-capita growth (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 0.8256,
+      "period": 2025,
+      "as_of": "2026-09-25",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 2,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 4.8991
+       },
+       {
+        "year": 2022,
+        "value": 6.2425
+       },
+       {
+        "year": 2023,
+        "value": 1.698
+       },
+       {
+        "year": 2024,
+        "value": 1.1011
+       },
+       {
+        "year": 2025,
+        "value": 0.8256
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "information": {
+    "question": "Can the country's own instruments be trusted?",
+    "indicators": [
+     {
+      "code": "IQ.SPI.OVRL",
+      "label": "Statistical performance (0-100)",
+      "unit": "score",
+      "source": "World Bank SPI",
+      "value": 90.7079,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 87.1496
+       },
+       {
+        "year": 2021,
+        "value": 91.5688
+       },
+       {
+        "year": 2022,
+        "value": 92.3583
+       },
+       {
+        "year": 2023,
+        "value": 93.7783
+       },
+       {
+        "year": 2024,
+        "value": 90.7079
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "RSF.PRESS.SCORE",
+      "label": "Press freedom (0-100, higher = freer)",
+      "unit": "score",
+      "source": "RSF World Press Freedom Index",
+      "value": 83.71,
+      "period": 2025,
+      "as_of": "2026-05-03",
+      "as_of_scheme": "source-published",
+      "staleness_days": 147,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 87.07
+       },
+       {
+        "year": 2022,
+        "value": 84.6
+       },
+       {
+        "year": 2023,
+        "value": 85.9
+       },
+       {
+        "year": 2024,
+        "value": 84.26
+       },
+       {
+        "year": 2025,
+        "value": 83.71
+       }
+      ],
+      "direction": "flat",
+      "accelerating": true,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "edge": {
+    "question": "Is the system learning?",
+    "indicators": [
+     {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "label": "FDI inflow (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 4.2997,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 1.8141
+       },
+       {
+        "year": 2021,
+        "value": 3.6084
+       },
+       {
+        "year": 2022,
+        "value": 5.0837
+       },
+       {
+        "year": 2023,
+        "value": 3.9633
+       },
+       {
+        "year": 2024,
+        "value": 4.2997
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "label": "Education spending (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 4.5516,
+      "period": 2022,
+      "as_of": "2024-07-01",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 818,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2018,
+        "value": 4.6794
+       },
+       {
+        "year": 2019,
+        "value": 4.6275
+       },
+       {
+        "year": 2020,
+        "value": 4.8641
+       },
+       {
+        "year": 2021,
+        "value": 4.7734
+       },
+       {
+        "year": 2022,
+        "value": 4.5516
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OECD.PISA.MEAN",
+      "label": "PISA mean score (maths/reading/science)",
+      "unit": "score",
+      "source": "OECD PISA",
+      "value": 477.62,
+      "period": 2022,
+      "as_of": "2023-12-05",
+      "as_of_scheme": "source-published",
+      "staleness_days": 1027,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2018,
+        "value": "unknown"
+       },
+       {
+        "year": 2019,
+        "value": "unknown"
+       },
+       {
+        "year": 2020,
+        "value": "unknown"
+       },
+       {
+        "year": 2021,
+        "value": "unknown"
+       },
+       {
+        "year": 2022,
+        "value": 477.62
+       }
+      ],
+      "direction": "unknown",
+      "accelerating": null,
+      "observed": 1,
+      "missing": 4
+     }
+    ]
+   }
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 6,
+    "order": 5,
+    "security": 4,
+    "information": 0,
+    "edge": 2,
+    "broad": 4
+   },
+   "selected_per_ledger": {
+    "friction": 10,
+    "order": 10,
+    "information": 0,
+    "edge": 0
+   },
+   "candidates_fetched": 50,
+   "passed_the_gate": 31,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "The Portugal News",
+    "published": "2026-09-27",
+    "title": "Portugal municipality working on implementing tourist tax - The Portugal News",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The City Council of Alijó has approved regulations for a tourist tax that will take effect on January 1, 2027. The tax includes an overnight stay fee and an arrival fee for river tourists, with part of the revenue allocated to local farmers who maintain the Douro landscape.",
+     "institutions": [
+      "City Council of Alijó",
+      "Administration of the Ports of Douro, Leixões, and Viana do Castelo (APDL)"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "two euros overnight stay fee",
+      "two euros arrival fee",
+      "50% of the revenue to farmers",
+      "tax expected to take effect on 1 January 2027"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "Defence Industry Europe",
+    "published": "2026-09-27",
+    "title": "European Defence Agency to test drones and loitering munitions in Portugal with more than 200 military and industry participants - Defence Industry Europe",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The EU OPEX programme is being conducted within the Portuguese Army’s ARTEX 26 campaign to assess various unmanned systems and technologies for military use. The event includes competitions for loitering munitions with a total prize of €1.8 million and will feature cross-domain field tests on 7 and 8 October, followed by a demonstration for political and military leaders on 14 October.",
+     "institutions": [
+      "Portuguese Army",
+      "EU-Ukraine defence innovation initiative"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "€1.8 million in prizes",
+      "cross-domain field tests on 7 and 8 October",
+      "further event on 14 October"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "The Nation (Pakistan )",
+    "published": "2026-09-26",
+    "title": "SIFC advances Pakistan-Portugal investment cooperation - The Nation (Pakistan )",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The Special Investment Facilitation Council (SIFC) and the Ambassador of Portugal discussed enhancing economic, trade, and investment cooperation between Pakistan and Portugal, focusing on sectors like textiles, agriculture, and information technology. They explored investment opportunities and emphasized the importance of continued engagement to strengthen business partnerships.",
+     "institutions": [
+      "Special Investment Facilitation Council (SIFC)",
+      "Ambassador of Portugal Paulo Domingues"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "Defence Security Asia",
+    "published": "2026-09-27",
+    "title": "F-35 vs Rafale, Typhoon and Gripen: Portugal’s F-16 Choice Tests NATO Air Power - Defence Security Asia",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal is evaluating four potential successors to its F-16 fleet, including the F-35A, Rafale, Eurofighter Typhoon, and Gripen E, as it considers factors like stealth, European industrial participation, and national control over maintenance. The decision will impact how Portugal integrates with NATO and balances operational needs with European defense ambitions. No formal procurement tender has been opened yet, but the Portuguese Air Force has reportedly ranked the F-35 first in an internal assessment.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": [
+      "approximately 28 upgraded F-16s",
+      "internal assessment using 20 technical criteria",
+      "Rafale offer in July 2026",
+      "Airbus plans to submit an unsolicited Typhoon proposal in late October or early November 2026"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "MiGFlug",
+    "published": "2026-09-25",
+    "title": "Rafale for Portugal: Dassault Signs a Deal With Portuguese Industry - MiGFlug",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "On 23 September 2026, Dassault Aviation signed a Memorandum of Understanding with AED Cluster Portugal to explore industrial cooperation related to the Rafale fighter jet, not a contract for aircraft. This agreement aims to strengthen relationships with Portuguese manufacturers and boost the local economy. Four manufacturers are competing for a tender to replace Portugal's F-16s, but no formal competition has been launched yet.",
+     "institutions": [
+      "Dassault Aviation",
+      "AED Cluster Portugal"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "signed 23 September 2026",
+      "24 Portuguese F-16A/B Block 15 aircraft to replace"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "The Brussels Times",
+    "published": "2026-09-25",
+    "title": "EU trials cutting-edge defence tech in live-fire, multi-domain scenarios in Portugal - The Brussels Times",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a7",
+    "publisher": "Portugal Resident",
+    "published": "2026-09-24",
+    "title": "Government urges Portuguese to use less fuel to help bring down prices - Portugal Resident",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal’s Economy Minister Manuel Castro Almeida has urged families and businesses to reduce fuel consumption to help lower prices, which are currently rising due to reduced supply amid instability in the Middle East. The government is not expecting fuel shortages and has announced targeted financial support for sectors affected by high fuel costs, while resisting broader tax cuts.",
+     "institutions": [
+      "Portuguese Government",
+      "Ministry of Economy",
+      "Ministry of Environment and Energy",
+      "Parliament"
+     ],
+     "direction": "mixed",
+     "numbers": [
+      "€38 million in support for affected sectors",
+      "reserves of liquid fuels equivalent to 92 days of consumption",
+      "year-on-year increases of between 4% and 6% in fuel consumption"
+     ]
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "coe.int",
+    "published": "2026-09-24",
+    "title": "Prince Albert of Monaco and President Martins Seguro of Portugal to address Parliamentary Assembly - coe.int",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a9",
+    "publisher": "IMI Daily",
+    "published": "2026-09-23",
+    "title": "Citizenship Processing Time by Country in 2026 - IMI Daily",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal's nationality law now requires ten years of legal residence for most foreign nationals to naturalize, with the residency count starting only after the Agency for Integration, Migration and Asylum (AIMA) issues a residence permit. AIMA has been taking two to three years to issue these permits, which adds to the waiting time for applicants. The law was revised and took effect on May 19, 2026, but it has raised concerns about the lengthy processing times and legal uncertainties for applicants.",
+     "institutions": [
+      "Agency for Integration, Migration and Asylum (AIMA)",
+      "Portuguese parliament",
+      "Constitutional Court"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "ten years of legal residence for most foreign nationals",
+      "seven years for EU citizens and nationals of Portuguese-speaking countries",
+      "two to three years for AIMA to issue a residence permit"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "Yahoo Finance UK",
+    "published": "2026-09-23",
+    "title": "Portugal says entry into grid operator REN won't affect China's State Grid - Yahoo Finance UK",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal's government announced its acquisition of a 13.7% stake in power and gas grid operator REN, aiming to increase its holding to as much as 20%. The government stated that this move would not affect the 25% stake held by China's State Grid, which it wants to remain a key shareholder. The investment is justified by the growing importance of energy infrastructure and aligns with national priorities.",
+     "institutions": [
+      "Portugal's government",
+      "Finance Ministry",
+      "State Grid"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "13.7% stake in REN",
+      "25% stake held by State Grid",
+      "up to 20% planned holding by Portugal"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "GOV.UK",
+    "published": "2026-09-21",
+    "title": "TRA closes investigation on creamy/white limestone from Portugal - GOV.UK",
+    "themes": [
+     "friction",
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The TRA has closed its investigation into creamy/white limestone from Portugal, finding no evidence that the goods benefited from a countervailable subsidy. The investigation was initiated in January 2026 following a claim from a UK producer regarding subsidized imports harming the UK industry.",
+     "institutions": [
+      "Trade Remedies Authority"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "investigation period 1 January 2025 to 31 December 2025",
+      "injury period 1 January 2022 to 31 December 2025"
+     ]
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "TradingView",
+    "published": "2026-09-18",
+    "title": "Portugal Producer Inflation Accelerates Again - TradingView",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal’s industrial producer inflation rose to 7.2% year-on-year in August 2026, marking the second consecutive month of acceleration. This increase was driven by a surge in energy inflation to 22.8% and higher prices for consumer goods.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "inflation 7.2% year-on-year in August 2026",
+      "energy inflation 22.8%",
+      "consumer goods inflation 2.1%",
+      "durable goods inflation 2.5%",
+      "non-durable goods inflation 2%",
+      "intermediate goods inflation 7.4%",
+      "capital goods inflation 1.4%",
+      "utilities inflation 12.8%",
+      "manufacturing inflation 5.9%",
+      "mining inflation 72.5%",
+      "producer prices rose 0.8%"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "CLUB OF MOZAMBIQUE",
+    "published": "2026-09-09",
+    "title": "Mozambique-Portugal: CCM and CCIP strengthen ties to boost business and investment - CLUB OF MOZAMBIQUE",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The CCM and CCIP agreed to sign a Memorandum of Understanding to enhance institutional and business ties, focusing on technical training, expertise sharing, and investment opportunities between Mozambique and Portugal. They will also seek funding for private-sector projects, especially for micro, small, and medium-sized enterprises.",
+     "institutions": [
+      "CCM",
+      "CCIP"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "AOL.com",
+    "published": "2026-09-18",
+    "title": "Portugal approves $918 million pension bonus, tax cuts package - AOL.com",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal's government has approved a one-off pension supplement for over two million pensioners and personal income tax cuts, costing €800 million ($918 million), to alleviate living-cost pressures. The pension supplement will be paid in December, while the tax cuts will take effect in November, benefiting individuals with annual taxable income up to €43,090.",
+     "institutions": [
+      "Portugal's government"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "$918 million pension bonus",
+      "€800 million package",
+      "€400 million pension supplement",
+      "€400 million a year tax cut",
+      "€1,600 gross monthly pensions",
+      "€200 for the lowest pensions",
+      "€100 for the highest pensions",
+      "€43,090 annual taxable income"
+     ]
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "The Portugal News",
+    "published": "2026-09-26",
+    "title": "Electronic waste could strengthen EU’s circular economy - The Portugal News",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Researchers found that 56 percent of electronic waste generated between 2006 and 2021 was not collected. Improving collection and recycling could recover materials needed for various technologies and support the transition towards a circular economy.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "56 percent of electronic waste not collected",
+      "gallium could reduce EU import dependence by up to 40 percent",
+      "recoverable tantalum could represent 23 percent of demand",
+      "magnesium and tungsten could each provide 12 percent"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "Plataforma Media",
+    "published": "2026-09-16",
+    "title": "Brazilian tourist arrivals and spending in Portugal reach historic highs - Plataforma Media",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Overnight stays by Brazilian visitors in Portugal rose by 7% in the first half of 2025, totaling 1.18 million stays, with revenue increasing by 18.4%. Additionally, Portuguese travel to Brazil increased significantly, with 177,956 Portuguese tourists visiting Brazil between January and July 2025, a 24.9% rise compared to the same period in 2025.",
+     "institutions": [
+      "Turismo de Portugal",
+      "Secretary of State for Tourism, Commerce, and Services",
+      "Brazilian International Tourism Promotion Agency"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "1.18 million overnight stays by Brazilian visitors",
+      "18.4% revenue growth",
+      "177,956 Portuguese tourists",
+      "24.9% increase in Portuguese tourists",
+      "273,483 Portuguese travelers visited Brazil in 2025",
+      "9.3 million foreign tourists hosted by Brazil in 2025",
+      "37.1% increase over the previous year"
+     ]
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "The Portugal News",
+    "published": "2026-09-25",
+    "title": "Ryanair threatens United Kingdom flight cuts over taxes - The Portugal News",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Ryanair's CEO Michael O’Leary criticized the potential introduction of a visitor levy by the UK government, arguing it would result in double taxation for tourists already paying Air Passenger Duty (APD). He called for the abolition of APD if the levy is implemented, warning that Ryanair might reduce its operations in the UK as a result.",
+     "institutions": [
+      "Ryanair",
+      "UK government",
+      "Prime Minister Andy Burnham"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "APD £15 per passenger for short-haul flights",
+      "APD increased from £13 in April",
+      "domestic passengers pay £8",
+      "APD scheduled to rise to £15.49 in April 2027",
+      "domestic rate will increase to £8.26 in April 2027",
+      "Ryanair's projections: add 30 aircraft, open 200 routes, create 10,000 jobs"
+     ]
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "AICEP",
+    "published": "2026-09-16",
+    "title": "How Portugal's economy has evolved over the past 18 Years - AICEP",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The 200th issue of Portugalglobal Magazine has been released, celebrating nearly two decades of coverage on the internationalisation of Portuguese companies and the evolution of the Portuguese economy. This special edition highlights key moments from the past 18 years, including the growth of exports and foreign investment in Portugal.",
+     "institutions": [
+      "Portugalglobal Magazine",
+      "AICEP"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "The Portugal News",
+    "published": "2026-09-24",
+    "title": "Portugal Among Hardest Hit by US Tariffs - The Portugal News",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portuguese goods exports to the United States fell by around 5% in volume during 2025, making Portugal one of the EU countries most affected by the tariffs. The tariffs also knocked around 0.1 percentage point off Portuguese economic growth in 2025, while the overall impact on the EU was limited.",
+     "institutions": [
+      "European Commission’s Directorate-General for Economic and Financial Affairs"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "5% fall in volume of goods exports to the US",
+      "0.1 percentage point off Portuguese growth in 2025",
+      "6.7% of Portugal’s goods exports to the US in 2024",
+      "9% increase in imports into the EU from China in 2025"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "Le Monde.fr",
+    "published": "2026-09-09",
+    "title": "11 European countries and Canada sanction products from Israeli settlements in West Bank - Le Monde.fr",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Portugal municipality working on implementing tourist tax - The Portugal News",
+    "publisher": "The Portugal News",
+    "body_status": "full",
+    "chars_read": 3536,
+    "chars_original": 3536,
+    "text": "“The City Council has approved the proposed tourist tax regulations, to take effect in January,” José Rodrigues Paredes, mayor of the municipality in the Vila Real district, told the Lusa news agency.\nAlijó could be the first municipality within the Douro Intermunicipal Community (CIM) to move forward with creating a tourist tax, though the matter has long been discussed in the region.\nThe municipal executive has now approved the regulations, which will undergo a 30-day public consultation period before the Alijó Municipal Assembly discusses and votes on them; the tax is expected to take effect on 1 January 2027.\n“This tourist tax has a dual structure: an overnight stay fee of two euros and an arrival fee of two euros for those entering the municipality of Alijó by river,” explained José Rodrigues Paredes.\nThe mayor justified the decision by citing strain on infrastructure and visitors’ increasingly high expectations, which compel the municipality to invest more and require additional resources.\nHe cited Pinhão, a town along the Douro River where many visitors arrive by tourist boat.\n“The pressure on infrastructure is such that it becomes practically impossible to get around Pinhão during the summer,” he noted.\nMany of these river tourists quickly move on to other municipalities, but, according to José Rodrigues Paredes, Alijó welcomes them, collects their municipal solid waste, supplies water to the vessels (in significant volumes), and provides electricity.\n“The municipality has to bear all these costs; therefore, it must find new revenue sources to continue welcoming tourists and providing them with the highest quality service,” he emphasised.\nHe further noted that 50% of the revenue from the tourist tax will go to the farmers, the “creators of the landscape”, who tend the vineyards, terraces, and schist walls that were granted UNESCO status 25 years ago.\n“All of this exists only because of the Douro landscape, but someone creates that landscape, someone maintains it, and someone preserves it... At the same time, we are exploring ways to eventually transfer a portion of this tax to those who actually care for our Douro landscape,” he stressed.\nAccording to the mayor, the arrival fee for river travel will apply only to large-capacity vessels (hotel boats). The Administration of the Ports of Douro, Leixões, and Viana do Castelo (APDL), the entity that manages the Douro waterway, will collect it.\n“It is the APDL that licenses all river activity and, therefore, knows exactly how many tourists each vessel carries. We have an understanding on this, and the APDL will be the one to collect the fee and subsequently transfer it to the municipality of Alijó,” he noted.\nThe Douro region has discussed implementing a fee, whether a tourist tax or a sustainability levy, to support winegrowers.\n“It is true that there is no consensus; not all municipalities align with the same idea. Some advocate for a broad-based fee, potentially even managed by an external entity—something I do not agree with at all,” he stated.\nJosé Rodrigues Paredes added that he is not alone in this decision and that neighbouring municipalities also intend to move forward with creating such a fee.\n“We must move forward because the Douro region needs to provide a quality experience for those who wish to enjoy its beauty, its products, and the friendliness of its people; however, those who live here must also have the means and resources to invest and keep this region alive,” he maintained.\nFollow us on social media"
+   },
+   {
+    "id": "a2",
+    "title": "European Defence Agency to test drones and loitering munitions in Portugal with more than 200 military and industry participants - Defence Industry Europe",
+    "publisher": "Defence Industry Europe",
+    "body_status": "full",
+    "chars_read": 1329,
+    "chars_original": 1329,
+    "text": "The programme is designed to give armed forces evidence of what the technologies can do outside controlled demonstrations. Unmanned systems, loitering munitions and electronic communications will be assessed for their performance, interoperability and potential operational use.\nEU OPEX is being held within ARTEX 26, the Portuguese Army’s annual experimentation campaign. The event also brings in BraveTech EU, an EU-Ukraine defence innovation initiative, and the Sentinel Strike contest, whose five loitering munition finalists are competing for €1.8 million in prizes.\nTesting will start with individual systems and missions in a single domain before moving to more complex scenarios. The later stages are intended to show how different technologies work together across land and air operations.\nThe planned missions include drones sending reconnaissance information to commanders from a hostile environment. Aerial and ground systems will work together to move supplies to frontline troops, while loitering munitions will be tasked with engaging multiple targets at night.\nCross-domain field tests are scheduled for 7 and 8 October. A further event on 14 October will bring political leaders, military representatives and defence stakeholders to observe demonstrations and examine the technologies tested during the campaign."
+   },
+   {
+    "id": "a3",
+    "title": "SIFC advances Pakistan-Portugal investment cooperation - The Nation (Pakistan )",
+    "publisher": "The Nation (Pakistan )",
+    "body_status": "full",
+    "chars_read": 2540,
+    "chars_original": 2540,
+    "text": "The Special Investment Facilitation Council (SIFC) and Ambassador of Portugal Paulo Domingues on Saturday discussed ways to enhance bilateral economic, trade and investment cooperation, with particular focus on textiles, agriculture, information technology, pharmaceuticals and Special Economic Zones (SEZs).\nThe SIFC hosted the Ambassador of Portugal for a wide-ranging discussion focused on strengthening economic, trade and investment cooperation between Pakistan and Portugal, according to a press release issued by SIFC.\nThe engagement provided an opportunity to explore areas of mutual interest and identify promising avenues for greater collaboration between the business communities of both countries.\nDiscussions covered investment opportunities in textiles, agriculture, information and communication technology, pharmaceuticals and Special Economic Zones (SEZs), highlighting the potential for enhanced commercial engagement and investment partnerships.\nSIFC briefed the Ambassador on Pakistan’s investment potential across priority sectors and its investor-centric facilitation framework aimed at providing coordinated support to domestic and international investors.\nAs a whole-of-government platform, SIFC works to facilitate engagement between investors and relevant federal, provincial and sectoral stakeholders, helping streamline investment processes and support the development of viable business opportunities.\nThe meeting also highlighted opportunities emerging from Pakistan’s growing connectivity with international businesses and institutions.\nIn this context, SIFC acknowledged the launch of FC Porto’s Dragon Force Academy in Sialkot, established in partnership with Forward Sports. The initiative brings the renowned Portuguese football club’s youth development programme to Pakistan and represents an additional avenue for strengthening institutional and commercial linkages between the two countries.\nThe engagement underscored the scope for expanding Pakistan-Portugal cooperation through investment, business partnerships and sector-specific opportunities.\nSIFC emphasized the importance of continued engagement with international partners to identify commercially viable projects and create stronger linkages between Pakistani and Portuguese investors and businesses.\nSIFC reaffirmed its commitment to facilitating international investors through coordinated government support, providing greater clarity on investment opportunities and promoting an enabling environment for mutually beneficial partnerships."
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.515,
+    "indicator_resolution": 1.0,
+    "freshness": 0.7692
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

@@ -1,0 +1,1410 @@
+{
+ "iso2": "HK",
+ "country": "Hong Kong SAR, China",
+ "run_date": "2026-09-27",
+ "payload_fingerprint": "0b0c565ceeeb7e1b5458f75c83ca8c563c68fd9179375d18e88d4b914451b85b",
+ "payload_sha256": "211fa1729f4bf0cc386749630701ce42255bd2044eabfe09c9170ca19d0e3b1d",
+ "payload_tokens": 9127,
+ "versions": {
+  "git_sha": "047072131346f524a33b75c0885dc6643d3ad759",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "360a84838ecddc01bcad98fcd02d48890ba05499180362b005fd794b1b07f081",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "schema_violations": 0,
+  "payload_tokens": 9127
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://thepeninsulaqatar.com/article/27/09/2026/qatari-businessmen-association-discusses-strengthening-investment-partnerships-with-hong-kong",
+   "title": "Qatari Businessmen Association discusses strengthening investment partnerships with Hong Kong - The Peninsula Qatar",
+   "publisher": "The Peninsula Qatar",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Qatari Businessmen Association discussed enhancing investment partnerships with Hong Kong's Financial Secretary, Paul Chan, focusing on economic cooperation in various sectors.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.thestandard.com.hk/finance/article/343985/Paul-Chan-confident-HK-will-meet-35-45-percent-GDP-growth-target",
+   "title": "Paul Chan confident HK will meet 3.5-4.5 percent GDP growth target - The Standard (HK)",
+   "publisher": "The Standard (HK)",
+   "published": "2026-09-27",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Financial Secretary Paul Chan expressed confidence that Hong Kong will meet its GDP growth target of 3.5-4.5 percent for the year, driven by developments in artificial intelligence and strong export performance.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.indexoncensorship.org/2026/09/cfhk-website-block-hong-kong-china/",
+   "title": "China’s National Security Law censors appear to target vital Hong Kong website - Index on Censorship",
+   "publisher": "Index on Censorship",
+   "published": "2026-09-17",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong's Security Bureau did not confirm or deny the blockage of the Committee for Freedom in Hong Kong Foundation's website, which has been inaccessible to some users following the National Security Law.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3368934/hong-kong-tech-chief-sets-june-deadline-hetao-cross-border-talent-flow",
+   "title": "Hong Kong tech chief sets June deadline for Hetao cross-border talent flow - South China Morning Post",
+   "publisher": "South China Morning Post",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong's technology minister announced a June deadline for the launch of cross-border talent flows within the Hetao innovation hub.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.ubs.com/hk/en/wealthmanagement/insights/marketnews/article.3787359.html",
+   "title": "AI investment remains, AI applications emerge - UBS",
+   "publisher": "UBS",
+   "published": "2026-09-25",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "UBS discusses the ongoing investment in AI and the emergence of AI applications.",
+   "body_quality": null,
+   "body_status": "title-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.aljazeera.com/news/2026/9/10/hong-kong-court-rules-dow-jones-tried-to-stop-journalist-taking-union-role",
+   "title": "Hong Kong court rules Dow Jones tried to stop journalist taking union role - Al Jazeera",
+   "publisher": "Al Jazeera",
+   "published": "2026-09-10",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "A Hong Kong court convicted Dow Jones for attempting to deter journalist Selina Cheng from taking a union role, raising concerns about media freedom in the city.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://www.crowdfundinsider.com/2026/09/312532-hong-kong-indonesia-central-banks-deepen-cooperation-on-cross-border-qr-payments/",
+   "title": "Hong Kong, Indonesia Central Banks Deepen Cooperation On Cross-Border QR Payments - Crowdfund Insider",
+   "publisher": "Crowdfund Insider",
+   "published": "2026-09-26",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Hong Kong Monetary Authority and Bank Indonesia signed a memorandum of understanding to enhance cooperation on QR code-based cross-border payments.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://spectrumlocalnews.com/us/snplus/military/2026/09/24/pentagon-china-f-35-stealth-fighter-jet-parts",
+   "title": "Pentagon investigates after China obtains parts from F-35 stealth fighter jet - Spectrum News",
+   "publisher": "Spectrum News",
+   "published": "2026-09-24",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Pentagon is investigating how parts of the F-35 stealth fighter jet ended up in Hong Kong, with China reportedly obtaining the equipment.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://www.courthousenews.com/hong-kong-court-convicts-wall-street-journal-publisher-of-deterring-reporter-from-taking-union-role",
+   "title": "Hong Kong court convicts Wall Street Journal publisher of deterring reporter from taking union role - Courthouse News",
+   "publisher": "Courthouse News",
+   "published": "2026-09-10",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "A Hong Kong court convicted the publisher of The Wall Street Journal of deterring a reporter from taking a leadership role in a local press union, raising concerns about media freedom.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://usafacts.org/answers/what-is-the-average-us-tariff-rate-overall/other/hong-kong/",
+   "title": "What is the average US tariff rate for Hong Kong? - USAFacts",
+   "publisher": "USAFacts",
+   "published": "2026-09-25",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the average effective tariff rate on goods from Hong Kong, which was 3.4% in July 2026, and explains how tariff rates are determined.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.tradingview.com/news/te_news:586043:0-hong-kong-inflation-rate-holds-steady/",
+   "title": "Hong Kong Inflation Rate Holds Steady - TradingView",
+   "publisher": "TradingView",
+   "published": "2026-09-23",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong's annual inflation rate remained steady at 1.7% in August 2026, with various price changes across different sectors.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://euobserver.com/239459/how-a-chinese-smart-sex-toys-company-fed-russian-war-tech-against-ukraine-and-exposed-an-eu-sanctions-blind-spot/",
+   "title": "How a Chinese ‘smart sex toys’ company fed Russian war tech against Ukraine — and exposed an EU sanctions blind spot - EUobserver",
+   "publisher": "EUobserver",
+   "published": "2026-09-25",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "A network supplying microelectronics and optical equipment for Russian military aircraft sourced goods from a Hong Kong supplier involved in sanctions evasion.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://english.aawsat.com/business/5318864-hong-kong-unveils-plan-align-economy-china%E2%80%99s-goals",
+   "title": "Hong Kong Unveils Plan to Align Economy with China’s Goals - ASHARQ AL-AWSAT English",
+   "publisher": "ASHARQ AL-AWSAT English",
+   "published": "2026-09-16",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong's government unveiled plans to boost investment in innovation and technology to align with mainland China's development goals.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://www.customs.gov.hk/en/customs-announcement/press-release/index_id_5657.html",
+   "title": "Press Release - Hong Kong Customs and General Administration of Customs of People's Republic of China hold review meeting (with photos) - Hong Kong Customs and Excise Department",
+   "publisher": "Hong Kong Customs and Excise Department",
+   "published": "2026-09-25",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong Customs and the General Administration of Customs of China held a review meeting to discuss customs cooperation and the development of the Guangdong-Hong Kong-Macao Greater Bay Area.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://www.amnesty.org.uk/latest/10-ways-censorship-has-silenced-hong-kongs-dissenting-voices/",
+   "title": "10 ways censorship has silenced Hong Kong’s dissenting voices - Amnesty International UK",
+   "publisher": "Amnesty International UK",
+   "published": "2026-09-10",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Amnesty International UK reports on censorship in Hong Kong, detailing how dissenting voices are silenced across various sectors.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://russiaspivottoasia.com/growing-russia-hong-kong-economic-relations-from-trade-investment-to-a-greater-bay-area-business-gateway/",
+   "title": "Growing Russia-Hong Kong Economic Relations: From Trade & Investment to a Greater Bay Area Business Gateway - russia's pivot to asia",
+   "publisher": "russia's pivot to asia",
+   "published": "2026-09-23",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "A Russian consumer goods business mission visited Hong Kong to explore partnerships and access to Asian markets, highlighting the growing economic relations between Russia and Hong Kong.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://www.ncronline.org/hong-kong-court-upholds-convictions-cardinal-joseph-zen-and-others-over-protester-relief-fund",
+   "title": "Hong Kong court upholds convictions of Cardinal Joseph Zen and others over protester relief fund - ncronline.org",
+   "publisher": "ncronline.org",
+   "published": "2026-09-04",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "A Hong Kong court upheld the convictions of Cardinal Joseph Zen and four others for failing to register a fund that provided legal aid to arrested protesters.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://wtvbam.com/2026/09/22/chinas-offshore-trust-tax-crackdown-could-impact-single-stocks-bofa-says/",
+   "title": "China’s offshore trust tax crackdown could impact single stocks, BofA says - WTVB",
+   "publisher": "WTVB",
+   "published": "2026-09-22",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "China's new rule to impose income tax on offshore trusts could impact certain stocks of Hong Kong and US-listed Chinese companies as the payment deadline approaches.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3368912/how-hong-kongs-old-businesses-are-adapting-new-times",
+   "title": "How Hong Kong’s old businesses are adapting to new times - South China Morning Post",
+   "publisher": "South China Morning Post",
+   "published": "2026-09-27",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Established enterprises in Hong Kong are adapting to new economic conditions by rejuvenating their brands and reinventing their businesses.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://amp.scmp.com/news/hong-kong/hong-kong-economy/article/3368931/hong-kong-can-offer-ai-governance-solutions-major-economies-paul-chan",
+   "title": "Hong Kong can offer AI governance solutions for major economies: Paul Chan - South China Morning Post",
+   "publisher": "South China Morning Post",
+   "published": "2026-09-27",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong's finance chief Paul Chan stated that the city can provide AI governance solutions for major economies by leveraging its strengths.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 4,
+   "order": 4,
+   "information": 2,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 2,
+   "order": 4,
+   "information": 1,
+   "edge": 3
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 5
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 2,
+    "resolved": 2
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 0
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 1
+   }
+  },
+  "dropped": [
+   {
+    "code": "SI.POV.GINI",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Income inequality (Gini)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Interest payments (% revenue)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "IQ.SPI.OVRL",
+    "ledger": "information",
+    "source": "World Bank SPI",
+    "label": "Statistical performance (0-100)",
+    "reason": "unmapped"
+   }
+  ],
+  "as_of_schemes": {
+   "first-seen": 4,
+   "publication-lag-estimate": 4,
+   "source-published": 2
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 39,
+  "stories": 30,
+  "multi": 6,
+  "dropped": 9,
+  "slots_freed": 5,
+  "selected": 20,
+  "same_story_as": {
+   "https://www.indexbox.io/blog/qatari-businessmen-association-and-hong-kong-financial-secretary-paul-chan-discuss-strengthening-economic-and-investment-cooperation/": "https://thepeninsulaqatar.com/article/27/09/2026/qatari-businessmen-association-discusses-strengthening-investment-partnerships-with-hong-kong",
+   "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3368886/hong-kongs-paul-chan-predicts-positive-market-response-xi-trump-summit": "https://amp.scmp.com/news/hong-kong/hong-kong-economy/article/3368886/hong-kongs-paul-chan-predicts-positive-market-response-xi-trump-summit",
+   "https://www.tomshardware.com/tech-industry/china-swiped-f-35-stealth-fighter-parts-that-were-diverted-through-hong-kong-rerouted-ups-cargo-triggers-military-investigation-stealth-coating-recipe-feared-compromised-despite-pentagon-downplaying-mishap": "https://spectrumlocalnews.com/us/snplus/military/2026/09/24/pentagon-china-f-35-stealth-fighter-jet-parts",
+   "https://www.cnn.com/2026/09/22/australia/australia-us-f-35-fighter-jet-parts-missing-intl-hnk": "https://spectrumlocalnews.com/us/snplus/military/2026/09/24/pentagon-china-f-35-stealth-fighter-jet-parts",
+   "https://www.jll.com/en-hk/newsroom/hk-remains-among-the-world-s-most-transparent-real-estate-markets": "https://www.scmp.com/business/article/3368542/hong-kong-rises-property-market-transparency-rankings-trails-singapore-and-japan",
+   "https://www.npr.org/2026/09/11/g-s1-142832/hong-kong-court-sentences-vigil-organizers": "https://www.courthousenews.com/eu-parliament-urges-sanctions-over-hong-kong-jailing-of-activists",
+   "https://www.aljazeera.com/news/2026/9/11/hong-kong-court-hands-stiff-jail-sentences-to-tiananmen-vigil-activists": "https://www.courthousenews.com/eu-parliament-urges-sanctions-over-hong-kong-jailing-of-activists",
+   "https://www.reuters.com/world/china/hong-kong-court-jails-two-tiananmen-vigil-group-leaders-7-years-2026-09-11/": "https://www.courthousenews.com/eu-parliament-urges-sanctions-over-hong-kong-jailing-of-activists",
+   "https://www.reuters.com/business/media-telecom/hong-kong-court-convicts-wall-street-journal-publisher-blocking-ex-reporter-2026-09-10/": "https://www.aljazeera.com/news/2026/9/10/hong-kong-court-rules-dow-jones-tried-to-stop-journalist-taking-union-role"
+  }
+ },
+ "payload": {
+  "country": {
+   "iso2": "HK",
+   "name": "Hong Kong SAR, China"
+  },
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "Hong Kong SAR, China",
+   "regime": "currency board (linked to the US dollar)",
+   "region": "East Asia & Pacific",
+   "sovereignty": "none",
+   "tier": "DM"
+  },
+  "economics_by_ledger": {
+   "friction": {
+    "question": "What is taken, and how well does it convert?",
+    "indicators": [
+     {
+      "code": "FP.CPI.TOTL.ZG",
+      "label": "Inflation (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 1.4363,
+      "period": 2025,
+      "as_of": "2026-09-23",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 4,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 1.5688
+       },
+       {
+        "year": 2022,
+        "value": 1.8814
+       },
+       {
+        "year": 2023,
+        "value": 2.0966
+       },
+       {
+        "year": 2024,
+        "value": 1.7297
+       },
+       {
+        "year": 2025,
+        "value": 1.4363
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OWID.VDEM.CORRUPTION",
+      "label": "Political corruption index (0-1, higher = more corrupt)",
+      "unit": "index (0-1)",
+      "source": "V-Dem via OWID",
+      "value": 0.085,
+      "period": 2025,
+      "as_of": "2026-09-23",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 4,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 0.082
+       },
+       {
+        "year": 2022,
+        "value": 0.084
+       },
+       {
+        "year": 2023,
+        "value": 0.084
+       },
+       {
+        "year": 2024,
+        "value": 0.09
+       },
+       {
+        "year": 2025,
+        "value": 0.085
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "order": {
+    "question": "How much doubt is there about the load-bearing rules?",
+    "indicators": [
+     {
+      "code": "GOV_WGI_PV.EST",
+      "label": "Political stability (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 0.6311,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 0.0079
+       },
+       {
+        "year": 2021,
+        "value": 0.2187
+       },
+       {
+        "year": 2022,
+        "value": 0.3892
+       },
+       {
+        "year": 2023,
+        "value": 0.4084
+       },
+       {
+        "year": 2024,
+        "value": 0.6311
+       }
+      ],
+      "direction": "rising",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "GOV_WGI_RL.EST",
+      "label": "Rule of law (z-score)",
+      "unit": "z-score",
+      "source": "World Bank WGI",
+      "value": 0.921,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 1.1754
+       },
+       {
+        "year": 2021,
+        "value": 1.032
+       },
+       {
+        "year": 2022,
+        "value": 0.8842
+       },
+       {
+        "year": 2023,
+        "value": 0.8759
+       },
+       {
+        "year": 2024,
+        "value": 0.921
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SL.UEM.TOTL.ZS",
+      "label": "Unemployment (% labour force)",
+      "unit": "%",
+      "source": "World Bank WDI",
+      "value": 2.799,
+      "period": 2025,
+      "as_of": "2026-09-23",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 4,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 5.174
+       },
+       {
+        "year": 2022,
+        "value": 4.318
+       },
+       {
+        "year": 2023,
+        "value": 2.949
+       },
+       {
+        "year": 2024,
+        "value": 2.988
+       },
+       {
+        "year": 2025,
+        "value": 2.799
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "NY.GDP.PCAP.KD.ZG",
+      "label": "GDP per-capita growth (% y/y)",
+      "unit": "% y/y",
+      "source": "World Bank WDI",
+      "value": 3.8354,
+      "period": 2025,
+      "as_of": "2026-09-23",
+      "as_of_scheme": "first-seen",
+      "staleness_days": 4,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 7.4295
+       },
+       {
+        "year": 2022,
+        "value": -2.8068
+       },
+       {
+        "year": 2023,
+        "value": 0.5497
+       },
+       {
+        "year": 2024,
+        "value": 2.793
+       },
+       {
+        "year": 2025,
+        "value": 3.8354
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "information": {
+    "question": "Can the country's own instruments be trusted?",
+    "indicators": [
+     {
+      "code": "RSF.PRESS.SCORE",
+      "label": "Press freedom (0-100, higher = freer)",
+      "unit": "score",
+      "source": "RSF World Press Freedom Index",
+      "value": 39.49,
+      "period": 2025,
+      "as_of": "2026-05-03",
+      "as_of_scheme": "source-published",
+      "staleness_days": 147,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2021,
+        "value": 41.64
+       },
+       {
+        "year": 2022,
+        "value": 44.86
+       },
+       {
+        "year": 2023,
+        "value": 43.06
+       },
+       {
+        "year": 2024,
+        "value": 39.86
+       },
+       {
+        "year": 2025,
+        "value": 39.49
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     }
+    ]
+   },
+   "edge": {
+    "question": "Is the system learning?",
+    "indicators": [
+     {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "label": "FDI inflow (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 30.8106,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 34.0498
+       },
+       {
+        "year": 2021,
+        "value": 37.1838
+       },
+       {
+        "year": 2022,
+        "value": 34.1279
+       },
+       {
+        "year": 2023,
+        "value": 32.0372
+       },
+       {
+        "year": 2024,
+        "value": 30.8106
+       }
+      ],
+      "direction": "flat",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "label": "Education spending (% GDP)",
+      "unit": "% GDP",
+      "source": "World Bank WDI",
+      "value": 3.8055,
+      "period": 2024,
+      "as_of": "2026-07-02",
+      "as_of_scheme": "publication-lag-estimate",
+      "staleness_days": 87,
+      "stale_for_its_cadence": false,
+      "history": [
+       {
+        "year": 2020,
+        "value": 4.4056
+       },
+       {
+        "year": 2021,
+        "value": 4.0003
+       },
+       {
+        "year": 2022,
+        "value": 3.7287
+       },
+       {
+        "year": 2023,
+        "value": 3.8033
+       },
+       {
+        "year": 2024,
+        "value": 3.8055
+       }
+      ],
+      "direction": "falling",
+      "accelerating": false,
+      "observed": 5,
+      "missing": 0
+     },
+     {
+      "code": "OECD.PISA.MEAN",
+      "label": "PISA mean score (maths/reading/science)",
+      "unit": "score",
+      "source": "OECD PISA",
+      "value": 520.16,
+      "period": 2022,
+      "as_of": "2023-12-05",
+      "as_of_scheme": "source-published",
+      "staleness_days": 1027,
+      "stale_for_its_cadence": true,
+      "history": [
+       {
+        "year": 2018,
+        "value": "unknown"
+       },
+       {
+        "year": 2019,
+        "value": "unknown"
+       },
+       {
+        "year": 2020,
+        "value": "unknown"
+       },
+       {
+        "year": 2021,
+        "value": "unknown"
+       },
+       {
+        "year": 2022,
+        "value": 520.16
+       }
+      ],
+      "direction": "unknown",
+      "accelerating": null,
+      "observed": 1,
+      "missing": 4
+     }
+    ]
+   }
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 4,
+    "order": 2,
+    "security": 4,
+    "information": 4,
+    "edge": 3,
+    "broad": 5
+   },
+   "selected_per_ledger": {
+    "friction": 9,
+    "order": 8,
+    "information": 3,
+    "edge": 0
+   },
+   "candidates_fetched": 60,
+   "passed_the_gate": 39,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "The Peninsula Qatar",
+    "published": "2026-09-27",
+    "title": "Qatari Businessmen Association discusses strengthening investment partnerships with Hong Kong - The Peninsula Qatar",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The Qatari Businessmen Association (QBA) and the Financial Secretary of Hong Kong, Paul Chan, discussed enhancing economic and investment cooperation between Qatar and Hong Kong. They focused on building partnerships in sectors like financial services, healthcare, logistics, and technology, aiming to elevate economic relations and create long-term investments.",
+     "institutions": [
+      "Qatari Businessmen Association",
+      "Hong Kong Special Administrative Region Government"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "The Standard (HK)",
+    "published": "2026-09-27",
+    "title": "Paul Chan confident HK will meet 3.5-4.5 percent GDP growth target - The Standard (HK)",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Hong Kong is expected to achieve its economic growth target for the year, which is between 3.5 percent and 4.5 percent, driven by the development of artificial intelligence. The economy logged a 5.1 percent increase in the first half of 2026, and exports of goods reached HK$667.9 billion in August, a year-on-year increase of 53 percent.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "3.5 percent to 4.5 percent growth target",
+      "5.1 percent increase in first half of 2026",
+      "HK$667.9 billion total value of exports in August",
+      "53 percent year-on-year increase in exports",
+      "42.5 percent rise in outbound shipments for first eight months",
+      "HK$5.24 trillion export value last year",
+      "15.4 percent jump from 2024",
+      "38.4 percent surge in private investment in machinery and equipment",
+      "19.4 percent overall private investment growth",
+      "0.6 percent GDP fall quarter on quarter in second quarter",
+      "2.9 percent gain in preceding quarter"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Index on Censorship",
+    "published": "2026-09-17",
+    "title": "China’s National Security Law censors appear to target vital Hong Kong website - Index on Censorship",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The Committee for Freedom in Hong Kong Foundation's website has been blocked in Hong Kong, part of a series of blockages following the National Security Law enacted in 2020. Users of several internet service providers in Hong Kong have reported being unable to access the site, although the blockage is not confirmed as complete. The Hong Kong police have previously targeted other websites for similar reasons under the National Security Law.",
+     "institutions": [
+      "The Committee for Freedom in Hong Kong Foundation",
+      "Hong Kong Security Bureau"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "HK$1,000,000 bounty",
+      "at least 10 websites blocked"
+     ]
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "South China Morning Post",
+    "published": "2026-09-27",
+    "title": "Hong Kong tech chief sets June deadline for Hetao cross-border talent flow - South China Morning Post",
+    "themes": [
+     "security",
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Hong Kong's technology minister, Sun Dong, announced that cross-boundary talent flows within the Hetao innovation hub will begin by June 30 next year at the latest. This announcement follows a pledge by the city's leader to enable the free movement of data by the end of 2026.",
+     "institutions": [
+      "Hong Kong Microelectronics Research and Development Institute (MRDI)"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "June 30 next year deadline for talent flow",
+      "data flows by the end of 2026"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "UBS",
+    "published": "2026-09-25",
+    "title": "AI investment remains, AI applications emerge - UBS",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "title-only"
+   },
+   {
+    "id": "a6",
+    "publisher": "Al Jazeera",
+    "published": "2026-09-10",
+    "title": "Hong Kong court rules Dow Jones tried to stop journalist taking union role - Al Jazeera",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A Hong Kong court convicted Dow Jones for attempting to deter journalist Selina Cheng from taking a union role but acquitted the company of unlawfully dismissing her over that role. The court found that her redundancy was due to corporate restructuring, not her position with the Hong Kong Journalists Association.",
+     "institutions": [
+      "Hong Kong Journalists Association",
+      "Dow Jones",
+      "Wall Street Journal",
+      "Labour Department"
+     ],
+     "direction": "mixed",
+     "numbers": [
+      "100,000 Hong Kong dollars fine for employers",
+      "$12,755 fine for employers"
+     ]
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "Crowdfund Insider",
+    "published": "2026-09-26",
+    "title": "Hong Kong, Indonesia Central Banks Deepen Cooperation On Cross-Border QR Payments - Crowdfund Insider",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Hong Kong Monetary Authority (HKMA) and Bank Indonesia (BI) have signed a memorandum of understanding to enhance cooperation on QR code-based cross-border payments between Hong Kong and Indonesia. The agreement aims to promote faster, more affordable, and transparent transactions while exploring interoperability between the two markets' payment systems.",
+     "institutions": [
+      "Hong Kong Monetary Authority",
+      "Bank Indonesia"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "Spectrum News",
+    "published": "2026-09-24",
+    "title": "Pentagon investigates after China obtains parts from F-35 stealth fighter jet - Spectrum News",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Pentagon is investigating how parts of the F-35 fighter jet ended up in Hong Kong, with reports indicating that China has obtained these components. The F-35 Joint Program Office acknowledged a shipment issue and is working to retrieve the components and prevent future occurrences.",
+     "institutions": [
+      "Pentagon",
+      "F-35 Joint Program Office",
+      "U.S. authorities",
+      "Lockheed Martin",
+      "Australian Defense Minister's office",
+      "Chinese Foreign Ministry",
+      "Hong Kong government",
+      "Congressional Research Service",
+      "Defense Science Board"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "1,200 F-35 jets made",
+      "19 countries placed orders for F-35 planes",
+      "report in 2013 alleging Chinese cyberattacks accessed data from dozens of Pentagon programs"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "Courthouse News",
+    "published": "2026-09-10",
+    "title": "Hong Kong court convicts Wall Street Journal publisher of deterring reporter from taking union role - Courthouse News",
+    "themes": [
+     "order",
+     "information"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A Hong Kong court found Dow Jones Publishing Co. guilty of trying to prevent former Wall Street Journal reporter Selina Cheng from taking a leadership role in a local press union, but acquitted the company of firing her due to her union activities. The case has raised concerns about media freedom in Hong Kong, where press freedom advocates have faced increasing pressure from the government.",
+     "institutions": [
+      "Hong Kong Journalists Association",
+      "Dow Jones Publishing Co. (Asia) Inc."
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "100,000 Hong Kong dollars maximum fine for each charge",
+      "20 years in prison for Jimmy Lai",
+      "140th out of 180 countries in World Press Freedom Index",
+      "18th out of 139 regions in 2002",
+      "80th in 2020"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "USAFacts",
+    "published": "2026-09-25",
+    "title": "What is the average US tariff rate for Hong Kong? - USAFacts",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The average effective tariff rate on goods from Hong Kong was 3.4% in July 2026, up from 2.8% in 2025. Tariff rates are influenced by trade agreements, normal trade relations, special cases, preference programs, and the types of products imported.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": [
+      "average effective tariff rate 3.4% in July 2026",
+      "average effective tariff rate 2.8% in 2025",
+      "copper and articles thereof 48.4%",
+      "articles of iron and steel 47%",
+      "knitted or crocheted fabrics 27.2%",
+      "apparel and clothing accessories, knitted or crocheted 25.7%",
+      "apparel and clothing accessories, not knitted or crocheted 24.7%",
+      "man-made staple fibers 23.8%",
+      "clocks and watches and parts thereof 23.2%",
+      "vehicles other than railway or tramway rolling stock & parts thereof 20.8%",
+      "footwear, gaiter, & parts of such articles 20.1%",
+      "man-made filaments 19.6%"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "TradingView",
+    "published": "2026-09-23",
+    "title": "Hong Kong Inflation Rate Holds Steady - TradingView",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Hong Kong's annual inflation rate remained steady at 1.7% in August 2026, with various price changes across different sectors. While housing prices grew slightly, food and utilities saw a slight acceleration in inflation, and transport inflation softened.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": [
+      "inflation 1.7% in August 2026",
+      "housing price growth 0.1%",
+      "food inflation 0.6%",
+      "utilities inflation 11.5%",
+      "durable goods price growth 0.8%",
+      "transport inflation 3.9%",
+      "underlying Composite CPI 1.9%",
+      "monthly consumer prices increase 0.1%"
+     ]
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "EUobserver",
+    "published": "2026-09-25",
+    "title": "How a Chinese ‘smart sex toys’ company fed Russian war tech against Ukraine — and exposed an EU sanctions blind spot - EUobserver",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses the challenges and delays in the sanctions regime against entities involved in evading sanctions related to the war in Ukraine. It highlights the slow process of sanctioning companies that facilitate the supply of microelectronics to Russia, with some cases taking years to address while new suppliers emerge quickly.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "3,000 individuals and entities sanctioned by the EU since 2014",
+      "over 7,000 individuals and entities blacklisted by the US",
+      "$800m in trade in priority Western microelectronics",
+      "over $16m in priority microelectronics supplied to Russia from one Hong Kong office",
+      "$57m in shipments to Russia from suppliers linked to offshore structures",
+      "nearly $380m in trade from over 450 suppliers using restricted addresses"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "ASHARQ AL-AWSAT English",
+    "published": "2026-09-16",
+    "title": "Hong Kong Unveils Plan to Align Economy with China’s Goals - ASHARQ AL-AWSAT English",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Hong Kong's government announced plans to significantly increase investment in innovation and technology, aiming to align with mainland China's development goals. The city will target research and development to account for three percent of gross domestic product by 2030, up from 1.63 percent in 2024, as part of its first Five-Year Plan.",
+     "institutions": [
+      "Hong Kong government"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "3% of GDP by 2030",
+      "1.63% in 2024"
+     ]
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "Hong Kong Customs and Excise Department",
+    "published": "2026-09-25",
+    "title": "Press Release - Hong Kong Customs and General Administration of Customs of People's Republic of China hold review meeting (with photos) - Hong Kong Customs and Excise Department",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Commissioner of Customs and Excise, Mr Chan Tsz-tat, led a delegation to a meeting in Ningxia to review the 2025-2026 Co-operation Plan between Hong Kong Customs and the General Administration of Customs of the People's Republic of China. The meeting resulted in a consensus on the 2027-2028 Co-operation Plan, focusing on enhancing customs clearance facilitation and enforcement co-operation, among other areas.",
+     "institutions": [
+      "Hong Kong Customs",
+      "General Administration of Customs of the People's Republic of China (GACC)"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "Amnesty International UK",
+    "published": "2026-09-10",
+    "title": "10 ways censorship has silenced Hong Kong’s dissenting voices - Amnesty International UK",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses how censorship in Hong Kong has increasingly silenced dissenting voices across various sectors, including activism, media, politics, art, education, and business. It highlights specific cases of individuals and organizations affected by the National Security Law, illustrating the broader impact on civil society and free expression in the region.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "10 stories of censorship",
+      "over 100 civil society groups disbanded",
+      "14 independent media closed down",
+      "900 journalists lost their jobs",
+      "Hong Kong's ranking on World Press Freedom Index fell from 80th to 140th",
+      "45 Hong Kong democrats convicted in national security trial",
+      "7 years and 9 months sentence for Owen Chow",
+      "more than 500 minors prosecuted for protests",
+      "at least 13 films banned due to national security concerns"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "russia's pivot to asia",
+    "published": "2026-09-23",
+    "title": "Growing Russia-Hong Kong Economic Relations: From Trade & Investment to a Greater Bay Area Business Gateway - russia's pivot to asia",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A Russian consumer goods business mission visited Hong Kong on September 15-16, 2026, to seek partnerships and access to Asian markets. The mission included twelve Russian companies from various sectors and highlighted Hong Kong's role as a gateway for expanding Russian exports. Bilateral trade between Russia and Hong Kong reached approximately US$2 billion in the first half of 2026, with Russian exports exceeding US$1.1 billion.",
+     "institutions": [
+      "Russian Export Center",
+      "Russia’s Ministry of Agriculture",
+      "Russian Consulate General",
+      "Federation of Hong Kong Industries",
+      "Chinese Manufacturers’ Association of Hong Kong",
+      "Hong Kong Trade Development Council"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "US$2 billion bilateral trade in H1 2026",
+      "Russian exports exceeding US$1.1 billion",
+      "US$4.3 billion Russia-Hong Kong trade in 2025",
+      "US$427.2 billion Hong Kong GDP in 2025",
+      "32 million barrels of crude oil lifted by Hong Kong operators in August 2026",
+      "US$37 million agricultural trade in January-August 2026",
+      "8.4% increase in Russian food exports to US$36.5 million"
+     ]
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "ncronline.org",
+    "published": "2026-09-04",
+    "title": "Hong Kong court upholds convictions of Cardinal Joseph Zen and others over protester relief fund - ncronline.org",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A Hong Kong court dismissed appeals by Cardinal Joseph Zen and four others over their convictions for failing to register a fund that supported arrested protesters. The five were fined 4,000 Hong Kong dollars each for breaching the Societies Ordinance, marking the first convictions of their kind in the city.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "4,000 Hong Kong dollars ($512) fine each"
+     ]
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "WTVB",
+    "published": "2026-09-22",
+    "title": "China’s offshore trust tax crackdown could impact single stocks, BofA says - WTVB",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "China has introduced a new rule to impose income tax on offshore trusts, affecting many shareholders of Hong Kong and US-listed Chinese companies. This change could lead to short-term risks for certain shares as the payment deadline approaches on October 22, with concerns raised about the impact on offshore Chinese stocks.",
+     "institutions": [
+      "BofA Securities",
+      "Chinese authorities"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "259 million shares sold",
+      "HK$2.75 billion ($350.59 million)",
+      "17% drop in shares",
+      "90 days for tax settlement",
+      "October 22 deadline"
+     ]
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "South China Morning Post",
+    "published": "2026-09-27",
+    "title": "How Hong Kong’s old businesses are adapting to new times - South China Morning Post",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Hong Kong's old businesses are adapting to new times by rejuvenating their brands and reinventing their operations. For example, Lin Heung Lau restaurant extended its hours during the World Cup to attract a younger crowd, focusing on brand-building rather than just profits.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "South China Morning Post",
+    "published": "2026-09-27",
+    "title": "Hong Kong can offer AI governance solutions for major economies: Paul Chan - South China Morning Post",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Hong Kong's finance chief, Paul Chan, stated that the city can provide governance solutions for artificial intelligence (AI) to major economies by utilizing its strengths such as its common law system and professional services. He emphasized Hong Kong's capabilities in areas like AI model training, data flows, privacy protection, and dispute resolution.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": []
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Qatari Businessmen Association discusses strengthening investment partnerships with Hong Kong - The Peninsula Qatar",
+    "publisher": "The Peninsula Qatar",
+    "body_status": "full",
+    "chars_read": 3738,
+    "chars_original": 3738,
+    "text": "Doha, Qatar: The Qatari Businessmen Association (QBA) discussed with HE Financial Secretary of the Hong Kong Special Administrative Region Government (People's Republic of China), Paul Chan ways to enhance economic and investment cooperation between the Qatari private sector and Hong Kong. The discussion focused on building new partnerships in priority sectors, notably financial services, healthcare, logistics, technology and innovation, as well as trade and investment.\nHE Paul Chan stated that the meeting with QBA members was significant for showcasing available opportunities, expanding relations between the two business communities, encouraging mutual investments, and connecting Qatari companies and investors with their counterparts in Hong Kong. These efforts aim to elevate economic relations to a more diversified stage based on long-term partnerships and investments.\nThe two sides discussed the potential for enhancing communication between financial institutions and developing partnerships in asset management, investment, and finance.\nThey also explored leveraging Hong Kong's expertise and financial networks to support the expansion of Qatari companies and investors into Asian markets.\nQBA Board Member, HE Sheikh Hamad bin Faisal Al-Thani emphasized that given the advanced financial and investment institutions in both Qatar and Hong Kong, there are significant opportunities for cooperation among banks, financial institutions, asset management firms, and investment funds in the coming period.\nHe added: \"We look forward to building practical, long-term partnerships between the Qatari private sector and the Hong Kong business community. We see particularly promising opportunities in financial services, investment, healthcare, logistics, and technology sectors where the expertise and capabilities of both sides can be combined to open new markets for companies and investors.\"\nHe noted that the Association plans to visit Hong Kong to explore new investment and financing instruments capable of mobilizing capital and directing it toward productive sectors and value-added projects.\nThe visit will also examine opportunities Qatar can offer Asian companies and financial institutions seeking to expand their presence in the region.\nFor his part, QBA Board Member, HE Sheikh Nawaf Nasser Bin Khaled Al-Thani emphasized the Association's interest in various sectors that contribute to realizing Qatar National Vision 2030.\nHe highlighted healthcare as a particularly promising area for long-term investment, stressing the importance of forging partnerships that combine capital, operational expertise, and technology to advance healthcare, financial, and logistics services, while facilitating the transfer of knowledge and modern technologies.\nHe added that Hong Kong can serve as a vital gateway for Qatari investors to access China and Asian markets. Conversely, Qatar offers an attractive environment for Asian companies seeking to reach markets in the Gulf and the wider region.\nThis underscores the importance of moving beyond dialogue and exchange visits to identifying actionable investment opportunities and joint projects.\nAssociation members noted that linking Qatar's logistical capabilities with Hong Kong's trade and business networks could offer significant opportunities for companies on both sides and help develop new trade and investment corridors connecting the Gulf region with Asia.\nAt the conclusion of the meeting, both sides emphasized the importance of continued coordination and organizing direct engagements among companies, investors, and relevant institutions in priority sectors, with the aim of transforming the identified opportunities into tangible partnerships and projects."
+   },
+   {
+    "id": "a2",
+    "title": "Paul Chan confident HK will meet 3.5-4.5 percent GDP growth target - The Standard (HK)",
+    "publisher": "The Standard (HK)",
+    "body_status": "full",
+    "chars_read": 3589,
+    "chars_original": 3589,
+    "text": "Hong Kong is set to return to a track of steady economic expansion as Financial Secretary Paul Chan Mo-po expressed confidence that the city will reach the full-year government-set economic growth target this year, which exceeds the 10-year average before the pandemic.\nThe growth target is between 3.5 percent and 4.5 percent.\nThe development of artificial intelligence is adding momentum to the economy, and based on the latest assessment by government economists, Chan said he is assured that the SAR’s gross domestic product this year could meet the growth target.\nThe projection is well above the 2.8 percent average annual growth in the 10 years before Covid, or 2010 to 2019. It is also higher than the 3.3 percent rise on average in the nine years from 2010 to 2018, excluding the effect of a 1.7 percent contraction in 2019 caused by social unrest.\nHong Kong's GDP could also grow faster this year than last year’s 3.6 percent increase.\nIn the first half of 2026, the territory’s economy logged a 5.1 percent increase, the strongest half-yearly performance in nearly five years.\nThe city’s total value of exports of goods in August reached HK$667.9 billion, a year-on-year increase of 53 percent, driven by demand for AI-related electronic products.\nOutbound shipments for the first eight months combined rose by 42.5 percent. If sustained, 2026 would become the best year in history for Hong Kong’s exports, surpassing 1979 when a 40.9 percent hike was recorded.\nIt would also be the highest in absolute amount, outstripping last year’s HK$5.24 trillion in export value, which was a 15.4 percent jump from 2024.\nAI-related products now account for about 70 percent of Hong Kong’s total exports, as the mainland – a key supplier and consumer of advanced electronics – has routed around one-third of its integrated circuit exports through the city, the government has said.\nMeanwhile, the adoption of AI-empowered products and services also helped private investment in machinery, equipment and intellectual property product acquisitions surge by 38.4 percent in the first six months of 2026.\nThat boosted overall private investment by 19.4 percent for the third consecutive quarter of double-digit growth in the June quarter.\nPrivate consumption also maintained moderate growth for five consecutive quarters in April-June as Hongkongers spent less abroad, suggesting a partial reallocation of consumption toward the domestic economy, the government said earlier.\nDespite the rises, the seasonally adjusted GDP fell 0.6 percent quarter on quarter in the second quarter, following a 2.9 percent gain in the preceding quarter.\nWhile noting the governance challenges AI brings to Hong Kong, Chan also said the city can play a unique role in providing \"rules\" and \"trust.\"\nLeveraging its common law system, talent, professional services, and financial support, Hong Kong can provide trusted solutions that balance model training, cross-border data flow, privacy protection, and dispute resolution, Chan wrote in his blog on Sunday.\nThe authorities are fully committed to supporting citizens in learning and using AI more, he added.\nChan has arrived in Doha, Qatar to attend the annual meeting of the Asian Infrastructure Investment Bank, where he is expected to share Hong Kong's experience with the governors of member states on issues such as promoting infrastructure development, enhancing regional connectivity, and sustainable development.\nHe is also expected to introduce the new opportunities and advantages Hong Kong has gained by aligning with national development strategies."
+   },
+   {
+    "id": "a3",
+    "title": "China’s National Security Law censors appear to target vital Hong Kong website - Index on Censorship",
+    "publisher": "Index on Censorship",
+    "body_status": "full",
+    "chars_read": 3365,
+    "chars_original": 3365,
+    "text": "The website of The Committee for Freedom in Hong Kong Foundation (CFHK) has apparently been blocked in Hong Kong, the latest of a series of blockages in the city following the enactment of the draconian National Security Law (NSL) in 2020.\nSome using Hong Kong internet service providers including SmarTone, China Mobile Hong Kong, PCCW and CSL have found themselves unable to access the CFHK website. However, it appeared not to be a full blockage. The technical reason behind this remains to be investigated.\nChloe Cheung, a former public affairs and advocacy manager at CFHK, was put on a Hong Kong police wanted list in December 2024 for “incitement to secession” and “collusion with a foreign country or with external elements to endanger national security”, with a HK$1,000,000 (£94,400) bounty.\nIn response to enquiries from Index on Censorship, a spokesman for Hong Kong’s Security Bureau replied: “Please approach the relevant internet service provider regarding the matter in question,” without confirming or denying the blockage. SmarTone, China Mobile Hong Kong, PCCW – CSL’s parent company – did not respond to emailed enquiries.\nThe Security Bureau’s response was the same as the one given to Voice of America, when the news outlet reported in October 2024 that online magazine Flow HK, founded by exiled pro-democracy activists, was blocked. A month before the incident, the Hong Kong police had written to the American company Automattic Inc. – which is behind WordPress – demanding it take down Flow HK. Their request was declined and the website was subsequently blocked.\nSince last week, some using Hong Kong internet service providers including SmarTone, China Mobile Hong Kong, PCCW and CSL have found themselves unable to access the CFHK website\nThe implementation rules for the Article 43 of NSL grants power to the Hong Kong police to require internet service providers to take down websites that are “likely to constitute an offence endangering national security or is likely to cause the occurrence of an offence endangering national security”.\nAt least 10 websites have been blocked in Hong Kong since the enactment of the NSL, from the personal substack of American lawyer Samuel Bickett who writes about Hong Kong’s decline in human rights and sanction evasions, to UK-based advocacy group Hong Kong Watch and Washington-based Hong Kong Democracy Council.\nAt least 10 websites have been blocked in Hong Kong since the enactment of the NSL\nHong Kong has also blocked the online 8964 Museum, which commemorates the 4 June 1989 Tiananmen Square massacre in China. Several Taiwanese websites have also been blocked, including the websites of the Transitional Justice Commission, the Presbyterian Church in Taiwan and the ruling Democratic Progressive Party.\nResponding to its website being blocked in Hong Kong, David Green, the head of UK communications for CFHK told Index on Censorship: “Requiring ISPs to participate in monitoring and censoring websites, deemed undesirable by the Chinese Communist Party, is reminiscent of how the mainland’s Great Firewall took shape.\n“If left uncontested, it’s only a matter of time before such blockages – of which there are already more than a few – multiply. Can we seriously expect the CCP to allow Hong Kongers continued access to the truth, now that they’ve criminalised remembrance of 4 June?”"
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.555,
+    "indicator_resolution": 0.75,
+    "freshness": 0.9
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

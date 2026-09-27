@@ -63,6 +63,8 @@ __all__ = [
     "relevance_key",
     "classify",
     "select",
+    "story_clusters",
+    "dedupe_stories",
     "duplicate_story_report",
 ]
 
@@ -141,10 +143,10 @@ E4  Opinion, advocacy or proposals from people outside {country}'s government (e
 E5  Ordinary crime or a court case about private individuals: drugs, scams, murder, theft, extradition of a private person. NOT excluded: cases involving politicians, officials, elections, journalists or activists.
 E6  A company's own business: its deals, investments, results or products, especially abroad. NOT excluded: a {country} regulator, court or government acting on a company.
 E7  {country} is only the place where it happened, or is mentioned in passing, and the consequences fall on other countries.
-E8  People or groups outside {country} acting ABOUT {country}: protests held abroad, foreign NGO appeals, anniversaries of old events, when nothing new is happening inside {country}.
+E8  People or groups outside {country} acting ABOUT {country}: protests held abroad, foreign NGO appeals, anniversaries of old events, when the article's main subject is the people or groups outside {country}, not events inside it.
 
 STEP 2: TESTS. If no exclusion applies, find the first test that passes.
-T1  {country}'s own state acts or speaks officially: head of state, government, ministers, parliament, courts on public matters, regulators, central bank, anti-corruption body, statistics office, armed forces, diplomats. Routine official activity counts: hearings, budgets, trainings, speeches, consultations, agreements.
+T1  {country}'s own state acts or speaks officially: head of state, government, ministers, parliament, courts on public matters, regulators, central bank, anti-corruption body, statistics office, armed forces, diplomats. Routine official activity counts: hearings, budgets, trainings, speeches, consultations, agreements, bills introduced in the legislature.
 T2  A measurement or assessment of {country}'s economy, markets, institutions or security: data releases, forecasts, rankings, analysis of conditions.
 T3  {country}'s political process: elections, parties, political violence, prosecution of politicians or officials, election crimes, protests inside {country}.
 T4  An outside state or force acts ON {country}: military strikes or threats against its territory, pressure from a major power over its status, tariffs, sanctions or border measures aimed at it, rules of a bloc it belongs to, agreements it signs.
@@ -264,7 +266,7 @@ def cache_version(model: str, input_mode: str) -> str:
     the input mode.
 
     The run date is in the prompt but not in the version, so a verdict earned on
-    one day is served on another. Only E8 ("nothing new is happening") leans on
+    one day is served on another. Only E8 ("anniversaries of old events") leans on
     the date, and a verdict a week old is judged against the week it was read.
     """
     return content_hash(
@@ -500,8 +502,14 @@ def select(
     *,
     budget: int = ARTICLE_BUDGET,
     input_mode: str = DEFAULT_INPUT_MODE,
+    same_story_as: Optional[Dict[str, str]] = None,
 ) -> Dict[str, Any]:
     """Choose what the scorer reads. Only `relevant` articles are eligible.
+
+    `same_story_as` is `dedupe_stories`' verdict, ``{url: kept url}``. An
+    eligible article in it is another outlet's telling of a story already in
+    the pool. It is never selected, so its slot goes to the next eligible
+    article. It still counts as eligible, because the gate passed it.
 
     **Nothing tops up from ineligible articles.** If six qualify, six are
     scored. Per-theme counts are reported; they are not floors, and no article
@@ -528,10 +536,13 @@ def select(
     are taken after the ledgered ones, in the same order.
 
     Returns:
-        ``{"selected", "eligible", "rejected", "per_theme", "per_ledger", "counts"}``.
+        ``{"selected", "eligible", "rejected", "same_story", "gate_labels",
+        "per_theme", "per_ledger", "counts"}``.
     """
     eligible: List[Dict[str, Any]] = []
     rejected: List[Dict[str, Any]] = []
+    same_story_as = same_story_as or {}
+    same_story: List[Dict[str, Any]] = []
 
     for article in articles:
         verdict = labels.get(relevance_key(article, iso2, input_mode))
@@ -539,6 +550,9 @@ def select(
             enriched = dict(article)
             enriched["relevance"] = verdict
             eligible.append(enriched)
+            url = article.get("publisher_link") or article.get("link")
+            if url in same_story_as:
+                same_story.append({"url": url, "same_story_as": same_story_as[url]})
         else:
             rejected.append({
                 "url": article.get("publisher_link") or article.get("link"),
@@ -556,12 +570,15 @@ def select(
 
     buckets: Dict[str, List[Dict[str, Any]]] = {led: [] for led in LEDGERS}
     buckets["(none)"] = []
+    dropped = {d["url"] for d in same_story}
+    pool = [a for a in eligible
+            if (a.get("publisher_link") or a.get("link")) not in dropped]
     events = sorted(
-        [a for a in eligible if a["relevance"].get("high_impact_event")],
+        [a for a in pool if a["relevance"].get("high_impact_event")],
         key=order_key,
         reverse=True,
     )
-    rest = [a for a in eligible if not a["relevance"].get("high_impact_event")]
+    rest = [a for a in pool if not a["relevance"].get("high_impact_event")]
 
     for a in sorted(rest, key=order_key, reverse=True):
         led = a["relevance"].get("ledgers") or []
@@ -668,6 +685,7 @@ def select(
         "selected": selected,
         "eligible": eligible,
         "rejected": rejected,
+        "same_story": same_story,
         "gate_labels": gate_labels,
         "per_theme": per_theme,
         "per_ledger": per_ledger,
@@ -675,9 +693,246 @@ def select(
             "candidates": len(articles),
             "classified": len(labels),
             "eligible": len(eligible),
+            "same_story": len(same_story),
             "selected": len(selected),
             "budget": budget,
             "rejected_by_label": label_counts,
+        },
+    }
+
+
+# --- One story, one article -------------------------------------------------
+#
+# Sending the scorer one event from five outlets makes one incident look like a
+# trend. Title overlap cannot catch a rewrite: "Shot dead the journalist and
+# regional candidate..." and "Two arrested for murder of journalist and
+# candidate..." share almost no words and are one story. So a cheap model reads
+# the gate's own one-sentence account of each eligible article and groups them,
+# before the budget is filled, and one article per story goes forward.
+
+STORY_MODEL = DEFAULT_MODEL
+STORY_MAX_OUTPUT_TOKENS = 2000
+
+# The fallback, when the model's answer cannot be read as one story per id.
+STORY_TITLE_JACCARD = 0.6
+
+STORY_PROMPT = """You group news items about {country} by story. Each line is an id and one sentence saying what happened.
+
+Two items are the same story when they report the same underlying event, or its direct follow-up. A shooting and the arrests for that shooting are one story. A bill and the vote on that bill are one story. Items that only share a topic, a place or an institution are different stories: two different corruption cases, or one minister's statements on two different matters.
+
+For every id, answer with the id of the FIRST item in the list that tells the same story. An item whose story no earlier item tells answers with its own id.
+
+ITEMS
+{items}"""
+
+
+def _story_schema(ids: Sequence[str]) -> Dict[str, Any]:
+    """Every id is a required key, so an answer that skips one cannot be
+    decoded. A list of clusters cannot require that, and on the first test run
+    gpt-4o-mini left one to five ids out of every country's list."""
+    return {
+        "name": "story_clusters",
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                "same_story_as": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    # No enum on the values: strict mode allows 1,000 enum
+                    # values in a whole schema, and 48 ids would need 2,304.
+                    # `_clusters_from_links` checks them instead.
+                    "properties": {sid: {"type": "string"} for sid in ids},
+                    "required": list(ids),
+                },
+            },
+            "required": ["same_story_as"],
+        },
+        "strict": True,
+    }
+
+
+def _clusters_from_links(links: Any, ids: Sequence[str]) -> Any:
+    """Join ``{id: id of the same story}`` into clusters, or return why not."""
+    if not isinstance(links, dict):
+        return "no answer"
+    missing = [i for i in ids if i not in links]
+    unknown = sorted({v for v in links.values() if v not in ids} | (set(links) - set(ids)))
+    if missing or unknown:
+        return f"missing {missing[:5]}, unknown {unknown[:5]}"
+    parent = {i: i for i in ids}
+
+    def root(i: str) -> str:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for i, j in links.items():
+        ri, rj = root(i), root(j)
+        if ri != rj:
+            parent[max(ri, rj, key=ids.index)] = min(ri, rj, key=ids.index)
+    groups: Dict[str, List[str]] = {}
+    for i in ids:
+        groups.setdefault(root(i), []).append(i)
+    return list(groups.values())
+
+
+def _title_clusters(items: Sequence[Dict[str, Any]], threshold: float) -> List[List[int]]:
+    """Index groups whose titles overlap by at least `threshold`, as
+    `duplicate_story_report` measures it. Every index is in exactly one group."""
+    def tokens(a):
+        return {w for w in (a.get("title") or "").lower().split() if len(w) > 3}
+
+    toks = [tokens(a) for a in items]
+    seen = set()
+    groups: List[List[int]] = []
+    for i in range(len(items)):
+        if i in seen:
+            continue
+        group = [i]
+        seen.add(i)
+        if toks[i]:
+            for j in range(i + 1, len(items)):
+                if j in seen or not toks[j]:
+                    continue
+                if len(toks[i] & toks[j]) / len(toks[i] | toks[j]) >= threshold:
+                    group.append(j)
+                    seen.add(j)
+        groups.append(group)
+    return groups
+
+
+def story_clusters(
+    items: Sequence[Dict[str, Any]],
+    country_name: str,
+    *,
+    model: str = STORY_MODEL,
+    api_key: Optional[str] = None,
+    seed: int = 42,
+    meter: Optional[usage.Meter] = None,
+) -> Dict[str, Any]:
+    """Group `items` by story, in one call.
+
+    Each item carries ``what_happened`` (the gate's sentence) and ``title``.
+    The model names, for every id, the first item telling the same story, and
+    the links are joined into clusters here. An unreadable answer or a failed
+    call falls back to title overlap, and says so.
+
+    Returns:
+        ``{"clusters": [[index, ...], ...], "method": "llm" | "title_jaccard",
+        "problem": str | None}``. Every index is in exactly one cluster.
+    """
+    if len(items) < 2:
+        return {"clusters": [[i] for i in range(len(items))], "method": "llm", "problem": None}
+
+    ids = [f"s{i + 1}" for i in range(len(items))]
+    problem: Optional[str] = None
+    api_key = api_key or os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        problem = "OPENAI_API_KEY not set"
+    else:
+        lines = "\n".join(
+            f"{sid}: {(a.get('what_happened') or a.get('title') or '').strip()}"
+            for sid, a in zip(ids, items)
+        )
+        structured = ChatOpenAI(
+            model=model, temperature=0.0, seed=seed, max_retries=0,
+            max_tokens=STORY_MAX_OUTPUT_TOKENS, api_key=api_key,
+        ).with_structured_output(schema=_story_schema(ids), strict=True, include_raw=True)
+        prompt = STORY_PROMPT.replace("{country}", country_name).replace("{items}", lines)
+        try:
+            response = structured.invoke([SystemMessage(content=prompt)])
+            if meter is not None:
+                meter.add_response(model, response)
+            parsed = response.get("parsed") if isinstance(response, dict) else response
+            links = parsed.get("same_story_as") if isinstance(parsed, dict) else None
+            clusters = _clusters_from_links(links, ids)
+            if isinstance(clusters, str):
+                problem = clusters
+            else:
+                index = {sid: i for i, sid in enumerate(ids)}
+                return {"clusters": [[index[m] for m in c] for c in clusters],
+                        "method": "llm", "problem": None}
+        except Exception as e:
+            problem = f"call failed: {e}"[:300]
+
+    logger.warning("story clustering fell back to title overlap: %s", problem)
+    return {"clusters": _title_clusters(items, STORY_TITLE_JACCARD),
+            "method": "title_jaccard", "problem": problem}
+
+
+def _keep_order(members: Sequence[Dict[str, Any]], publishers_used: Dict[str, int]) -> List[Dict[str, Any]]:
+    """A full body first, then the newest, then an unused publisher, then the
+    URL. Stable sorts, least important first."""
+    out = sorted(members, key=lambda a: a.get("publisher_link") or a.get("link") or "")
+    out.sort(key=lambda a: publishers_used.get((a.get("source") or "").strip(), 0) > 0)
+    out.sort(key=_published_sort_key, reverse=True)
+    out.sort(key=lambda a: a.get("body_quality") != "full")
+    return out
+
+
+def dedupe_stories(
+    articles: Sequence[Dict[str, Any]],
+    labels: Dict[str, Dict[str, Any]],
+    country_name: str,
+    iso2: str,
+    *,
+    input_mode: str = DEFAULT_INPUT_MODE,
+    meter: Optional[usage.Meter] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """One article per story among the gate's `relevant` articles.
+
+    Runs after the gate and before selection, so a slot freed here goes to the
+    next eligible article. The article kept from each story has, in order: a
+    body a previous digest called `full`, the newest date, a publisher no other
+    kept article has, the first URL. The scorer is not told how many outlets
+    carried a story.
+
+    `body_quality` is known this early only from the digest cache, as it is for
+    the gate, so a story no previous run digested is decided on date.
+
+    Returns:
+        ``{"same_story_as": {url: kept url}, "method", "problem", "counts":
+        {"eligible", "stories", "multi", "dropped"}}``.
+    """
+    eligible = []
+    for a in articles:
+        verdict = labels.get(relevance_key(a, iso2, input_mode))
+        if verdict and verdict.get("label") == "relevant":
+            eligible.append({**a, "what_happened": verdict.get("what_happened", "")})
+
+    got = story_clusters(eligible, country_name, meter=meter, **kwargs)
+    groups = [[eligible[i] for i in c] for c in got["clusters"]]
+
+    publishers_used: Dict[str, int] = {}
+    for g in groups:
+        if len(g) == 1:
+            pub = (g[0].get("source") or "").strip()
+            publishers_used[pub] = publishers_used.get(pub, 0) + 1
+
+    same_story_as: Dict[str, str] = {}
+    multi = sorted((g for g in groups if len(g) > 1),
+                   key=lambda g: max(_published_sort_key(a) for a in g), reverse=True)
+    for g in multi:
+        ranked = _keep_order(g, publishers_used)
+        kept = ranked[0]
+        pub = (kept.get("source") or "").strip()
+        publishers_used[pub] = publishers_used.get(pub, 0) + 1
+        kept_url = kept.get("publisher_link") or kept.get("link")
+        for other in ranked[1:]:
+            same_story_as[other.get("publisher_link") or other.get("link")] = kept_url
+
+    return {
+        "same_story_as": same_story_as,
+        "method": got["method"],
+        "problem": got["problem"],
+        "counts": {
+            "eligible": len(eligible),
+            "stories": len(groups),
+            "multi": len(multi),
+            "dropped": len(same_story_as),
         },
     }
 
@@ -688,10 +943,8 @@ def select(
 def duplicate_story_report(selected: Sequence[Dict[str, Any]], *, threshold: float = 0.6):
     """Report how often the selected set holds one story from several outlets.
 
-    Publisher-link dedupe catches identical pages, not the same story rewritten
-    five times. This measures the residue rather than acting on it: if it turns
-    out to be common, that is the next selection problem, and a number is better
-    than a guess.
+    `dedupe_stories` acts before selection. What this still finds afterwards,
+    by title overlap, is what the story model missed.
 
     Returns:
         ``{"clusters": [[title, ...], ...], "duplicated_slots": int}`` — clusters
