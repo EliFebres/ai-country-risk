@@ -224,3 +224,9 @@ overstates the cost slightly. A single-call week for 48 countries is about $1.75
 - `backend/measurements/step5/part1_dedup.json` and `gate_recheck.json`.
 - `snapshot_diagnostic` (§12) is still empty. The brief put measurement results in
   files, so the table's first intended writer did not use it.
+
+## Step 5b
+
+Done on 2026-11-06, in `docs/scorer-checklist.md`. The model is no longer
+asked for a number: M1's worst SD fell from 3.33 to 1.58, and the score then
+failed face validity on the data half.

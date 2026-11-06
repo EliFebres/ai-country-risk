@@ -160,6 +160,20 @@ and the dashboard reads that column directly
 the front-end session catches up. This was accepted deliberately rather than
 worked around; it is recorded here so it is not rediscovered as a bug.
 
+**Step 5b, 2026-11-06, changed three more columns' meaning** (no DDL change):
+
+- `edge_score` is now a **stress** reading like the other three ledgers: 0 is
+  the most vitality in the roster, 100 the least. Before 5b it was vitality
+  (high = learning). It still never enters the composite.
+- `article_scores` is now `[{id, weight, questions}]`, where `weight` is the sum
+  of the levels of the checklist questions that cited the article. `door` and
+  `bearing` are gone. `top_articles[].impact` carries the same weight.
+- `subscore_evidence` is one computed line per ledger (data score, news score,
+  mode, the levels), not the model's prose.
+
+The model's answers themselves, the percentiles and every intermediate value
+are in `manifest.scoring`.
+
 ## 8. Both READMEs now describe an instrument that no longer exists
 
 `README.md` and `backend/README.md` still document the pre-v2.0 product, and
@@ -183,7 +197,11 @@ What is left is the prose itself. Both READMEs still describe the old
 instrument, and a README rewrite belongs with the front-end work, where
 `risk_snapshot.score` changing meaning has to be dealt with anyway (item 7).
 
-## 9. The no-round-numbers instruction is followed about two-thirds of the time
+## 9. The no-round-numbers instruction is followed about two-thirds of the time — **closed 2026-11-06**
+
+Closed by step 5b (`docs/scorer-checklist.md`): the model no longer returns a
+number, so there is no instruction to follow. The composite is arithmetic over
+sixteen 0–4 levels and thirteen percentiles.
 
 The prompt says never to return a multiple of 5, because a 55 or a 70 usually
 means a band was picked rather than a country assessed. Measured on the first
@@ -258,6 +276,11 @@ table with no writer is correct: it is where the measurement session puts repeat
 runs, benchmark arms and probe results, and creating it now means that session
 is not also a schema change. If it is still empty after the measurement session,
 that is a finding.
+
+**Still empty after step 5 and step 5b** (2026-11-06). Both briefs put the
+measurement results in files under `backend/measurements/`, and they are easier
+to diff there. Drop the table or give it a writer; it should not stay in the
+schema as a promise.
 
 ## 13. Four legacy tables remain until the week is verified — **closed 2026-09-25**
 
@@ -449,4 +472,42 @@ score.
 exports, neighbours and security rivals, for the gate's spillover test (T5).
 Refresh the cards yearly: rerun `python -m backend.data_fetching.exposure_cards_build`
 and re-read the hand-written rivals and sea neighbours.
+
+## 19. The roster table ranks whatever is latest, with no staleness cutoff
+
+`data_score.roster_table` takes each country's most recent value in the last
+ten years, as the payload does. A country whose Gini is from 2015 is ranked
+against one whose Gini is from 2024. The payload carries `stale_for_its_cadence`
+per indicator and the percentile does not read it. A cutoff would turn a stale
+value into a missing one, which drops it from the ledger mean; that is a
+defensible rule and it was not adopted here, because it changes coverage and
+coverage was not what step 5b measured.
+
+Also: `FDI inflow (% GDP)` on the edge ledger rewards entrepôts. HK ranks at
+0 (most vitality), with IE, NL and SG near it, because pass-through investment
+counts as inflow. A net or non-financial FDI series would read better, and
+that is a registry change with its own `PROMPT_VERSION`.
+
+## 20. Evidence is articles only, and the prompt says otherwise
+
+The checklist prompt, used verbatim from the brief, lets a level cite "the
+article ids and/or indicator names". The validator keeps article ids only: the
+indicators are scored in code from the same numbers, and a level that restated
+one would count it twice. A level whose only evidence was an indicator becomes
+null and is counted (`evidence_dropped_non_article`). On the first RU call the
+model did this on 3 of 10 answered questions (F2 inflation, F5 corruption, I2
+statistics), so the gap between the prompt and the code is real and measured.
+Decided with Eli on 2026-11-06. Editing the prompt line to say articles only
+would make the two agree, at the cost of a new `PROMPT_VERSION`.
+
+## 21. Carry-forward semantics
+
+A null question in production takes the most recent **original** level from
+the last 8 snapshots, none older than 70 days, whose answers were to the same
+questions (`manifest.scoring.questions_version`). A carried level is never
+carried again, so nothing persists past the window. Carried evidence is
+prefixed with the source date (`2026-10-30:a7`) so it weighs nothing in this
+week's `article_weights`. None of this applies to the frozen payloads, which
+have no history, so the production behaviour is untested until the first run
+after 5b: watch the `[score] XX: carried n level(s)` lines.
 
