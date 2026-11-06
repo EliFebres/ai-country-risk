@@ -1,0 +1,3072 @@
+{
+ "countries": [
+  "HK",
+  "KW",
+  "PT",
+  "RU",
+  "TW",
+  "US"
+ ],
+ "prompt_version": "73b29ed1c15c06a1f9f5e4e3bcba0591efb7201de5afb5e1f675d0af528db039",
+ "m1": {
+  "per_country": {
+   "HK": {
+    "calls": 10,
+    "failed": 0,
+    "score_12m": {
+     "n": 10,
+     "distinct": [
+      37,
+      38
+     ],
+     "range": 1,
+     "sd": 0.422,
+     "median": 37.0,
+     "mean": 37.2
+    },
+    "score_3m": {
+     "n": 10,
+     "distinct": [
+      37,
+      38,
+      40,
+      41
+     ],
+     "range": 4,
+     "sd": 1.418,
+     "median": 40.0,
+     "mean": 39.3
+    },
+    "friction": {
+     "n": 10,
+     "distinct": [
+      23
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 23.0,
+     "mean": 23
+    },
+    "order": {
+     "n": 10,
+     "distinct": [
+      33,
+      35
+     ],
+     "range": 2,
+     "sd": 0.843,
+     "median": 33.0,
+     "mean": 33.4
+    },
+    "information": {
+     "n": 10,
+     "distinct": [
+      73
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 73.0,
+     "mean": 73
+    },
+    "edge": {
+     "n": 10,
+     "distinct": [
+      14
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 14.0,
+     "mean": 14
+    },
+    "news_scores": {
+     "friction": {
+      "n": 10,
+      "distinct": [
+       8.33
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 8.33,
+      "mean": 8.33
+     },
+     "order": {
+      "n": 10,
+      "distinct": [
+       37.5,
+       41.67
+      ],
+      "range": 4.17,
+      "sd": 1.758,
+      "median": 37.5,
+      "mean": 38.33
+     },
+     "information": {
+      "n": 10,
+      "distinct": [
+       62.5
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 62.5,
+      "mean": 62.5
+     },
+     "edge": {
+      "n": 10,
+      "distinct": [
+       0.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 0.0,
+      "mean": 0.0
+     }
+    },
+    "data_scores": {
+     "friction": 37.61,
+     "order": 27.84,
+     "information": 82.98,
+     "edge": 28.62
+    },
+    "questions": {
+     "F1": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       2,
+       null,
+       2,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 0.8,
+      "null_share": 0.8,
+      "flips": 2
+     },
+     "O5": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3
+      ],
+      "modal": 3,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     }
+    },
+    "questions_flipping": [
+     "O4"
+    ],
+    "validator_counts": {
+     "levels_nulled_no_evidence": 78,
+     "levels_out_of_range": 0,
+     "evidence_dropped": 0,
+     "evidence_dropped_non_article": 30,
+     "events_dropped": 3
+    },
+    "events_per_call": [
+     1,
+     1,
+     0,
+     1,
+     0,
+     1,
+     1,
+     0,
+     1,
+     1
+    ]
+   },
+   "KW": {
+    "calls": 10,
+    "failed": 0,
+    "score_12m": {
+     "n": 10,
+     "distinct": [
+      48
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 48.0,
+     "mean": 48
+    },
+    "score_3m": {
+     "n": 10,
+     "distinct": [
+      48
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 48.0,
+     "mean": 48
+    },
+    "friction": {
+     "n": 10,
+     "distinct": [
+      38
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 38.0,
+     "mean": 38
+    },
+    "order": {
+     "n": 10,
+     "distinct": [
+      37
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 37.0,
+     "mean": 37
+    },
+    "information": {
+     "n": 10,
+     "distinct": [
+      89
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 89.0,
+     "mean": 89
+    },
+    "edge": {
+     "n": 10,
+     "distinct": [
+      33
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 33.0,
+     "mean": 33
+    },
+    "news_scores": {
+     "friction": {
+      "n": 10,
+      "distinct": [
+       31.25
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 31.25,
+      "mean": 31.25
+     },
+     "order": {
+      "n": 10,
+      "distinct": [
+       37.5
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 37.5,
+      "mean": 37.5
+     },
+     "information": {
+      "n": 0
+     },
+     "edge": {
+      "n": 10,
+      "distinct": [
+       25.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 25.0,
+      "mean": 25.0
+     }
+    },
+    "data_scores": {
+     "friction": 44.89,
+     "order": 36.86,
+     "information": 89.31,
+     "edge": 41.3
+    },
+    "questions": {
+     "F1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     }
+    },
+    "questions_flipping": [],
+    "validator_counts": {
+     "levels_nulled_no_evidence": 90,
+     "levels_out_of_range": 0,
+     "evidence_dropped": 0,
+     "evidence_dropped_non_article": 31,
+     "events_dropped": 0
+    },
+    "events_per_call": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "PT": {
+    "calls": 10,
+    "failed": 0,
+    "score_12m": {
+     "n": 10,
+     "distinct": [
+      40
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 40.0,
+     "mean": 40
+    },
+    "score_3m": {
+     "n": 10,
+     "distinct": [
+      40
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 40.0,
+     "mean": 40
+    },
+    "friction": {
+     "n": 10,
+     "distinct": [
+      36
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 36.0,
+     "mean": 36
+    },
+    "order": {
+     "n": 10,
+     "distinct": [
+      54
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 54.0,
+     "mean": 54
+    },
+    "information": {
+     "n": 10,
+     "distinct": [
+      20
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 20.0,
+     "mean": 20
+    },
+    "edge": {
+     "n": 10,
+     "distinct": [
+      37
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 37.0,
+     "mean": 37
+    },
+    "news_scores": {
+     "friction": {
+      "n": 10,
+      "distinct": [
+       25.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 25.0,
+      "mean": 25.0
+     },
+     "order": {
+      "n": 0
+     },
+     "information": {
+      "n": 0
+     },
+     "edge": {
+      "n": 0
+     }
+    },
+    "data_scores": {
+     "friction": 46.58,
+     "order": 53.93,
+     "information": 19.66,
+     "edge": 36.73
+    },
+    "questions": {
+     "F1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     }
+    },
+    "questions_flipping": [],
+    "validator_counts": {
+     "levels_nulled_no_evidence": 130,
+     "levels_out_of_range": 0,
+     "evidence_dropped": 0,
+     "evidence_dropped_non_article": 80,
+     "events_dropped": 0
+    },
+    "events_per_call": [
+     3,
+     2,
+     3,
+     3,
+     3,
+     2,
+     3,
+     3,
+     3,
+     2
+    ]
+   },
+   "RU": {
+    "calls": 10,
+    "failed": 0,
+    "score_12m": {
+     "n": 10,
+     "distinct": [
+      64,
+      65,
+      67
+     ],
+     "range": 3,
+     "sd": 0.966,
+     "median": 64.0,
+     "mean": 64.4
+    },
+    "score_3m": {
+     "n": 10,
+     "distinct": [
+      64,
+      65,
+      67
+     ],
+     "range": 3,
+     "sd": 0.966,
+     "median": 64.0,
+     "mean": 64.4
+    },
+    "friction": {
+     "n": 10,
+     "distinct": [
+      57
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 57.0,
+     "mean": 57
+    },
+    "order": {
+     "n": 10,
+     "distinct": [
+      63,
+      65,
+      69
+     ],
+     "range": 6,
+     "sd": 1.932,
+     "median": 63.0,
+     "mean": 63.8
+    },
+    "information": {
+     "n": 10,
+     "distinct": [
+      82
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 82.0,
+     "mean": 82
+    },
+    "edge": {
+     "n": 10,
+     "distinct": [
+      58,
+      65
+     ],
+     "range": 7,
+     "sd": 3.381,
+     "median": 58.0,
+     "mean": 60.1
+    },
+    "news_scores": {
+     "friction": {
+      "n": 10,
+      "distinct": [
+       50.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 50.0,
+      "mean": 50.0
+     },
+     "order": {
+      "n": 10,
+      "distinct": [
+       62.5,
+       66.67,
+       75.0
+      ],
+      "range": 12.5,
+      "sd": 4.026,
+      "median": 62.5,
+      "mean": 64.17
+     },
+     "information": {
+      "n": 10,
+      "distinct": [
+       75.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 75.0,
+      "mean": 75.0
+     },
+     "edge": {
+      "n": 7,
+      "distinct": [
+       50.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 50.0,
+      "mean": 50.0
+     }
+    },
+    "data_scores": {
+     "friction": 63.07,
+     "order": 63.63,
+     "information": 88.98,
+     "edge": 65.22
+    },
+    "questions": {
+     "F1": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       null,
+       null,
+       3,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 0.9,
+      "null_share": 0.9,
+      "flips": 1
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       4,
+       3,
+       3,
+       3
+      ],
+      "modal": 3,
+      "modal_share": 0.9,
+      "null_share": 0.0,
+      "flips": 1
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3
+      ],
+      "modal": 3,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3,
+       3
+      ],
+      "modal": 3,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       2,
+       null,
+       null,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       null
+      ],
+      "modal": 2,
+      "modal_share": 0.7,
+      "null_share": 0.3,
+      "flips": 3
+     }
+    },
+    "questions_flipping": [
+     "O3",
+     "O5",
+     "E1"
+    ],
+    "validator_counts": {
+     "levels_nulled_no_evidence": 33,
+     "levels_out_of_range": 0,
+     "evidence_dropped": 0,
+     "evidence_dropped_non_article": 33,
+     "events_dropped": 1
+    },
+    "events_per_call": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ]
+   },
+   "TW": {
+    "calls": 10,
+    "failed": 0,
+    "score_12m": {
+     "n": 10,
+     "distinct": [
+      34,
+      39
+     ],
+     "range": 5,
+     "sd": 1.581,
+     "median": 39.0,
+     "mean": 38.5
+    },
+    "score_3m": {
+     "n": 10,
+     "distinct": [
+      34,
+      39
+     ],
+     "range": 5,
+     "sd": 1.581,
+     "median": 39.0,
+     "mean": 38.5
+    },
+    "friction": {
+     "n": 10,
+     "distinct": [
+      42
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 42.0,
+     "mean": 42
+    },
+    "order": {
+     "n": 10,
+     "distinct": [
+      23,
+      36
+     ],
+     "range": 13,
+     "sd": 4.111,
+     "median": 36.0,
+     "mean": 34.7
+    },
+    "information": {
+     "n": 10,
+     "distinct": [
+      38
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 38.0,
+     "mean": 38
+    },
+    "edge": {
+     "n": 10,
+     "distinct": [
+      2
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 2.0,
+     "mean": 2
+    },
+    "news_scores": {
+     "friction": {
+      "n": 10,
+      "distinct": [
+       25.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 25.0,
+      "mean": 25.0
+     },
+     "order": {
+      "n": 10,
+      "distinct": [
+       25.0,
+       50.0
+      ],
+      "range": 25.0,
+      "sd": 7.906,
+      "median": 50.0,
+      "mean": 47.5
+     },
+     "information": {
+      "n": 0
+     },
+     "edge": {
+      "n": 0
+     }
+    },
+    "data_scores": {
+     "friction": 59.57,
+     "order": 21.28,
+     "information": 38.3,
+     "edge": 2.44
+    },
+    "questions": {
+     "F1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       0,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 0.9,
+      "null_share": 0.9,
+      "flips": 1
+     },
+     "O3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     }
+    },
+    "questions_flipping": [
+     "O2"
+    ],
+    "validator_counts": {
+     "levels_nulled_no_evidence": 129,
+     "levels_out_of_range": 0,
+     "evidence_dropped": 0,
+     "evidence_dropped_non_article": 40,
+     "events_dropped": 0
+    },
+    "events_per_call": [
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1,
+     1
+    ]
+   },
+   "US": {
+    "calls": 10,
+    "failed": 0,
+    "score_12m": {
+     "n": 10,
+     "distinct": [
+      42,
+      43
+     ],
+     "range": 1,
+     "sd": 0.516,
+     "median": 42.0,
+     "mean": 42.4
+    },
+    "score_3m": {
+     "n": 10,
+     "distinct": [
+      42,
+      43,
+      45,
+      46
+     ],
+     "range": 4,
+     "sd": 1.549,
+     "median": 45.0,
+     "mean": 44.2
+    },
+    "friction": {
+     "n": 10,
+     "distinct": [
+      45
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 45.0,
+     "mean": 45
+    },
+    "order": {
+     "n": 10,
+     "distinct": [
+      38,
+      41,
+      42
+     ],
+     "range": 4,
+     "sd": 1.958,
+     "median": 38.0,
+     "mean": 39.5
+    },
+    "information": {
+     "n": 10,
+     "distinct": [
+      42
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 42.0,
+     "mean": 42
+    },
+    "edge": {
+     "n": 10,
+     "distinct": [
+      40
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 40.0,
+     "mean": 40
+    },
+    "news_scores": {
+     "friction": {
+      "n": 10,
+      "distinct": [
+       25.0
+      ],
+      "range": 0.0,
+      "sd": 0.0,
+      "median": 25.0,
+      "mean": 25.0
+     },
+     "order": {
+      "n": 10,
+      "distinct": [
+       25.0,
+       31.25,
+       33.33
+      ],
+      "range": 8.33,
+      "sd": 4.078,
+      "median": 25.0,
+      "mean": 28.12
+     },
+     "information": {
+      "n": 0
+     },
+     "edge": {
+      "n": 0
+     }
+    },
+    "data_scores": {
+     "friction": 65.57,
+     "order": 51.02,
+     "information": 42.15,
+     "edge": 40.46
+    },
+    "questions": {
+     "F1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       null,
+       null,
+       null,
+       null,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 0.6,
+      "null_share": 0.4,
+      "flips": 4
+     },
+     "F4": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       1,
+       1,
+       2,
+       2,
+       2,
+       1,
+       1,
+       1,
+       1,
+       2
+      ],
+      "modal": 1,
+      "modal_share": 0.6,
+      "null_share": 0.0,
+      "flips": 4
+     },
+     "O3": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       1,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 0.9,
+      "null_share": 0.9,
+      "flips": 1
+     },
+     "O5": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     }
+    },
+    "questions_flipping": [
+     "F3",
+     "O2",
+     "O4"
+    ],
+    "validator_counts": {
+     "levels_nulled_no_evidence": 103,
+     "levels_out_of_range": 0,
+     "evidence_dropped": 0,
+     "evidence_dropped_non_article": 70,
+     "events_dropped": 3
+    },
+    "events_per_call": [
+     1,
+     1,
+     0,
+     1,
+     0,
+     0,
+     1,
+     1,
+     0,
+     1
+    ]
+   }
+  },
+  "worst_sd_12m": 1.581,
+  "branch": "median of 3"
+ },
+ "face_validity": {
+  "order": [
+   [
+    "RU",
+    64.0
+   ],
+   [
+    "KW",
+    48.0
+   ],
+   [
+    "US",
+    42.0
+   ],
+   [
+    "PT",
+    40.0
+   ],
+   [
+    "TW",
+    39.0
+   ],
+   [
+    "HK",
+    37.0
+   ]
+  ],
+  "ru_highest": true,
+  "pt_rank_from_bottom": 3,
+  "pass": false,
+  "ledger_medians": {
+   "HK": {
+    "friction": 23.0,
+    "order": 33.0,
+    "information": 73.0,
+    "edge": 14.0
+   },
+   "KW": {
+    "friction": 38.0,
+    "order": 37.0,
+    "information": 89.0,
+    "edge": 33.0
+   },
+   "PT": {
+    "friction": 36.0,
+    "order": 54.0,
+    "information": 20.0,
+    "edge": 37.0
+   },
+   "RU": {
+    "friction": 57.0,
+    "order": 63.0,
+    "information": 82.0,
+    "edge": 58.0
+   },
+   "TW": {
+    "friction": 42.0,
+    "order": 36.0,
+    "information": 38.0,
+    "edge": 2.0
+   },
+   "US": {
+    "friction": 45.0,
+    "order": 38.0,
+    "information": 42.0,
+    "edge": 40.0
+   }
+  },
+  "branch": "fail"
+ },
+ "median_of_3": {
+  "from_triples": {
+   "HK": {
+    "triples": 120,
+    "n": 120,
+    "distinct": [
+     37,
+     38
+    ],
+    "range": 1,
+    "sd": 0.25,
+    "median": 37.0,
+    "mean": 37.07
+   },
+   "KW": {
+    "triples": 120,
+    "n": 120,
+    "distinct": [
+     48
+    ],
+    "range": 0,
+    "sd": 0.0,
+    "median": 48.0,
+    "mean": 48
+   },
+   "PT": {
+    "triples": 120,
+    "n": 120,
+    "distinct": [
+     40
+    ],
+    "range": 0,
+    "sd": 0.0,
+    "median": 40.0,
+    "mean": 40
+   },
+   "RU": {
+    "triples": 120,
+    "n": 120,
+    "distinct": [
+     64
+    ],
+    "range": 0,
+    "sd": 0.0,
+    "median": 64.0,
+    "mean": 64
+   },
+   "TW": {
+    "triples": 120,
+    "n": 120,
+    "distinct": [
+     39
+    ],
+    "range": 0,
+    "sd": 0.0,
+    "median": 39.0,
+    "mean": 39
+   },
+   "US": {
+    "triples": 120,
+    "n": 120,
+    "distinct": [
+     42,
+     43
+    ],
+    "range": 1,
+    "sd": 0.473,
+    "median": 42.0,
+    "mean": 42.33
+   }
+  },
+  "fresh": {},
+  "worst_sd_from_triples": 0.473,
+  "worst_sd_fresh": null
+ },
+ "m2": {
+  "note": "the composite is computed; the grid is not measured"
+ },
+ "m3": {
+  "per_country": {
+   "HK": {
+    "full_median_12m": 37.0
+   },
+   "KW": {
+    "full_median_12m": 48.0
+   },
+   "PT": {
+    "full_median_12m": 40.0
+   },
+   "RU": {
+    "full_median_12m": 64.0
+   },
+   "TW": {
+    "full_median_12m": 39.0
+   },
+   "US": {
+    "full_median_12m": 42.0
+   }
+  },
+  "no_articles_mean_abs_shift": null,
+  "no_articles_mean_signed_shift": null,
+  "no_articles_validator_failures": 0,
+  "no_economics_mean_abs_shift": null,
+  "no_economics_mean_signed_shift": null
+ },
+ "m4": {
+  "calls": 60,
+  "distribution": {
+   "-3": 13,
+   "0": 47
+  },
+  "modal_gap": 0,
+  "modal_share": 0.783,
+  "non_zero": [
+   {
+    "iso2": "HK",
+    "arm": "full",
+    "i": 0,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a18",
+      "date": "2026-10-22",
+      "question": "F4",
+      "direction": "up",
+      "event": "Deadline for offshore trust tax payment"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "HK",
+    "arm": "full",
+    "i": 1,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a18",
+      "date": "2026-10-22",
+      "question": "F1",
+      "direction": "up",
+      "event": "Deadline for offshore trust tax payment"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "HK",
+    "arm": "full",
+    "i": 3,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a18",
+      "date": "2026-10-22",
+      "question": "F4",
+      "direction": "up",
+      "event": "Deadline for offshore trust tax payment"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "HK",
+    "arm": "full",
+    "i": 5,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a18",
+      "date": "2026-10-22",
+      "question": "F1",
+      "direction": "up",
+      "event": "Deadline for offshore trust tax payment"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "HK",
+    "arm": "full",
+    "i": 6,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a18",
+      "date": "2026-10-22",
+      "question": "F4",
+      "direction": "up",
+      "event": "Deadline for offshore trust tax payment"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "HK",
+    "arm": "full",
+    "i": 8,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a18",
+      "date": "2026-10-22",
+      "question": "F1",
+      "direction": "up",
+      "event": "Deadline for offshore trust tax payment"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "HK",
+    "arm": "full",
+    "i": 9,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a18",
+      "date": "2026-10-22",
+      "question": "F1",
+      "direction": "up",
+      "event": "Deadline for offshore trust tax payment"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "US",
+    "arm": "full",
+    "i": 0,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a14",
+      "date": "2026-10-01",
+      "question": "O2",
+      "direction": "up",
+      "event": "Supreme Court decision on voter verification database"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "US",
+    "arm": "full",
+    "i": 1,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a14",
+      "date": "2026-10-01",
+      "question": "O2",
+      "direction": "up",
+      "event": "Supreme Court decision on voter verification database"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "US",
+    "arm": "full",
+    "i": 3,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a8",
+      "date": "2026-11-01",
+      "question": "O2",
+      "direction": "up",
+      "event": "Midterm elections"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "US",
+    "arm": "full",
+    "i": 6,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a14",
+      "date": "2026-10-01",
+      "question": "O2",
+      "direction": "up",
+      "event": "Supreme Court decision on voter verification database"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "US",
+    "arm": "full",
+    "i": 7,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a14",
+      "date": "2026-10-01",
+      "question": "O2",
+      "direction": "up",
+      "event": "Supreme Court ruling on voter verification database"
+     }
+    ],
+    "events_dropped": 0
+   },
+   {
+    "iso2": "US",
+    "arm": "full",
+    "i": 9,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a8",
+      "date": "2026-11-01",
+      "question": "O2",
+      "direction": "up",
+      "event": "Midterm elections"
+     }
+    ],
+    "events_dropped": 0
+   }
+  ],
+  "all_traced": true,
+  "events_dropped_total": 7,
+  "branch": "13 of 60 calls have a gap; every one traces to a dated event"
+ },
+ "m5": {
+  "per_country": {},
+  "pooled_slope_within_country": null,
+  "pooled_slope_naive": null,
+  "per_question_by_count": {
+   "F1": {
+    "20": {
+     "non_null_share": 0.83,
+     "mean_level": 1
+    }
+   },
+   "F2": {
+    "20": {
+     "non_null_share": 0.5,
+     "mean_level": 0.67
+    }
+   },
+   "F3": {
+    "20": {
+     "non_null_share": 0.33,
+     "mean_level": 1
+    }
+   },
+   "F4": {
+    "20": {
+     "non_null_share": 0.67,
+     "mean_level": 1.25
+    }
+   },
+   "F5": {
+    "20": {
+     "non_null_share": 0.17,
+     "mean_level": 1
+    }
+   },
+   "F6": {
+    "20": {
+     "non_null_share": 0.17,
+     "mean_level": 1
+    }
+   },
+   "O1": {
+    "20": {
+     "non_null_share": 0.0,
+     "mean_level": null
+    }
+   },
+   "O2": {
+    "20": {
+     "non_null_share": 0.33,
+     "mean_level": 1.67
+    }
+   },
+   "O3": {
+    "20": {
+     "non_null_share": 0.56,
+     "mean_level": 1.5
+    }
+   },
+   "O4": {
+    "20": {
+     "non_null_share": 0.06,
+     "mean_level": 1
+    }
+   },
+   "O5": {
+    "20": {
+     "non_null_share": 0.83,
+     "mean_level": 1.8
+    }
+   },
+   "O6": {
+    "20": {
+     "non_null_share": 0.0,
+     "mean_level": null
+    }
+   },
+   "I1": {
+    "20": {
+     "non_null_share": 0.33,
+     "mean_level": 3
+    }
+   },
+   "I2": {
+    "20": {
+     "non_null_share": 0.0,
+     "mean_level": null
+    }
+   },
+   "I3": {
+    "20": {
+     "non_null_share": 0.33,
+     "mean_level": 2.5
+    }
+   },
+   "E1": {
+    "20": {
+     "non_null_share": 0.39,
+     "mean_level": 0.71
+    }
+   }
+  }
+ },
+ "dilution": {
+  "by_test": {
+   "T1": {
+    "appearances": 510,
+    "mean_weight": 0.89,
+    "share_zero": 0.629
+   },
+   "T2": {
+    "appearances": 170,
+    "mean_weight": 0.34,
+    "share_zero": 0.724
+   },
+   "T3": {
+    "appearances": 90,
+    "mean_weight": 1.18,
+    "share_zero": 0.589
+   },
+   "T4": {
+    "appearances": 280,
+    "mean_weight": 0.76,
+    "share_zero": 0.643
+   },
+   "T5": {
+    "appearances": 150,
+    "mean_weight": 0.27,
+    "share_zero": 0.8
+   }
+  },
+  "uncited_share_mean": 0.664,
+  "branch": "rank T1 below T2-T5"
+ },
+ "spend": {
+  "full": {
+   "calls": 60,
+   "input_tokens": 655830,
+   "output_tokens": 38810,
+   "usd": 2.028
+  },
+  "total_usd": 2.028
+ }
+}
