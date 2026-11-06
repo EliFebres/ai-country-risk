@@ -1,28 +1,54 @@
 """
-Check the answer against the whole schema, before anything rescales it.
+Check the checklist answer against the whole contract, before any arithmetic.
 
-A grammar enforces structure, not bounds. Strict schema mode guarantees the
-shape — the keys are there and the types are right — and says nothing about
-whether an integer declared 0–100 came back as 140, or whether the article ids
-correspond to articles that were actually sent.
+A grammar enforces structure, not meaning. Strict schema mode guarantees the
+shape — every question is there, each level is an integer 0–4 or null — and
+says nothing about whether the evidence cited was ever sent, whether a level
+has any evidence at all, or whether a scheduled event's date is a date.
 
-So the decoded answer is checked here, **before any rescale or clamp**, and
-every violation is counted into the census. A run where the model returned three
-out-of-range scores and a clamp quietly fixed them is a different run from one
-where it did not, and the stored row should be able to tell them apart.
+So the decoded answer is checked here, **before `combine` reads it**, and every
+correction is recorded and counted. A level that lost its evidence and became
+null is a different reading from a level the model left null, and the stored
+row should be able to tell them apart.
 
-**Every clamp records the raw value it clamped.** A number that was silently
-corrected is a number nobody can audit, and "the score was 84" reads identically
-whether the model said 84 or said 140.
+The rules the code enforces, which the prompt does not:
+
+- Evidence is **article ids only**. The prompt also allows "indicator names",
+  but the economics are scored in code from the same numbers, so a level that
+  only restated an indicator would count it twice. Those citations are dropped
+  and counted separately (`evidence_dropped_non_article`), so how often the
+  model reaches for them is a measurement.
+- A non-null level with no surviving evidence becomes null. The prompt says a
+  level must cite at least one; the grammar cannot say so.
+- A scheduled event counts only with a strict ISO date inside the horizon, an
+  article id that was sent and a known question.
 """
 
 from __future__ import annotations
 
+import datetime as dt
 from typing import Any, Dict, List, Optional, Sequence
 
 from backend.llm import constants as ai_constants
+from backend.util import constants as util_constants
 
-__all__ = ["validate", "ValidationResult"]
+__all__ = ["validate", "ValidationResult", "COUNT_KEYS"]
+
+COUNT_KEYS = (
+    "levels_nulled_no_evidence",
+    "levels_out_of_range",
+    "evidence_dropped",
+    "evidence_dropped_non_article",
+    "events_dropped",
+)
+
+#: Registry codes and labels, lower-cased, so an indicator cited as evidence can
+#: be told from an invented article id when it is counted.
+_INDICATOR_NAMES = {
+    s.lower()
+    for code, spec in util_constants.INDICATOR_REGISTRY.items()
+    for s in (code, spec["label"], spec["label"].split(" (")[0])
+}
 
 
 class ValidationResult(dict):
@@ -37,77 +63,174 @@ class ValidationResult(dict):
         return self["violations"]
 
     @property
+    def counts(self) -> Dict[str, int]:
+        return self["counts"]
+
+    @property
     def ok(self) -> bool:
         return not self["violations"]
 
 
-def _clamp(
-    value: Any,
-    field: str,
-    violations: List[Dict[str, Any]],
-    *,
-    low: int = 0,
-    high: int = 100,
-    allow_null: bool = False,
-) -> Optional[int]:
-    """Return `value` inside [low, high], recording the raw value if it moved."""
-    if value is None:
-        if not allow_null:
-            violations.append({"field": field, "problem": "missing", "raw": None})
+def _looks_like_indicator(item: str) -> bool:
+    text = item.strip().lower()
+    if text in _INDICATOR_NAMES:
+        return True
+    # "Inflation (% y/y) 8.7%" or "FP.CPI.TOTL.ZG: 8.72" still name the indicator.
+    return any(name in text for name in _INDICATOR_NAMES if len(name) > 5)
+
+
+def _parse_date(raw: Any) -> Optional[dt.date]:
+    if not isinstance(raw, str) or len(raw.strip()) != 10:
         return None
     try:
-        as_int = int(round(float(value)))
-    except (TypeError, ValueError):
-        violations.append({"field": field, "problem": "not a number", "raw": value})
+        return dt.date.fromisoformat(raw.strip())
+    except ValueError:
         return None
-    if as_int < low or as_int > high:
-        violations.append({
-            "field": field,
-            "problem": "out of bounds",
-            "raw": value,
-            "clamped_to": max(low, min(high, as_int)),
-        })
-        return max(low, min(high, as_int))
-    return as_int
 
 
 def validate(
     answer: Any,
     *,
     article_ids: Sequence[str] = (),
+    run_date: Optional[dt.date] = None,
 ) -> ValidationResult:
-    """Validate a decoded scoring answer against the full contract.
+    """Validate a decoded checklist answer against the full contract.
 
     Args:
         answer: What the model returned, already JSON-decoded.
-        article_ids: The ids that were actually sent, so an answer about an
-            article that was never supplied can be caught.
+        article_ids: The ids that were actually sent, so a citation of an
+            article that was never supplied can be dropped.
+        run_date: The date the evidence is read as of; the scheduled-event
+            horizon is measured from it. Defaults to today.
 
     Returns:
         A :class:`ValidationResult` carrying the cleaned answer under
-        ``"answer"`` and every problem under ``"violations"``.
+        ``"answer"``, every problem under ``"violations"`` and the tallies
+        under ``"counts"``.
     """
     violations: List[Dict[str, Any]] = []
+    counts: Dict[str, int] = {k: 0 for k in COUNT_KEYS}
+    run_date = run_date or dt.date.today()
 
     if not isinstance(answer, dict):
         return ValidationResult({
             "answer": None,
             "violations": [{"field": "<root>", "problem": "not an object",
                             "raw": type(answer).__name__}],
+            "counts": counts,
         })
 
-    cleaned: Dict[str, Any] = {}
+    known = set(article_ids)
+    level_max = ai_constants.SCORING["level_max"]
+    cleaned: Dict[str, Any] = {"questions": {}}
 
-    for field in ("score_12m", "score_3m"):
-        cleaned[field] = _clamp(answer.get(field), field, violations)
+    for qid in ai_constants.QUESTION_IDS:
+        row = answer.get(qid)
+        if not isinstance(row, dict):
+            violations.append({"field": qid, "problem": "missing", "raw": row})
+            cleaned["questions"][qid] = {"level": None, "evidence": [], "note": ""}
+            continue
 
-    for field in ai_constants.LEDGER_FIELDS:
-        # Ledger scores may legitimately be null when a ledger had nothing to
-        # read. That is a statement about the evidence, and it must survive
-        # rather than being defaulted to a number.
-        cleaned[field] = _clamp(
-            answer.get(field), field, violations, allow_null=True
-        )
+        level = row.get("level")
+        if level is not None:
+            try:
+                as_int = int(round(float(level)))
+            except (TypeError, ValueError):
+                violations.append({"field": f"{qid}.level", "problem": "not a number",
+                                   "raw": level})
+                as_int = None
+            if as_int is not None and not (0 <= as_int <= level_max):
+                violations.append({"field": f"{qid}.level", "problem": "out of range",
+                                   "raw": level})
+                counts["levels_out_of_range"] += 1
+                as_int = None
+            level = as_int
+
+        raw_evidence = row.get("evidence")
+        if not isinstance(raw_evidence, list):
+            violations.append({"field": f"{qid}.evidence", "problem": "not a list",
+                               "raw": raw_evidence})
+            raw_evidence = []
+        evidence: List[str] = []
+        for item in raw_evidence:
+            text = item.strip() if isinstance(item, str) else item
+            if text in known and text not in evidence:
+                evidence.append(text)
+            elif text in evidence:
+                continue
+            elif isinstance(text, str) and _looks_like_indicator(text):
+                counts["evidence_dropped_non_article"] += 1
+                violations.append({"field": f"{qid}.evidence", "problem": "indicator cited",
+                                   "raw": item})
+            else:
+                counts["evidence_dropped"] += 1
+                violations.append({"field": f"{qid}.evidence", "problem": "unknown article",
+                                   "raw": item})
+
+        if level is not None and not evidence:
+            # The prompt says a non-null level must cite at least one article.
+            # A level with nothing behind it is the model's reputation of the
+            # country, which is what the prompt forbids.
+            violations.append({"field": f"{qid}.level", "problem": "no evidence",
+                               "raw": level})
+            counts["levels_nulled_no_evidence"] += 1
+            level = None
+
+        cleaned["questions"][qid] = {
+            "level": level,
+            "evidence": evidence,
+            "note": (row.get("note") or "").strip() if isinstance(row.get("note"), str) else "",
+        }
+
+    # Scheduled events: each one must be datable, inside the horizon, about an
+    # article that was sent and a question that exists. Anything else is dropped
+    # and named, because a dropped event is three points of score_3m.
+    horizon = dt.timedelta(days=ai_constants.SCORING["event_horizon_days"])
+    raw_events = answer.get("scheduled_events")
+    if not isinstance(raw_events, list):
+        violations.append({"field": "scheduled_events", "problem": "not a list",
+                           "raw": raw_events})
+        raw_events = []
+    events: List[Dict[str, Any]] = []
+    seen_events = set()
+    for i, ev in enumerate(raw_events):
+        field = f"scheduled_events[{i}]"
+        if not isinstance(ev, dict):
+            violations.append({"field": field, "problem": "not an object", "raw": ev})
+            counts["events_dropped"] += 1
+            continue
+        problem = None
+        when = _parse_date(ev.get("date"))
+        aid = ev.get("article_id")
+        qid = ev.get("question")
+        direction = ev.get("direction")
+        if when is None:
+            problem = "unparseable date"
+        elif when <= run_date:
+            problem = "past"
+        elif when > run_date + horizon:
+            problem = "beyond horizon"
+        elif known and aid not in known:
+            problem = "unknown article"
+        elif qid not in ai_constants.QUESTION_IDS:
+            problem = "unknown question"
+        elif direction not in ai_constants.EVENT_DIRECTIONS:
+            problem = "unknown direction"
+        elif (aid, qid, when) in seen_events:
+            problem = "duplicate"
+        if problem:
+            violations.append({"field": field, "problem": problem, "raw": ev})
+            counts["events_dropped"] += 1
+            continue
+        seen_events.add((aid, qid, when))
+        events.append({
+            "article_id": aid,
+            "date": when.isoformat(),
+            "event": (ev.get("event") or "").strip(),
+            "question": qid,
+            "direction": direction,
+        })
+    cleaned["scheduled_events"] = events
 
     flags = answer.get("condition_flags")
     if not isinstance(flags, dict):
@@ -138,64 +261,4 @@ def validate(
         summary = ""
     cleaned["bullet_summary"] = summary.strip()
 
-    evidence = answer.get("subscore_evidence")
-    if not isinstance(evidence, dict):
-        violations.append({"field": "subscore_evidence", "problem": "missing",
-                           "raw": evidence})
-        evidence = {}
-    clean_evidence = {}
-    for name in ai_constants.LEDGER_FIELDS:
-        text = evidence.get(name)
-        if not isinstance(text, str) or not text.strip():
-            violations.append({"field": f"subscore_evidence.{name}",
-                               "problem": "missing", "raw": text})
-            text = ""
-        clean_evidence[name] = text.strip()
-    cleaned["subscore_evidence"] = clean_evidence
-
-    # Keyed by article id, one required key per article sent, so the grammar
-    # already refuses an answer that skips one. Flattened here into the ordered
-    # list the snapshot stores; the checks below still run, because a schema is
-    # only as good as the call that was made with it.
-    scores = answer.get("article_scores")
-    if not isinstance(scores, dict):
-        violations.append({"field": "article_scores", "problem": "missing",
-                           "raw": scores})
-        scores = {}
-    scores = [
-        {"id": aid, **row} if isinstance(row, dict) else row
-        for aid, row in scores.items()
-    ]
-    known = set(article_ids)
-    seen = set()
-    clean_scores = []
-    for i, row in enumerate(scores):
-        if not isinstance(row, dict):
-            violations.append({"field": f"article_scores[{i}]",
-                               "problem": "not an object", "raw": row})
-            continue
-        aid = row.get("id")
-        if known and aid not in known:
-            # An answer about an article that was never sent is the model
-            # answering a question nobody asked.
-            violations.append({"field": f"article_scores[{i}].id",
-                               "problem": "unknown article", "raw": aid})
-            continue
-        seen.add(aid)
-        clean_scores.append({
-            "id": aid,
-            "door": row.get("door"),
-            "bearing": _clamp(row.get("bearing"), f"article_scores[{i}].bearing",
-                              violations, allow_null=True),
-            "note": (row.get("note") or "").strip(),
-        })
-    cleaned["article_scores"] = clean_scores
-
-    for missing_id in known - seen:
-        # Silent, and the reason articles eleven to twenty used to enter Top-3
-        # selection with an impact of zero: the model was never asked about them
-        # and nothing noticed.
-        violations.append({"field": "article_scores", "problem": "article not scored",
-                           "raw": missing_id})
-
-    return ValidationResult({"answer": cleaned, "violations": violations})
+    return ValidationResult({"answer": cleaned, "violations": violations, "counts": counts})

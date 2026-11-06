@@ -35,6 +35,7 @@ from backend.data_fetching import curated_loader
 from backend.data_fetching import structural_facts
 from backend.data_fetching import data_retrieval
 from backend.llm import constants as ai_constants
+from backend.llm import combine, data_score
 from backend.llm import langchain_llm
 from backend.llm import digest_engine
 from backend.llm import payload as payload_builder
@@ -694,6 +695,17 @@ def run_etl(
         roster=roster,
     )
 
+    # 0c) The roster table for the data half of the score: every roster
+    #     country's latest value per indicator, built once so that every
+    #     country this run is ranked against the same table. Always the full
+    #     roster, whatever `only` says, because a percentile among five is not
+    #     a percentile.
+    roster_table = data_score.roster_table()
+    print(f"[roster] data table {roster_table['sha256'][:12]} over "
+          f"{len(constants.COUNTRY_ROSTER) - len(roster_table['missing_countries'])} countries"
+          + (f"; no panel for {roster_table['missing_countries']}"
+             if roster_table["missing_countries"] else ""))
+
     # 0b) Economic calendar (FMP) for the front-end Econ Calendar pane. Guarded
     #     so a calendar failure never aborts the country/risk loop below.
     try:
@@ -771,27 +783,60 @@ def run_etl(
             scoring_payload, article_ids = built["scoring_payload"], built["article_ids"]
             payload_tokens = built["payload_tokens"]
 
-            scored = langchain_llm.score_country(
-                iso2=iso2,
-                payload=scoring_payload,
-                article_ids=article_ids,
-                model=SCORING_MODEL,
-                seed=42,
-                meter=run_meter,
-            )
-            if scored["failed"] or not scored["answer"]:
-                raise RuntimeError(f"scoring failed: {scored['failed']}")
+            # The model answers the checklist; it is never asked for a score.
+            # `calls_per_country` is 1, or 3 for the per-question median of
+            # three (set by the M1 measurement in docs/scorer-checklist.md).
+            calls = []
+            for _ in range(ai_constants.SCORING["calls_per_country"]):
+                scored = langchain_llm.score_country(
+                    iso2=iso2,
+                    payload=scoring_payload,
+                    article_ids=article_ids,
+                    model=SCORING_MODEL,
+                    seed=42,
+                    meter=run_meter,
+                    run_date=run_as_of,
+                )
+                if scored["failed"] or not scored["answer"]:
+                    raise RuntimeError(f"scoring failed: {scored['failed']}")
+                calls.append(scored)
 
-            answer = scored["answer"]
-            violations = scored["violations"]
+            violations = [v for c in calls for v in c["violations"]]
+            counts: Dict[str, int] = {}
+            for c in calls:
+                for k, v in (c.get("counts") or {}).items():
+                    counts[k] = counts.get(k, 0) + v
             if violations:
-                # Counted rather than swallowed. A run where the model returned
-                # three out-of-range scores and a clamp quietly fixed them is a
-                # different run from one where it did not.
-                print(f"[score] {iso2}: {len(violations)} schema violation(s): "
+                # Counted rather than swallowed. A level that lost its evidence
+                # and became null is a different reading from one the model
+                # left null, and the row should be able to tell them apart.
+                print(f"[score] {iso2}: {len(violations)} validation note(s): "
                       f"{[v['field'] + ':' + v['problem'] for v in violations][:6]}")
                 census["versions"]["schema_violations"] = len(violations)
                 census["versions"]["violations"] = violations
+                census["versions"]["validation_counts"] = counts
+
+            answer = (calls[0]["answer"] if len(calls) == 1
+                      else combine.merge_answers([c["answer"] for c in calls]))
+
+            # The data half: each resolved indicator as a percentile of the
+            # roster. Then the arithmetic, with last weeks' answers for the
+            # null carry-forward: a quiet week is not a good week.
+            data = data_score.ledger_data_scores(econ["ledgers"], iso2, roster_table)
+            try:
+                history = store.read_recent_snapshots(
+                    iso2, before=run_as_of, limit=ai_constants.SCORING["carry_forward_runs"])
+            except Exception as hist_err:
+                print(f"[score] {iso2}: no history for carry-forward: {hist_err}")
+                history = []
+            scoring = combine.combine(
+                answer=answer, data=data, article_ids=article_ids,
+                run_date=run_as_of, history=history,
+                validation={"violations": violations, "counts": counts},
+            )
+            if scoring["carry_log"]:
+                print(f"[score] {iso2}: carried {len(scoring['carry_log'])} level(s): "
+                      f"{[(c['question'], c['level'], c['from']) for c in scoring['carry_log']]}")
 
             if scored["badge"]:
                 # Observation only. The rating stays the model's own; the legal
@@ -803,11 +848,9 @@ def run_etl(
             #    so what the dashboard shows and what the score was made from
             #    cannot diverge. If fewer than three were read in full, the
             #    rest come next in gate order; a wall is never one of them.
-            bearing_by_id = {
-                a["id"]: a.get("bearing")
-                for a in answer["article_scores"]
-                if a.get("id")
-            }
+            #    `impact` is the article's weight: the sum of the levels of the
+            #    questions that cited it.
+            weight_by_id = {w["id"]: w["weight"] for w in scoring["article_weights"]}
             top_items = [it for it in items if it["body_status"] in ("full", "clipped")]
             top_items += [it for it in items if it not in top_items
                           and it["body_quality"] != "not_article"]
@@ -840,7 +883,7 @@ def run_etl(
                     "title": it.get("title") or "",
                     "source": it.get("source") or "",
                     "published_at": it.get("page_published_at") or it.get("published") or None,
-                    "impact": bearing_by_id.get(it.get("id")),
+                    "impact": weight_by_id.get(it.get("id")),
                     "summary": it.get("summary") or it.get("snippet") or "",
                     "image": it.get("image"),
                 })
@@ -856,16 +899,18 @@ def run_etl(
             store.upsert_snapshot({
                 "country_iso2": iso2,
                 "run_date": run_as_of,
-                "score_12m": answer["score_12m"],
-                "score_3m": answer["score_3m"],
-                "friction_score": answer.get("friction"),
-                "order_score": answer.get("order"),
-                "information_score": answer.get("information"),
-                "edge_score": answer.get("edge"),
-                "condition_flags": answer.get("condition_flags") or {},
-                "bullet_summary": answer.get("bullet_summary"),
-                "subscore_evidence": answer.get("subscore_evidence") or {},
-                "article_scores": answer.get("article_scores") or [],
+                "score_12m": scoring["score_12m"],
+                "score_3m": scoring["score_3m"],
+                "friction_score": scoring["ledger_ints"]["friction"],
+                "order_score": scoring["ledger_ints"]["order"],
+                "information_score": scoring["ledger_ints"]["information"],
+                # A stress reading like the other three since step 5b: 0 is the
+                # most vitality in the roster, 100 the least. Never in the composite.
+                "edge_score": scoring["ledger_ints"]["edge"],
+                "condition_flags": scoring["condition_flags"],
+                "bullet_summary": scoring["bullet_summary"],
+                "subscore_evidence": scoring["subscore_text"],
+                "article_scores": scoring["article_weights"],
                 "top_articles": top_articles,
                 "evidence_coverage": census["evidence_coverage"],
                 "coverage_components": census["coverage_components"],
@@ -903,13 +948,17 @@ def run_etl(
                     ],
                     "per_ledger_articles": gate["per_ledger"],
                     "payload_tokens": payload_tokens,
+                    # Every answer, percentile, carried flag and intermediate
+                    # value behind the score, so the row can be re-derived.
+                    "scoring": scoring,
                 },
             })
 
+            li = scoring["ledger_ints"]
             print(
-                f"[{iso2}] score_12m={answer['score_12m']} score_3m={answer['score_3m']} "
-                f"ledgers friction={answer['friction']} order={answer['order']} "
-                f"information={answer['information']} edge={answer['edge']} "
+                f"[{iso2}] score_12m={scoring['score_12m']} score_3m={scoring['score_3m']} "
+                f"ledgers friction={li['friction']} order={li['order']} "
+                f"information={li['information']} edge={li['edge']} "
                 f"coverage={census['evidence_coverage']}"
             )
 

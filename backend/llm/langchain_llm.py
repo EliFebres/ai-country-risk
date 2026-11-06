@@ -104,28 +104,31 @@ def score_country(
     api_key: Optional[str] = None,
     meter: Optional["usage.Meter"] = None,
     structured: Any = None,
+    run_date: Optional[date] = None,
 ) -> Dict[str, Any]:
-    """Score one country from its assembled payload.
+    """Ask the checklist about one country from its assembled payload.
 
-    The prompt goes in the **system** role and the evidence in the user turn.
-    Both the prompt text and the schema's shape are part of the instrument: a
-    strict grammar masks every token that would make the output invalid, which
-    removes most of the near-ties that make a temperature-0 call vary between
-    runs.
+    The prompt goes in the **system** role, with the country's name in it, and
+    the evidence in the user turn. The model answers sixteen questions with a
+    level and its evidence; it is never asked for a score. Both the prompt text
+    and the schema's shape are part of the instrument: a strict grammar masks
+    every token that would make the output invalid.
 
-    The decoded answer is validated against the full contract **before any
-    rescale**, and the violations are returned so the census can count them.
+    The decoded answer is validated against the full contract (evidence ids,
+    event dates) before `combine` does the arithmetic, and the violations and
+    counts are returned so the census can count them.
 
     Returns:
-        ``{"answer", "violations", "badge", "raw", "failed"}``. On a failed call
-        `answer` is None and `failed` carries the reason — a country with no
-        score is better than a country with a fabricated one.
+        ``{"answer", "violations", "counts", "badge", "raw", "failed"}``. On a
+        failed call `answer` is None and `failed` carries the reason — a
+        country with no score is better than a country with a fabricated one.
     """
+    country_name = (payload.get("country") or {}).get("name") or iso2
     if structured is None:
         api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not api_key:
-            return {"answer": None, "violations": [], "badge": None, "raw": None,
-                    "failed": "OPENAI_API_KEY not set"}
+            return {"answer": None, "violations": [], "counts": {}, "badge": None,
+                    "raw": None, "failed": "OPENAI_API_KEY not set"}
         structured = ChatOpenAI(
             model=model,
             temperature=temperature,
@@ -133,31 +136,32 @@ def score_country(
             max_retries=0,
             api_key=api_key,
         ).with_structured_output(
-            # Built for this call: every article id sent is a required key,
-            # so an answer that skips one cannot be decoded.
-            schema=ai_constants.build_risk_schema(article_ids), strict=True,
+            # Every question is a required key, so an answer that skips one
+            # cannot be decoded.
+            schema=ai_constants.build_checklist_schema(article_ids), strict=True,
             include_raw=True
         )
 
     try:
         response = structured.invoke([
-            SystemMessage(content=ai_constants.RISK_PROMPT),
+            SystemMessage(content=ai_constants.prompt_for(country_name)),
             HumanMessage(content=json.dumps(payload, ensure_ascii=False, default=str)),
         ])
     except Exception as exc:
         logger.error("scoring call failed for %s: %s", iso2, exc)
-        return {"answer": None, "violations": [], "badge": None, "raw": None,
-                "failed": str(exc)}
+        return {"answer": None, "violations": [], "counts": {}, "badge": None,
+                "raw": None, "failed": str(exc)}
 
     if meter is not None:
         meter.add_response(model, response)
 
     parsed = response.get("parsed") if isinstance(response, dict) else response
-    checked = validate.validate(parsed, article_ids=article_ids)
+    checked = validate.validate(parsed, article_ids=article_ids, run_date=run_date)
 
     return {
         "answer": checked["answer"],
         "violations": checked["violations"],
+        "counts": checked["counts"],
         "badge": legal_badge(iso2),
         "raw": parsed,
         "failed": None,

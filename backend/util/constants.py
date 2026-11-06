@@ -115,6 +115,10 @@ MONETARY_REGIME: dict[str, dict[str, str]] = {
 #                measured against
 #   panel_col  — the column it occupies in the World Bank parquet panel, or None
 #                for a series that arrives some other way
+#   risk       — which way is riskier, for the data half of the score:
+#                "higher" (a larger value is more risk), "lower" (a larger value
+#                is less risk) or "target" (risk is the distance from a target,
+#                `SCORING["inflation_target"]` for inflation)
 #
 # The four ledgers, and what each is asking:
 #   friction     — what is taken, and how well it converts
@@ -131,22 +135,26 @@ INDICATOR_REGISTRY: dict[str, dict] = {
         "label": "Inflation (% y/y)", "unit": "% y/y",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "INFLATION",
+        "risk": "target",
     },
     "SI.POV.GINI": {
         "label": "Income inequality (Gini)", "unit": "index",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "GINI_INDEX",
+        "risk": "higher",
     },
     "GC.XPN.INTP.RV.ZS": {
         "label": "Interest payments (% revenue)", "unit": "% revenue",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "INT_PAYM_PCT_REV",
+        "risk": "higher",
     },
     "OWID.VDEM.CORRUPTION": {
         "label": "Political corruption index (0-1, higher = more corrupt)",
         "unit": "index (0-1)",
         "ledger": "friction", "source": "V-Dem via OWID", "freq": "A",
         "panel_col": "POL_CORRUPTION",
+        "risk": "higher",
     },
 
     # --- order: doubt about the load-bearing rules --------------------------
@@ -154,21 +162,25 @@ INDICATOR_REGISTRY: dict[str, dict] = {
         "label": "Political stability (z-score)", "unit": "z-score",
         "ledger": "order", "source": "World Bank WGI", "freq": "A",
         "panel_col": "POL_STABILITY",
+        "risk": "lower",
     },
     "GOV_WGI_RL.EST": {
         "label": "Rule of law (z-score)", "unit": "z-score",
         "ledger": "order", "source": "World Bank WGI", "freq": "A",
         "panel_col": "RULE_OF_LAW",
+        "risk": "lower",
     },
     "SL.UEM.TOTL.ZS": {
         "label": "Unemployment (% labour force)", "unit": "%",
         "ledger": "order", "source": "World Bank WDI", "freq": "A",
         "panel_col": "UNEMPLOYMENT",
+        "risk": "higher",
     },
     "NY.GDP.PCAP.KD.ZG": {
         "label": "GDP per-capita growth (% y/y)", "unit": "% y/y",
         "ledger": "order", "source": "World Bank WDI", "freq": "A",
         "panel_col": "GDP_PC_GROWTH",
+        "risk": "lower",
     },
 
     # --- information: can the country's own instruments be trusted ----------
@@ -179,11 +191,13 @@ INDICATOR_REGISTRY: dict[str, dict] = {
         "label": "Statistical performance (0-100)", "unit": "score",
         "ledger": "information", "source": "World Bank SPI", "freq": "A",
         "panel_col": "STAT_PERFORMANCE",
+        "risk": "lower",
     },
     "RSF.PRESS.SCORE": {
         "label": "Press freedom (0-100, higher = freer)", "unit": "score",
         "ledger": "information", "source": "RSF World Press Freedom Index",
         "freq": "A", "panel_col": None,
+        "risk": "lower",
     },
 
     # --- edge: is the system learning ---------------------------------------
@@ -191,16 +205,19 @@ INDICATOR_REGISTRY: dict[str, dict] = {
         "label": "FDI inflow (% GDP)", "unit": "% GDP",
         "ledger": "edge", "source": "World Bank WDI", "freq": "A",
         "panel_col": "FDI_PCT_GDP",
+        "risk": "lower",
     },
     "SE.XPD.TOTL.GD.ZS": {
         "label": "Education spending (% GDP)", "unit": "% GDP",
         "ledger": "edge", "source": "World Bank WDI", "freq": "A",
         "panel_col": "EDU_SPEND_PCT_GDP",
+        "risk": "lower",
     },
     "OECD.PISA.MEAN": {
         "label": "PISA mean score (maths/reading/science)", "unit": "score",
         "ledger": "edge", "source": "OECD PISA", "freq": "A",
         "panel_col": None,
+        "risk": "lower",
     },
 }
 

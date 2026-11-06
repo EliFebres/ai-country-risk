@@ -1,149 +1,151 @@
 import json
-from typing import Dict, Sequence
+from typing import Dict, List, Sequence, Tuple
 
 from backend.util.hashing import content_hash
 
 # ---------------------------------------------------------------------------
-# The scoring instrument: the prompt and the schema.
+# The scoring instrument: the checklist prompt, the schema, and the arithmetic.
 # ---------------------------------------------------------------------------
-# Both are part of the instrument, not packaging around it. The prompt goes in
-# the system role, and the schema's shape — type unions rather than loose
-# strings — is enforced, because a grammar that masks invalid tokens removes
-# most of the near-ties that make a temperature-0 call non-reproducible.
+# The model is never asked for a number. Step 5 (docs/scorer-measurement.md)
+# showed that a model asked for one 0–100 rating picks from a short menu of
+# band edges and switches picks between calls on an identical payload. So the
+# model answers sixteen narrow questions, each a level 0–4 with the evidence
+# behind it, and code does everything else: the economic data is ranked
+# against the roster (`data_score`), the levels and percentiles are combined
+# (`combine`), and the composite is arithmetic over many small readings.
 #
-# Everything the model needs in order to judge is stated here. Everything that
-# can be computed is computed before it arrives: trajectory, staleness,
-# per-theme counts, coverage. The model is asked for judgement and nothing else.
+# The prompt text, the schema's shape and the arithmetic constants are one
+# instrument, and `PROMPT_VERSION` covers all three.
 
-RISK_PROMPT = """You are a country-risk analyst. You are given one country's
-evidence for one week and you return a rating.
+#: The sixteen questions: (id, ledger, text). The text is the brief's, verbatim,
+#: and is what the model reads under its ledger heading. `edge` is observed and
+#: never enters the composite (`SCORING["composite_weights"]["edge"] == 0`).
+QUESTIONS: Tuple[Tuple[str, str, str], ...] = (
+    ("F1", "friction", "Taxes and fiscal policy. 0 stable and predictable; 1 routine changes, debated normally; 2 abrupt or significant new taxes or cuts, a budget fight with consequences; 3 retroactive or confiscatory measures, a fiscal crisis response; 4 expropriation or a collapse of fiscal policy."),
+    ("F2", "friction", "Inflation and prices. 0 near target; 1 moderately above target or easing; 2 persistently high, or price controls introduced; 3 double-digit and rising; 4 very high inflation or hyperinflation, with shortages."),
+    ("F3", "friction", "Currency and capital. 0 stable, freely convertible; 1 ordinary volatility; 2 sharp depreciation or intervention; 3 capital controls, FX shortages or multiple exchange rates; 4 currency collapse or a freeze on moving money out."),
+    ("F4", "friction", "Regulation, permits and courts for business. 0 predictable; 1 routine new rules; 2 burdensome or unpredictable changes, arbitrary enforcement against firms; 3 targeted seizures, forced sales or abuse of regulators; 4 rule by decree over property and contracts."),
+    ("F5", "friction", "Corruption. 0 none reported, or institutions acting on it normally; 1 isolated cases prosecuted; 2 a scandal reaching senior officials; 3 corruption at the centre of government, or anti-corruption bodies disabled; 4 state capture."),
+    ("F6", "friction", "Sovereign debt and financing. 0 no stress; 1 rising costs, debated; 2 downgrade, a failed or costly auction, an IMF discussion; 3 an IMF programme under strain, arrears, a restructuring announced; 4 default."),
+    ("O1", "order", "Government stability. 0 stable; 1 ordinary coalition friction; 2 a government crisis, a confidence vote, key resignations; 3 collapse of government, or a disputed succession; 4 no functioning government, or a coup."),
+    ("O2", "order", "Elections and transfer of power. 0 routine or none scheduled; 1 contested but orderly; 2 serious irregularities alleged, opposition excluded, results disputed; 3 an election postponed or annulled, violence around it; 4 power seized or held unconstitutionally."),
+    ("O3", "order", "Rule of law and checks on power. 0 courts independent, executive constrained; 1 routine disputes between branches; 2 pressure on courts, emergency powers debated; 3 the executive defying courts, emergency rule in force; 4 constitutional order suspended."),
+    ("O4", "order", "Protest and civil unrest. 0 none beyond routine; 1 peaceful protests; 2 large or sustained protests, arrests; 3 violent unrest, lethal force used; 4 insurrection or unrest halting normal life."),
+    ("O5", "order", "Armed conflict and external threat. 0 none; 1 diplomatic tension; 2 military threats, incidents or strikes near the territory; 3 attacks on the territory, or active mobilisation; 4 war on the territory."),
+    ("O6", "order", "Political violence and terrorism. 0 none; 1 isolated incidents; 2 attacks on officials, candidates or journalists; 3 a campaign of attacks; 4 violence that governs politics."),
+    ("I1", "information", "Press freedom. 0 free; 1 isolated pressure; 2 journalists detained or outlets closed; 3 a systematic crackdown; 4 no independent press."),
+    ("I2", "information", "Official statistics and audit. 0 credible; 1 routine revisions and disputes; 2 data delayed, withheld or credibly questioned, or audit bodies obstructed; 3 official figures manipulated; 4 no credible official data."),
+    ("I3", "information", "Transparency and information access. 0 open; 1 minor restrictions; 2 internet or platform restrictions, secrecy laws; 3 shutdowns, broad censorship; 4 information blackout."),
+    ("E1", "edge", "Business formation and investment. 0 strong and rising; 1 normal; 2 weakening, notable exits; 3 capital and firms leaving; 4 collapse of private investment."),
+)
 
-Judge ONLY from the evidence supplied. Do not supply facts from your own
-knowledge of the country, and do not let its reputation stand in for this week's
-evidence. If the evidence is thin, the rating should reflect a country you know
-less about — not a country that is doing well.
+QUESTION_IDS: Tuple[str, ...] = tuple(q[0] for q in QUESTIONS)
+LEDGER_OF_QUESTION: Dict[str, str] = {q[0]: q[1] for q in QUESTIONS}
+QUESTIONS_BY_LEDGER: Dict[str, Tuple[str, ...]] = {
+    ledger: tuple(q[0] for q in QUESTIONS if q[1] == ledger)
+    for ledger in ("friction", "order", "information", "edge")
+}
+QUESTION_TEXT: Dict[str, str] = {q[0]: q[2] for q in QUESTIONS}
 
-THE THREE LEDGERS
+EVENT_DIRECTIONS: Tuple[str, ...] = ("up", "down", "unclear")
 
-Risk is read on three ledgers. The second splits in two, so you return four
-scores.
+#: The prompt, verbatim from the step 5b brief. `{country}` is substituted by
+#: plain replacement at call time (not `.format`, so braces elsewhere are safe).
+CHECKLIST_PROMPT = """You are a country-risk analyst reading one week of evidence about {country}. Answer each question below with a level from 0 to 4, using ONLY this week's evidence (the articles and the economics block). Do not use your own background knowledge of {country}, and do not let its reputation stand in for evidence.
 
-1. FRICTION — what is taken, and how well it converts.
-   Taxes, the fiscal position, inflation, the currency, corruption, regulation.
-   High friction is an economy where a unit of effort converts into less.
+For every question:
+- level: 0 to 4 using the descriptions given, or null if this week's evidence says nothing about it. Null is correct and expected for many questions in a normal week. Do not guess.
+- evidence: the article ids (a1, a2, ...) and/or indicator names that support the level. A non-null level MUST cite at least one.
+- note: one sentence naming what the evidence shows.
 
-2. UNCERTAINTY — doubt about the load-bearing rules. This ledger has two
-   halves, scored separately because they move independently:
+The levels mean the same thing on every question:
+  0 = no stress: the evidence shows normal functioning.
+  1 = minor: friction or dispute within ordinary politics and markets.
+  2 = meaningful: a real problem that an investor would price.
+  3 = serious: a problem that threatens the rules, the currency, or public order.
+  4 = severe: breakdown, or on the edge of it.
 
-   a. ORDER — will the rules hold? Government stability, elections, the rule of
-      law, courts, protest, conflict, security. Order is about whether the
-      framework survives contact with pressure.
+FRICTION: what is taken, and how well effort converts
+F1 Taxes and fiscal policy. 0 stable and predictable; 1 routine changes, debated normally; 2 abrupt or significant new taxes or cuts, a budget fight with consequences; 3 retroactive or confiscatory measures, a fiscal crisis response; 4 expropriation or a collapse of fiscal policy.
+F2 Inflation and prices. 0 near target; 1 moderately above target or easing; 2 persistently high, or price controls introduced; 3 double-digit and rising; 4 very high inflation or hyperinflation, with shortages.
+F3 Currency and capital. 0 stable, freely convertible; 1 ordinary volatility; 2 sharp depreciation or intervention; 3 capital controls, FX shortages or multiple exchange rates; 4 currency collapse or a freeze on moving money out.
+F4 Regulation, permits and courts for business. 0 predictable; 1 routine new rules; 2 burdensome or unpredictable changes, arbitrary enforcement against firms; 3 targeted seizures, forced sales or abuse of regulators; 4 rule by decree over property and contracts.
+F5 Corruption. 0 none reported, or institutions acting on it normally; 1 isolated cases prosecuted; 2 a scandal reaching senior officials; 3 corruption at the centre of government, or anti-corruption bodies disabled; 4 state capture.
+F6 Sovereign debt and financing. 0 no stress; 1 rising costs, debated; 2 downgrade, a failed or costly auction, an IMF discussion; 3 an IMF programme under strain, arrears, a restructuring announced; 4 default.
 
-   b. EDGE — is the system learning? Business formation, investment, education,
-      skills, research, where talent goes. Edge is about whether the country is
-      getting better at anything. **Edge is observed, never penalised**: a
-      country with weak edge is not thereby riskier this year, it is a country
-      with less in reserve.
+ORDER: will the rules hold
+O1 Government stability. 0 stable; 1 ordinary coalition friction; 2 a government crisis, a confidence vote, key resignations; 3 collapse of government, or a disputed succession; 4 no functioning government, or a coup.
+O2 Elections and transfer of power. 0 routine or none scheduled; 1 contested but orderly; 2 serious irregularities alleged, opposition excluded, results disputed; 3 an election postponed or annulled, violence around it; 4 power seized or held unconstitutionally.
+O3 Rule of law and checks on power. 0 courts independent, executive constrained; 1 routine disputes between branches; 2 pressure on courts, emergency powers debated; 3 the executive defying courts, emergency rule in force; 4 constitutional order suspended.
+O4 Protest and civil unrest. 0 none beyond routine; 1 peaceful protests; 2 large or sustained protests, arrests; 3 violent unrest, lethal force used; 4 insurrection or unrest halting normal life.
+O5 Armed conflict and external threat. 0 none; 1 diplomatic tension; 2 military threats, incidents or strikes near the territory; 3 attacks on the territory, or active mobilisation; 4 war on the territory.
+O6 Political violence and terrorism. 0 none; 1 isolated incidents; 2 attacks on officials, candidates or journalists; 3 a campaign of attacks; 4 violence that governs politics.
 
-3. INFORMATION — can the country's own instruments be trusted?
-   Press freedom, transparency, official statistics, audit, digital government.
-   When information is bad, every other reading is less reliable, and you should
-   say so rather than scoring the other ledgers as if the numbers were solid.
+INFORMATION: can what you know about {country} be trusted
+I1 Press freedom. 0 free; 1 isolated pressure; 2 journalists detained or outlets closed; 3 a systematic crackdown; 4 no independent press.
+I2 Official statistics and audit. 0 credible; 1 routine revisions and disputes; 2 data delayed, withheld or credibly questioned, or audit bodies obstructed; 3 official figures manipulated; 4 no credible official data.
+I3 Transparency and information access. 0 open; 1 minor restrictions; 2 internet or platform restrictions, secrecy laws; 3 shutdowns, broad censorship; 4 information blackout.
 
-THE THREE-DOOR EVENT TEST
+EDGE: is the system learning (observed only)
+E1 Business formation and investment. 0 strong and rising; 1 normal; 2 weakening, notable exits; 3 capital and firms leaving; 4 collapse of private investment.
 
-An event moves the rating only if it passes at least one of three doors:
+SCHEDULED EVENTS
+List every dated event in this week's evidence that falls within the next 90 days and could change the answers above: an election, a debt maturity, a budget deadline, a ceasefire expiry, a court ruling. For each give: the article id, the date, the event, the question it bears on (for example O2), and direction (up = more stress likely, down = less, unclear). Give an empty list if there are none. Never invent a date."""
 
-  Door 1 — does it change what the state CAN DO? Its authority, its capacity,
-           its ability to enforce or to pay.
-  Door 2 — does it change what it COSTS to operate there? Taxes, prices, the
-           currency, the predictability of rules.
-  Door 3 — does it change what can be KNOWN? The reliability of statistics, the
-           freedom to report, the ability to verify.
 
-An event that passes no door is news, not risk. Say so in the article's note and
-leave the rating where it was. Prominence is not a door: a story can lead every
-front page and pass none of them.
+def prompt_for(country_name: str) -> str:
+    """The checklist prompt with the country's name in place of `{country}`."""
+    return CHECKLIST_PROMPT.replace("{country}", country_name)
 
-CALIBRATION ANCHORS
 
-These are reference points, not bands to snap to. Use the whole range.
-
-   8-22   A stable high-income democracy with no live stress. Institutions
-          uncontested, currency and fiscal position unremarkable.
-  23-38   Ordinary political friction: a contested election, a budget fight, an
-          inflation overshoot, a coalition under strain. Institutions holding.
-  39-54   Meaningful stress on one ledger. A serious corruption scandal reaching
-          the centre, inflation in double digits, courts under political
-          pressure, a sustained slide in press freedom.
-  55-69   Serious stress across more than one ledger. Capital controls
-          plausible, fiscal position deteriorating fast, sustained unrest, an
-          executive acting outside normal constraint.
-  70-84   Severe. Sovereign default or its near prospect, mass unrest disrupting
-          essential services, armed conflict on the country's territory,
-          emergency rule.
-  85-98   Extreme. Active war on its territory, state authority collapsing, the
-          economy not functioning in the ordinary sense.
-
-**Never round to a multiple of 5. This applies to every number you return** —
-the two composites and all four ledger scores alike. A 55, a 70, a 30 or a 45
-almost always means a band was picked rather than a country assessed, and a
-ledger score is just as much a judgement as the rating is. Choose the number
-that is actually right, and if that is 54 or 57 or 31, return 54 or 57 or 31.
-
-A QUIET WEEK IS NOT A GOOD WEEK
-
-If few articles cleared the relevance gate, that means less is known about this
-week — not that conditions improved. The per-theme counts tell you where the
-silence is. A ledger with no articles and no indicators is a ledger you are
-guessing about, and the rating should move less, not down.
-
-The same goes for an indicator that did not resolve. It is absent, not zero. An
-absent number is never reassurance.
-
-SCORE_12M AND SCORE_3M
-
-`score_12m` is the rating over the next twelve months. `score_3m` is the next
-three. They differ when something is scheduled or already in motion: an election
-inside the window, a debt maturity, a ceasefire expiring. If nothing
-distinguishes the horizons, they can be close, but they should not be identical
-by default.
-
-CONDITION FLAGS ARE OBSERVATIONS
-
-The flags record what you observed. **Nothing downstream alters the score on the
-basis of a flag** — no code multiplies, floors or caps your rating because a
-flag is set. So set them because they are true, not to signal severity. If you
-believe a condition warrants a higher rating, put it in the rating.
-
-WHAT TO RETURN
-
-- `score_12m`, `score_3m`: integers 0-100.
-- `friction`, `order`, `information`, `edge`: integers 0-100, each read on its
-  own ledger. `edge` is a reading of vitality, not of danger: a high `edge`
-  means a system that is learning.
-- `condition_flags`: the observations listed in the schema.
-- `bullet_summary`: under 120 words, naming what actually drove the rating and
-  any meaningful mitigant. Name the evidence, not the framework.
-- `subscore_evidence`: for each of the four ledgers, one or two sentences
-  naming the specific evidence behind that ledger's score. If a ledger was
-  scored with little to go on, say that here instead of inventing a reason.
-- `article_scores`: keyed by article id, one entry for every article you were
-  given, each with which door (if any) it passed and a short note. `bearing` is
-  0-100: how much this article moved your reading, where 0 means it passed no
-  door.
-
-Do not return an evidence-coverage figure. That is computed from what you were
-sent, not something you assess."""
-
+# ---------------------------------------------------------------------------
+# The arithmetic constants. Eli's to change. All of them are inside
+# PROMPT_VERSION, so a changed weight is a changed instrument and the stamped
+# rows say so.
+# ---------------------------------------------------------------------------
+SCORING: Dict = {
+    # A question's level runs 0..level_max; the news score for a ledger is
+    # news_scale × mean(non-null levels), so 0..100.
+    "level_max": 4,
+    "news_scale": 25,
+    # ledger_score = data × ledger_weights.data + news × ledger_weights.news,
+    # or data alone when every news level is null, or news alone when no
+    # indicator resolved.
+    "ledger_weights": {"data": 0.5, "news": 0.5},
+    # score_12m = round(Σ composite_weights[ledger] × ledger_score). Edge is
+    # observed and never enters the composite. Weights are renormalised over
+    # the ledgers that have a score when one is null.
+    "composite_weights": {"friction": 0.4, "order": 0.4, "information": 0.2, "edge": 0.0},
+    # score_3m = score_12m + clamp(Σ ±event_step per scheduled event,
+    # −event_cap, +event_cap); "unclear" counts 0; no events → equal.
+    "event_step": 3,
+    "event_cap": 9,
+    # A scheduled event counts only when its date is inside this window after
+    # the run date.
+    "event_horizon_days": 90,
+    # Inflation's risk is the distance from this target (registry risk="target").
+    "inflation_target": 2.0,
+    # A percentile needs at least this many other roster countries with a value.
+    "min_roster_n": 8,
+    # Null carry-forward in production: a null question takes the most recent
+    # original level from the last carry_forward_runs snapshots, none older
+    # than carry_forward_max_days.
+    "carry_forward_runs": 8,
+    "carry_forward_max_days": 70,
+    # How many scorer calls production makes per country; 3 means the
+    # per-question median of three (combine.merge_answers). M1 on 2026-11-06
+    # landed in the median-of-3 band (worst SD 1.58), but the instrument
+    # failed face validity on the data half, so nothing is set for production
+    # until that is fixed and M1 is re-run (docs/scorer-checklist.md).
+    "calls_per_country": 1,
+}
 
 
 # Nullable fields use type unions rather than a bare type plus a convention.
 # The grammar is part of the instrument: strict schema enforcement masks every
 # token that would make the output invalid, which removes most of the near-ties
 # that make a temperature-0 call vary between runs.
-_INT_0_100 = {"type": "integer", "minimum": 0, "maximum": 100}
-_NULLABLE_INT = {"type": ["integer", "null"], "minimum": 0, "maximum": 100}
+_LEVEL = {"type": ["integer", "null"], "minimum": 0, "maximum": SCORING["level_max"]}
 
 CONDITION_FLAGS = (
     "sovereign_stress",
@@ -156,88 +158,85 @@ CONDITION_FLAGS = (
 
 LEDGER_FIELDS = ("friction", "order", "information", "edge")
 
-#: One article's answer. The id is not in it: it is the key the entry sits under.
-ARTICLE_SCORE_SCHEMA: Dict = {
+#: One question's answer. The id is the key the entry sits under. Evidence is a
+#: list of free strings: the prompt allows indicator names, and the validator
+#: keeps only article ids and counts the rest, so the count is a measurement.
+QUESTION_ANSWER_SCHEMA: Dict = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "door": {
-            "type": ["string", "null"],
-            "enum": ["capacity", "cost", "knowability", None],
-        },
-        "bearing": _INT_0_100,
+        "level": _LEVEL,
+        "evidence": {"type": "array", "items": {"type": "string"}},
         "note": {"type": "string"},
     },
-    "required": ["door", "bearing", "note"],
+    "required": ["level", "evidence", "note"],
+}
+
+SCHEDULED_EVENT_SCHEMA: Dict = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "article_id": {"type": "string"},
+        "date": {"type": "string"},
+        "event": {"type": "string"},
+        "question": {"type": "string", "enum": list(QUESTION_IDS)},
+        "direction": {"type": "string", "enum": list(EVENT_DIRECTIONS)},
+    },
+    "required": ["article_id", "date", "event", "question", "direction"],
 }
 
 
-def build_risk_schema(article_ids: Sequence[str]) -> Dict:
+def build_checklist_schema(article_ids: Sequence[str] = ()) -> Dict:
     """The scorer's output schema for one call.
 
-    `article_scores` is an object keyed by the ids actually sent, every one of
-    them required. Strict mode cannot require a minimum array length, so as an
-    array the model could return a valid answer that skipped articles — HK's
-    week one scored 10 of 20, a7-a9 among the gaps. As required properties, an
-    answer that omits one is not valid output and cannot be decoded.
-
-    The schema is therefore call-specific. What identifies it as a version is
-    its shape, `SCHEMA_TEMPLATE`, not the ids.
+    Every question is a required key, so an answer that skips one cannot be
+    decoded. The article ids are not in the grammar: evidence is free text
+    that the validator checks against the ids sent, which keeps the schema
+    the same shape for every call and lets a wrong citation be counted rather
+    than masked.
     """
-    ids = list(article_ids)
     return {
-        "name": "country_risk_v3",
+        "name": "country_risk_checklist_v1",
         "schema": {
             "type": "object",
             "additionalProperties": False,
             "properties": {
-                "score_12m": _INT_0_100,
-                "score_3m": _INT_0_100,
-                **{name: _NULLABLE_INT for name in LEDGER_FIELDS},
+                **{qid: QUESTION_ANSWER_SCHEMA for qid in QUESTION_IDS},
+                "scheduled_events": {"type": "array", "items": SCHEDULED_EVENT_SCHEMA},
+                "bullet_summary": {"type": "string", "maxLength": 900},
                 "condition_flags": {
                     "type": "object",
                     "additionalProperties": False,
                     "properties": {name: {"type": "boolean"} for name in CONDITION_FLAGS},
                     "required": list(CONDITION_FLAGS),
                 },
-                "bullet_summary": {"type": "string", "maxLength": 900},
-                "subscore_evidence": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {name: {"type": "string"} for name in LEDGER_FIELDS},
-                    "required": list(LEDGER_FIELDS),
-                },
-                "article_scores": {
-                    "type": "object",
-                    "additionalProperties": False,
-                    "properties": {aid: ARTICLE_SCORE_SCHEMA for aid in ids},
-                    "required": ids,
-                },
             },
             "required": [
-                "score_12m",
-                "score_3m",
-                *LEDGER_FIELDS,
-                "condition_flags",
+                *QUESTION_IDS,
+                "scheduled_events",
                 "bullet_summary",
-                "subscore_evidence",
-                "article_scores",
+                "condition_flags",
             ],
         },
         "strict": True,
     }
 
 
-#: The schema's shape with the ids abstracted to one placeholder. Hashing a
-#: call's own schema would give a different version for every article count;
-#: this is the same for every call, and changes only when the shape does.
-SCHEMA_TEMPLATE: Dict = build_risk_schema(["<article-id>"])
+#: The schema's shape. It no longer depends on the article ids, so this is the
+#: schema itself; the name is kept because the version and the tests read it.
+SCHEMA_TEMPLATE: Dict = build_checklist_schema(["<article-id>"])
 SCHEMA_VERSION = content_hash(json.dumps(SCHEMA_TEMPLATE, sort_keys=True))
 
-#: The stamped `prompt_version` covers the prompt text and the schema shape
-#: together: both moved scores on the old instrument, and a stamp that saw only
-#: the wording would let a schema change pass as the same instrument.
-PROMPT_VERSION = content_hash(RISK_PROMPT + "\n" + SCHEMA_VERSION)
+#: The questions alone, for carry-forward: a level carried from a previous week
+#: must have been answered to the same question.
+QUESTIONS_VERSION = content_hash(json.dumps(QUESTIONS))
+
+#: The stamped `prompt_version` covers the prompt text, the schema shape and the
+#: arithmetic constants together. Each of them moves the score, and a stamp that
+#: saw only the wording would let a weight change pass as the same instrument.
+PROMPT_VERSION = content_hash(
+    CHECKLIST_PROMPT + "\n" + SCHEMA_VERSION + "\n" + json.dumps(SCORING, sort_keys=True)
+)
 
 
 # ---------------------------------------------------------------------------

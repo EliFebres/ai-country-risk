@@ -824,76 +824,106 @@ from backend.llm import constants as ai_consts  # noqa: E402
 
 
 def _answer(**over):
+    import datetime as dt
     base = {
-        "score_12m": 54,
-        "score_3m": 57,
-        "friction": 40, "order": 62, "information": 30, "edge": 71,
+        **{qid: {"level": None, "evidence": [], "note": ""} for qid in ai_consts.QUESTION_IDS},
+        "F6": {"level": 2, "evidence": ["a1"], "note": "downgrade"},
+        "O3": {"level": 1, "evidence": ["a1"], "note": "courts contested"},
+        "scheduled_events": [{
+            "article_id": "a1", "date": (dt.date(2026, 9, 27) + dt.timedelta(days=30)).isoformat(),
+            "event": "budget vote", "question": "F1", "direction": "up",
+        }],
         "condition_flags": {f: False for f in ai_consts.CONDITION_FLAGS},
         "bullet_summary": "Fiscal position deteriorating; courts contested.",
-        "subscore_evidence": {f: "because" for f in ai_consts.LEDGER_FIELDS},
-        "article_scores": {"a1": {"door": "cost", "bearing": 40, "note": "n"}},
     }
     base.update(over)
     return base
 
 
+_RUN = __import__("datetime").date(2026, 9, 27)
+
+
 class TestValidator:
     def test_a_good_answer_passes_clean(self):
-        got = validator.validate(_answer(), article_ids=["a1"])
+        got = validator.validate(_answer(), article_ids=["a1"], run_date=_RUN)
         assert got.ok
-        assert got["answer"]["score_12m"] == 54
+        assert got["answer"]["questions"]["F6"]["level"] == 2
+        assert len(got["answer"]["scheduled_events"]) == 1
 
-    def test_a_score_outside_its_bounds_is_clamped_and_the_raw_value_kept(self):
-        """A number that was silently corrected is a number nobody can audit:
-        "the score was 100" reads identically whether the model said 100 or 140."""
-        got = validator.validate(_answer(score_12m=140), article_ids=["a1"])
-        assert got["answer"]["score_12m"] == 100
-        v = [x for x in got.violations if x["field"] == "score_12m"][0]
-        assert v["raw"] == 140
-        assert v["clamped_to"] == 100
-
-    def test_a_null_ledger_survives_rather_than_becoming_a_number(self):
-        """A ledger with nothing to read is a statement about the evidence."""
-        got = validator.validate(_answer(information=None), article_ids=["a1"])
-        assert got["answer"]["information"] is None
-        assert got.ok
-
-    def test_a_missing_composite_is_a_violation_not_a_null(self):
-        got = validator.validate(_answer(score_12m=None), article_ids=["a1"])
-        assert any(v["field"] == "score_12m" for v in got.violations)
-
-    def test_an_answer_about_an_article_that_was_never_sent_is_caught(self):
+    def test_a_level_outside_its_range_becomes_null_and_the_raw_value_kept(self):
+        """A number that was silently corrected is a number nobody can audit."""
         got = validator.validate(
-            _answer(article_scores={"a99": {"door": None, "bearing": 5, "note": ""}}),
-            article_ids=["a1"],
+            _answer(F6={"level": 7, "evidence": ["a1"], "note": ""}),
+            article_ids=["a1"], run_date=_RUN,
         )
+        assert got["answer"]["questions"]["F6"]["level"] is None
+        v = [x for x in got.violations if x["field"] == "F6.level"][0]
+        assert v["raw"] == 7
+        assert got.counts["levels_out_of_range"] == 1
+
+    def test_a_null_level_survives_rather_than_becoming_a_number(self):
+        """Null is correct and expected: a question nobody wrote about."""
+        got = validator.validate(_answer(), article_ids=["a1"], run_date=_RUN)
+        assert got["answer"]["questions"]["I2"]["level"] is None
+        assert got.ok
+
+    def test_a_level_with_no_evidence_becomes_null_and_is_counted(self):
+        got = validator.validate(
+            _answer(F6={"level": 2, "evidence": [], "note": "downgrade"}),
+            article_ids=["a1"], run_date=_RUN,
+        )
+        assert got["answer"]["questions"]["F6"]["level"] is None
+        assert got.counts["levels_nulled_no_evidence"] == 1
+        assert any(v["problem"] == "no evidence" for v in got.violations)
+
+    def test_evidence_about_an_article_that_was_never_sent_is_dropped(self):
+        got = validator.validate(
+            _answer(F6={"level": 2, "evidence": ["a99", "a1"], "note": ""}),
+            article_ids=["a1"], run_date=_RUN,
+        )
+        assert got["answer"]["questions"]["F6"]["evidence"] == ["a1"]
         assert any(v["problem"] == "unknown article" for v in got.violations)
 
-    def test_an_article_the_model_never_scored_is_caught(self):
-        """Silent, and the reason articles eleven to twenty used to enter Top-3
-        selection with an impact of zero."""
-        got = validator.validate(_answer(), article_ids=["a1", "a2", "a3"])
-        unscored = [v for v in got.violations if v["problem"] == "article not scored"]
-        assert {v["raw"] for v in unscored} == {"a2", "a3"}
+    def test_an_indicator_cited_as_evidence_is_dropped_and_counted_apart(self):
+        """The prompt allows indicator names; the code does not, because the
+        numbers are scored in code and would be counted twice."""
+        got = validator.validate(
+            _answer(F2={"level": 3, "evidence": ["Inflation (% y/y)"], "note": ""}),
+            article_ids=["a1"], run_date=_RUN,
+        )
+        assert got["answer"]["questions"]["F2"]["level"] is None
+        assert got.counts["evidence_dropped_non_article"] == 1
+        assert got.counts["evidence_dropped"] == 0
 
     def test_an_unknown_condition_flag_is_reported(self):
         flags = {f: False for f in ai_consts.CONDITION_FLAGS}
         flags["invented_flag"] = True
-        got = validator.validate(_answer(condition_flags=flags), article_ids=["a1"])
+        got = validator.validate(_answer(condition_flags=flags), article_ids=["a1"], run_date=_RUN)
         assert any(v["problem"] == "unknown flag" for v in got.violations)
 
     def test_a_missing_flag_is_reported_and_defaulted_visibly(self):
         flags = {f: False for f in ai_consts.CONDITION_FLAGS}
         flags.pop("capital_controls")
-        got = validator.validate(_answer(condition_flags=flags), article_ids=["a1"])
+        got = validator.validate(_answer(condition_flags=flags), article_ids=["a1"], run_date=_RUN)
         assert any(v["field"] == "condition_flags.capital_controls" for v in got.violations)
         assert got["answer"]["condition_flags"]["capital_controls"] is False
 
-    def test_a_missing_subscore_reason_is_a_violation(self):
-        ev = {f: "because" for f in ai_consts.LEDGER_FIELDS}
-        ev["edge"] = ""
-        got = validator.validate(_answer(subscore_evidence=ev), article_ids=["a1"])
-        assert any(v["field"] == "subscore_evidence.edge" for v in got.violations)
+    def test_an_event_outside_the_horizon_or_about_an_unsent_article_is_dropped(self):
+        import datetime as dt
+        events = [
+            {"article_id": "a1", "date": "2026-09-01", "event": "past", "question": "O2", "direction": "up"},
+            {"article_id": "a1", "date": (_RUN + dt.timedelta(days=120)).isoformat(),
+             "event": "far", "question": "O2", "direction": "up"},
+            {"article_id": "a9", "date": (_RUN + dt.timedelta(days=10)).isoformat(),
+             "event": "unsent", "question": "O2", "direction": "up"},
+            {"article_id": "a1", "date": "soon", "event": "undated", "question": "O2", "direction": "up"},
+            {"article_id": "a1", "date": (_RUN + dt.timedelta(days=10)).isoformat(),
+             "event": "kept", "question": "O2", "direction": "down"},
+        ]
+        got = validator.validate(_answer(scheduled_events=events), article_ids=["a1"], run_date=_RUN)
+        assert [e["event"] for e in got["answer"]["scheduled_events"]] == ["kept"]
+        assert got.counts["events_dropped"] == 4
+        assert {v["problem"] for v in got.violations} >= {"past", "beyond horizon", "unknown article", "unparseable date"}
 
     def test_a_non_object_answer_does_not_raise(self):
         got = validator.validate("nope")
@@ -902,30 +932,49 @@ class TestValidator:
 
 
 class TestScoringContract:
-    def test_the_schema_uses_type_unions_for_nullable_ledgers(self):
+    def test_the_schema_uses_type_unions_for_nullable_levels(self):
         """The grammar is part of the instrument, not packaging around it."""
         props = ai_consts.SCHEMA_TEMPLATE["schema"]["properties"]
-        for field in ai_consts.LEDGER_FIELDS:
-            assert props[field]["type"] == ["integer", "null"], field
+        for qid in ai_consts.QUESTION_IDS:
+            assert props[qid]["properties"]["level"]["type"] == ["integer", "null"], qid
+            assert props[qid]["properties"]["level"]["maximum"] == ai_consts.SCORING["level_max"]
 
-    def test_the_composites_are_not_nullable(self):
+    def test_the_model_is_never_asked_for_a_score(self):
+        """Step 5: asked for a 0-100 number, the model picked from a menu."""
         props = ai_consts.SCHEMA_TEMPLATE["schema"]["properties"]
-        assert props["score_12m"]["type"] == "integer"
+        for field in ("score_12m", "score_3m", *ai_consts.LEDGER_FIELDS, "bearing"):
+            assert field not in props, field
 
     def test_evidence_coverage_is_not_something_the_model_returns(self):
         """It was measured self-reporting 80 with twenty articles and 80 with six."""
         assert "evidence_coverage" not in ai_consts.SCHEMA_TEMPLATE["schema"]["properties"]
-        assert "Do not return an evidence-coverage figure" in ai_consts.RISK_PROMPT
 
-    def test_the_prompt_carries_the_framework(self):
-        p = ai_consts.RISK_PROMPT
-        for phrase in ("THE THREE LEDGERS", "THREE-DOOR EVENT TEST",
-                       "CALIBRATION ANCHORS", "Never round to a multiple of 5",
-                       "A QUIET WEEK IS NOT A GOOD WEEK"):
+    def test_the_prompt_carries_every_question(self):
+        p = ai_consts.CHECKLIST_PROMPT
+        for qid, _ledger, text in ai_consts.QUESTIONS:
+            assert f"{qid} {text}" in p, qid
+        for phrase in ("Null is correct and expected", "SCHEDULED EVENTS", "Never invent a date"):
             assert phrase in p, phrase
 
-    def test_the_prompt_says_nothing_downstream_alters_the_score(self):
-        assert "Nothing downstream alters the score" in ai_consts.RISK_PROMPT
+    def test_the_arithmetic_is_in_the_version_and_the_composite_ignores_edge(self):
+        from backend.llm import combine
+        assert ai_consts.SCORING["composite_weights"]["edge"] == 0
+        scoring = combine.combine(
+            answer=validator.validate(_answer(), article_ids=["a1"], run_date=_RUN)["answer"],
+            data={"data_scores": {"friction": 50.0, "order": 10.0, "information": None, "edge": 90.0},
+                  "percentiles": {}, "n_by_ledger": {}},
+            article_ids=["a1"], run_date=_RUN,
+        )
+        # friction: data 50, news 25×2 = 50 → 50; order: data 10, news 25×1 → 17.5;
+        # information: no data, no news → null, so weights renormalise to .5/.5.
+        assert scoring["ledgers"]["friction"]["score"] == 50.0
+        assert scoring["ledgers"]["order"]["score"] == 17.5
+        assert scoring["ledgers"]["information"]["score"] is None
+        assert scoring["composite"]["renormalised"] is True
+        assert scoring["score_12m"] == 34
+        assert scoring["score_3m"] == 37  # one "up" event inside the horizon
+        assert scoring["article_weights"] == [{"id": "a1", "weight": 3, "questions": ["F6", "O3"]}]
+        assert "PROMPT_VERSION = content_hash(" in __import__("pathlib").Path(ai_consts.__file__).read_text(encoding="utf-8")
 
     def test_the_legal_gate_is_a_badge_and_not_an_override(self):
         """Russia's rating was a constant, the same number whether the week held
