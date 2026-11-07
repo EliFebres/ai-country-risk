@@ -1,0 +1,4603 @@
+{
+ "countries": {
+  "HK": {
+   "run_date": "2026-09-27",
+   "ledgers": {
+    "friction": {
+     "question": "What is taken, and how well does it convert?",
+     "indicators": [
+      {
+       "code": "FP.CPI.TOTL.ZG",
+       "label": "Inflation (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 1.4363,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.5688
+        },
+        {
+         "year": 2022,
+         "value": 1.8814
+        },
+        {
+         "year": 2023,
+         "value": 2.0966
+        },
+        {
+         "year": 2024,
+         "value": 1.7297
+        },
+        {
+         "year": 2025,
+         "value": 1.4363
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OWID.VDEM.CORRUPTION",
+       "label": "Political corruption index (0-1, higher = more corrupt)",
+       "unit": "index (0-1)",
+       "source": "V-Dem via OWID",
+       "value": 0.085,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.082
+        },
+        {
+         "year": 2022,
+         "value": 0.084
+        },
+        {
+         "year": 2023,
+         "value": 0.084
+        },
+        {
+         "year": 2024,
+         "value": 0.09
+        },
+        {
+         "year": 2025,
+         "value": 0.085
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RQ.EST",
+       "label": "Regulatory quality (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.6167,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.7169
+        },
+        {
+         "year": 2022,
+         "value": 1.6975
+        },
+        {
+         "year": 2023,
+         "value": 1.6853
+        },
+        {
+         "year": 2024,
+         "value": 1.6679
+        },
+        {
+         "year": 2025,
+         "value": 1.6167
+        }
+       ],
+       "direction": "flat",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_CC.EST",
+       "label": "Control of corruption (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.6364,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.6356
+        },
+        {
+         "year": 2022,
+         "value": 1.528
+        },
+        {
+         "year": 2023,
+         "value": 1.5678
+        },
+        {
+         "year": 2024,
+         "value": 1.5861
+        },
+        {
+         "year": 2025,
+         "value": 1.6364
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "order": {
+     "question": "How much doubt is there about the load-bearing rules?",
+     "indicators": [
+      {
+       "code": "GOV_WGI_PV.EST",
+       "label": "Political stability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.6311,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 0.0079
+        },
+        {
+         "year": 2021,
+         "value": 0.2187
+        },
+        {
+         "year": 2022,
+         "value": 0.3892
+        },
+        {
+         "year": 2023,
+         "value": 0.4084
+        },
+        {
+         "year": 2024,
+         "value": 0.6311
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RL.EST",
+       "label": "Rule of law (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.921,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 1.1754
+        },
+        {
+         "year": 2021,
+         "value": 1.032
+        },
+        {
+         "year": 2022,
+         "value": 0.8842
+        },
+        {
+         "year": 2023,
+         "value": 0.8759
+        },
+        {
+         "year": 2024,
+         "value": 0.921
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SL.UEM.TOTL.ZS",
+       "label": "Unemployment (% labour force)",
+       "unit": "%",
+       "source": "World Bank WDI",
+       "value": 2.799,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 5.174
+        },
+        {
+         "year": 2022,
+         "value": 4.318
+        },
+        {
+         "year": 2023,
+         "value": 2.949
+        },
+        {
+         "year": 2024,
+         "value": 2.988
+        },
+        {
+         "year": 2025,
+         "value": 2.799
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "NY.GDP.PCAP.KD.ZG",
+       "label": "GDP per-capita growth (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 3.8354,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 7.4295
+        },
+        {
+         "year": 2022,
+         "value": -2.8068
+        },
+        {
+         "year": 2023,
+         "value": 0.5497
+        },
+        {
+         "year": 2024,
+         "value": 2.793
+        },
+        {
+         "year": 2025,
+         "value": 3.8354
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_GE.EST",
+       "label": "Government effectiveness (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.5387,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.3546
+        },
+        {
+         "year": 2022,
+         "value": 1.3442
+        },
+        {
+         "year": 2023,
+         "value": 1.3168
+        },
+        {
+         "year": 2024,
+         "value": 1.3777
+        },
+        {
+         "year": 2025,
+         "value": 1.5387
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "information": {
+     "question": "Can the country's own instruments be trusted?",
+     "indicators": [
+      {
+       "code": "RSF.PRESS.SCORE",
+       "label": "Press freedom (0-100, higher = freer)",
+       "unit": "score",
+       "source": "RSF World Press Freedom Index",
+       "value": 39.49,
+       "period": 2025,
+       "as_of": "2026-05-03",
+       "as_of_scheme": "source-published",
+       "staleness_days": 147,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 41.64
+        },
+        {
+         "year": 2022,
+         "value": 44.86
+        },
+        {
+         "year": 2023,
+         "value": 43.06
+        },
+        {
+         "year": 2024,
+         "value": 39.86
+        },
+        {
+         "year": 2025,
+         "value": 39.49
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_VA.EST",
+       "label": "Voice and accountability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -0.5229,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -0.2275
+        },
+        {
+         "year": 2022,
+         "value": -0.3407
+        },
+        {
+         "year": 2023,
+         "value": -0.4367
+        },
+        {
+         "year": 2024,
+         "value": -0.4872
+        },
+        {
+         "year": 2025,
+         "value": -0.5229
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "edge": {
+     "question": "Is the system learning?",
+     "indicators": [
+      {
+       "code": "BX.KLT.DINV.WD.GD.ZS",
+       "label": "FDI inflow (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 30.8106,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 34.0498
+        },
+        {
+         "year": 2021,
+         "value": 37.1838
+        },
+        {
+         "year": 2022,
+         "value": 34.1279
+        },
+        {
+         "year": 2023,
+         "value": 32.0372
+        },
+        {
+         "year": 2024,
+         "value": 30.8106
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SE.XPD.TOTL.GD.ZS",
+       "label": "Education spending (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 3.8055,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 4.4056
+        },
+        {
+         "year": 2021,
+         "value": 4.0003
+        },
+        {
+         "year": 2022,
+         "value": 3.7287
+        },
+        {
+         "year": 2023,
+         "value": 3.8033
+        },
+        {
+         "year": 2024,
+         "value": 3.8055
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OECD.PISA.MEAN",
+       "label": "PISA mean score (maths/reading/science)",
+       "unit": "score",
+       "source": "OECD PISA",
+       "value": 520.16,
+       "period": 2022,
+       "as_of": "2023-12-05",
+       "as_of_scheme": "source-published",
+       "staleness_days": 1027,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2018,
+         "value": "unknown"
+        },
+        {
+         "year": 2019,
+         "value": "unknown"
+        },
+        {
+         "year": 2020,
+         "value": "unknown"
+        },
+        {
+         "year": 2021,
+         "value": "unknown"
+        },
+        {
+         "year": 2022,
+         "value": 520.16
+        }
+       ],
+       "direction": "unknown",
+       "accelerating": null,
+       "observed": 1,
+       "missing": 4
+      }
+     ]
+    }
+   },
+   "resolution": {
+    "expected_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "resolved_by_ledger": {
+     "friction": 4,
+     "order": 5,
+     "information": 2,
+     "edge": 3
+    },
+    "empty_ledgers": [],
+    "by_source": {
+     "World Bank WDI": {
+      "expected": 7,
+      "resolved": 5
+     },
+     "V-Dem via OWID": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank WGI": {
+      "expected": 6,
+      "resolved": 6
+     },
+     "World Bank SPI": {
+      "expected": 1,
+      "resolved": 0
+     },
+     "RSF World Press Freedom Index": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "OECD PISA": {
+      "expected": 1,
+      "resolved": 1
+     }
+    },
+    "dropped": [
+     {
+      "code": "SI.POV.GINI",
+      "ledger": "friction",
+      "source": "World Bank WDI",
+      "label": "Income inequality (Gini)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "ledger": "friction",
+      "source": "World Bank WDI",
+      "label": "Interest payments (% revenue)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "IQ.SPI.OVRL",
+      "ledger": "information",
+      "source": "World Bank SPI",
+      "label": "Statistical performance (0-100)",
+      "reason": "unmapped"
+     }
+    ],
+    "as_of_schemes": {
+     "first-seen": 8,
+     "publication-lag-estimate": 4,
+     "source-published": 2
+    }
+   },
+   "data": {
+    "indicators": {
+     "FP.CPI.TOTL.ZG": {
+      "code": "FP.CPI.TOTL.ZG",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 1.4363,
+      "scaled_input": 0.5637,
+      "score": 0.0,
+      "clamped": true
+     },
+     "GOV_WGI_RQ.EST": {
+      "code": "GOV_WGI_RQ.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 1.6167,
+      "scaled_input": 1.6167,
+      "score": 9.58,
+      "clamped": false
+     },
+     "GOV_WGI_CC.EST": {
+      "code": "GOV_WGI_CC.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 1.6364,
+      "scaled_input": 1.6364,
+      "score": 9.09,
+      "clamped": false
+     },
+     "GOV_WGI_PV.EST": {
+      "code": "GOV_WGI_PV.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 0.6311,
+      "scaled_input": 0.6311,
+      "score": 21.72,
+      "clamped": false
+     },
+     "GOV_WGI_RL.EST": {
+      "code": "GOV_WGI_RL.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 0.921,
+      "scaled_input": 0.921,
+      "score": 26.97,
+      "clamped": false
+     },
+     "GOV_WGI_GE.EST": {
+      "code": "GOV_WGI_GE.EST",
+      "ledger": "order",
+      "period": 2025,
+      "value": 1.5387,
+      "scaled_input": 1.5387,
+      "score": 11.53,
+      "clamped": false
+     },
+     "RSF.PRESS.SCORE": {
+      "code": "RSF.PRESS.SCORE",
+      "ledger": "information",
+      "period": 2025,
+      "value": 39.49,
+      "scaled_input": 39.49,
+      "score": 75.85,
+      "clamped": false
+     },
+     "GOV_WGI_VA.EST": {
+      "code": "GOV_WGI_VA.EST",
+      "ledger": "information",
+      "period": 2025,
+      "value": -0.5229,
+      "scaled_input": -0.5229,
+      "score": 57.8,
+      "clamped": false
+     },
+     "BX.KLT.DINV.WD.GD.ZS": {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "ledger": "edge",
+      "period": 2024,
+      "value": 30.8106,
+      "scaled_input": 30.8106,
+      "score": 0.0,
+      "clamped": true
+     },
+     "SE.XPD.TOTL.GD.ZS": {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "ledger": "edge",
+      "period": 2024,
+      "value": 3.8055,
+      "scaled_input": 3.8055,
+      "score": 54.86,
+      "clamped": false
+     },
+     "OECD.PISA.MEAN": {
+      "code": "OECD.PISA.MEAN",
+      "ledger": "edge",
+      "period": 2022,
+      "value": 520.16,
+      "scaled_input": 520.16,
+      "score": 3.87,
+      "clamped": false
+     }
+    },
+    "data_scores": {
+     "friction": 6.22,
+     "order": 20.07,
+     "information": 66.82,
+     "edge": 19.58
+    },
+    "n_by_ledger": {
+     "friction": 3,
+     "order": 3,
+     "information": 2,
+     "edge": 3
+    },
+    "unscored": [
+     "OWID.VDEM.CORRUPTION",
+     "SL.UEM.TOTL.ZS",
+     "NY.GDP.PCAP.KD.ZG"
+    ]
+   }
+  },
+  "KW": {
+   "run_date": "2026-09-27",
+   "ledgers": {
+    "friction": {
+     "question": "What is taken, and how well does it convert?",
+     "indicators": [
+      {
+       "code": "FP.CPI.TOTL.ZG",
+       "label": "Inflation (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 2.362,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 3.4236
+        },
+        {
+         "year": 2022,
+         "value": 3.9806
+        },
+        {
+         "year": 2023,
+         "value": 3.6422
+        },
+        {
+         "year": 2024,
+         "value": 2.8986
+        },
+        {
+         "year": 2025,
+         "value": 2.362
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OWID.VDEM.CORRUPTION",
+       "label": "Political corruption index (0-1, higher = more corrupt)",
+       "unit": "index (0-1)",
+       "source": "V-Dem via OWID",
+       "value": 0.346,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.462
+        },
+        {
+         "year": 2022,
+         "value": 0.315
+        },
+        {
+         "year": 2023,
+         "value": 0.315
+        },
+        {
+         "year": 2024,
+         "value": 0.315
+        },
+        {
+         "year": 2025,
+         "value": 0.346
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RQ.EST",
+       "label": "Regulatory quality (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.3581,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.1806
+        },
+        {
+         "year": 2022,
+         "value": 0.2451
+        },
+        {
+         "year": 2023,
+         "value": 0.2803
+        },
+        {
+         "year": 2024,
+         "value": 0.3093
+        },
+        {
+         "year": 2025,
+         "value": 0.3581
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_CC.EST",
+       "label": "Control of corruption (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.2831,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -0.063
+        },
+        {
+         "year": 2022,
+         "value": 0.0721
+        },
+        {
+         "year": 2023,
+         "value": 0.1707
+        },
+        {
+         "year": 2024,
+         "value": 0.2204
+        },
+        {
+         "year": 2025,
+         "value": 0.2831
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "order": {
+     "question": "How much doubt is there about the load-bearing rules?",
+     "indicators": [
+      {
+       "code": "GOV_WGI_PV.EST",
+       "label": "Political stability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.2939,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 0.1554
+        },
+        {
+         "year": 2021,
+         "value": 0.1542
+        },
+        {
+         "year": 2022,
+         "value": 0.1042
+        },
+        {
+         "year": 2023,
+         "value": 0.2907
+        },
+        {
+         "year": 2024,
+         "value": 0.2939
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RL.EST",
+       "label": "Rule of law (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.2308,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 0.1469
+        },
+        {
+         "year": 2021,
+         "value": 0.1195
+        },
+        {
+         "year": 2022,
+         "value": 0.2237
+        },
+        {
+         "year": 2023,
+         "value": 0.1911
+        },
+        {
+         "year": 2024,
+         "value": 0.2308
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SL.UEM.TOTL.ZS",
+       "label": "Unemployment (% labour force)",
+       "unit": "%",
+       "source": "World Bank WDI",
+       "value": 2.181,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 2.97
+        },
+        {
+         "year": 2022,
+         "value": 2.133
+        },
+        {
+         "year": 2023,
+         "value": 2.08
+        },
+        {
+         "year": 2024,
+         "value": 2.151
+        },
+        {
+         "year": 2025,
+         "value": 2.181
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "NY.GDP.PCAP.KD.ZG",
+       "label": "GDP per-capita growth (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 3.4068,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 2.5908
+        },
+        {
+         "year": 2022,
+         "value": 1.4371
+        },
+        {
+         "year": 2023,
+         "value": -6.9866
+        },
+        {
+         "year": 2024,
+         "value": -2.3561
+        },
+        {
+         "year": 2025,
+         "value": 3.4068
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_GE.EST",
+       "label": "Government effectiveness (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.2561,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.0207
+        },
+        {
+         "year": 2022,
+         "value": 0.2529
+        },
+        {
+         "year": 2023,
+         "value": 0.1977
+        },
+        {
+         "year": 2024,
+         "value": 0.1633
+        },
+        {
+         "year": 2025,
+         "value": 0.2561
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "information": {
+     "question": "Can the country's own instruments be trusted?",
+     "indicators": [
+      {
+       "code": "IQ.SPI.OVRL",
+       "label": "Statistical performance (0-100)",
+       "unit": "score",
+       "source": "World Bank SPI",
+       "value": 63.3754,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 60.1775
+        },
+        {
+         "year": 2021,
+         "value": 66.2354
+        },
+        {
+         "year": 2022,
+         "value": 59.9104
+        },
+        {
+         "year": 2023,
+         "value": 62.4379
+        },
+        {
+         "year": 2024,
+         "value": 63.3754
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "RSF.PRESS.SCORE",
+       "label": "Press freedom (0-100, higher = freer)",
+       "unit": "score",
+       "source": "RSF World Press Freedom Index",
+       "value": 40.44,
+       "period": 2025,
+       "as_of": "2026-05-03",
+       "as_of_scheme": "source-published",
+       "staleness_days": 147,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 37.87
+        },
+        {
+         "year": 2022,
+         "value": 38.84
+        },
+        {
+         "year": 2023,
+         "value": 44.66
+        },
+        {
+         "year": 2024,
+         "value": 44.06
+        },
+        {
+         "year": 2025,
+         "value": 40.44
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_VA.EST",
+       "label": "Voice and accountability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -0.9191,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -0.6473
+        },
+        {
+         "year": 2022,
+         "value": -0.6489
+        },
+        {
+         "year": 2023,
+         "value": -0.613
+        },
+        {
+         "year": 2024,
+         "value": -0.7765
+        },
+        {
+         "year": 2025,
+         "value": -0.9191
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "edge": {
+     "question": "Is the system learning?",
+     "indicators": [
+      {
+       "code": "BX.KLT.DINV.WD.GD.ZS",
+       "label": "FDI inflow (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 0.2628,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -0.1836
+        },
+        {
+         "year": 2022,
+         "value": 0.4099
+        },
+        {
+         "year": 2023,
+         "value": 1.278
+        },
+        {
+         "year": 2024,
+         "value": 0.382
+        },
+        {
+         "year": 2025,
+         "value": 0.2628
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SE.XPD.TOTL.GD.ZS",
+       "label": "Education spending (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 6.4359,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 6.2451
+        },
+        {
+         "year": 2021,
+         "value": 7.7625
+        },
+        {
+         "year": 2022,
+         "value": 6.5824
+        },
+        {
+         "year": 2023,
+         "value": 5.0263
+        },
+        {
+         "year": 2024,
+         "value": 6.4359
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    }
+   },
+   "resolution": {
+    "expected_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "resolved_by_ledger": {
+     "friction": 4,
+     "order": 5,
+     "information": 3,
+     "edge": 2
+    },
+    "empty_ledgers": [],
+    "by_source": {
+     "World Bank WDI": {
+      "expected": 7,
+      "resolved": 5
+     },
+     "V-Dem via OWID": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank WGI": {
+      "expected": 6,
+      "resolved": 6
+     },
+     "World Bank SPI": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "RSF World Press Freedom Index": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "OECD PISA": {
+      "expected": 1,
+      "resolved": 0
+     }
+    },
+    "dropped": [
+     {
+      "code": "SI.POV.GINI",
+      "ledger": "friction",
+      "source": "World Bank WDI",
+      "label": "Income inequality (Gini)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "ledger": "friction",
+      "source": "World Bank WDI",
+      "label": "Interest payments (% revenue)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "OECD.PISA.MEAN",
+      "ledger": "edge",
+      "source": "OECD PISA",
+      "label": "PISA mean score (maths/reading/science)",
+      "reason": "no row"
+     }
+    ],
+    "as_of_schemes": {
+     "first-seen": 9,
+     "publication-lag-estimate": 4,
+     "source-published": 1
+    }
+   },
+   "data": {
+    "indicators": {
+     "FP.CPI.TOTL.ZG": {
+      "code": "FP.CPI.TOTL.ZG",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 2.362,
+      "scaled_input": 0.362,
+      "score": 0.0,
+      "clamped": true
+     },
+     "GOV_WGI_RQ.EST": {
+      "code": "GOV_WGI_RQ.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 0.3581,
+      "scaled_input": 0.3581,
+      "score": 41.05,
+      "clamped": false
+     },
+     "GOV_WGI_CC.EST": {
+      "code": "GOV_WGI_CC.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 0.2831,
+      "scaled_input": 0.2831,
+      "score": 42.92,
+      "clamped": false
+     },
+     "GOV_WGI_PV.EST": {
+      "code": "GOV_WGI_PV.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 0.2939,
+      "scaled_input": 0.2939,
+      "score": 30.15,
+      "clamped": false
+     },
+     "GOV_WGI_RL.EST": {
+      "code": "GOV_WGI_RL.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 0.2308,
+      "scaled_input": 0.2308,
+      "score": 44.23,
+      "clamped": false
+     },
+     "GOV_WGI_GE.EST": {
+      "code": "GOV_WGI_GE.EST",
+      "ledger": "order",
+      "period": 2025,
+      "value": 0.2561,
+      "scaled_input": 0.2561,
+      "score": 43.6,
+      "clamped": false
+     },
+     "IQ.SPI.OVRL": {
+      "code": "IQ.SPI.OVRL",
+      "ledger": "information",
+      "period": 2024,
+      "value": 63.3754,
+      "scaled_input": 63.3754,
+      "score": 53.25,
+      "clamped": false
+     },
+     "RSF.PRESS.SCORE": {
+      "code": "RSF.PRESS.SCORE",
+      "ledger": "information",
+      "period": 2025,
+      "value": 40.44,
+      "scaled_input": 40.44,
+      "score": 74.27,
+      "clamped": false
+     },
+     "GOV_WGI_VA.EST": {
+      "code": "GOV_WGI_VA.EST",
+      "ledger": "information",
+      "period": 2025,
+      "value": -0.9191,
+      "scaled_input": -0.9191,
+      "score": 69.12,
+      "clamped": false
+     },
+     "BX.KLT.DINV.WD.GD.ZS": {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "ledger": "edge",
+      "period": 2025,
+      "value": 0.2628,
+      "scaled_input": 0.2628,
+      "score": 94.74,
+      "clamped": false
+     },
+     "SE.XPD.TOTL.GD.ZS": {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "ledger": "edge",
+      "period": 2024,
+      "value": 6.4359,
+      "scaled_input": 6.4359,
+      "score": 0.0,
+      "clamped": true
+     }
+    },
+    "data_scores": {
+     "friction": 27.99,
+     "order": 39.33,
+     "information": 65.55,
+     "edge": 47.37
+    },
+    "n_by_ledger": {
+     "friction": 3,
+     "order": 3,
+     "information": 3,
+     "edge": 2
+    },
+    "unscored": [
+     "OWID.VDEM.CORRUPTION",
+     "SL.UEM.TOTL.ZS",
+     "NY.GDP.PCAP.KD.ZG"
+    ]
+   }
+  },
+  "PT": {
+   "run_date": "2026-09-27",
+   "ledgers": {
+    "friction": {
+     "question": "What is taken, and how well does it convert?",
+     "indicators": [
+      {
+       "code": "FP.CPI.TOTL.ZG",
+       "label": "Inflation (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 2.336,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.2657
+        },
+        {
+         "year": 2022,
+         "value": 7.8327
+        },
+        {
+         "year": 2023,
+         "value": 4.3113
+        },
+        {
+         "year": 2024,
+         "value": 2.4161
+        },
+        {
+         "year": 2025,
+         "value": 2.336
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SI.POV.GINI",
+       "label": "Income inequality (Gini)",
+       "unit": "index",
+       "source": "World Bank WDI",
+       "value": 33.9,
+       "period": 2023,
+       "as_of": "2025-07-01",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 453,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2019,
+         "value": 32.8
+        },
+        {
+         "year": 2020,
+         "value": 34.7
+        },
+        {
+         "year": 2021,
+         "value": 34.6
+        },
+        {
+         "year": 2022,
+         "value": 36.3
+        },
+        {
+         "year": 2023,
+         "value": 33.9
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GC.XPN.INTP.RV.ZS",
+       "label": "Interest payments (% revenue)",
+       "unit": "% revenue",
+       "source": "World Bank WDI",
+       "value": 5.4069,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 7.4205
+        },
+        {
+         "year": 2021,
+         "value": 6.0058
+        },
+        {
+         "year": 2022,
+         "value": 4.9539
+        },
+        {
+         "year": 2023,
+         "value": 5.5098
+        },
+        {
+         "year": 2024,
+         "value": 5.4069
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OWID.VDEM.CORRUPTION",
+       "label": "Political corruption index (0-1, higher = more corrupt)",
+       "unit": "index (0-1)",
+       "source": "V-Dem via OWID",
+       "value": 0.166,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.131
+        },
+        {
+         "year": 2022,
+         "value": 0.139
+        },
+        {
+         "year": 2023,
+         "value": 0.172
+        },
+        {
+         "year": 2024,
+         "value": 0.166
+        },
+        {
+         "year": 2025,
+         "value": 0.166
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RQ.EST",
+       "label": "Regulatory quality (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.5608,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.8007
+        },
+        {
+         "year": 2022,
+         "value": 0.8548
+        },
+        {
+         "year": 2023,
+         "value": 0.7094
+        },
+        {
+         "year": 2024,
+         "value": 0.6688
+        },
+        {
+         "year": 2025,
+         "value": 0.5608
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_CC.EST",
+       "label": "Control of corruption (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.7725,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.8249
+        },
+        {
+         "year": 2022,
+         "value": 0.7923
+        },
+        {
+         "year": 2023,
+         "value": 0.7341
+        },
+        {
+         "year": 2024,
+         "value": 0.8171
+        },
+        {
+         "year": 2025,
+         "value": 0.7725
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "order": {
+     "question": "How much doubt is there about the load-bearing rules?",
+     "indicators": [
+      {
+       "code": "GOV_WGI_PV.EST",
+       "label": "Political stability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.5369,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 0.983
+        },
+        {
+         "year": 2021,
+         "value": 0.9584
+        },
+        {
+         "year": 2022,
+         "value": 0.8869
+        },
+        {
+         "year": 2023,
+         "value": 0.789
+        },
+        {
+         "year": 2024,
+         "value": 0.5369
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RL.EST",
+       "label": "Rule of law (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.0722,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 1.1831
+        },
+        {
+         "year": 2021,
+         "value": 1.1691
+        },
+        {
+         "year": 2022,
+         "value": 1.1257
+        },
+        {
+         "year": 2023,
+         "value": 1.0824
+        },
+        {
+         "year": 2024,
+         "value": 1.0722
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SL.UEM.TOTL.ZS",
+       "label": "Unemployment (% labour force)",
+       "unit": "%",
+       "source": "World Bank WDI",
+       "value": 6.164,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 6.712
+        },
+        {
+         "year": 2022,
+         "value": 6.138
+        },
+        {
+         "year": 2023,
+         "value": 6.498
+        },
+        {
+         "year": 2024,
+         "value": 6.5
+        },
+        {
+         "year": 2025,
+         "value": 6.164
+        }
+       ],
+       "direction": "flat",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "NY.GDP.PCAP.KD.ZG",
+       "label": "GDP per-capita growth (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 0.8256,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 4.8991
+        },
+        {
+         "year": 2022,
+         "value": 6.2425
+        },
+        {
+         "year": 2023,
+         "value": 1.698
+        },
+        {
+         "year": 2024,
+         "value": 1.1011
+        },
+        {
+         "year": 2025,
+         "value": 0.8256
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_GE.EST",
+       "label": "Government effectiveness (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.0219,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.1499
+        },
+        {
+         "year": 2022,
+         "value": 1.0295
+        },
+        {
+         "year": 2023,
+         "value": 0.9509
+        },
+        {
+         "year": 2024,
+         "value": 0.9764
+        },
+        {
+         "year": 2025,
+         "value": 1.0219
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "information": {
+     "question": "Can the country's own instruments be trusted?",
+     "indicators": [
+      {
+       "code": "IQ.SPI.OVRL",
+       "label": "Statistical performance (0-100)",
+       "unit": "score",
+       "source": "World Bank SPI",
+       "value": 90.7079,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 87.1496
+        },
+        {
+         "year": 2021,
+         "value": 91.5688
+        },
+        {
+         "year": 2022,
+         "value": 92.3583
+        },
+        {
+         "year": 2023,
+         "value": 93.7783
+        },
+        {
+         "year": 2024,
+         "value": 90.7079
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "RSF.PRESS.SCORE",
+       "label": "Press freedom (0-100, higher = freer)",
+       "unit": "score",
+       "source": "RSF World Press Freedom Index",
+       "value": 83.71,
+       "period": 2025,
+       "as_of": "2026-05-03",
+       "as_of_scheme": "source-published",
+       "staleness_days": 147,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 87.07
+        },
+        {
+         "year": 2022,
+         "value": 84.6
+        },
+        {
+         "year": 2023,
+         "value": 85.9
+        },
+        {
+         "year": 2024,
+         "value": 84.26
+        },
+        {
+         "year": 2025,
+         "value": 83.71
+        }
+       ],
+       "direction": "flat",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_VA.EST",
+       "label": "Voice and accountability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.2716,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.352
+        },
+        {
+         "year": 2022,
+         "value": 1.3157
+        },
+        {
+         "year": 2023,
+         "value": 1.3428
+        },
+        {
+         "year": 2024,
+         "value": 1.2706
+        },
+        {
+         "year": 2025,
+         "value": 1.2716
+        }
+       ],
+       "direction": "flat",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "edge": {
+     "question": "Is the system learning?",
+     "indicators": [
+      {
+       "code": "BX.KLT.DINV.WD.GD.ZS",
+       "label": "FDI inflow (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 4.2997,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 1.8141
+        },
+        {
+         "year": 2021,
+         "value": 3.6084
+        },
+        {
+         "year": 2022,
+         "value": 5.0837
+        },
+        {
+         "year": 2023,
+         "value": 3.9633
+        },
+        {
+         "year": 2024,
+         "value": 4.2997
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SE.XPD.TOTL.GD.ZS",
+       "label": "Education spending (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 4.5516,
+       "period": 2022,
+       "as_of": "2024-07-01",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 818,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2018,
+         "value": 4.6794
+        },
+        {
+         "year": 2019,
+         "value": 4.6275
+        },
+        {
+         "year": 2020,
+         "value": 4.8641
+        },
+        {
+         "year": 2021,
+         "value": 4.7734
+        },
+        {
+         "year": 2022,
+         "value": 4.5516
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OECD.PISA.MEAN",
+       "label": "PISA mean score (maths/reading/science)",
+       "unit": "score",
+       "source": "OECD PISA",
+       "value": 477.62,
+       "period": 2022,
+       "as_of": "2023-12-05",
+       "as_of_scheme": "source-published",
+       "staleness_days": 1027,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2018,
+         "value": "unknown"
+        },
+        {
+         "year": 2019,
+         "value": "unknown"
+        },
+        {
+         "year": 2020,
+         "value": "unknown"
+        },
+        {
+         "year": 2021,
+         "value": "unknown"
+        },
+        {
+         "year": 2022,
+         "value": 477.62
+        }
+       ],
+       "direction": "unknown",
+       "accelerating": null,
+       "observed": 1,
+       "missing": 4
+      }
+     ]
+    }
+   },
+   "resolution": {
+    "expected_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "resolved_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "empty_ledgers": [],
+    "by_source": {
+     "World Bank WDI": {
+      "expected": 7,
+      "resolved": 7
+     },
+     "V-Dem via OWID": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank WGI": {
+      "expected": 6,
+      "resolved": 6
+     },
+     "World Bank SPI": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "RSF World Press Freedom Index": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "OECD PISA": {
+      "expected": 1,
+      "resolved": 1
+     }
+    },
+    "dropped": [],
+    "as_of_schemes": {
+     "first-seen": 8,
+     "publication-lag-estimate": 7,
+     "source-published": 2
+    }
+   },
+   "data": {
+    "indicators": {
+     "FP.CPI.TOTL.ZG": {
+      "code": "FP.CPI.TOTL.ZG",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 2.336,
+      "scaled_input": 0.336,
+      "score": 0.0,
+      "clamped": true
+     },
+     "GC.XPN.INTP.RV.ZS": {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "ledger": "friction",
+      "period": 2024,
+      "value": 5.4069,
+      "scaled_input": 5.4069,
+      "score": 12.17,
+      "clamped": false
+     },
+     "GOV_WGI_RQ.EST": {
+      "code": "GOV_WGI_RQ.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 0.5608,
+      "scaled_input": 0.5608,
+      "score": 35.98,
+      "clamped": false
+     },
+     "GOV_WGI_CC.EST": {
+      "code": "GOV_WGI_CC.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 0.7725,
+      "scaled_input": 0.7725,
+      "score": 30.69,
+      "clamped": false
+     },
+     "GOV_WGI_PV.EST": {
+      "code": "GOV_WGI_PV.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 0.5369,
+      "scaled_input": 0.5369,
+      "score": 24.08,
+      "clamped": false
+     },
+     "GOV_WGI_RL.EST": {
+      "code": "GOV_WGI_RL.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 1.0722,
+      "scaled_input": 1.0722,
+      "score": 23.2,
+      "clamped": false
+     },
+     "GOV_WGI_GE.EST": {
+      "code": "GOV_WGI_GE.EST",
+      "ledger": "order",
+      "period": 2025,
+      "value": 1.0219,
+      "scaled_input": 1.0219,
+      "score": 24.45,
+      "clamped": false
+     },
+     "IQ.SPI.OVRL": {
+      "code": "IQ.SPI.OVRL",
+      "ledger": "information",
+      "period": 2024,
+      "value": 90.7079,
+      "scaled_input": 90.7079,
+      "score": 0.0,
+      "clamped": true
+     },
+     "RSF.PRESS.SCORE": {
+      "code": "RSF.PRESS.SCORE",
+      "ledger": "information",
+      "period": 2025,
+      "value": 83.71,
+      "scaled_input": 83.71,
+      "score": 2.15,
+      "clamped": false
+     },
+     "GOV_WGI_VA.EST": {
+      "code": "GOV_WGI_VA.EST",
+      "ledger": "information",
+      "period": 2025,
+      "value": 1.2716,
+      "scaled_input": 1.2716,
+      "score": 6.53,
+      "clamped": false
+     },
+     "BX.KLT.DINV.WD.GD.ZS": {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "ledger": "edge",
+      "period": 2024,
+      "value": 4.2997,
+      "scaled_input": 4.2997,
+      "score": 14.01,
+      "clamped": false
+     },
+     "SE.XPD.TOTL.GD.ZS": {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "ledger": "edge",
+      "period": 2022,
+      "value": 4.5516,
+      "scaled_input": 4.5516,
+      "score": 36.21,
+      "clamped": false
+     },
+     "OECD.PISA.MEAN": {
+      "code": "OECD.PISA.MEAN",
+      "ledger": "edge",
+      "period": 2022,
+      "value": 477.62,
+      "scaled_input": 477.62,
+      "score": 37.9,
+      "clamped": false
+     }
+    },
+    "data_scores": {
+     "friction": 19.71,
+     "order": 23.91,
+     "information": 2.89,
+     "edge": 29.37
+    },
+    "n_by_ledger": {
+     "friction": 4,
+     "order": 3,
+     "information": 3,
+     "edge": 3
+    },
+    "unscored": [
+     "SI.POV.GINI",
+     "OWID.VDEM.CORRUPTION",
+     "SL.UEM.TOTL.ZS",
+     "NY.GDP.PCAP.KD.ZG"
+    ]
+   }
+  },
+  "RU": {
+   "run_date": "2026-09-27",
+   "ledgers": {
+    "friction": {
+     "question": "What is taken, and how well does it convert?",
+     "indicators": [
+      {
+       "code": "FP.CPI.TOTL.ZG",
+       "label": "Inflation (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 8.7199,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 6.6945
+        },
+        {
+         "year": 2022,
+         "value": 13.7437
+        },
+        {
+         "year": 2023,
+         "value": 5.8657
+        },
+        {
+         "year": 2024,
+         "value": 8.4349
+        },
+        {
+         "year": 2025,
+         "value": 8.7199
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SI.POV.GINI",
+       "label": "Income inequality (Gini)",
+       "unit": "index",
+       "source": "World Bank WDI",
+       "value": 33.0,
+       "period": 2023,
+       "as_of": "2025-07-01",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 453,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2019,
+         "value": 35.7
+        },
+        {
+         "year": 2020,
+         "value": 33.7
+        },
+        {
+         "year": 2021,
+         "value": 35.1
+        },
+        {
+         "year": 2022,
+         "value": 33.9
+        },
+        {
+         "year": 2023,
+         "value": 33.0
+        }
+       ],
+       "direction": "flat",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GC.XPN.INTP.RV.ZS",
+       "label": "Interest payments (% revenue)",
+       "unit": "% revenue",
+       "source": "World Bank WDI",
+       "value": 2.3613,
+       "period": 2020,
+       "as_of": "2022-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 1548,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2016,
+         "value": 2.5753
+        },
+        {
+         "year": 2017,
+         "value": 2.5063
+        },
+        {
+         "year": 2018,
+         "value": 2.3635
+        },
+        {
+         "year": 2019,
+         "value": 2.6182
+        },
+        {
+         "year": 2020,
+         "value": 2.3613
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OWID.VDEM.CORRUPTION",
+       "label": "Political corruption index (0-1, higher = more corrupt)",
+       "unit": "index (0-1)",
+       "source": "V-Dem via OWID",
+       "value": 0.783,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.701
+        },
+        {
+         "year": 2022,
+         "value": 0.732
+        },
+        {
+         "year": 2023,
+         "value": 0.78
+        },
+        {
+         "year": 2024,
+         "value": 0.795
+        },
+        {
+         "year": 2025,
+         "value": 0.783
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RQ.EST",
+       "label": "Regulatory quality (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -1.1954,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -0.3814
+        },
+        {
+         "year": 2022,
+         "value": -0.9108
+        },
+        {
+         "year": 2023,
+         "value": -0.9083
+        },
+        {
+         "year": 2024,
+         "value": -1.0971
+        },
+        {
+         "year": 2025,
+         "value": -1.1954
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_CC.EST",
+       "label": "Control of corruption (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -0.983,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -0.7861
+        },
+        {
+         "year": 2022,
+         "value": -0.7812
+        },
+        {
+         "year": 2023,
+         "value": -0.896
+        },
+        {
+         "year": 2024,
+         "value": -0.8993
+        },
+        {
+         "year": 2025,
+         "value": -0.983
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "order": {
+     "question": "How much doubt is there about the load-bearing rules?",
+     "indicators": [
+      {
+       "code": "GOV_WGI_PV.EST",
+       "label": "Political stability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -0.9033,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": -0.5069
+        },
+        {
+         "year": 2021,
+         "value": -0.5062
+        },
+        {
+         "year": 2022,
+         "value": -0.7409
+        },
+        {
+         "year": 2023,
+         "value": -0.8184
+        },
+        {
+         "year": 2024,
+         "value": -0.9033
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RL.EST",
+       "label": "Rule of law (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -1.1565,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": -0.8254
+        },
+        {
+         "year": 2021,
+         "value": -0.9028
+        },
+        {
+         "year": 2022,
+         "value": -1.0549
+        },
+        {
+         "year": 2023,
+         "value": -1.0734
+        },
+        {
+         "year": 2024,
+         "value": -1.1565
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SL.UEM.TOTL.ZS",
+       "label": "Unemployment (% labour force)",
+       "unit": "%",
+       "source": "World Bank WDI",
+       "value": 2.133,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 4.749
+        },
+        {
+         "year": 2022,
+         "value": 3.867
+        },
+        {
+         "year": 2023,
+         "value": 3.076
+        },
+        {
+         "year": 2024,
+         "value": 2.43
+        },
+        {
+         "year": 2025,
+         "value": 2.133
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "NY.GDP.PCAP.KD.ZG",
+       "label": "GDP per-capita growth (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 1.1144,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 6.2186
+        },
+        {
+         "year": 2022,
+         "value": -1.0967
+        },
+        {
+         "year": 2023,
+         "value": 4.3616
+        },
+        {
+         "year": 2024,
+         "value": 5.0392
+        },
+        {
+         "year": 2025,
+         "value": 1.1144
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_GE.EST",
+       "label": "Government effectiveness (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -0.5007,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -0.1676
+        },
+        {
+         "year": 2022,
+         "value": -0.2577
+        },
+        {
+         "year": 2023,
+         "value": -0.2578
+        },
+        {
+         "year": 2024,
+         "value": -0.3647
+        },
+        {
+         "year": 2025,
+         "value": -0.5007
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "information": {
+     "question": "Can the country's own instruments be trusted?",
+     "indicators": [
+      {
+       "code": "IQ.SPI.OVRL",
+       "label": "Statistical performance (0-100)",
+       "unit": "score",
+       "source": "World Bank SPI",
+       "value": 81.5008,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 77.855
+        },
+        {
+         "year": 2021,
+         "value": 81.5004
+        },
+        {
+         "year": 2022,
+         "value": 80.9946
+        },
+        {
+         "year": 2023,
+         "value": 80.9458
+        },
+        {
+         "year": 2024,
+         "value": 81.5008
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "RSF.PRESS.SCORE",
+       "label": "Press freedom (0-100, higher = freer)",
+       "unit": "score",
+       "source": "RSF World Press Freedom Index",
+       "value": 23.15,
+       "period": 2025,
+       "as_of": "2026-05-03",
+       "as_of_scheme": "source-published",
+       "staleness_days": 147,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 38.82
+        },
+        {
+         "year": 2022,
+         "value": 34.77
+        },
+        {
+         "year": 2023,
+         "value": 29.86
+        },
+        {
+         "year": 2024,
+         "value": 24.57
+        },
+        {
+         "year": 2025,
+         "value": 23.15
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_VA.EST",
+       "label": "Voice and accountability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -1.4402,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": -1.0168
+        },
+        {
+         "year": 2022,
+         "value": -1.237
+        },
+        {
+         "year": 2023,
+         "value": -1.3752
+        },
+        {
+         "year": 2024,
+         "value": -1.4604
+        },
+        {
+         "year": 2025,
+         "value": -1.4402
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "edge": {
+     "question": "Is the system learning?",
+     "indicators": [
+      {
+       "code": "BX.KLT.DINV.WD.GD.ZS",
+       "label": "FDI inflow (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 0.8953,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 2.2114
+        },
+        {
+         "year": 2022,
+         "value": -1.7361
+        },
+        {
+         "year": 2023,
+         "value": -0.4909
+        },
+        {
+         "year": 2024,
+         "value": -0.4276
+        },
+        {
+         "year": 2025,
+         "value": 0.8953
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SE.XPD.TOTL.GD.ZS",
+       "label": "Education spending (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 4.1645,
+       "period": 2023,
+       "as_of": "2025-07-01",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 453,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2019,
+         "value": 3.6956
+        },
+        {
+         "year": 2020,
+         "value": 4.0164
+        },
+        {
+         "year": 2021,
+         "value": 3.9948
+        },
+        {
+         "year": 2022,
+         "value": 4.054
+        },
+        {
+         "year": 2023,
+         "value": 4.1645
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    }
+   },
+   "resolution": {
+    "expected_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "resolved_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 2
+    },
+    "empty_ledgers": [],
+    "by_source": {
+     "World Bank WDI": {
+      "expected": 7,
+      "resolved": 7
+     },
+     "V-Dem via OWID": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank WGI": {
+      "expected": 6,
+      "resolved": 6
+     },
+     "World Bank SPI": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "RSF World Press Freedom Index": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "OECD PISA": {
+      "expected": 1,
+      "resolved": 0
+     }
+    },
+    "dropped": [
+     {
+      "code": "OECD.PISA.MEAN",
+      "ledger": "edge",
+      "source": "OECD PISA",
+      "label": "PISA mean score (maths/reading/science)",
+      "reason": "no row"
+     }
+    ],
+    "as_of_schemes": {
+     "first-seen": 9,
+     "publication-lag-estimate": 6,
+     "source-published": 1
+    }
+   },
+   "data": {
+    "indicators": {
+     "FP.CPI.TOTL.ZG": {
+      "code": "FP.CPI.TOTL.ZG",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 8.7199,
+      "scaled_input": 6.7199,
+      "score": 23.83,
+      "clamped": false
+     },
+     "GC.XPN.INTP.RV.ZS": {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "ledger": "friction",
+      "period": 2020,
+      "value": 2.3613,
+      "scaled_input": 2.3613,
+      "score": 1.29,
+      "clamped": false
+     },
+     "GOV_WGI_RQ.EST": {
+      "code": "GOV_WGI_RQ.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": -1.1954,
+      "scaled_input": -1.1954,
+      "score": 79.89,
+      "clamped": false
+     },
+     "GOV_WGI_CC.EST": {
+      "code": "GOV_WGI_CC.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": -0.983,
+      "scaled_input": -0.983,
+      "score": 74.58,
+      "clamped": false
+     },
+     "GOV_WGI_PV.EST": {
+      "code": "GOV_WGI_PV.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": -0.9033,
+      "scaled_input": -0.9033,
+      "score": 60.08,
+      "clamped": false
+     },
+     "GOV_WGI_RL.EST": {
+      "code": "GOV_WGI_RL.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": -1.1565,
+      "scaled_input": -1.1565,
+      "score": 78.91,
+      "clamped": false
+     },
+     "GOV_WGI_GE.EST": {
+      "code": "GOV_WGI_GE.EST",
+      "ledger": "order",
+      "period": 2025,
+      "value": -0.5007,
+      "scaled_input": -0.5007,
+      "score": 62.52,
+      "clamped": false
+     },
+     "IQ.SPI.OVRL": {
+      "code": "IQ.SPI.OVRL",
+      "ledger": "information",
+      "period": 2024,
+      "value": 81.5008,
+      "scaled_input": 81.5008,
+      "score": 17.0,
+      "clamped": false
+     },
+     "RSF.PRESS.SCORE": {
+      "code": "RSF.PRESS.SCORE",
+      "ledger": "information",
+      "period": 2025,
+      "value": 23.15,
+      "scaled_input": 23.15,
+      "score": 100.0,
+      "clamped": true
+     },
+     "GOV_WGI_VA.EST": {
+      "code": "GOV_WGI_VA.EST",
+      "ledger": "information",
+      "period": 2025,
+      "value": -1.4402,
+      "scaled_input": -1.4402,
+      "score": 84.01,
+      "clamped": false
+     },
+     "BX.KLT.DINV.WD.GD.ZS": {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "ledger": "edge",
+      "period": 2025,
+      "value": 0.8953,
+      "scaled_input": 0.8953,
+      "score": 82.09,
+      "clamped": false
+     },
+     "SE.XPD.TOTL.GD.ZS": {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "ledger": "edge",
+      "period": 2023,
+      "value": 4.1645,
+      "scaled_input": 4.1645,
+      "score": 45.89,
+      "clamped": false
+     }
+    },
+    "data_scores": {
+     "friction": 44.9,
+     "order": 67.17,
+     "information": 67.0,
+     "edge": 63.99
+    },
+    "n_by_ledger": {
+     "friction": 4,
+     "order": 3,
+     "information": 3,
+     "edge": 2
+    },
+    "unscored": [
+     "SI.POV.GINI",
+     "OWID.VDEM.CORRUPTION",
+     "SL.UEM.TOTL.ZS",
+     "NY.GDP.PCAP.KD.ZG"
+    ]
+   }
+  },
+  "TW": {
+   "run_date": "2026-09-27",
+   "ledgers": {
+    "friction": {
+     "question": "What is taken, and how well does it convert?",
+     "indicators": [
+      {
+       "code": "OWID.VDEM.CORRUPTION",
+       "label": "Political corruption index (0-1, higher = more corrupt)",
+       "unit": "index (0-1)",
+       "source": "V-Dem via OWID",
+       "value": 0.22,
+       "period": 2024,
+       "as_of": "2026-04-01",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 179,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 0.189
+        },
+        {
+         "year": 2021,
+         "value": 0.217
+        },
+        {
+         "year": 2022,
+         "value": 0.222
+        },
+        {
+         "year": 2023,
+         "value": 0.244
+        },
+        {
+         "year": 2024,
+         "value": 0.22
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RQ.EST",
+       "label": "Regulatory quality (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.1955,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.2991
+        },
+        {
+         "year": 2022,
+         "value": 1.2584
+        },
+        {
+         "year": 2023,
+         "value": 1.2556
+        },
+        {
+         "year": 2024,
+         "value": 1.2539
+        },
+        {
+         "year": 2025,
+         "value": 1.1955
+        }
+       ],
+       "direction": "flat",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_CC.EST",
+       "label": "Control of corruption (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.1826,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.2322
+        },
+        {
+         "year": 2022,
+         "value": 1.1923
+        },
+        {
+         "year": 2023,
+         "value": 1.2038
+        },
+        {
+         "year": 2024,
+         "value": 1.2283
+        },
+        {
+         "year": 2025,
+         "value": 1.1826
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "order": {
+     "question": "How much doubt is there about the load-bearing rules?",
+     "indicators": [
+      {
+       "code": "GOV_WGI_PV.EST",
+       "label": "Political stability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.9167,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 1.0701
+        },
+        {
+         "year": 2021,
+         "value": 1.0569
+        },
+        {
+         "year": 2022,
+         "value": 1.0312
+        },
+        {
+         "year": 2023,
+         "value": 1.0434
+        },
+        {
+         "year": 2024,
+         "value": 0.9167
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RL.EST",
+       "label": "Rule of law (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.2881,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 1.2881
+        },
+        {
+         "year": 2021,
+         "value": 1.2993
+        },
+        {
+         "year": 2022,
+         "value": 1.2589
+        },
+        {
+         "year": 2023,
+         "value": 1.2768
+        },
+        {
+         "year": 2024,
+         "value": 1.2881
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_GE.EST",
+       "label": "Government effectiveness (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.5112,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.5262
+        },
+        {
+         "year": 2022,
+         "value": 1.5477
+        },
+        {
+         "year": 2023,
+         "value": 1.5713
+        },
+        {
+         "year": 2024,
+         "value": 1.5167
+        },
+        {
+         "year": 2025,
+         "value": 1.5112
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "information": {
+     "question": "Can the country's own instruments be trusted?",
+     "indicators": [
+      {
+       "code": "RSF.PRESS.SCORE",
+       "label": "Press freedom (0-100, higher = freer)",
+       "unit": "score",
+       "source": "RSF World Press Freedom Index",
+       "value": 75.44,
+       "period": 2025,
+       "as_of": "2026-05-03",
+       "as_of_scheme": "source-published",
+       "staleness_days": 147,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 74.08
+        },
+        {
+         "year": 2022,
+         "value": 75.54
+        },
+        {
+         "year": 2023,
+         "value": 76.13
+        },
+        {
+         "year": 2024,
+         "value": 77.04
+        },
+        {
+         "year": 2025,
+         "value": 75.44
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_VA.EST",
+       "label": "Voice and accountability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.047,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.0461
+        },
+        {
+         "year": 2022,
+         "value": 1.0524
+        },
+        {
+         "year": 2023,
+         "value": 1.053
+        },
+        {
+         "year": 2024,
+         "value": 1.0421
+        },
+        {
+         "year": 2025,
+         "value": 1.047
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "edge": {
+     "question": "Is the system learning?",
+     "indicators": [
+      {
+       "code": "OECD.PISA.MEAN",
+       "label": "PISA mean score (maths/reading/science)",
+       "unit": "score",
+       "source": "OECD PISA",
+       "value": 533.21,
+       "period": 2022,
+       "as_of": "2023-12-05",
+       "as_of_scheme": "source-published",
+       "staleness_days": 1027,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2018,
+         "value": "unknown"
+        },
+        {
+         "year": 2019,
+         "value": "unknown"
+        },
+        {
+         "year": 2020,
+         "value": "unknown"
+        },
+        {
+         "year": 2021,
+         "value": "unknown"
+        },
+        {
+         "year": 2022,
+         "value": 533.21
+        }
+       ],
+       "direction": "unknown",
+       "accelerating": null,
+       "observed": 1,
+       "missing": 4
+      }
+     ]
+    }
+   },
+   "resolution": {
+    "expected_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "resolved_by_ledger": {
+     "friction": 3,
+     "order": 3,
+     "information": 2,
+     "edge": 1
+    },
+    "empty_ledgers": [],
+    "by_source": {
+     "World Bank WDI": {
+      "expected": 7,
+      "resolved": 0
+     },
+     "V-Dem via OWID": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank WGI": {
+      "expected": 6,
+      "resolved": 6
+     },
+     "World Bank SPI": {
+      "expected": 1,
+      "resolved": 0
+     },
+     "RSF World Press Freedom Index": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "OECD PISA": {
+      "expected": 1,
+      "resolved": 1
+     }
+    },
+    "dropped": [
+     {
+      "code": "FP.CPI.TOTL.ZG",
+      "ledger": "friction",
+      "source": "World Bank WDI",
+      "label": "Inflation (% y/y)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "SI.POV.GINI",
+      "ledger": "friction",
+      "source": "World Bank WDI",
+      "label": "Income inequality (Gini)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "ledger": "friction",
+      "source": "World Bank WDI",
+      "label": "Interest payments (% revenue)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "SL.UEM.TOTL.ZS",
+      "ledger": "order",
+      "source": "World Bank WDI",
+      "label": "Unemployment (% labour force)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "NY.GDP.PCAP.KD.ZG",
+      "ledger": "order",
+      "source": "World Bank WDI",
+      "label": "GDP per-capita growth (% y/y)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "IQ.SPI.OVRL",
+      "ledger": "information",
+      "source": "World Bank SPI",
+      "label": "Statistical performance (0-100)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "ledger": "edge",
+      "source": "World Bank WDI",
+      "label": "FDI inflow (% GDP)",
+      "reason": "unmapped"
+     },
+     {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "ledger": "edge",
+      "source": "World Bank WDI",
+      "label": "Education spending (% GDP)",
+      "reason": "unmapped"
+     }
+    ],
+    "as_of_schemes": {
+     "publication-lag-estimate": 3,
+     "first-seen": 4,
+     "source-published": 2
+    }
+   },
+   "data": {
+    "indicators": {
+     "GOV_WGI_RQ.EST": {
+      "code": "GOV_WGI_RQ.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 1.1955,
+      "scaled_input": 1.1955,
+      "score": 20.11,
+      "clamped": false
+     },
+     "GOV_WGI_CC.EST": {
+      "code": "GOV_WGI_CC.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 1.1826,
+      "scaled_input": 1.1826,
+      "score": 20.43,
+      "clamped": false
+     },
+     "GOV_WGI_PV.EST": {
+      "code": "GOV_WGI_PV.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 0.9167,
+      "scaled_input": 0.9167,
+      "score": 14.58,
+      "clamped": false
+     },
+     "GOV_WGI_RL.EST": {
+      "code": "GOV_WGI_RL.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 1.2881,
+      "scaled_input": 1.2881,
+      "score": 17.8,
+      "clamped": false
+     },
+     "GOV_WGI_GE.EST": {
+      "code": "GOV_WGI_GE.EST",
+      "ledger": "order",
+      "period": 2025,
+      "value": 1.5112,
+      "scaled_input": 1.5112,
+      "score": 12.22,
+      "clamped": false
+     },
+     "RSF.PRESS.SCORE": {
+      "code": "RSF.PRESS.SCORE",
+      "ledger": "information",
+      "period": 2025,
+      "value": 75.44,
+      "scaled_input": 75.44,
+      "score": 15.93,
+      "clamped": false
+     },
+     "GOV_WGI_VA.EST": {
+      "code": "GOV_WGI_VA.EST",
+      "ledger": "information",
+      "period": 2025,
+      "value": 1.047,
+      "scaled_input": 1.047,
+      "score": 12.94,
+      "clamped": false
+     },
+     "OECD.PISA.MEAN": {
+      "code": "OECD.PISA.MEAN",
+      "ledger": "edge",
+      "period": 2022,
+      "value": 533.21,
+      "scaled_input": 533.21,
+      "score": 0.0,
+      "clamped": true
+     }
+    },
+    "data_scores": {
+     "friction": 20.27,
+     "order": 14.87,
+     "information": 14.43,
+     "edge": 0.0
+    },
+    "n_by_ledger": {
+     "friction": 2,
+     "order": 3,
+     "information": 2,
+     "edge": 1
+    },
+    "unscored": [
+     "OWID.VDEM.CORRUPTION"
+    ]
+   }
+  },
+  "US": {
+   "run_date": "2026-09-27",
+   "ledgers": {
+    "friction": {
+     "question": "What is taken, and how well does it convert?",
+     "indicators": [
+      {
+       "code": "FP.CPI.TOTL.ZG",
+       "label": "Inflation (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 2.9495,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 1.2336
+        },
+        {
+         "year": 2021,
+         "value": 4.6979
+        },
+        {
+         "year": 2022,
+         "value": 8.0028
+        },
+        {
+         "year": 2023,
+         "value": 4.1163
+        },
+        {
+         "year": 2024,
+         "value": 2.9495
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SI.POV.GINI",
+       "label": "Income inequality (Gini)",
+       "unit": "index",
+       "source": "World Bank WDI",
+       "value": 41.8,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 40.0
+        },
+        {
+         "year": 2021,
+         "value": 39.7
+        },
+        {
+         "year": 2022,
+         "value": 41.7
+        },
+        {
+         "year": 2023,
+         "value": 41.8
+        },
+        {
+         "year": 2024,
+         "value": 41.8
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GC.XPN.INTP.RV.ZS",
+       "label": "Interest payments (% revenue)",
+       "unit": "% revenue",
+       "source": "World Bank WDI",
+       "value": 20.2909,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 10.9043
+        },
+        {
+         "year": 2021,
+         "value": 11.3815
+        },
+        {
+         "year": 2022,
+         "value": 13.4189
+        },
+        {
+         "year": 2023,
+         "value": 18.0186
+        },
+        {
+         "year": 2024,
+         "value": 20.2909
+        }
+       ],
+       "direction": "rising",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OWID.VDEM.CORRUPTION",
+       "label": "Political corruption index (0-1, higher = more corrupt)",
+       "unit": "index (0-1)",
+       "source": "V-Dem via OWID",
+       "value": 0.06,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.068
+        },
+        {
+         "year": 2022,
+         "value": 0.061
+        },
+        {
+         "year": 2023,
+         "value": 0.055
+        },
+        {
+         "year": 2024,
+         "value": 0.051
+        },
+        {
+         "year": 2025,
+         "value": 0.06
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RQ.EST",
+       "label": "Regulatory quality (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.006,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.4663
+        },
+        {
+         "year": 2022,
+         "value": 1.4618
+        },
+        {
+         "year": 2023,
+         "value": 1.4162
+        },
+        {
+         "year": 2024,
+         "value": 1.3254
+        },
+        {
+         "year": 2025,
+         "value": 1.006
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_CC.EST",
+       "label": "Control of corruption (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.8652,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.1264
+        },
+        {
+         "year": 2022,
+         "value": 1.2017
+        },
+        {
+         "year": 2023,
+         "value": 1.1902
+        },
+        {
+         "year": 2024,
+         "value": 1.0794
+        },
+        {
+         "year": 2025,
+         "value": 0.8652
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "order": {
+     "question": "How much doubt is there about the load-bearing rules?",
+     "indicators": [
+      {
+       "code": "GOV_WGI_PV.EST",
+       "label": "Political stability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": -0.0951,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": -0.1468
+        },
+        {
+         "year": 2021,
+         "value": -0.1264
+        },
+        {
+         "year": 2022,
+         "value": -0.1626
+        },
+        {
+         "year": 2023,
+         "value": -0.1931
+        },
+        {
+         "year": 2024,
+         "value": -0.0951
+        }
+       ],
+       "direction": "rising",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_RL.EST",
+       "label": "Rule of law (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.9618,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 1.0044
+        },
+        {
+         "year": 2021,
+         "value": 1.028
+        },
+        {
+         "year": 2022,
+         "value": 1.0518
+        },
+        {
+         "year": 2023,
+         "value": 0.9607
+        },
+        {
+         "year": 2024,
+         "value": 0.9618
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SL.UEM.TOTL.ZS",
+       "label": "Unemployment (% labour force)",
+       "unit": "%",
+       "source": "World Bank WDI",
+       "value": 4.198,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 5.349
+        },
+        {
+         "year": 2022,
+         "value": 3.65
+        },
+        {
+         "year": 2023,
+         "value": 3.638
+        },
+        {
+         "year": 2024,
+         "value": 4.022
+        },
+        {
+         "year": 2025,
+         "value": 4.198
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "NY.GDP.PCAP.KD.ZG",
+       "label": "GDP per-capita growth (% y/y)",
+       "unit": "% y/y",
+       "source": "World Bank WDI",
+       "value": 1.629,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 5.9852
+        },
+        {
+         "year": 2022,
+         "value": 1.9422
+        },
+        {
+         "year": 2023,
+         "value": 2.0911
+        },
+        {
+         "year": 2024,
+         "value": 1.811
+        },
+        {
+         "year": 2025,
+         "value": 1.629
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_GE.EST",
+       "label": "Government effectiveness (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 1.191,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 1.3455
+        },
+        {
+         "year": 2022,
+         "value": 1.3871
+        },
+        {
+         "year": 2023,
+         "value": 1.2911
+        },
+        {
+         "year": 2024,
+         "value": 1.3021
+        },
+        {
+         "year": 2025,
+         "value": 1.191
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "information": {
+     "question": "Can the country's own instruments be trusted?",
+     "indicators": [
+      {
+       "code": "IQ.SPI.OVRL",
+       "label": "Statistical performance (0-100)",
+       "unit": "score",
+       "source": "World Bank SPI",
+       "value": 90.0588,
+       "period": 2024,
+       "as_of": "2026-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 87,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2020,
+         "value": 86.8983
+        },
+        {
+         "year": 2021,
+         "value": 92.75
+        },
+        {
+         "year": 2022,
+         "value": 91.8754
+        },
+        {
+         "year": 2023,
+         "value": 93.4304
+        },
+        {
+         "year": 2024,
+         "value": 90.0588
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "RSF.PRESS.SCORE",
+       "label": "Press freedom (0-100, higher = freer)",
+       "unit": "score",
+       "source": "RSF World Press Freedom Index",
+       "value": 62.61,
+       "period": 2025,
+       "as_of": "2026-05-03",
+       "as_of_scheme": "source-published",
+       "staleness_days": 147,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 72.74
+        },
+        {
+         "year": 2022,
+         "value": 71.22
+        },
+        {
+         "year": 2023,
+         "value": 66.59
+        },
+        {
+         "year": 2024,
+         "value": 65.49
+        },
+        {
+         "year": 2025,
+         "value": 62.61
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "GOV_WGI_VA.EST",
+       "label": "Voice and accountability (z-score)",
+       "unit": "z-score",
+       "source": "World Bank WGI",
+       "value": 0.6448,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 0.9126
+        },
+        {
+         "year": 2022,
+         "value": 0.9332
+        },
+        {
+         "year": 2023,
+         "value": 0.8976
+        },
+        {
+         "year": 2024,
+         "value": 0.9093
+        },
+        {
+         "year": 2025,
+         "value": 0.6448
+        }
+       ],
+       "direction": "falling",
+       "accelerating": true,
+       "observed": 5,
+       "missing": 0
+      }
+     ]
+    },
+    "edge": {
+     "question": "Is the system learning?",
+     "indicators": [
+      {
+       "code": "BX.KLT.DINV.WD.GD.ZS",
+       "label": "FDI inflow (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 1.3017,
+       "period": 2025,
+       "as_of": "2026-09-27",
+       "as_of_scheme": "first-seen",
+       "staleness_days": 0,
+       "stale_for_its_cadence": false,
+       "history": [
+        {
+         "year": 2021,
+         "value": 2.0145
+        },
+        {
+         "year": 2022,
+         "value": 1.6001
+        },
+        {
+         "year": 2023,
+         "value": 1.3014
+        },
+        {
+         "year": 2024,
+         "value": 1.0139
+        },
+        {
+         "year": 2025,
+         "value": 1.3017
+        }
+       ],
+       "direction": "falling",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "SE.XPD.TOTL.GD.ZS",
+       "label": "Education spending (% GDP)",
+       "unit": "% GDP",
+       "source": "World Bank WDI",
+       "value": 5.4204,
+       "period": 2021,
+       "as_of": "2023-07-02",
+       "as_of_scheme": "publication-lag-estimate",
+       "staleness_days": 1183,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2017,
+         "value": 5.093
+        },
+        {
+         "year": 2018,
+         "value": 4.895
+        },
+        {
+         "year": 2019,
+         "value": 4.9575
+        },
+        {
+         "year": 2020,
+         "value": 5.3953
+        },
+        {
+         "year": 2021,
+         "value": 5.4204
+        }
+       ],
+       "direction": "flat",
+       "accelerating": false,
+       "observed": 5,
+       "missing": 0
+      },
+      {
+       "code": "OECD.PISA.MEAN",
+       "label": "PISA mean score (maths/reading/science)",
+       "unit": "score",
+       "source": "OECD PISA",
+       "value": 489.41,
+       "period": 2022,
+       "as_of": "2023-12-05",
+       "as_of_scheme": "source-published",
+       "staleness_days": 1027,
+       "stale_for_its_cadence": true,
+       "history": [
+        {
+         "year": 2018,
+         "value": "unknown"
+        },
+        {
+         "year": 2019,
+         "value": "unknown"
+        },
+        {
+         "year": 2020,
+         "value": "unknown"
+        },
+        {
+         "year": 2021,
+         "value": "unknown"
+        },
+        {
+         "year": 2022,
+         "value": 489.41
+        }
+       ],
+       "direction": "unknown",
+       "accelerating": null,
+       "observed": 1,
+       "missing": 4
+      }
+     ]
+    }
+   },
+   "resolution": {
+    "expected_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "resolved_by_ledger": {
+     "friction": 6,
+     "order": 5,
+     "information": 3,
+     "edge": 3
+    },
+    "empty_ledgers": [],
+    "by_source": {
+     "World Bank WDI": {
+      "expected": 7,
+      "resolved": 7
+     },
+     "V-Dem via OWID": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank WGI": {
+      "expected": 6,
+      "resolved": 6
+     },
+     "World Bank SPI": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "RSF World Press Freedom Index": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "OECD PISA": {
+      "expected": 1,
+      "resolved": 1
+     }
+    },
+    "dropped": [],
+    "as_of_schemes": {
+     "publication-lag-estimate": 7,
+     "first-seen": 8,
+     "source-published": 2
+    }
+   },
+   "data": {
+    "indicators": {
+     "FP.CPI.TOTL.ZG": {
+      "code": "FP.CPI.TOTL.ZG",
+      "ledger": "friction",
+      "period": 2024,
+      "value": 2.9495,
+      "scaled_input": 0.9495,
+      "score": 0.0,
+      "clamped": true
+     },
+     "GC.XPN.INTP.RV.ZS": {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "ledger": "friction",
+      "period": 2024,
+      "value": 20.2909,
+      "scaled_input": 20.2909,
+      "score": 65.32,
+      "clamped": false
+     },
+     "GOV_WGI_RQ.EST": {
+      "code": "GOV_WGI_RQ.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 1.006,
+      "scaled_input": 1.006,
+      "score": 24.85,
+      "clamped": false
+     },
+     "GOV_WGI_CC.EST": {
+      "code": "GOV_WGI_CC.EST",
+      "ledger": "friction",
+      "period": 2025,
+      "value": 0.8652,
+      "scaled_input": 0.8652,
+      "score": 28.37,
+      "clamped": false
+     },
+     "GOV_WGI_PV.EST": {
+      "code": "GOV_WGI_PV.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": -0.0951,
+      "scaled_input": -0.0951,
+      "score": 39.88,
+      "clamped": false
+     },
+     "GOV_WGI_RL.EST": {
+      "code": "GOV_WGI_RL.EST",
+      "ledger": "order",
+      "period": 2024,
+      "value": 0.9618,
+      "scaled_input": 0.9618,
+      "score": 25.96,
+      "clamped": false
+     },
+     "GOV_WGI_GE.EST": {
+      "code": "GOV_WGI_GE.EST",
+      "ledger": "order",
+      "period": 2025,
+      "value": 1.191,
+      "scaled_input": 1.191,
+      "score": 20.22,
+      "clamped": false
+     },
+     "IQ.SPI.OVRL": {
+      "code": "IQ.SPI.OVRL",
+      "ledger": "information",
+      "period": 2024,
+      "value": 90.0588,
+      "scaled_input": 90.0588,
+      "score": 0.0,
+      "clamped": true
+     },
+     "RSF.PRESS.SCORE": {
+      "code": "RSF.PRESS.SCORE",
+      "ledger": "information",
+      "period": 2025,
+      "value": 62.61,
+      "scaled_input": 62.61,
+      "score": 37.32,
+      "clamped": false
+     },
+     "GOV_WGI_VA.EST": {
+      "code": "GOV_WGI_VA.EST",
+      "ledger": "information",
+      "period": 2025,
+      "value": 0.6448,
+      "scaled_input": 0.6448,
+      "score": 24.43,
+      "clamped": false
+     },
+     "BX.KLT.DINV.WD.GD.ZS": {
+      "code": "BX.KLT.DINV.WD.GD.ZS",
+      "ledger": "edge",
+      "period": 2025,
+      "value": 1.3017,
+      "scaled_input": 1.3017,
+      "score": 73.97,
+      "clamped": false
+     },
+     "SE.XPD.TOTL.GD.ZS": {
+      "code": "SE.XPD.TOTL.GD.ZS",
+      "ledger": "edge",
+      "period": 2021,
+      "value": 5.4204,
+      "scaled_input": 5.4204,
+      "score": 14.49,
+      "clamped": false
+     },
+     "OECD.PISA.MEAN": {
+      "code": "OECD.PISA.MEAN",
+      "ledger": "edge",
+      "period": 2022,
+      "value": 489.41,
+      "scaled_input": 489.41,
+      "score": 28.47,
+      "clamped": false
+     }
+    },
+    "data_scores": {
+     "friction": 29.63,
+     "order": 28.69,
+     "information": 20.58,
+     "edge": 38.98
+    },
+    "n_by_ledger": {
+     "friction": 4,
+     "order": 3,
+     "information": 3,
+     "edge": 3
+    },
+    "unscored": [
+     "SI.POV.GINI",
+     "OWID.VDEM.CORRUPTION",
+     "SL.UEM.TOTL.ZS",
+     "NY.GDP.PCAP.KD.ZG"
+    ]
+   }
+  }
+ },
+ "check": {
+  "data_only_composite": {
+   "RU": 58.2,
+   "KW": 40.0,
+   "US": 27.4,
+   "HK": 23.9,
+   "PT": 18.0,
+   "TW": 16.9
+  },
+  "ru_highest": true,
+  "pt_rank_from_bottom": 2,
+  "pass": true
+ }
+}
