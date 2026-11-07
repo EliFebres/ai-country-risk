@@ -473,22 +473,25 @@ exports, neighbours and security rivals, for the gate's spillover test (T5).
 Refresh the cards yearly: rerun `python -m backend.data_fetching.exposure_cards_build`
 and re-read the hand-written rivals and sea neighbours.
 
-## 19. The roster table ranks whatever is latest, with no staleness cutoff
+## 19. FDI % GDP rewards entrepôts
 
-`data_score.roster_table` takes each country's most recent value in the last
-ten years, as the payload does. A country whose Gini is from 2015 is ranked
-against one whose Gini is from 2024. The payload carries `stale_for_its_cadence`
-per indicator and the percentile does not read it. A cutoff would turn a stale
-value into a missing one, which drops it from the ledger mean; that is a
-defensible rule and it was not adopted here, because it changes coverage and
-coverage was not what step 5b measured.
+**The roster-table half of this item closed on 2026-11-06**: step 5c removed
+the percentile ranking and the roster table. Each scored indicator now maps
+onto a fixed scale in the registry (`risk_scale`), so no country's score
+depends on another's data. A stale value still scores as if current: the
+payload's `stale_for_its_cadence` flag is not read by the data half. RU's
+interest payments are from 2020.
 
-Also: `FDI inflow (% GDP)` on the edge ledger rewards entrepôts. HK ranks at
-0 (most vitality), with IE, NL and SG near it, because pass-through investment
-counts as inflow. A net or non-financial FDI series would read better, and
-that is a registry change with its own `PROMPT_VERSION`.
+`FDI inflow (% GDP)` on the edge ledger rewards entrepôts. On the fixed scale
+(0 at 5% of GDP, 100 at 0%) HK's 30.8% clamps to 0, the most vitality, because
+pass-through investment counts as inflow. A net or non-financial FDI series
+would read better, and that is a registry change with its own `PROMPT_VERSION`.
 
-## 20. Evidence is articles only, and the prompt says otherwise
+## 20. Evidence is articles only, and the prompt says otherwise — **closed 2026-11-06**
+
+Closed by step 5c: the economics block left the scorer's payload and the
+prompt's evidence line now says article ids only. The validator's rule is
+unchanged and `evidence_dropped_non_article` should now read 0.
 
 The checklist prompt, used verbatim from the brief, lets a level cite "the
 article ids and/or indicator names". The validator keeps article ids only: the
@@ -510,4 +513,27 @@ prefixed with the source date (`2026-10-30:a7`) so it weighs nothing in this
 week's `article_weights`. None of this applies to the frozen payloads, which
 have no history, so the production behaviour is untested until the first run
 after 5b: watch the `[score] XX: carried n level(s)` lines.
+
+## 22. The four WGI columns exist only in panels built after 2026-11-06
+
+Step 5c added `GOV_WGI_RQ.EST`, `GOV_WGI_CC.EST`, `GOV_WGI_GE.EST` and
+`GOV_WGI_VA.EST` to the registry. The parquet panel is not in git, and
+`ensure_missing_country_panels` only builds partitions that are missing, so a
+host whose partitions predate this change resolves the four as `unmapped`
+until the quarterly rebuild (first Monday of the quarter) or a manual
+`country_data_fetch.ingest_panels_for_all_countries`. On this machine the
+columns were added in place without refreshing the other series, which were
+left at their September values on purpose. The new columns carry WGI's 2025
+update while PV and RL are still 2024; the next rebuild aligns them.
+
+## 23. The data half's scales are fixed by hand
+
+The ends of every `risk_scale` are the step 5c brief's: inflation 1 → 25
+points from 2%, interest 2% → 30% of revenue, WGI ±2 (PV +1.5 → −2.5, VA +1.5
+→ −2.0), RSF 85 → 25, SPI 90 → 40, and the edge series on the vitality
+direction flipped to stress. They were not fitted to anything and the brief
+said not to adjust them to pass the check. Five of the six frozen countries
+clamp to 0 on at least one series (inflation near 2%, SPI above 90, PISA above
+525, HK's FDI) and RU clamps to 100 on RSF, so both ends of the data half are
+floors countries sit on. Widening an end is a `PROMPT_VERSION` change.
 

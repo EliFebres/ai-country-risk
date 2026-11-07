@@ -245,3 +245,200 @@ One call is about 10.9k input and 650 output tokens, $0.034, under the step
 - `backend/measurements/step5b/analysis.json`: M1, face validity, the triple
   medians, M4, dilution, spend.
 - The step 5 payloads in `backend/measurements/step5/` are unchanged.
+
+---
+
+# Step 5c: the data half rebuilt, the checklist gaps closed, re-measured
+
+2026-11-06, branch `backend-update`. Same scorer, same six frozen payloads from
+`backend/measurements/step5/`, everything new under
+`backend/measurements/step5c/`. Prompt version `1547a0f0cb41…` in the tree; the
+call rows are stamped `03ff09e14514…`, which differs only by
+`calls_per_country` having since moved out of the hashed `SCORING` block into
+`CALLS_PER_COUNTRY = 3`. The prompt, the schema and every weight are
+byte-identical between the two. Spend **$3.71** of an $8 cap.
+
+## The finding
+
+**Face validity passes on the data alone and on the full score, and M1 in
+median-of-3 mode misses its line by a tenth: KW's five medians are 38, 40, 41,
+SD 1.09 against a line of 1.** The other five countries are at 0.84 (US), 0.55
+(HK) and 0.00 (PT, RU, TW). Under the brief's pre-set rule, that is a stop at
+M1; M3, M4 and M5 are reported because M3 and M4 cost nothing and M5's calls
+were already made in the same run.
+
+The median of three did not help Kuwait because what flips is a **coin, not a
+tail**: O5 (Iranian strikes near Kuwait, a5 and a16) came back 3 in eight calls
+and 2 in seven, on identical evidence, and the median of three fair coin flips
+is still a coin. The two other flips are new to step 5c's own rule: F1 and O1
+switch between null and **0 with evidence** (a19, a14). Under 2a a null item
+sits at the ledger's data level (friction 28, order 39) and a 0 with evidence
+sits at 0, so the difference between "nothing to say" and "I read a19 and
+nothing is wrong" is now worth about a point of score. That is the rule
+working as designed; it is also the reason the line was missed.
+
+What the data-half rebuild fixed: PT is now 19 and TW 18, HK 26, US 28, KW 40,
+RU 59, in that order on the medians and in the same order on the data alone
+(18.0 / 16.9 / 23.9 / 27.4 / 40.0 / 58.2). Unemployment, Gini and GDP growth
+are out of the score, the four new WGI series are in, and no country's score
+depends on another's data.
+
+What the checklist fixes did:
+
+- **The economics block left the payload** and the indicator citations went
+  from 284 in 60 calls to **0 in 144**. Calls are 8.7k input tokens instead of
+  10.9k, $0.028 instead of $0.034.
+- **The articles move the score by 0 to 2 points** (M3). With every null
+  item at the data level, a week's reading is the data half plus the
+  questions the articles answered, each worth 1/n of its ledger's gap.
+- **"Never invent a date" is now enforced.** Fifteen events were dropped for a
+  date that is not in the cited article, all PT's `2026-10-07` for an EU
+  field-test article that gives the 8th and the 14th. The US midterms and
+  Taiwan's elections, whose articles give no date, are no longer listed.
+- **0-for-no-evidence is unchanged and now harmless.** The model still
+  answers 0 with an empty evidence list on 6 to 12 questions per call (PT 181
+  of 240, TW 175, HK 117, US 93, KW 92, RU 0). The validator nulls them and
+  the null takes the data level.
+
+## 1b. The data half, before any model call
+
+Fixed scales from the registry (`risk_scale`), linear between the ends,
+clamped. The table is `backend/measurements/step5c/data_table.json`.
+
+| | friction | order | information | edge | data-only score_12m |
+|---|---:|---:|---:|---:|---:|
+| RU | 44.9 (4) | 67.2 (3) | 67.0 (3) | 64.0 (2) | **58.2** |
+| KW | 28.0 (3) | 39.3 (3) | 65.6 (3) | 47.4 (2) | 40.0 |
+| US | 29.6 (4) | 28.7 (3) | 20.6 (3) | 39.0 (3) | 27.4 |
+| HK | 6.2 (3) | 20.1 (3) | 66.8 (2) | 19.6 (3) | 23.9 |
+| PT | 19.7 (4) | 23.9 (3) | 2.9 (3) | 29.4 (3) | **18.0** |
+| TW | 20.3 (2) | 14.9 (3) | 14.4 (2) | 0.0 (1) | 16.9 |
+
+(n scored indicators in brackets.) **Check: RU highest, PT second lowest:
+pass.** The scales were not adjusted. Things worth knowing from the full
+table: RU's RSF 23.15 clamps to 100 and its interest-payments figure is from
+2020 (1.3); inflation near 2% clamps to 0 for KW, US, PT and HK; SPI above 90
+clamps to 0 for US and PT; HK's FDI 30.8% of GDP clamps to 0 on edge (the
+entrepôt effect, §19); TW's edge is PISA alone at 533, clamped to 0. The
+four new WGI series carry WGI's 2025 update, PV and RL are still 2024 (§22).
+
+## The six countries
+
+Median of five median-of-3 results. Each ledger is `score (data / news)`.
+
+| country | score_12m, distinct | SD (median-of-3) | SD (single call) | friction | order | information | edge | answered / 16 |
+|---|---|---:|---:|---|---|---|---|---:|
+| RU | 59 | 0.00 | 0.00 | 45 (45 / 46) | 66 (67 / 66) | 70 (67 / 72) | 64 (64 / 64) | 5 |
+| KW | 38 · 40 · 41 | **1.09** | 1.07 | 29 (28 / 30) | 39 (39 / 39) | 66 (66 / 66) | 36 (47 / 25) | 7 |
+| US | 27 · 28 · 29 | 0.84 | 0.96 | 30 (30 / 31) | 32 (29 / 35) | 21 (21 / 21) | 32 (39 / 25) | 8 |
+| HK | 25 · 26 | 0.55 | 0.90 | 7 (6 / 7) | 23 (20 / 26) | 65 (67 / 64) | 10 (20 / 0) | 7 |
+| PT | 19 | 0.00 | 0.00 | 23 (20 / 27) | 24 (24 / 24) | 3 (3 / 3) | 27 (29 / 25) | 4 |
+| TW | 18 | 0.00 | 0.00 | 19 (20 / 18) | 18 (15 / 21) | 14 (14 / 14) | 0 (0 / 0) | 4 |
+
+## Measurements
+
+### M1 (confirmation, median of 3): **worst SD 1.09, stop**
+
+Fifteen calls per country, every three consecutive calls one median.
+
+| | medians | SD | questions flipping across the five medians |
+|---|---|---:|---|
+| KW | 38, 40, 41 | **1.09** | O5 3/2 (same evidence, 8:7 over the 15 calls); F1 null/0 (a19); O1 null/0/2 (a14, a19) |
+| US | 27, 28, 29 | 0.84 | O2 2/1 and O3 2/1 (both on a14); E1 1/2; O1 and I2 null/level |
+| HK | 25, 26 | 0.55 | F4 1/2; O3 3/2; F3, O1, O5 null/0 or null/1 |
+| PT | 19 | 0.00 | F4, E1 flip without moving the score |
+| RU | 59 | 0.00 | none |
+| TW | 18 | 0.00 | none |
+
+The single-call SDs are 1.07, 0.96, 0.90, 0, 0, 0: the median of three
+removed about a third where the flip is a tail (HK) and nothing where it is
+a coin (KW).
+
+### Face validity: **pass**
+
+RU 59 > KW 40 > US 28 > HK 26 > PT 19 > TW 18. PT second lowest.
+
+### M3: do the articles move the score? **By 0 to 2 points**
+
+| | data-only | full | gap | the questions that pull, as item − data level |
+|---|---:|---:|---:|---|
+| HK | 24 | 26 | +2 | O3 = 3 (+55 on order's 20), F4 = 1 (+19); four questions at 0 pull down |
+| RU | 58 | 59 | +1 | O5, I1, I3 at 3 (+8 each); O2 = 2 pulls order **down** from 67 (−17) |
+| US | 27 | 28 | +1 | F3, O2, O3 at 2 (+20 each); I2 = 0 (−21), E1 = 1 (−14) |
+| PT | 18 | 19 | +1 | F2 = 2 (+30 on friction's 20) |
+| TW | 17 | 18 | +1 | O5 = 2 (+35 on order's 15); F3 = 0 (−20) |
+| KW | 40 | 40 | 0 | F4 = 2 (+22) and O5 = 2 (+11) against F1 = 0 (−28) and O1 = 0 (−39) |
+
+Each answered question moves its ledger by 1/n of the gap between its level
+and the data, so a 3 on one of six order questions is worth about 9 ledger
+points and 2 to 4 points of score, and a 0 with evidence pulls the other way.
+RU's O2 = 2 is the checklist reading "serious irregularities alleged" as less
+stress than WGI's −0.90 on stability.
+
+### M4: **15 of 90 calls have a gap; every one traces; 15 dates rejected**
+
+`score_12m − score_3m` is 0 in 75 calls and −3 in 15, all HK: a18,
+2026-10-22, "Deadline for offshore trust tax payment", `up`, on F1 or F4. The
+date is in the article, so it passes the validator. The prompt now says "Do
+not list routine, recurring deadlines such as tax filing dates", and the model
+listed this one in 15 of 15 calls. PT lists two EU field-test dates every call,
+both `unclear`, so they move nothing; its third (`2026-10-07`) was rejected
+in all 15 calls as not in the article. Nine US tariff events were rejected as
+beyond the horizon (2027). 45 valid events across the 90 calls.
+
+### M5: article count. **Pooled |slope| 0.07, closed**
+
+One median-of-3 per subset; "all" is the first `full` median.
+
+| | 5 | 10 | 15 | 20 | slope |
+|---|---:|---:|---:|---:|---:|
+| HK | 22 | 24 | 24 | 26 | 0.24 |
+| KW | 40 | 40 | 40 | 41 | 0.06 |
+| PT | 16 | 19 | 19 | 19 | 0.18 |
+| RU | 58 | 59 | 59 | 59 | 0.06 |
+| TW | 18 | 19 | 18 | 18 | −0.02 |
+| US | 29 | 30 | 28 | 28 | −0.10 |
+
+Pooled within-country slope 0.07 points per article. Thirteen of sixteen
+questions change their null share or mean level as articles are added, which
+is what more evidence should do; the score barely moves because each is 1/n
+of a ledger. The volume question is closed.
+
+### Dilution
+
+Over all 144 calls: T1 1,026 readings, mean weight 1.07, 53% zero; T2 0.55
+/ 58%; T3 1.33 / 59%; T4 0.67 / 70%; T5 0.44 / 76%. 58% of articles sent are
+cited by no question (66% in step 5b).
+
+## What the model still misreads
+
+1. **Routine deadlines as scheduled events.** HK a18's trust-tax payment
+   deadline, 15 of 15, after the prompt said not to.
+2. **0 with no evidence instead of null**, 6 to 12 questions a call. Now
+   harmless because of 2a, and still not what the prompt asks.
+3. **O5 for Kuwait is a coin** between 2 and 3 on the same two articles. The
+   level descriptions ("military threats, incidents or strikes near the
+   territory" against "attacks on the territory") are both readable for
+   Iranian strikes on Kuwait, and that is where the last tenth of SD lives.
+4. **RU O2 = 2** reads a stage-managed Duma election as "serious irregularities
+   alleged", below the data.
+
+## Cost
+
+| step | calls | tokens in / out | USD |
+|---|---:|---|---:|
+| data table and check | 0 | — | 0 |
+| M1 `full` ×15 × 6 (incl. the first RU check) | 90 | 782,250 / 53,986 | 2.495 |
+| M5 `first_5/10/15` ×3 × 6 | 54 | 365,058 / 30,556 | 1.217 |
+| **Total** | 144 | | **3.71** |
+
+A call is **$0.028** (8.7k in, 600 out). Production in median-of-3 mode is
+**$0.083 per country-week** and **$3.99 a week for 48 countries**, the scorer
+only; the gate and digests are on top.
+
+## Files
+
+- `backend/measurements/step5c/data_table.json`: the economics block rebuilt
+  from the panel for the six, every scored value and score, and the 1b check.
+- `backend/measurements/step5c/calls/{full,first_5,first_10,first_15}_<iso2>.jsonl`.
+- `backend/measurements/step5c/analysis.json`.

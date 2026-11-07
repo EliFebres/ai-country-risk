@@ -230,3 +230,6 @@ overstates the cost slightly. A single-call week for 48 countries is about $1.75
 Done on 2026-11-06, in `docs/scorer-checklist.md`. The model is no longer
 asked for a number: M1's worst SD fell from 3.33 to 1.58, and the score then
 failed face validity on the data half.
+
+Step 5c, same day and same file: the data half on fixed scales, face validity
+passed, and the median-of-3 worst SD is 1.09 against a line of 1.
