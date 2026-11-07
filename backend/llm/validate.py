@@ -25,6 +25,10 @@ The rules the code enforces, which the prompt does not:
   article's text** (day and month, or month and year, in any common form).
   Step 5b found the model giving first-of-month dates to elections whose
   articles gave none.
+- A scheduled event that reads as a **routine deadline** (a filing date, a tax
+  payment, a statistical release, a regular session, an earnings date) is
+  dropped. The prompt says not to list them; step 5c found a tax-payment
+  deadline listed in 15 of 15 calls, the only thing moving `score_3m`.
 """
 
 from __future__ import annotations
@@ -36,7 +40,8 @@ from typing import Any, Dict, List, Optional, Sequence
 from backend.llm import constants as ai_constants
 from backend.util import constants as util_constants
 
-__all__ = ["validate", "ValidationResult", "COUNT_KEYS", "article_texts", "date_in_text"]
+__all__ = ["validate", "ValidationResult", "COUNT_KEYS", "ROUTINE_DEADLINE_PATTERNS",
+           "article_texts", "date_in_text", "is_routine_deadline"]
 
 COUNT_KEYS = (
     "levels_nulled_no_evidence",
@@ -45,7 +50,37 @@ COUNT_KEYS = (
     "evidence_dropped_non_article",
     "events_dropped",
     "events_dropped_date_not_in_article",
+    "events_dropped_routine_deadline",
 )
+
+#: An event whose text matches one of these (case-insensitive, anywhere in the
+#: text) is a routine, recurring deadline and is dropped. Elections,
+#: referendums, court rulings, votes, treaty and sanction dates, summits,
+#: strikes, debt maturities and central bank decisions match none of them.
+ROUTINE_DEADLINE_PATTERNS = (
+    r"deadline",
+    r"filing",
+    r"due date",
+    r"payment date",
+    r"tax return",
+    r"tax payment",
+    r"statistical release",
+    r"data release",
+    r"release of .* data",
+    r"scheduled session",
+    r"regular session",
+    r"quarterly",
+    r"monthly",
+    r"annual report",
+    r"earnings",
+)
+_ROUTINE_DEADLINE_RE = re.compile("|".join(f"(?:{p})" for p in ROUTINE_DEADLINE_PATTERNS),
+                                  re.IGNORECASE)
+
+
+def is_routine_deadline(text: str) -> bool:
+    """Whether an event's text reads as a routine, recurring deadline."""
+    return bool(text) and _ROUTINE_DEADLINE_RE.search(text) is not None
 
 _MONTHS = ("january", "february", "march", "april", "may", "june", "july",
            "august", "september", "october", "november", "december")
@@ -278,11 +313,15 @@ def validate(
             problem = "duplicate"
         elif texts is not None and not date_in_text(when, texts.get(aid, "")):
             problem = "date not in article"
+        elif is_routine_deadline(str(ev.get("event") or "")):
+            problem = "routine deadline"
         if problem:
             violations.append({"field": field, "problem": problem, "raw": ev})
             counts["events_dropped"] += 1
             if problem == "date not in article":
                 counts["events_dropped_date_not_in_article"] += 1
+            elif problem == "routine deadline":
+                counts["events_dropped_routine_deadline"] += 1
             continue
         seen_events.add((aid, qid, when))
         events.append({

@@ -7,7 +7,7 @@ this week's payload for each country through the normal pipeline
 Every scoring call after that reads the file. Nothing is re-fetched, so a change
 in output comes from the scorer and not from the input.
 
-Steps 5b and 5c read the step 5 payloads from `backend/measurements/step5/`
+Steps 5b, 5c and 5d read the step 5 payloads from `backend/measurements/step5/`
 and write everything new under their own directory, so step 5's record stays
 as it was. The data half (`data`) is computed from the local panel and curated
 CSV with no model call, printed, checked and saved beside the calls.
@@ -17,9 +17,14 @@ a JSON-lines file under `calls/`, one file per arm and country, and a rerun
 appends to it, so an interrupted arm resumes where it stopped.
 
     python -m backend.llm.scorer_measure data
-    python -m backend.llm.scorer_measure score --arm full --n 15 --cap-usd 4
-    python -m backend.llm.scorer_measure score --arm first_5 --arm first_10 --arm first_15 --n 3 --cap-usd 3
+    python -m backend.llm.scorer_measure score --arm full --n 15 --countries KW --cap-usd 0.5
+    python -m backend.llm.scorer_measure score --arm full --n 3 --countries US PT HK TW RU --cap-usd 0.5
     python -m backend.llm.scorer_measure analyse
+
+Step 5d re-measures only what its two changes (O5's wording, the
+routine-deadline validator) could move: M1 on KW, one median on the other
+five for face validity, M4 and O5 on all thirty calls. M5's arms are not
+rerun; the analysis skips what has no calls.
 
 Production mode is the per-question median of three calls, so every three
 consecutive calls of an arm are one result. The arms:
@@ -51,7 +56,7 @@ env.load()
 from backend.data_fetching import curated_loader, data_retrieval
 from backend.llm import combine, data_score
 from backend.llm import constants as ai_constants
-from backend.llm import langchain_llm, payload_health, relevance
+from backend.llm import langchain_llm, payload_health, relevance, validate
 from backend.llm import payload as payload_builder
 from backend.llm.payload import count_tokens
 from backend.util import constants, paths, pipeline, usage
@@ -59,7 +64,7 @@ from backend.util import constants, paths, pipeline, usage
 __all__ = ["freeze", "ARMS", "score_arm", "analyse"]
 
 FROZEN_DIR = paths.PROJECT_ROOT / "backend" / "measurements" / "step5"
-OUT_DIR = paths.PROJECT_ROOT / "backend" / "measurements" / "step5c"
+OUT_DIR = paths.PROJECT_ROOT / "backend" / "measurements" / "step5d"
 CALLS_DIR = OUT_DIR / "calls"
 DATA_PATH = OUT_DIR / "data_table.json"
 
@@ -546,10 +551,19 @@ def analyse() -> Dict[str, Any]:
     # M4: the 3-month score, on every single call and every median.
     gaps4: List[Dict[str, Any]] = []
     dropped_dates = 0
+    dropped_by_reason: Counter = Counter()
+    dropped_events: List[Dict[str, Any]] = []
     for iso2 in countries:
         for r in _scored("full", iso2):
             s = r["scoring"]
             dropped_dates += (r.get("counts") or {}).get("events_dropped_date_not_in_article", 0)
+            for v in r.get("violations") or []:
+                if str(v.get("field", "")).startswith("scheduled_events"):
+                    dropped_by_reason[v["problem"]] += 1
+                    raw = v.get("raw") if isinstance(v.get("raw"), dict) else {}
+                    dropped_events.append({"iso2": iso2, "i": r["i"], "reason": v["problem"],
+                                           "article_id": raw.get("article_id"), "date": raw.get("date"),
+                                           "event": raw.get("event")})
             gaps4.append({"iso2": iso2, "kind": "call", "i": r["i"], "gap": s["score_12m"] - s["score_3m"],
                           "events": [{k: e.get(k) for k in ("article_id", "date", "question", "direction", "event")}
                                      for e in s["events"]["valid"]]})
@@ -564,14 +578,33 @@ def analyse() -> Dict[str, Any]:
         "distribution_medians": dict(sorted(Counter(g["gap"] for g in gaps4 if g["kind"] == "median").items())),
         "non_zero": [g for g in gaps4 if g["gap"]],
         "all_traced": all(g["events"] for g in gaps4 if g["gap"]),
+        # A valid event that still reads as a routine deadline would mean the
+        # validator's patterns missed it.
+        "routine_in_valid": [e for g in gaps4 if g["kind"] == "call" for e in g["events"]
+                             if validate.is_routine_deadline(e.get("event") or "")],
         "events_dropped_date_not_in_article": dropped_dates,
+        "events_dropped_by_reason": dict(dropped_by_reason),
+        "events_dropped": dropped_events,
         "events_valid_total": sum(len(g["events"]) for g in gaps4 if g["kind"] == "call"),
     }
     nz = sum(1 for g in gaps4 if g["gap"] and g["kind"] == "call")
     out["m4"]["branch"] = (f"{nz} of {out['m4']['calls']} calls have a gap; "
-                           + ("every one traces to an event whose date is in its article" if out["m4"]["all_traced"]
+                           + ("every one traces to a dated event" if out["m4"]["all_traced"]
                               else "A GAP WITH NO EVENT")
-                           + f"; {dropped_dates} events dropped for a date not in the article")
+                           + (", none routine" if not out["m4"]["routine_in_valid"] else
+                              f", {len(out['m4']['routine_in_valid'])} ROUTINE EVENTS KEPT")
+                           + f"; dropped {dict(dropped_by_reason)}")
+
+    # O5: the level per call and the articles cited, for the wording check.
+    o5: Dict[str, Any] = {}
+    for iso2 in countries:
+        per_call = [{"i": r["i"], "level": r["scoring"]["questions"]["O5"]["level"],
+                     "evidence": r["scoring"]["questions"]["O5"]["evidence"]}
+                    for r in _scored("full", iso2)]
+        levels = Counter(c["level"] for c in per_call)
+        o5[iso2] = {"calls": per_call, "levels": dict(levels), "one_level": len(levels) == 1}
+    out["o5_check"] = {"per_country": o5,
+                       "branch": ", ".join(f"{c} {o5[c]['levels']}" for c in countries)}
 
     # M5: article count, one median-of-3 per subset; "all" is the first median of `full`.
     per_country: Dict[str, Any] = {}
