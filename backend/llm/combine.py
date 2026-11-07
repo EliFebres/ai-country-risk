@@ -197,6 +197,32 @@ def subscore_text(
 
 # --- Carry-forward -------------------------------------------------------------
 
+def usable_history(
+    history: Sequence[Dict[str, Any]],
+    *,
+    run_date: dt.date,
+    questions_version: str = ai_constants.QUESTIONS_VERSION,
+) -> List[tuple]:
+    """The snapshots a null may be carried from: ``[(run_date, questions)]``, newest first.
+
+    Of the newest `carry_forward_runs` rows, those before `run_date`, no older
+    than `carry_forward_max_days`, whose answers were to the same questions.
+    """
+    max_age = dt.timedelta(days=S["carry_forward_max_days"])
+    usable = []
+    for row in list(history)[: S["carry_forward_runs"]]:
+        when = row.get("run_date")
+        if isinstance(when, str):
+            when = dt.date.fromisoformat(when)
+        if when is None or when >= run_date or run_date - when > max_age:
+            continue
+        scoring = ((row.get("manifest") or {}).get("scoring")) or {}
+        if scoring.get("questions_version") != questions_version:
+            continue
+        usable.append((when, scoring.get("questions") or {}))
+    return usable
+
+
 def carry_forward(
     questions: Dict[str, Dict[str, Any]],
     history: Sequence[Dict[str, Any]],
@@ -224,18 +250,7 @@ def carry_forward(
     """
     out = {qid: dict(q) for qid, q in questions.items()}
     log: List[Dict[str, Any]] = []
-    max_age = dt.timedelta(days=S["carry_forward_max_days"])
-    usable = []
-    for row in list(history)[: S["carry_forward_runs"]]:
-        when = row.get("run_date")
-        if isinstance(when, str):
-            when = dt.date.fromisoformat(when)
-        if when is None or when >= run_date or run_date - when > max_age:
-            continue
-        scoring = ((row.get("manifest") or {}).get("scoring")) or {}
-        if scoring.get("questions_version") != questions_version:
-            continue
-        usable.append((when, scoring.get("questions") or {}))
+    usable = usable_history(history, run_date=run_date, questions_version=questions_version)
 
     for qid in ai_constants.QUESTION_IDS:
         q = out.setdefault(qid, {"level": None, "evidence": [], "note": ""})
@@ -348,9 +363,16 @@ def combine(
         questions[qid].setdefault("carried", False)
         questions[qid].setdefault("carried_from", None)
 
+    # The carry-forward's own record: whether it ran, how many rows it saw and
+    # how many were usable. A week-one row that carried nothing must be able
+    # to say it looked, rather than that it was skipped.
     carry_log: List[Dict[str, Any]] = []
+    carry = {"ran": history is not None, "history_rows": 0, "usable_rows": 0, "carried": 0}
     if history is not None:
+        carry["history_rows"] = len(history)
+        carry["usable_rows"] = len(usable_history(history, run_date=run_date))
         questions, carry_log = carry_forward(questions, history, run_date=run_date)
+        carry["carried"] = len(carry_log)
 
     news = news_scores(questions, data.get("data_scores") or {})
     ledgers = ledger_scores(data.get("data_scores") or {}, news)
@@ -392,6 +414,7 @@ def combine(
         "condition_flags": answer.get("condition_flags") or {},
         "bullet_summary": answer.get("bullet_summary") or "",
         "validation": validation or {},
+        "carry": carry,
         "carry_log": carry_log,
         "merge": answer.get("merge"),
     }

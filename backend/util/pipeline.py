@@ -823,9 +823,11 @@ def run_etl(
                 run_date=run_as_of, history=history,
                 validation={"violations": violations, "counts": counts},
             )
-            if scoring["carry_log"]:
-                print(f"[score] {iso2}: carried {len(scoring['carry_log'])} level(s): "
-                      f"{[(c['question'], c['level'], c['from']) for c in scoring['carry_log']]}")
+            cf = scoring["carry"]
+            print(f"[score] {iso2}: carry-forward saw {cf['history_rows']} snapshot(s), "
+                  f"{cf['usable_rows']} usable, carried {cf['carried']}"
+                  + (f": {[(c['question'], c['level'], c['from']) for c in scoring['carry_log']]}"
+                     if scoring["carry_log"] else ""))
 
             if scored["badge"]:
                 # Observation only. The rating stays the model's own; the legal

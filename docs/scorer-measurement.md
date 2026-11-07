@@ -233,3 +233,5 @@ failed face validity on the data half.
 
 Step 5c, same day and same file: the data half on fixed scales, face validity
 passed, and the median-of-3 worst SD is 1.09 against a line of 1.
+
+Step 5d (2026-11-06, `docs/scorer-checklist.md` §24–§27) closed the measurement: O5 reworded, routine deadlines dropped in code, M1/face validity/M4 passed, first production week run on the test set.

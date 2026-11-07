@@ -511,8 +511,11 @@ questions (`manifest.scoring.questions_version`). A carried level is never
 carried again, so nothing persists past the window. Carried evidence is
 prefixed with the source date (`2026-10-30:a7`) so it weighs nothing in this
 week's `article_weights`. None of this applies to the frozen payloads, which
-have no history, so the production behaviour is untested until the first run
-after 5b: watch the `[score] XX: carried n level(s)` lines.
+have no history. Every row records what the carry-forward saw
+(`manifest.scoring.carry`: ran, history rows, usable rows, carried) and the
+run prints it per country; the first production week (2026-11-06, step 5d)
+saw the 2026-09-25 snapshots, found none usable (older instrument) and
+carried nothing, as week one should.
 
 ## 22. The four WGI columns exist only in panels built after 2026-11-06
 
@@ -536,4 +539,15 @@ said not to adjust them to pass the check. Five of the six frozen countries
 clamp to 0 on at least one series (inflation near 2%, SPI above 90, PISA above
 525, HK's FDI) and RU clamps to 100 on RSF, so both ends of the data half are
 floors countries sit on. Widening an end is a `PROMPT_VERSION` change.
+
+## 24. Left over from the scorer measurement, 2026-11-06
+
+One line each, so they are not lost. None blocks the weekly run.
+
+- **2026-11-06. Clamps in the data half:** inflation near 2% clamps to 0 for four of six countries (KW, US, PT, HK); SPI above 90 clamps to 0 for US and PT; RU's RSF clamps to 100; HK's FDI (30.8% of GDP, entrepôt, §19) clamps to 0 on edge. Scales not yet adjusted (§23).
+- **2026-11-06. RU's interest-payments series (`GC.XPN.INTP.RV.ZS`) is from 2020.** Find a fresher source or drop it from RU's friction.
+- **2026-11-06. The four new WGI series** were merged into all 48 panel partitions without refreshing the other columns, so they carry the 2025 update while PV and RL are 2024. The panel is not in git: a production host needs the same merge or the quarterly rebuild (§22).
+- **2026-11-06. The model answers 0 with no evidence instead of null,** 6 to 12 questions a call (PT 181 of 240 in step 5c). The validator nulls them and the null takes the data level, so it is harmless under Rule A. Leave it unless a later measurement shows it moving a score.
+- **2026-11-06. RU O2 = 2** for a stage-managed Duma election reads below what the data says (WGI PV −0.90). Candidate for a wording pass later, not now.
+- **2026-11-06. PISA 2025 results are due early December 2026:** the curated PISA series needs a manual rebuild when they land (§1; already listed, kept here so the date is next to the others).
 

@@ -442,3 +442,138 @@ only; the gate and digests are on top.
   from the panel for the six, every scored value and score, and the 1b check.
 - `backend/measurements/step5c/calls/{full,first_5,first_10,first_15}_<iso2>.jsonl`.
 - `backend/measurements/step5c/analysis.json`.
+
+---
+
+# Step 5d: close the measurement, run the first production week
+
+2026-11-06, branch `backend-update`. Two changes to the instrument (O5's
+wording, a routine-deadline validator), a 30-call re-measurement on the same
+six frozen payloads under `backend/measurements/step5d/`, and the first weekly
+run in production mode on the test set. Prompt version `982172f001dc…`,
+questions version `e018391fae57…`. Session spend **$1.43** of a $3 cap.
+
+## §24. O5: one geographic test per level
+
+Step 5c's last tenth of SD was O5 for Kuwait, a coin between 2 and 3 on the
+same two articles (a5, a16), because "strikes near the territory" and "attacks
+on the territory" both fit an Iranian strike on Kuwait. Levels 0, 1 and 4 and
+every other question are byte-identical; only the tests for 2 and 3 changed.
+
+Before:
+
+> O5 Armed conflict and external threat. 0 none; 1 diplomatic tension; 2 military threats, incidents or strikes near the territory; 3 attacks on the territory, or active mobilisation; 4 war on the territory.
+
+After:
+
+> O5 Armed conflict and external threat. 0 none; 1 diplomatic tension; 2 military threats, incidents or strikes near the territory (a strike or attack is near, never on, the territory if it landed in a neighbouring country or in international waters, was intercepted in the country's airspace, is described as near, close to, off the coast of or across the border from the country, or the article does not say where it landed); 3 a strike or attack on the territory (only if the article says it landed, hit or occurred inside the country's land borders or territorial waters), or active mobilisation; 4 war on the territory.
+
+The stamp moved with it: `PROMPT_VERSION` 1547a0f0cb41… → 982172f001dc…,
+`QUESTIONS_VERSION` 253189c035ac… → e018391fae57…. The second is what the
+carry-forward compares, so no level answered under the old O5 can be carried
+into a week scored under the new one.
+
+## §25. Routine deadlines are dropped in code
+
+The prompt's "Do not list routine, recurring deadlines" was ignored 15 of 15
+times for HK a18's trust-tax payment deadline, the only thing that moved
+`score_3m` in step 5c. The gate taught the lesson already: an instruction
+the model does not follow becomes a rule the code enforces.
+`validate.ROUTINE_DEADLINE_PATTERNS` is a module-level tuple
+(`deadline`, `filing`, `due date`, `payment date`, `tax return`, `tax
+payment`, `statistical release`, `data release`, `release of .* data`,
+`scheduled session`, `regular session`, `quarterly`, `monthly`, `annual
+report`, `earnings`), matched case-insensitively against the event's text
+after the date-in-article check. A match is dropped as `routine deadline`,
+counted in `events_dropped_routine_deadline`, and the violation carries the
+event's text. Elections, rulings, votes, treaty and sanction dates, summits,
+strikes, maturities and central-bank decisions match none of them. The
+prompt sentence stays.
+
+## §26. Re-measurement, 30 calls, $0.85
+
+Pre-set decisions, one line each.
+
+- **M1 (KW only, 5 fresh medians of 3): SD 0.55, pass.** Medians 38, 39, 39,
+  39, 38. O5 is 3 in all five medians and all 15 calls; the one question still
+  flipping across medians is F6 (0 or 1), and F1/O1 flip null↔0 in single
+  calls, as accepted. Step 5c's 1.09 was the O5 coin.
+- **Face validity (one median each on the other five, KW's median of five):
+  pass.** RU 58 > KW 39 > US 29 > HK 25 > PT 19 > TW 18.
+- **M4: 0 of 30 calls have a gap; pass.** `score_12m − score_3m` is 0 on every
+  call and every median. Six valid events across the 30 calls, none routine.
+  Dropped: 3 routine deadline (HK a18, "Deadline for offshore trust tax
+  payment", every call), 3 date not in article (PT a2's `2026-10-07`), 2 past
+  (US a14, a ruling on 2026-09-25), 1 unparseable (`2026-10-`). HK a18 is
+  gone from the valid list.
+- **O5 check: KW 3 in 15 of 15 calls**, citing a5 (15) and a16 (7). The
+  other five are one level each as well: US 1, RU 2, TW 2, HK null, PT null.
+
+M3 came along for free: the articles move the score by −1 to +2 (KW −1, RU
+0, HK/PT/TW +1, US +2). The measurement is **closed**: the three decisions
+pass and the remaining variation is a single question's tail, not a coin.
+
+| | score_12m | SD | friction | order | information | edge | answered / 16 |
+|---|---|---:|---|---|---|---|---:|
+| RU | 58 | 0.00 | 45 (45 / 46) | 64 (67 / 61) | 70 (67 / 72) | 64 (64 / 64) | 5 |
+| KW | 38 · 39 | 0.55 | 27 (28 / 26) | 38 (39 / 36) | 66 (66 / 66) | 36 (47 / 25) | 9 |
+| US | 29 | 0.00 | 30 (30 / 31) | 32 (29 / 35) | 21 (21 / 21) | 44 (39 / 50) | 8 |
+| HK | 25 | 0.00 | 6 (6 / 6) | 23 (20 / 25) | 65 (67 / 64) | 10 (20 / 0) | 8 |
+| PT | 19 | 0.00 | 23 (20 / 26) | 24 (24 / 24) | 3 (3 / 3) | 27 (29 / 25) | 3 |
+| TW | 18 | 0.00 | 19 (20 / 18) | 18 (15 / 21) | 14 (14 / 14) | 0 (0 / 0) | 4 |
+
+(Ledger = score (data / news). KW's SD is over five medians; the others are
+one median each.) A call is $0.028 (8.9k in, 600 out); median-of-3 is $0.085
+per country-week, $4.06 a week for 48 countries, scorer only.
+
+## §27. The first production week
+
+`python -m backend.main etl --test-set` against the dev database, in
+production mode (median of 3), fresh articles. Started 2026-11-07 02:14 UTC,
+so every row is stamped `run_date = 2026-11-07`; 20 minutes wall-clock,
+240 s per country. Written: 5 `risk_snapshot` rows, 7 `run_ledger` rows (5
+`etl`, 1 `run`, 1 `report`), 15 `news_alert` rows, 164 economic-calendar
+events. KW's row, manifest and all, is
+`backend/measurements/step5d/week1_manifest_KW.json`.
+
+| | score_12m | score_3m | friction | order | information | edge | answered / 16 | data-only |
+|---|---:|---:|---|---|---|---|---:|---:|
+| KW | 40 | 40 | 27 (28 / 26) | 40 (39 / 41) | 66 (66 / 66) | 24 (47 / 0) | 5 | 40 |
+| US | 26 | 26 | 31 (30 / 31) | 25 (29 / 22) | 21 (21 / 21) | 19 (39 / 0) | 8 | 27 |
+| HK | 24 | 24 | 7 (6 / 7) | 21 (20 / 22) | 67 (67 / 67) | 35 (20 / 50) | 6 | 24 |
+| TW | 20 | 20 | 24 (20 / 28) | 17 (15 / 20) | 14 (14 / 14) | 0 (0 / 0) | 9 | 17 |
+| PT | 17 | 17 | 17 (20 / 14) | 24 (24 / 24) | 3 (3 / 3) | 15 (29 / 0) | 6 | 18 |
+
+Ledger = score (data / news). The week's reading moved every country by
+at most 3 points from its data-only score, in the direction the articles
+pointed (TW +3 on F2/F3/F5 = 2; PT −1 on F2/F4 = 0). KW's O5 is 2 this
+week, on Basra: the new wording reads a neighbouring country as "near".
+
+- **Carry-forward: ran, 0 carried.** Each country's `manifest.scoring.carry`
+  is `{ran: true, history_rows: 1, usable_rows: 0, carried: 0}`: the
+  2026-09-25 snapshot was seen and rejected (no `questions_version`, older
+  instrument). Week one as it should be.
+- **Dropped events: none.** One event listed and kept (TW a2, Taipei mayoral
+  election 2026-11-28, `unclear`), so `score_3m = score_12m` everywhere.
+  Routine-deadline, date-not-in-article and beyond-horizon all 0 this week.
+- **The quality report** flags all five countries with "n schema
+  violation(s)", 119 in total: every one is `levels_nulled_no_evidence`,
+  the model's 0-with-no-evidence habit (deferred §24), harmless under Rule
+  A. The report still calls it a schema violation and a defect; it is
+  neither, and it will fire every week until the report learns the new
+  counts. Coverage 72 (TW) to 87; 0 digest failures; 5 walls caught.
+- **Three validator counts stay at 0** in production: no indicator
+  citations, no unknown articles, no events dropped.
+- **Cost, from the ledger:** $0.5829 for five countries, **$0.117 per
+  country-week**, of which the scorer is $0.083 (15 calls, $0.416) and the
+  gate plus digests $0.033 (319 gpt-4o-mini calls, $0.167). **$5.60 a week
+  for 48 countries.** The calendar and alert rankers are not metered
+  through the run meter (one gpt-4o-mini call each, cents).
+- **Provenance note.** The rows' `git_sha` is d3b3e50, the data commit; the
+  `carry` record in `combine.py` and the per-country carry line in
+  `pipeline.py` were in the working tree at run time and committed after.
+  Everything that moves a score was committed in 49c6f44 before the run.
+
+The scorer measurement is **closed**: M1, face validity and M4 passed on
+the pre-set lines, the production week wrote what the measurement said it
+would, and the remaining items are in `docs/deferred.md` §24.
