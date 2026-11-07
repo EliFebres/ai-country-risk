@@ -115,10 +115,19 @@ MONETARY_REGIME: dict[str, dict[str, str]] = {
 #                measured against
 #   panel_col  — the column it occupies in the World Bank parquet panel, or None
 #                for a series that arrives some other way
-#   risk       — which way is riskier, for the data half of the score:
-#                "higher" (a larger value is more risk), "lower" (a larger value
-#                is less risk) or "target" (risk is the distance from a target,
-#                `SCORING["inflation_target"]` for inflation)
+#   scored     — whether the data half of the score reads it. False for series
+#                that describe an economy's shape rather than the risk of holding
+#                assets in it (Gini, unemployment, growth) or that duplicate a
+#                scored series (V-Dem corruption against WGI control of
+#                corruption). Unscored series are still fetched, stored and shown.
+#   risk_scale — for a scored series, the fixed absolute scale the data half
+#                maps the value onto: {"zero_at", "hundred_at", "transform"}.
+#                The score is linear between the two ends and clamped to
+#                0–100, so a value maps to the same score whatever the rest of
+#                the roster looks like. `transform` is None or "abs_from_2"
+#                (inflation: risk is the distance from 2%, so deflation counts).
+#                Edge scales run in the stress direction like the others: 0 is
+#                the most vitality, 100 the least.
 #
 # The four ledgers, and what each is asking:
 #   friction     — what is taken, and how well it converts
@@ -135,54 +144,72 @@ INDICATOR_REGISTRY: dict[str, dict] = {
         "label": "Inflation (% y/y)", "unit": "% y/y",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "INFLATION",
-        "risk": "target",
+        "scored": True, "risk_scale": {"zero_at": 1.0, "hundred_at": 25.0, "transform": "abs_from_2"},
     },
     "SI.POV.GINI": {
         "label": "Income inequality (Gini)", "unit": "index",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "GINI_INDEX",
-        "risk": "higher",
+        "scored": False,
     },
     "GC.XPN.INTP.RV.ZS": {
         "label": "Interest payments (% revenue)", "unit": "% revenue",
         "ledger": "friction", "source": "World Bank WDI", "freq": "A",
         "panel_col": "INT_PAYM_PCT_REV",
-        "risk": "higher",
+        "scored": True, "risk_scale": {"zero_at": 2.0, "hundred_at": 30.0, "transform": None},
     },
     "OWID.VDEM.CORRUPTION": {
         "label": "Political corruption index (0-1, higher = more corrupt)",
         "unit": "index (0-1)",
         "ledger": "friction", "source": "V-Dem via OWID", "freq": "A",
         "panel_col": "POL_CORRUPTION",
-        "risk": "higher",
+        "scored": False,
     },
 
+    "GOV_WGI_RQ.EST": {
+        "label": "Regulatory quality (z-score)", "unit": "z-score",
+        "ledger": "friction", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "REG_QUALITY",
+        "scored": True, "risk_scale": {"zero_at": 2.0, "hundred_at": -2.0, "transform": None},
+    },
+    "GOV_WGI_CC.EST": {
+        "label": "Control of corruption (z-score)", "unit": "z-score",
+        "ledger": "friction", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "CONTROL_CORRUPTION",
+        "scored": True, "risk_scale": {"zero_at": 2.0, "hundred_at": -2.0, "transform": None},
+    },
     # --- order: doubt about the load-bearing rules --------------------------
     "GOV_WGI_PV.EST": {
         "label": "Political stability (z-score)", "unit": "z-score",
         "ledger": "order", "source": "World Bank WGI", "freq": "A",
         "panel_col": "POL_STABILITY",
-        "risk": "lower",
+        "scored": True, "risk_scale": {"zero_at": 1.5, "hundred_at": -2.5, "transform": None},
     },
     "GOV_WGI_RL.EST": {
         "label": "Rule of law (z-score)", "unit": "z-score",
         "ledger": "order", "source": "World Bank WGI", "freq": "A",
         "panel_col": "RULE_OF_LAW",
-        "risk": "lower",
+        "scored": True, "risk_scale": {"zero_at": 2.0, "hundred_at": -2.0, "transform": None},
     },
     "SL.UEM.TOTL.ZS": {
         "label": "Unemployment (% labour force)", "unit": "%",
         "ledger": "order", "source": "World Bank WDI", "freq": "A",
         "panel_col": "UNEMPLOYMENT",
-        "risk": "higher",
+        "scored": False,
     },
     "NY.GDP.PCAP.KD.ZG": {
         "label": "GDP per-capita growth (% y/y)", "unit": "% y/y",
         "ledger": "order", "source": "World Bank WDI", "freq": "A",
         "panel_col": "GDP_PC_GROWTH",
-        "risk": "lower",
+        "scored": False,
     },
 
+    "GOV_WGI_GE.EST": {
+        "label": "Government effectiveness (z-score)", "unit": "z-score",
+        "ledger": "order", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "GOV_EFFECTIVENESS",
+        "scored": True, "risk_scale": {"zero_at": 2.0, "hundred_at": -2.0, "transform": None},
+    },
     # --- information: can the country's own instruments be trusted ----------
     # This ledger was the thinnest, and a ledger with one indicator is a ledger
     # that cannot disagree with itself. SPI is a World Bank series and costs
@@ -191,33 +218,39 @@ INDICATOR_REGISTRY: dict[str, dict] = {
         "label": "Statistical performance (0-100)", "unit": "score",
         "ledger": "information", "source": "World Bank SPI", "freq": "A",
         "panel_col": "STAT_PERFORMANCE",
-        "risk": "lower",
+        "scored": True, "risk_scale": {"zero_at": 90.0, "hundred_at": 40.0, "transform": None},
     },
     "RSF.PRESS.SCORE": {
         "label": "Press freedom (0-100, higher = freer)", "unit": "score",
         "ledger": "information", "source": "RSF World Press Freedom Index",
         "freq": "A", "panel_col": None,
-        "risk": "lower",
+        "scored": True, "risk_scale": {"zero_at": 85.0, "hundred_at": 25.0, "transform": None},
     },
 
+    "GOV_WGI_VA.EST": {
+        "label": "Voice and accountability (z-score)", "unit": "z-score",
+        "ledger": "information", "source": "World Bank WGI", "freq": "A",
+        "panel_col": "VOICE_ACCOUNT",
+        "scored": True, "risk_scale": {"zero_at": 1.5, "hundred_at": -2.0, "transform": None},
+    },
     # --- edge: is the system learning ---------------------------------------
     "BX.KLT.DINV.WD.GD.ZS": {
         "label": "FDI inflow (% GDP)", "unit": "% GDP",
         "ledger": "edge", "source": "World Bank WDI", "freq": "A",
         "panel_col": "FDI_PCT_GDP",
-        "risk": "lower",
+        "scored": True, "risk_scale": {"zero_at": 5.0, "hundred_at": 0.0, "transform": None},
     },
     "SE.XPD.TOTL.GD.ZS": {
         "label": "Education spending (% GDP)", "unit": "% GDP",
         "ledger": "edge", "source": "World Bank WDI", "freq": "A",
         "panel_col": "EDU_SPEND_PCT_GDP",
-        "risk": "lower",
+        "scored": True, "risk_scale": {"zero_at": 6.0, "hundred_at": 2.0, "transform": None},
     },
     "OECD.PISA.MEAN": {
         "label": "PISA mean score (maths/reading/science)", "unit": "score",
         "ledger": "edge", "source": "OECD PISA", "freq": "A",
         "panel_col": None,
-        "risk": "lower",
+        "scored": True, "risk_scale": {"zero_at": 525.0, "hundred_at": 400.0, "transform": None},
     },
 }
 

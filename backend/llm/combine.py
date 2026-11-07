@@ -5,7 +5,8 @@ Nothing here calls a model or a database. Every function takes dicts and
 returns dicts, so the weekly run and the measurement harness share one path
 and the manifest can hold every intermediate value.
 
-    news_ledger   = news_scale × mean(non-null levels in that ledger)
+    item(q)       = news_scale × level(q) if answered, else the ledger's data score
+    news_ledger   = mean(item over every question in the ledger)
     ledger_score  = w_data × data + w_news × news      (one half alone if the
                                                         other is missing)
     score_12m     = round(Σ composite_weights × ledger_score)
@@ -45,17 +46,35 @@ def _clamp(x: float, low: float, high: float) -> float:
 
 # --- The news half -----------------------------------------------------------
 
-def news_scores(questions: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-    """Per ledger: `news_scale × mean(non-null levels)`, or None if all null."""
+def news_scores(
+    questions: Dict[str, Dict[str, Any]],
+    data_scores: Optional[Dict[str, Optional[float]]] = None,
+) -> Dict[str, Dict[str, Any]]:
+    """Per ledger: the mean over every question of its item value.
+
+    An answered question is worth `news_scale × level`. A null question is
+    worth the ledger's data score, so silence means "what the data says". When
+    the ledger has no data score either, null questions are left out, and the
+    ledger is None only when nothing at all was answered.
+    """
+    data_scores = data_scores or {}
     out: Dict[str, Dict[str, Any]] = {}
     for ledger in LEDGERS:
         qids = ai_constants.QUESTIONS_BY_LEDGER[ledger]
         levels = {qid: (questions.get(qid) or {}).get("level") for qid in qids}
-        answered = [v for v in levels.values() if v is not None]
+        fill = data_scores.get(ledger)
+        items = {}
+        for qid, level in levels.items():
+            if level is not None:
+                items[qid] = S["news_scale"] * level
+            elif fill is not None:
+                items[qid] = fill
         out[ledger] = {
-            "score": round(S["news_scale"] * sum(answered) / len(answered), 2) if answered else None,
+            "score": round(sum(items.values()) / len(items), 2) if items else None,
             "levels": levels,
-            "n_answered": len(answered),
+            "items": items,
+            "n_answered": sum(v is not None for v in levels.values()),
+            "n_from_data": sum(1 for q in items if levels[q] is None),
             "n_questions": len(qids),
         }
     return out
@@ -156,20 +175,21 @@ def subscore_text(
     ledger: str,
     scored: Dict[str, Any],
     news: Dict[str, Any],
-    percentiles: Dict[str, Dict[str, Any]],
+    indicators: Dict[str, Dict[str, Any]],
 ) -> str:
     """One line per ledger for `subscore_evidence`: the numbers behind the score."""
-    codes = [c for c, p in percentiles.items() if p.get("ledger") == ledger and p.get("percentile") is not None]
+    codes = [c for c, p in indicators.items() if p.get("ledger") == ledger]
     data_part = (
         f"data {scored['data']:.0f} from {len(codes)} indicator(s): "
-        + ", ".join(f"{c} p{percentiles[c]['percentile']:.0f}" for c in codes)
-        if scored.get("data") is not None else "no indicator resolved"
+        + ", ".join(f"{c} {indicators[c]['value']:g} -> {indicators[c]['score']:.0f}" for c in codes)
+        if scored.get("data") is not None else "no scored indicator resolved"
     )
     answered = {q: lv for q, lv in news["levels"].items() if lv is not None}
     news_part = (
-        f"news {scored['news']:.0f} from {len(answered)} of {news['n_questions']} questions: "
+        f"news {scored['news']:.0f} from {len(answered)} answered of {news['n_questions']} "
+        f"({news.get('n_from_data', 0)} at the data level): "
         + ", ".join(f"{q}={lv}" for q, lv in answered.items())
-        if scored.get("news") is not None else "every question null"
+        if scored.get("news") is not None else "every question null and no data"
     )
     score = f"{scored['score']:.0f}" if scored.get("score") is not None else "none"
     return f"{ledger} {score} ({scored['mode']}); {data_part}; {news_part}."
@@ -332,7 +352,7 @@ def combine(
     if history is not None:
         questions, carry_log = carry_forward(questions, history, run_date=run_date)
 
-    news = news_scores(questions)
+    news = news_scores(questions, data.get("data_scores") or {})
     ledgers = ledger_scores(data.get("data_scores") or {}, news)
     composite = composite_12m(ledgers)
     events = event_adjustment(answer.get("scheduled_events") or [])
@@ -343,8 +363,8 @@ def combine(
         "prompt_version": ai_constants.PROMPT_VERSION,
         "questions_version": ai_constants.QUESTIONS_VERSION,
         "constants": S,
-        "roster_sha256": data.get("roster_sha256"),
-        "percentiles": data.get("percentiles") or {},
+        "indicators": data.get("indicators") or {},
+        "unscored_indicators": data.get("unscored") or [],
         "data_scores": data.get("data_scores") or {},
         "n_indicators_by_ledger": data.get("n_by_ledger") or {},
         "questions": questions,
@@ -366,7 +386,7 @@ def combine(
         },
         "article_weights": weights,
         "subscore_text": {
-            ledger: subscore_text(ledger, ledgers[ledger], news[ledger], data.get("percentiles") or {})
+            ledger: subscore_text(ledger, ledgers[ledger], news[ledger], data.get("indicators") or {})
             for ledger in LEDGERS
         },
         "condition_flags": answer.get("condition_flags") or {},

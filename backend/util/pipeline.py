@@ -695,17 +695,6 @@ def run_etl(
         roster=roster,
     )
 
-    # 0c) The roster table for the data half of the score: every roster
-    #     country's latest value per indicator, built once so that every
-    #     country this run is ranked against the same table. Always the full
-    #     roster, whatever `only` says, because a percentile among five is not
-    #     a percentile.
-    roster_table = data_score.roster_table()
-    print(f"[roster] data table {roster_table['sha256'][:12]} over "
-          f"{len(constants.COUNTRY_ROSTER) - len(roster_table['missing_countries'])} countries"
-          + (f"; no panel for {roster_table['missing_countries']}"
-             if roster_table["missing_countries"] else ""))
-
     # 0b) Economic calendar (FMP) for the front-end Econ Calendar pane. Guarded
     #     so a calendar failure never aborts the country/risk loop below.
     try:
@@ -784,10 +773,10 @@ def run_etl(
             payload_tokens = built["payload_tokens"]
 
             # The model answers the checklist; it is never asked for a score.
-            # `calls_per_country` is 1, or 3 for the per-question median of
-            # three (set by the M1 measurement in docs/scorer-checklist.md).
+            # Three calls, merged by per-question median: the production mode
+            # measured in docs/scorer-checklist.md (step 5c).
             calls = []
-            for _ in range(ai_constants.SCORING["calls_per_country"]):
+            for _ in range(ai_constants.CALLS_PER_COUNTRY):
                 scored = langchain_llm.score_country(
                     iso2=iso2,
                     payload=scoring_payload,
@@ -819,10 +808,10 @@ def run_etl(
             answer = (calls[0]["answer"] if len(calls) == 1
                       else combine.merge_answers([c["answer"] for c in calls]))
 
-            # The data half: each resolved indicator as a percentile of the
-            # roster. Then the arithmetic, with last weeks' answers for the
-            # null carry-forward: a quiet week is not a good week.
-            data = data_score.ledger_data_scores(econ["ledgers"], iso2, roster_table)
+            # The data half: each scored indicator on its fixed scale. Then
+            # the arithmetic, with last weeks' answers for the null
+            # carry-forward: a quiet week is not a good week.
+            data = data_score.ledger_data_scores(econ["ledgers"])
             try:
                 history = store.read_recent_snapshots(
                     iso2, before=run_as_of, limit=ai_constants.SCORING["carry_forward_runs"])

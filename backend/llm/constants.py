@@ -49,13 +49,13 @@ QUESTION_TEXT: Dict[str, str] = {q[0]: q[2] for q in QUESTIONS}
 
 EVENT_DIRECTIONS: Tuple[str, ...] = ("up", "down", "unclear")
 
-#: The prompt, verbatim from the step 5b brief. `{country}` is substituted by
+#: The prompt, verbatim from the step 5b brief with the step 5c edits. `{country}` is substituted by
 #: plain replacement at call time (not `.format`, so braces elsewhere are safe).
-CHECKLIST_PROMPT = """You are a country-risk analyst reading one week of evidence about {country}. Answer each question below with a level from 0 to 4, using ONLY this week's evidence (the articles and the economics block). Do not use your own background knowledge of {country}, and do not let its reputation stand in for evidence.
+CHECKLIST_PROMPT = """You are a country-risk analyst reading one week of evidence about {country}. Answer each question below with a level from 0 to 4, using ONLY this week's articles. Do not use your own background knowledge of {country}, and do not let its reputation stand in for evidence.
 
 For every question:
 - level: 0 to 4 using the descriptions given, or null if this week's evidence says nothing about it. Null is correct and expected for many questions in a normal week. Do not guess.
-- evidence: the article ids (a1, a2, ...) and/or indicator names that support the level. A non-null level MUST cite at least one.
+- evidence: the article ids (a1, a2, ...) that support the level. A non-null level MUST cite at least one.
 - note: one sentence naming what the evidence shows.
 
 The levels mean the same thing on every question:
@@ -90,7 +90,7 @@ EDGE: is the system learning (observed only)
 E1 Business formation and investment. 0 strong and rising; 1 normal; 2 weakening, notable exits; 3 capital and firms leaving; 4 collapse of private investment.
 
 SCHEDULED EVENTS
-List every dated event in this week's evidence that falls within the next 90 days and could change the answers above: an election, a debt maturity, a budget deadline, a ceasefire expiry, a court ruling. For each give: the article id, the date, the event, the question it bears on (for example O2), and direction (up = more stress likely, down = less, unclear). Give an empty list if there are none. Never invent a date."""
+List every dated event in this week's evidence that falls within the next 90 days and could change the answers above: an election, a debt maturity, a budget deadline, a ceasefire expiry, a court ruling. For each give: the article id, the date, the event, the question it bears on (for example O2), and direction (up = more stress likely, down = less, unclear). Give an empty list if there are none. Never invent a date. Only list an event whose date is written in the article. Do not list routine, recurring deadlines such as tax filing dates, statistical releases or regular parliamentary sessions."""
 
 
 def prompt_for(country_name: str) -> str:
@@ -104,10 +104,15 @@ def prompt_for(country_name: str) -> str:
 # rows say so.
 # ---------------------------------------------------------------------------
 SCORING: Dict = {
-    # A question's level runs 0..level_max; the news score for a ledger is
-    # news_scale × mean(non-null levels), so 0..100.
+    # A question's level runs 0..level_max. Each question is an item worth
+    # news_scale × level when answered with valid evidence (or carried
+    # forward), and the ledger's data score when null: silence means "what
+    # the data says", never "no stress" and never "ignored". The news score
+    # for a ledger is the mean of its items, so 0..100, and one answered
+    # question moves its ledger by 1/n of the gap rather than setting it.
     "level_max": 4,
     "news_scale": 25,
+    "null_item": "data_score",
     # ledger_score = data × ledger_weights.data + news × ledger_weights.news,
     # or data alone when every news level is null, or news alone when no
     # indicator resolved.
@@ -123,22 +128,18 @@ SCORING: Dict = {
     # A scheduled event counts only when its date is inside this window after
     # the run date.
     "event_horizon_days": 90,
-    # Inflation's risk is the distance from this target (registry risk="target").
-    "inflation_target": 2.0,
-    # A percentile needs at least this many other roster countries with a value.
-    "min_roster_n": 8,
     # Null carry-forward in production: a null question takes the most recent
     # original level from the last carry_forward_runs snapshots, none older
     # than carry_forward_max_days.
     "carry_forward_runs": 8,
     "carry_forward_max_days": 70,
-    # How many scorer calls production makes per country; 3 means the
-    # per-question median of three (combine.merge_answers). M1 on 2026-11-06
-    # landed in the median-of-3 band (worst SD 1.58), but the instrument
-    # failed face validity on the data half, so nothing is set for production
-    # until that is fixed and M1 is re-run (docs/scorer-checklist.md).
-    "calls_per_country": 1,
 }
+
+#: How many scorer calls production makes per country. 3 is the per-question
+#: median of three (`combine.merge_answers`), the production mode since step
+#: 5c. Not inside PROMPT_VERSION: it changes how many times the instrument is
+#: read, not what the instrument is, and the merge rule is fixed.
+CALLS_PER_COUNTRY = 3
 
 
 # Nullable fields use type unions rather than a bare type plus a convention.
@@ -159,8 +160,8 @@ CONDITION_FLAGS = (
 LEDGER_FIELDS = ("friction", "order", "information", "edge")
 
 #: One question's answer. The id is the key the entry sits under. Evidence is a
-#: list of free strings: the prompt allows indicator names, and the validator
-#: keeps only article ids and counts the rest, so the count is a measurement.
+#: list of free strings; the validator keeps only the article ids that were sent
+#: and counts the rest.
 QUESTION_ANSWER_SCHEMA: Dict = {
     "type": "object",
     "additionalProperties": False,

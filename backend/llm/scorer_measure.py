@@ -7,33 +7,28 @@ this week's payload for each country through the normal pipeline
 Every scoring call after that reads the file. Nothing is re-fetched, so a change
 in output comes from the scorer and not from the input.
 
-Step 5b reads the step 5 payloads from `backend/measurements/step5/` and writes
-everything new under `backend/measurements/step5b/`, so step 5's record stays
-as it was. The data half needs the roster table (`roster`), built once from the
-local panel and curated CSV and saved beside the calls.
+Steps 5b and 5c read the step 5 payloads from `backend/measurements/step5/`
+and write everything new under their own directory, so step 5's record stays
+as it was. The data half (`data`) is computed from the local panel and curated
+CSV with no model call, printed, checked and saved beside the calls.
 
 Nothing here writes `risk_snapshot` or `run_ledger`. Each call's answer goes to
 a JSON-lines file under `calls/`, one file per arm and country, and a rerun
 appends to it, so an interrupted arm resumes where it stopped.
 
-    python -m backend.llm.scorer_measure roster
-    python -m backend.llm.scorer_measure score --arm full --n 10 --cap-usd 3
-    python -m backend.llm.scorer_measure score --arm no_articles --arm no_economics --n 3 --cap-usd 1
-    python -m backend.llm.scorer_measure score --arm first_5 --arm first_10 --arm first_15 --n 3 --cap-usd 2
+    python -m backend.llm.scorer_measure data
+    python -m backend.llm.scorer_measure score --arm full --n 15 --cap-usd 4
+    python -m backend.llm.scorer_measure score --arm first_5 --arm first_10 --arm first_15 --n 3 --cap-usd 3
     python -m backend.llm.scorer_measure analyse
 
-The arms:
+Production mode is the per-question median of three calls, so every three
+consecutive calls of an arm are one result. The arms:
 
-- `full`: the frozen payload as it is.
-- `full_confirm`: the same payload, in a separate file, for the median-of-3
-  confirmation: every three consecutive calls are one median.
-- `no_articles`: the economics block and structural facts, with no articles, as
-  the pipeline would send a week in which nothing passed the gate.
-- `no_economics`: the articles and structural facts, with every ledger's
-  indicators removed and the pipeline's own empty-ledger note in their place.
+- `full`: the frozen payload as production would send it now (no economics
+  block). Fifteen calls are five medians.
 - `first_5`, `first_10`, `first_15`: the first n selected articles, in
   selection order, with the counts and coverage recomputed for the subset.
-  `full` is the "all" point.
+  Three calls are one median; `full`'s first median is the "all" point.
 
 It prints counts. Titles and verdicts stay in the files.
 """
@@ -44,7 +39,6 @@ import argparse
 import copy
 import datetime as dt
 import hashlib
-import itertools
 import json
 import statistics as st
 from collections import Counter
@@ -54,30 +48,23 @@ from typing import Any, Callable, Dict, List, Optional
 from backend.util import env
 env.load()
 
+from backend.data_fetching import curated_loader, data_retrieval
 from backend.llm import combine, data_score
 from backend.llm import constants as ai_constants
 from backend.llm import langchain_llm, payload_health, relevance
+from backend.llm import payload as payload_builder
 from backend.llm.payload import count_tokens
 from backend.util import constants, paths, pipeline, usage
 
 __all__ = ["freeze", "ARMS", "score_arm", "analyse"]
 
 FROZEN_DIR = paths.PROJECT_ROOT / "backend" / "measurements" / "step5"
-OUT_DIR = paths.PROJECT_ROOT / "backend" / "measurements" / "step5b"
+OUT_DIR = paths.PROJECT_ROOT / "backend" / "measurements" / "step5c"
 CALLS_DIR = OUT_DIR / "calls"
-ROSTER_PATH = OUT_DIR / "roster_percentiles.json"
+DATA_PATH = OUT_DIR / "data_table.json"
 
 SCORING_MODEL = pipeline.SCORING_MODEL
 SEED = 42
-
-# The empty-ledger note, word for word as `payload.build_economics_block`
-# writes it, so `no_economics` reads like a real week with nothing resolved.
-EMPTY_LEDGER_NOTE = (
-    "No indicator resolved for this ledger. Nothing is known about it "
-    "from the numbers this run; judge it from the articles alone, and "
-    "do not read the absence as a good result."
-)
-
 
 def _payload_path(iso2: str) -> Path:
     own = OUT_DIR / f"payload_{iso2}.json"
@@ -187,36 +174,66 @@ def freeze(countries: List[str], cap_usd: float) -> Dict[str, Any]:
     return report
 
 
-# --- The roster table ---------------------------------------------------------
+# --- The data half --------------------------------------------------------------
 
 
-def build_roster() -> Dict[str, Any]:
-    """Build the roster table and every country's percentile per code; save both."""
+def build_data_table(countries: List[str]) -> Dict[str, Any]:
+    """The data half for each frozen country, from the panel, with no model call.
+
+    The economics block is rebuilt from the local panel and `curated.csv` at the
+    frozen run date, because the frozen files hold only the codes the registry
+    had in September and the scorer no longer reads the block anyway. Prints
+    every scored value and runs the brief's check: RU highest on data, PT
+    lowest or second lowest.
+    """
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    table = data_score.roster_table()
-    per_country: Dict[str, Dict[str, Any]] = {}
-    for iso2 in (c["iso2"] for c in constants.COUNTRY_ROSTER):
-        row = {}
-        for code in constants.INDICATOR_REGISTRY:
-            v = table["values"][code].get(iso2)
-            got = data_score.percentile_of(code, v, iso2, table) if v is not None else None
-            row[code] = got["percentile"] if got else None
-        per_country[iso2] = row
-    out = {"table": table, "percentiles_by_country": per_country}
-    ROSTER_PATH.write_text(json.dumps(out, indent=1, default=str), encoding="utf-8")
-    n = table["n_by_code"]
-    print(f"[roster] {len(constants.COUNTRY_ROSTER)} countries; values per code: "
-          + ", ".join(f"{c.split('.')[0]}={n[c]}" for c in n)
-          + (f"; no panel for {table['missing_countries']}" if table["missing_countries"] else ""))
-    return out
-
-
-def load_roster() -> Dict[str, Any]:
-    if not ROSTER_PATH.exists():
-        raise RuntimeError(
-            f"{ROSTER_PATH} is missing; run `python -m backend.llm.scorer_measure roster` first"
+    table: Dict[str, Any] = {}
+    for iso2 in countries:
+        frozen = load_frozen(iso2)
+        run_date = dt.date.fromisoformat(frozen["run_date"])
+        econ = payload_builder.build_economics_block(
+            data_retrieval.panel_values(iso2, lookback=10),
+            curated_loader.load_for_country(iso2), today=run_date,
         )
-    return json.loads(ROSTER_PATH.read_text(encoding="utf-8"))["table"]
+        data = data_score.ledger_data_scores(econ["ledgers"])
+        table[iso2] = {"run_date": frozen["run_date"], "ledgers": econ["ledgers"],
+                       "resolution": econ["resolution"], "data": data}
+        print(f"== {iso2}  data scores {data['data_scores']}  "
+              f"indicators by ledger {data['n_by_ledger']}  unscored {data['unscored']}")
+        for code, v in data["indicators"].items():
+            print(f"   {v['ledger']:<11} {code:<22} {v['value']:>9.3f} ({v['period']}) -> "
+                  f"{v['score']:>5.1f}{' clamped' if v['clamped'] else ''}")
+
+    def composite(ds: Dict[str, Optional[float]]) -> Optional[float]:
+        w = {k: v for k, v in ai_constants.SCORING["composite_weights"].items() if v > 0}
+        present = {k: ds[k] for k in w if ds.get(k) is not None}
+        if not present:
+            return None
+        t = sum(w[k] for k in present)
+        return round(sum(w[k] / t * present[k] for k in present), 1)
+
+    comp = {c: composite(table[c]["data"]["data_scores"]) for c in countries}
+    order = sorted((c for c in comp if comp[c] is not None), key=lambda c: comp[c], reverse=True)
+    check = {
+        "data_only_composite": {c: comp[c] for c in order},
+        "ru_highest": bool(order) and order[0] == "RU",
+        "pt_rank_from_bottom": (len(order) - order.index("PT")) if "PT" in order else None,
+    }
+    check["pass"] = bool(check["ru_highest"] and check["pt_rank_from_bottom"] in (1, 2))
+    print(f"[data] data-only composite: {[(c, comp[c]) for c in order]}; "
+          f"RU highest {check['ru_highest']}, PT {check['pt_rank_from_bottom']} from bottom: "
+          f"{'PASS' if check['pass'] else 'FAIL'}")
+    DATA_PATH.write_text(json.dumps({"countries": table, "check": check}, indent=1, default=str),
+                         encoding="utf-8")
+    return {"countries": table, "check": check}
+
+
+def load_data_table() -> Dict[str, Any]:
+    if not DATA_PATH.exists():
+        raise RuntimeError(
+            f"{DATA_PATH} is missing; run `python -m backend.llm.scorer_measure data` first"
+        )
+    return json.loads(DATA_PATH.read_text(encoding="utf-8"))["countries"]
 
 
 # --- Arms -------------------------------------------------------------------
@@ -227,35 +244,20 @@ def _set_components(p: Dict[str, Any], **changes: float) -> None:
     comps.update({k: round(v, 4) for k, v in changes.items()})
 
 
+def _as_production(frozen: Dict[str, Any]) -> Dict[str, Any]:
+    """The frozen payload as `build_scoring_payload` would send it now: no economics block."""
+    p = copy.deepcopy(frozen["payload"])
+    p.pop("economics_by_ledger", None)
+    return p
+
+
 def arm_full(frozen: Dict[str, Any]) -> Dict[str, Any]:
-    return copy.deepcopy(frozen["payload"])
-
-
-def arm_no_articles(frozen: Dict[str, Any]) -> Dict[str, Any]:
-    p = copy.deepcopy(frozen["payload"])
-    p["articles"] = []
-    p["full_texts"] = []
-    cov = p["article_coverage"]
-    cov["selected_per_theme"] = {k: 0 for k in cov["selected_per_theme"]}
-    cov["selected_per_ledger"] = {k: 0 for k in cov["selected_per_ledger"]}
-    cov["passed_the_gate"] = 0
-    cov["selected"] = 0
-    _set_components(p, article_volume=0.0, body_depth=0.0)
-    return p
-
-
-def arm_no_economics(frozen: Dict[str, Any]) -> Dict[str, Any]:
-    p = copy.deepcopy(frozen["payload"])
-    for block in p["economics_by_ledger"].values():
-        block["indicators"] = []
-        block["note"] = EMPTY_LEDGER_NOTE
-    _set_components(p, indicator_resolution=0.0, freshness=0.0)
-    return p
+    return _as_production(frozen)
 
 
 def _first(n: int) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
     def arm(frozen: Dict[str, Any]) -> Dict[str, Any]:
-        p = copy.deepcopy(frozen["payload"])
+        p = _as_production(frozen)
         keep = p["articles"][:n]
         ids = {a["id"] for a in keep}
         p["articles"] = keep
@@ -280,13 +282,12 @@ def _first(n: int) -> Callable[[Dict[str, Any]], Dict[str, Any]]:
 
 ARMS: Dict[str, Callable[[Dict[str, Any]], Dict[str, Any]]] = {
     "full": arm_full,
-    "full_confirm": arm_full,
-    "no_articles": arm_no_articles,
-    "no_economics": arm_no_economics,
     "first_5": _first(5),
     "first_10": _first(10),
     "first_15": _first(15),
 }
+
+K = 3  # production mode: the per-question median of three calls
 
 
 # --- Scoring ----------------------------------------------------------------
@@ -310,15 +311,10 @@ def load_frozen(iso2: str) -> Dict[str, Any]:
     return frozen
 
 
-def _data_for(frozen: Dict[str, Any], payload: Dict[str, Any], roster: Dict[str, Any]) -> Dict[str, Any]:
-    """The data half for one arm's payload: what the arm left in the block."""
-    return data_score.ledger_data_scores(payload["economics_by_ledger"], frozen["iso2"], roster)
-
-
 def _score(frozen: Dict[str, Any], payload: Dict[str, Any], answer: Dict[str, Any],
-           roster: Dict[str, Any], validation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+           data: Dict[str, Any], validation: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     return combine.combine(
-        answer=answer, data=_data_for(frozen, payload, roster),
+        answer=answer, data=data,
         article_ids=[a["id"] for a in payload["articles"]],
         run_date=dt.date.fromisoformat(frozen["run_date"]),
         history=None, validation=validation,
@@ -337,8 +333,6 @@ def project(arms: Dict[str, int], countries: List[str]) -> float:
                 continue
             p = ARMS[arm](frozen)
             tokens_in = prompt_tokens + count_tokens(_sent_bytes(p))["tokens"] + 50
-            # Sixteen answers with a note each, events and a summary: about 900
-            # output tokens, plus a little per article cited.
             tokens_out = 900 + 10 * len(p["articles"])
             total += usage.cost_usd(SCORING_MODEL, todo * tokens_in, todo * tokens_out)
     return total
@@ -346,12 +340,13 @@ def project(arms: Dict[str, int], countries: List[str]) -> float:
 
 def score_arm(arm: str, n: int, countries: List[str], meter: usage.Meter, cap_usd: float) -> None:
     CALLS_DIR.mkdir(parents=True, exist_ok=True)
-    roster = load_roster()
+    table = load_data_table()
     for iso2 in countries:
         frozen = load_frozen(iso2)
         payload = ARMS[arm](frozen)
         ids = [a["id"] for a in payload["articles"]]
         sent_sha = _sha(_sent_bytes(payload))
+        data = table[iso2]["data"]
         done = len(read_calls(arm, iso2))
         for i in range(done, n):
             before = (meter.input_tokens, meter.output_tokens)
@@ -365,7 +360,7 @@ def score_arm(arm: str, n: int, countries: List[str], meter: usage.Meter, cap_us
             scoring = None
             if scored["answer"]:
                 try:
-                    scoring = _score(frozen, payload, scored["answer"], roster,
+                    scoring = _score(frozen, payload, scored["answer"], data,
                                      {"violations": scored["violations"], "counts": scored["counts"]})
                 except ValueError as exc:
                     scored["failed"] = f"combine: {exc}"
@@ -428,15 +423,15 @@ def _slope(points: List[tuple]) -> Optional[float]:
     return sum((x - mx) * (y - my) for x, y in points) / sxx
 
 
-def _levels(row: Dict[str, Any]) -> Dict[str, Optional[int]]:
-    return {q: v.get("level") for q, v in row["scoring"]["questions"].items()}
+def _levels(scoring: Dict[str, Any]) -> Dict[str, Optional[int]]:
+    return {q: v.get("level") for q, v in scoring["questions"].items()}
 
 
-def _question_agreement(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Per question: the modal level, how many calls gave it, and the null share."""
+def _question_agreement(scorings: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Per question: the modal level, how many results gave it, and the null share."""
     out = {}
     for qid in ai_constants.QUESTION_IDS:
-        levels = [_levels(r).get(qid) for r in rows]
+        levels = [_levels(s).get(qid) for s in scorings]
         c = Counter(levels)
         modal, count = c.most_common(1)[0] if c else (None, 0)
         out[qid] = {
@@ -449,188 +444,156 @@ def _question_agreement(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     return out
 
 
-def _median_of_triples(iso2: str, rows: List[Dict[str, Any]], roster: Dict[str, Any]) -> Dict[str, Any]:
-    """`score_12m` for the median-of-3 of every triple of the M1 calls, at no cost."""
+def _medians(arm: str, iso2: str, table: Dict[str, Any]) -> List[Dict[str, Any]]:
+    """Every K consecutive calls of an arm merged by per-question median, then scored."""
+    rows = _scored(arm, iso2)
     frozen = load_frozen(iso2)
-    payload = arm_full(frozen)
-    scores = []
-    for triple in itertools.combinations(rows, 3):
-        merged = combine.merge_answers([r["answer"] for r in triple])
-        scores.append(_score(frozen, payload, merged, roster)["score_12m"])
-    return {"triples": len(scores), **_stats(scores)}
-
-
-def _confirm_medians(iso2: str, roster: Dict[str, Any]) -> Dict[str, Any]:
-    """Fresh median-of-3 sets from `full_confirm`: every three consecutive calls."""
-    rows = _scored("full_confirm", iso2)
-    frozen = load_frozen(iso2)
-    payload = arm_full(frozen)
-    scores = []
-    for k in range(0, len(rows) - len(rows) % 3, 3):
-        merged = combine.merge_answers([r["answer"] for r in rows[k:k + 3]])
-        scores.append(_score(frozen, payload, merged, roster)["score_12m"])
-    return {"sets": len(scores), **_stats(scores)}
+    payload = ARMS[arm](frozen)
+    out = []
+    for k in range(0, len(rows) - len(rows) % K, K):
+        merged = combine.merge_answers([r["answer"] for r in rows[k:k + K]])
+        out.append(_score(frozen, payload, merged, table[iso2]["data"]))
+    return out
 
 
 def analyse() -> Dict[str, Any]:
-    """M1, face validity, median-of-3, M3, M4, M5 and dilution. Writes analysis.json."""
+    """M1 in median-of-3 mode, face validity, M3, M4, M5, dilution, cost. Writes analysis.json."""
     countries = [c for c in _frozen_countries() if _scored("full", c)]
-    roster = load_roster()
-    out: Dict[str, Any] = {"countries": countries, "prompt_version": ai_constants.PROMPT_VERSION}
+    table = load_data_table()
+    data_check = json.loads(DATA_PATH.read_text(encoding="utf-8"))["check"]
+    out: Dict[str, Any] = {"countries": countries, "prompt_version": ai_constants.PROMPT_VERSION,
+                           "data_check": data_check}
 
-    # M1: repeatability, on the computed score and per question.
+    # M1: repeatability of the production result, the median of three.
     m1: Dict[str, Any] = {}
+    medians_by: Dict[str, List[Dict[str, Any]]] = {}
     for iso2 in countries:
-        rows = _scored("full", iso2)
-        sc = [r["scoring"] for r in rows]
+        singles = [r["scoring"] for r in _scored("full", iso2)]
+        meds = _medians("full", iso2, table)
+        medians_by[iso2] = meds
         counts = Counter()
-        for r in rows:
+        for r in _scored("full", iso2):
             counts.update(r.get("counts") or {})
-        agreement = _question_agreement(rows)
         m1[iso2] = {
-            "calls": len(rows),
-            "failed": len(read_calls("full", iso2)) - len(rows),
-            "score_12m": _stats([s["score_12m"] for s in sc]),
-            "score_3m": _stats([s["score_3m"] for s in sc]),
-            **{f: _stats([s["ledger_ints"].get(f) for s in sc]) for f in LEDGER_SCORES},
-            "news_scores": {f: _stats([s["news_scores"][f]["score"] for s in sc]) for f in LEDGER_SCORES},
-            "data_scores": {f: sc[0]["data_scores"].get(f) for f in LEDGER_SCORES} if sc else {},
-            "questions": agreement,
-            "questions_flipping": [q for q, a in agreement.items() if a["flips"]],
+            "calls": len(singles),
+            "failed": len(read_calls("full", iso2)) - len(singles),
+            "medians": len(meds),
+            "score_12m": _stats([m["score_12m"] for m in meds]),
+            "score_3m": _stats([m["score_3m"] for m in meds]),
+            **{f: _stats([m["ledger_ints"].get(f) for m in meds]) for f in LEDGER_SCORES},
+            "single_call_score_12m": _stats([s["score_12m"] for s in singles]),
+            "questions": _question_agreement(meds),
+            "questions_flipping": [q for q, a in _question_agreement(meds).items() if a["flips"]],
+            "questions_flipping_single_calls": [q for q, a in _question_agreement(singles).items() if a["flips"]],
             "validator_counts": dict(counts),
-            "events_per_call": [len(s["events"]["valid"]) for s in sc],
+            "zero_with_no_evidence": sum(
+                1 for r in _scored("full", iso2) for q in ai_constants.QUESTION_IDS
+                if ((r.get("raw") or {}).get(q) or {}).get("level") == 0
+                and not ((r.get("raw") or {}).get(q) or {}).get("evidence")),
         }
     worst = max((m1[c]["score_12m"].get("sd", 0) for c in countries), default=0)
-    out["m1"] = {"per_country": m1, "worst_sd_12m": worst,
-                 "branch": ("one call" if worst <= 1 else
-                            "median of 3" if worst <= 3 else "stop")}
+    out["m1"] = {"per_country": m1, "worst_sd_12m_median_of_3": worst,
+                 "worst_sd_12m_single_call": max((m1[c]["single_call_score_12m"].get("sd", 0) for c in countries), default=0),
+                 "branch": "pass" if worst <= 1 else "stop"}
 
-    # Face validity: RU highest, PT lowest or second lowest, on the median.
-    medians = {c: m1[c]["score_12m"].get("median") for c in countries if m1[c]["score_12m"].get("n")}
-    order = sorted(medians, key=lambda c: medians[c], reverse=True)
-    fv = {"order": [(c, medians[c]) for c in order]}
-    if medians:
+    # Face validity on the median result.
+    meds12 = {c: m1[c]["score_12m"].get("median") for c in countries if m1[c]["score_12m"].get("n")}
+    order = sorted(meds12, key=lambda c: meds12[c], reverse=True)
+    fv: Dict[str, Any] = {"order": [(c, meds12[c]) for c in order]}
+    if meds12:
         fv["ru_highest"] = order[0] == "RU"
         fv["pt_rank_from_bottom"] = (len(order) - order.index("PT")) if "PT" in order else None
         fv["pass"] = bool(fv["ru_highest"] and fv["pt_rank_from_bottom"] in (1, 2))
-        fv["ledger_medians"] = {
-            c: {f: m1[c][f].get("median") for f in LEDGER_SCORES} for c in countries
-        }
+        fv["ledger_medians"] = {c: {f: m1[c][f].get("median") for f in LEDGER_SCORES} for c in countries}
         fv["branch"] = "pass" if fv["pass"] else "fail"
     out["face_validity"] = fv
 
-    # Median of 3: from triples of the M1 calls (free), then fresh sets.
-    mo3: Dict[str, Any] = {"from_triples": {}, "fresh": {}}
-    for iso2 in countries:
-        rows = _scored("full", iso2)
-        if len(rows) >= 3:
-            mo3["from_triples"][iso2] = _median_of_triples(iso2, rows, roster)
-        if _scored("full_confirm", iso2):
-            mo3["fresh"][iso2] = _confirm_medians(iso2, roster)
-    for key in ("from_triples", "fresh"):
-        sds = [v.get("sd") for v in mo3[key].values() if v.get("sd") is not None]
-        mo3[f"worst_sd_{key}"] = max(sds) if sds else None
-    out["median_of_3"] = mo3
-    out["m2"] = {"note": "the composite is computed; the grid is not measured"}
-
-    # M3: do the articles move the score? With no articles the news half must
-    # be null and the score is the data half alone.
+    # M3: the full score against the data-only score (every item at the data level).
     m3: Dict[str, Any] = {}
     for iso2 in countries:
-        full = st.median([r["scoring"]["score_12m"] for r in _scored("full", iso2)])
-        row: Dict[str, Any] = {"full_median_12m": full}
-        for arm in ("no_articles", "no_economics"):
-            rows = _scored(arm, iso2)
-            if not rows:
-                continue
-            vals = [r["scoring"]["score_12m"] for r in rows]
-            entry: Dict[str, Any] = {"values": vals, "median": st.median(vals),
-                                     "shift": st.median(vals) - full}
-            if arm == "no_articles":
-                raw_non_null = [sum(1 for q in ai_constants.QUESTION_IDS
-                                    if ((r.get("raw") or {}).get(q) or {}).get("level") is not None)
-                                for r in rows]
-                entry["raw_non_null_levels"] = raw_non_null
-                entry["validator_failures"] = sum(raw_non_null)
-                entry["final_non_null_levels"] = [
-                    sum(v is not None for v in _levels(r).values()) for r in rows]
-                entry["ledger_modes"] = [
-                    {f: r["scoring"]["ledgers"][f]["mode"] for f in LEDGER_SCORES} for r in rows]
-                entry["equals_data_half"] = all(
-                    all(m in ("data_only", "none") for m in modes.values()) for modes in entry["ledger_modes"])
-            else:
-                entry["ledger_modes"] = [
-                    {f: r["scoring"]["ledgers"][f]["mode"] for f in LEDGER_SCORES} for r in rows]
-            row[arm] = entry
-        m3[iso2] = row
-
-    def _mean(arm, fn):
-        xs = [fn(m3[c][arm]) for c in countries if arm in m3[c]]
-        return round(sum(xs) / len(xs), 2) if xs else None
-    out["m3"] = {
-        "per_country": m3,
-        "no_articles_mean_abs_shift": _mean("no_articles", lambda e: abs(e["shift"])),
-        "no_articles_mean_signed_shift": _mean("no_articles", lambda e: e["shift"]),
-        "no_articles_validator_failures": sum(
-            m3[c]["no_articles"]["validator_failures"] for c in countries if "no_articles" in m3[c]),
-        "no_economics_mean_abs_shift": _mean("no_economics", lambda e: abs(e["shift"])),
-        "no_economics_mean_signed_shift": _mean("no_economics", lambda e: e["shift"]),
-    }
-    if out["m3"]["no_articles_mean_abs_shift"] is not None:
-        out["m3"]["branch"] = (f"articles move the score by {out['m3']['no_articles_mean_abs_shift']} on average; "
-                               f"{out['m3']['no_articles_validator_failures']} levels cited with no articles")
-
-    # M4: the 3-month score. Every non-zero gap traces to a dated event.
-    gaps: List[Dict[str, Any]] = []
-    for iso2 in countries:
-        for arm in ("full", "no_articles", "no_economics"):
-            for r in _scored(arm, iso2):
-                s = r["scoring"]
-                gaps.append({
-                    "iso2": iso2, "arm": arm, "i": r["i"],
-                    "gap": s["score_12m"] - s["score_3m"],
-                    "events": [{k: e.get(k) for k in ("article_id", "date", "question", "direction", "event")}
-                               for e in s["events"]["valid"]],
-                    "events_dropped": (r.get("counts") or {}).get("events_dropped", 0),
-                })
-    dist = Counter(g["gap"] for g in gaps)
-    modal = dist.most_common(1)[0][0] if dist else None
-    out["m4"] = {
-        "calls": len(gaps),
-        "distribution": dict(sorted(dist.items())),
-        "modal_gap": modal,
-        "modal_share": round(dist[modal] / len(gaps), 3) if gaps else None,
-        "non_zero": [g for g in gaps if g["gap"]],
-        "all_traced": all(g["events"] for g in gaps if g["gap"]),
-        "events_dropped_total": sum(g["events_dropped"] for g in gaps),
-    }
+        frozen = load_frozen(iso2)
+        payload = arm_full(frozen)
+        empty = {"questions": {q: {"level": None, "evidence": [], "note": ""} for q in ai_constants.QUESTION_IDS},
+                 "scheduled_events": [], "condition_flags": {}, "bullet_summary": ""}
+        data_only = _score(frozen, payload, empty, table[iso2]["data"])
+        full = meds12.get(iso2)
+        meds = medians_by[iso2]
+        by_q = {}
+        for q in ai_constants.QUESTION_IDS:
+            lv = [m["questions"][q]["level"] for m in meds]
+            answered = [v for v in lv if v is not None]
+            if answered:
+                ledger = ai_constants.LEDGER_OF_QUESTION[q]
+                d = table[iso2]["data"]["data_scores"].get(ledger)
+                by_q[q] = {"modal_level": Counter(answered).most_common(1)[0][0],
+                           "item": 25 * st.median(answered),
+                           "data_level": d,
+                           "pull": round(25 * st.median(answered) - d, 1) if d is not None else None}
+        m3[iso2] = {
+            "data_only_12m": data_only["score_12m"],
+            "data_only_ledgers": data_only["ledger_ints"],
+            "full_median_12m": full,
+            "gap": (full - data_only["score_12m"]) if full is not None else None,
+            "questions": by_q,
+        }
+    gaps = [m3[c]["gap"] for c in countries if m3[c]["gap"] is not None]
+    out["m3"] = {"per_country": m3,
+                 "mean_abs_gap": round(sum(abs(g) for g in gaps) / len(gaps), 2) if gaps else None,
+                 "mean_gap": round(sum(gaps) / len(gaps), 2) if gaps else None}
     if gaps:
-        out["m4"]["branch"] = (f"{sum(1 for g in gaps if g['gap'])} of {len(gaps)} calls have a gap; "
-                               + ("every one traces to a dated event" if out["m4"]["all_traced"]
-                                  else "A GAP WITH NO EVENT"))
+        out["m3"]["branch"] = f"articles move the score by {out['m3']['mean_abs_gap']} on average (range {min(gaps)}..{max(gaps)})"
 
-    # M5: article count. "All" is the first three M1 calls, the same payload.
+    # M4: the 3-month score, on every single call and every median.
+    gaps4: List[Dict[str, Any]] = []
+    dropped_dates = 0
+    for iso2 in countries:
+        for r in _scored("full", iso2):
+            s = r["scoring"]
+            dropped_dates += (r.get("counts") or {}).get("events_dropped_date_not_in_article", 0)
+            gaps4.append({"iso2": iso2, "kind": "call", "i": r["i"], "gap": s["score_12m"] - s["score_3m"],
+                          "events": [{k: e.get(k) for k in ("article_id", "date", "question", "direction", "event")}
+                                     for e in s["events"]["valid"]]})
+        for k, m in enumerate(medians_by[iso2]):
+            gaps4.append({"iso2": iso2, "kind": "median", "i": k, "gap": m["score_12m"] - m["score_3m"],
+                          "events": [{kk: e.get(kk) for kk in ("article_id", "date", "question", "direction", "event")}
+                                     for e in m["events"]["valid"]]})
+    dist = Counter(g["gap"] for g in gaps4 if g["kind"] == "call")
+    out["m4"] = {
+        "calls": sum(1 for g in gaps4 if g["kind"] == "call"),
+        "distribution_calls": dict(sorted(dist.items())),
+        "distribution_medians": dict(sorted(Counter(g["gap"] for g in gaps4 if g["kind"] == "median").items())),
+        "non_zero": [g for g in gaps4 if g["gap"]],
+        "all_traced": all(g["events"] for g in gaps4 if g["gap"]),
+        "events_dropped_date_not_in_article": dropped_dates,
+        "events_valid_total": sum(len(g["events"]) for g in gaps4 if g["kind"] == "call"),
+    }
+    nz = sum(1 for g in gaps4 if g["gap"] and g["kind"] == "call")
+    out["m4"]["branch"] = (f"{nz} of {out['m4']['calls']} calls have a gap; "
+                           + ("every one traces to an event whose date is in its article" if out["m4"]["all_traced"]
+                              else "A GAP WITH NO EVENT")
+                           + f"; {dropped_dates} events dropped for a date not in the article")
+
+    # M5: article count, one median-of-3 per subset; "all" is the first median of `full`.
     per_country: Dict[str, Any] = {}
     pooled_fe: List[tuple] = []
     pooled_raw: List[tuple] = []
-    by_count_levels: Dict[int, List[Dict[str, Optional[int]]]] = {}
+    levels_by_count: Dict[int, List[Dict[str, Optional[int]]]] = {}
     for iso2 in countries:
-        pts: List[tuple] = []
         n_all = len(load_frozen(iso2)["article_ids"])
+        pts: List[tuple] = []
         for arm, n in (("first_5", 5), ("first_10", 10), ("first_15", 15), ("full", n_all)):
-            limit = 3 if arm == "full" else None
-            for r in _scored(arm, iso2, limit):
-                x = min(n, n_all)
-                pts.append((x, r["scoring"]["score_12m"]))
-                by_count_levels.setdefault(x, []).append(_levels(r))
+            meds = medians_by[iso2][:1] if arm == "full" else _medians(arm, iso2, table)
+            for m in meds[:1]:
+                pts.append((min(n, n_all), m["score_12m"]))
+                levels_by_count.setdefault(min(n, n_all), []).append(_levels(m))
         if len({x for x, _ in pts}) < 2:
             continue
-        medians = {x: st.median([y for xx, y in pts if xx == x]) for x in sorted({x for x, _ in pts})}
         my = sum(y for _, y in pts) / len(pts)
         mx = sum(x for x, _ in pts) / len(pts)
         pooled_fe += [(x - mx, y - my) for x, y in pts]
         pooled_raw += pts
-        per_country[iso2] = {"medians_by_count": medians, "slope": round(_slope(pts), 3) if _slope(pts) is not None else None}
+        sl = _slope(pts)
+        per_country[iso2] = {"score_by_count": dict(pts), "slope": round(sl, 3) if sl is not None else None}
     pooled = _slope(pooled_fe)
     per_question: Dict[str, Any] = {}
     for qid in ai_constants.QUESTION_IDS:
@@ -640,13 +603,17 @@ def analyse() -> Dict[str, Any]:
                 "mean_level": (round(st.mean([l[qid] for l in ls if l.get(qid) is not None]), 2)
                                if any(l.get(qid) is not None for l in ls) else None),
             }
-            for x, ls in sorted(by_count_levels.items())
+            for x, ls in sorted(levels_by_count.items())
         }
+    changing = [q for q, by in per_question.items()
+                if len({v["non_null_share"] > 0 for v in by.values()}) > 1
+                or len({v["mean_level"] for v in by.values() if v["mean_level"] is not None}) > 1]
     out["m5"] = {
         "per_country": per_country,
         "pooled_slope_within_country": round(pooled, 3) if pooled is not None else None,
         "pooled_slope_naive": (round(_slope(pooled_raw), 3) if _slope(pooled_raw) is not None else None),
         "per_question_by_count": per_question,
+        "questions_changing_with_count": changing,
     }
     if pooled is not None:
         out["m5"]["branch"] = ("volume question closed" if abs(pooled) <= 0.2
@@ -657,7 +624,7 @@ def analyse() -> Dict[str, Any]:
     uncited: List[float] = []
     for iso2 in countries:
         test_of = {m["id"]: m.get("test") for m in load_frozen(iso2)["articles_meta"]}
-        for arm in ("full", "no_economics", "first_5", "first_10", "first_15"):
+        for arm in ARMS:
             for r in _scored(arm, iso2):
                 weights = r["scoring"]["article_weights"]
                 if weights:
@@ -672,12 +639,8 @@ def analyse() -> Dict[str, Any]:
         },
         "uncited_share_mean": round(sum(uncited) / len(uncited), 3) if uncited else None,
     }
-    t1 = out["dilution"]["by_test"].get("T1")
-    if t1:
-        out["dilution"]["branch"] = ("rank T1 below T2-T5" if t1["share_zero"] > 0.5
-                                     else "T1 informs the score")
 
-    # Spend, metered from the call rows.
+    # Spend, metered from the call rows, and the production projection.
     spend: Dict[str, Any] = {}
     for arm in ARMS:
         rows = [r for c in countries for r in read_calls(arm, c)]
@@ -687,6 +650,12 @@ def analyse() -> Dict[str, Any]:
             spend[arm] = {"calls": len(rows), "input_tokens": tin, "output_tokens": tout,
                           "usd": round(usage.cost_usd(SCORING_MODEL, tin, tout), 3)}
     spend["total_usd"] = round(sum(v["usd"] for v in spend.values()), 3)
+    full_rows = [r for c in countries for r in read_calls("full", c)]
+    if full_rows:
+        per_call = spend["full"]["usd"] / len(full_rows)
+        spend["per_call_usd"] = round(per_call, 4)
+        spend["per_country_week_median_of_3_usd"] = round(K * per_call, 4)
+        spend["weekly_48_countries_usd"] = round(48 * K * per_call, 2)
     out["spend"] = spend
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -700,7 +669,8 @@ def main() -> None:
     f = sub.add_parser("freeze")
     f.add_argument("countries", nargs="+")
     f.add_argument("--cap-usd", type=float, default=1.5)
-    sub.add_parser("roster")
+    d = sub.add_parser("data")
+    d.add_argument("--countries", nargs="+", default=None)
     s = sub.add_parser("score")
     s.add_argument("--arm", action="append", required=True, choices=sorted(ARMS))
     s.add_argument("--n", type=int, required=True)
@@ -714,14 +684,15 @@ def main() -> None:
     if args.cmd == "freeze":
         freeze([c.upper() for c in args.countries], args.cap_usd)
         return
-    if args.cmd == "roster":
-        build_roster()
+    if args.cmd == "data":
+        build_data_table([c.upper() for c in args.countries] if args.countries else _frozen_countries())
         return
     if args.cmd == "analyse":
         out = analyse()
         print(json.dumps({k: v.get("branch") for k, v in out.items() if isinstance(v, dict) and "branch" in v},
                          indent=1))
-        print(f"spend ${out['spend']['total_usd']}")
+        print(f"spend ${out['spend']['total_usd']}; weekly 48 countries "
+              f"${out['spend'].get('weekly_48_countries_usd')}")
         return
 
     countries = [c.upper() for c in args.countries] if args.countries else _frozen_countries()

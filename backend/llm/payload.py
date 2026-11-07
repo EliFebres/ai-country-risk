@@ -236,14 +236,18 @@ def build_scoring_payload(
     1. **The structural facts**, first, so everything after is read against them.
        A 7% policy rate means something different in a country that sets its own
        rate than in one that imports Frankfurt's.
-    2. **The economics block by ledger**, each value with its trajectory in
-       words, its vintage and its staleness.
-    3. **The per-theme article counts**, with the note that a zero means no
+    2. **The per-theme article counts**, with the note that a zero means no
        relevant coverage was found — not that nothing happened.
-    4. **The digests** of every admitted article.
-    5. **The top-k full texts**, each labelled with how much of it was read.
-    6. **The computed coverage components**, so the model can see how much it
+    3. **The digests** of every admitted article.
+    4. **The top-k full texts**, each labelled with how much of it was read.
+    5. **The computed coverage components**, so the model can see how much it
        was given without being asked to assess that itself.
+
+    The economics block is **not** in the payload since step 5c. The data half
+    is scored in code from the same numbers (`data_score`), and when the model
+    could see them it cited them as evidence for the questions they answer,
+    which counted them twice. The block stays in the manifest and the census.
+    `economics` is still taken so the call site does not change.
 
     Every article carries an id (``a1``, ``a2``, ...) so the returned
     per-article scores can be matched back, and the validator can notice one
@@ -302,7 +306,6 @@ def build_scoring_payload(
             "note": "No structural facts are on file for this country. Do not "
                     "assume a default monetary regime or income level."
         },
-        "economics_by_ledger": economics["ledgers"],
         "article_coverage": {
             "note": "Counts are of articles that passed the relevance gate. A "
                     "zero means no relevant coverage was found for that theme "

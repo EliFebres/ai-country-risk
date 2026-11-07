@@ -21,18 +21,22 @@ The rules the code enforces, which the prompt does not:
 - A non-null level with no surviving evidence becomes null. The prompt says a
   level must cite at least one; the grammar cannot say so.
 - A scheduled event counts only with a strict ISO date inside the horizon, an
-  article id that was sent and a known question.
+  article id that was sent, a known question, and **the date written in that
+  article's text** (day and month, or month and year, in any common form).
+  Step 5b found the model giving first-of-month dates to elections whose
+  articles gave none.
 """
 
 from __future__ import annotations
 
 import datetime as dt
+import re
 from typing import Any, Dict, List, Optional, Sequence
 
 from backend.llm import constants as ai_constants
 from backend.util import constants as util_constants
 
-__all__ = ["validate", "ValidationResult", "COUNT_KEYS"]
+__all__ = ["validate", "ValidationResult", "COUNT_KEYS", "article_texts", "date_in_text"]
 
 COUNT_KEYS = (
     "levels_nulled_no_evidence",
@@ -40,7 +44,57 @@ COUNT_KEYS = (
     "evidence_dropped",
     "evidence_dropped_non_article",
     "events_dropped",
+    "events_dropped_date_not_in_article",
 )
+
+_MONTHS = ("january", "february", "march", "april", "may", "june", "july",
+           "august", "september", "october", "november", "december")
+
+
+def article_texts(payload: Dict[str, Any]) -> Dict[str, str]:
+    """Everything the model could read about each article, keyed by id.
+
+    The digest fields for every article, and the body for the ones sent in
+    full. This is what a scheduled event's date is checked against.
+    """
+    texts: Dict[str, List[str]] = {}
+    for a in payload.get("articles") or []:
+        parts = [str(a.get("title") or ""), str(a.get("published") or "")]
+        digest = a.get("digest") or {}
+        for v in digest.values():
+            parts.append(" ".join(map(str, v)) if isinstance(v, list) else str(v or ""))
+        texts.setdefault(a.get("id"), []).extend(parts)
+    for f in payload.get("full_texts") or []:
+        texts.setdefault(f.get("id"), []).append(str(f.get("text") or ""))
+    return {aid: "\n".join(p) for aid, p in texts.items() if aid}
+
+
+def date_in_text(when: dt.date, text: str) -> bool:
+    """Whether `when` is written in `text`, as day-month or month-year.
+
+    Accepts "3 November", "November 3", "Nov. 3rd", "3 Nov 2026",
+    "November 2026", "2026-11-03", "3/11/2026" and "11/3/2026". Does not
+    accept the year alone, or a month alone.
+    """
+    if not text:
+        return False
+    t = text.lower()
+    month = _MONTHS[when.month - 1]
+    mon = month[:3]
+    d, y = when.day, when.year
+    month_re = rf"(?:{month}|{mon}\.?)"
+    day_re = rf"{d}(?:st|nd|rd|th)?"
+    patterns = [
+        rf"\b{day_re}\s+(?:of\s+)?{month_re}\b",
+        rf"\b{month_re}\s+{day_re}\b",
+        rf"\b{month_re},?\s+{y}\b",
+        rf"\b{y}-{when.month:02d}-{d:02d}\b",
+        rf"\b{d}[/.]{when.month}[/.]{y}\b",
+        rf"\b{d:02d}[/.]{when.month:02d}[/.]{y}\b",
+        rf"\b{when.month}[/.]{d}[/.]{y}\b",
+        rf"\b{when.month:02d}[/.]{d:02d}[/.]{y}\b",
+    ]
+    return any(re.search(pat, t) for pat in patterns)
 
 #: Registry codes and labels, lower-cased, so an indicator cited as evidence can
 #: be told from an invented article id when it is counted.
@@ -93,6 +147,7 @@ def validate(
     *,
     article_ids: Sequence[str] = (),
     run_date: Optional[dt.date] = None,
+    texts: Optional[Dict[str, str]] = None,
 ) -> ValidationResult:
     """Validate a decoded checklist answer against the full contract.
 
@@ -102,6 +157,9 @@ def validate(
             article that was never supplied can be dropped.
         run_date: The date the evidence is read as of; the scheduled-event
             horizon is measured from it. Defaults to today.
+        texts: `article_texts(payload)`: what the model could read per
+            article. When given, a scheduled event is kept only if its date
+            is written in the cited article. When None the check is skipped.
 
     Returns:
         A :class:`ValidationResult` carrying the cleaned answer under
@@ -218,9 +276,13 @@ def validate(
             problem = "unknown direction"
         elif (aid, qid, when) in seen_events:
             problem = "duplicate"
+        elif texts is not None and not date_in_text(when, texts.get(aid, "")):
+            problem = "date not in article"
         if problem:
             violations.append({"field": field, "problem": problem, "raw": ev})
             counts["events_dropped"] += 1
+            if problem == "date not in article":
+                counts["events_dropped_date_not_in_article"] += 1
             continue
         seen_events.add((aid, qid, when))
         events.append({

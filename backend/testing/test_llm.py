@@ -532,7 +532,12 @@ class TestEconomicsBlock:
     def test_the_resolution_report_counts_expected_against_resolved(self):
         block = payload_mod.build_economics_block(_panel(INFLATION={2024: 7.2}))
         res = block["resolution"]
-        assert res["expected_by_ledger"]["friction"] == 4
+        # Friction gained the two WGI series (regulatory quality, control of
+        # corruption) in step 5c; the count is the registry's, not a literal.
+        from backend.util import constants as util_consts
+        assert res["expected_by_ledger"]["friction"] == sum(
+            1 for spec in util_consts.INDICATOR_REGISTRY.values() if spec["ledger"] == "friction")
+        assert res["expected_by_ledger"]["friction"] == 6
         assert res["resolved_by_ledger"]["friction"] == 1
         assert res["by_source"]["World Bank WDI"]["expected"] >= 1
 
@@ -917,13 +922,19 @@ class TestValidator:
             {"article_id": "a9", "date": (_RUN + dt.timedelta(days=10)).isoformat(),
              "event": "unsent", "question": "O2", "direction": "up"},
             {"article_id": "a1", "date": "soon", "event": "undated", "question": "O2", "direction": "up"},
+            {"article_id": "a1", "date": (_RUN + dt.timedelta(days=20)).isoformat(),
+             "event": "invented", "question": "O2", "direction": "up"},
             {"article_id": "a1", "date": (_RUN + dt.timedelta(days=10)).isoformat(),
              "event": "kept", "question": "O2", "direction": "down"},
         ]
-        got = validator.validate(_answer(scheduled_events=events), article_ids=["a1"], run_date=_RUN)
+        when = _RUN + dt.timedelta(days=10)
+        texts = {"a1": f"The vote is on {when.day} {when.strftime('%B')}."}
+        got = validator.validate(_answer(scheduled_events=events), article_ids=["a1"], run_date=_RUN, texts=texts)
         assert [e["event"] for e in got["answer"]["scheduled_events"]] == ["kept"]
-        assert got.counts["events_dropped"] == 4
-        assert {v["problem"] for v in got.violations} >= {"past", "beyond horizon", "unknown article", "unparseable date"}
+        assert got.counts["events_dropped"] == 5
+        assert got.counts["events_dropped_date_not_in_article"] == 1
+        assert {v["problem"] for v in got.violations} >= {"past", "beyond horizon", "unknown article",
+                                                          "unparseable date", "date not in article"}
 
     def test_a_non_object_answer_does_not_raise(self):
         got = validator.validate("nope")
@@ -962,17 +973,21 @@ class TestScoringContract:
         scoring = combine.combine(
             answer=validator.validate(_answer(), article_ids=["a1"], run_date=_RUN)["answer"],
             data={"data_scores": {"friction": 50.0, "order": 10.0, "information": None, "edge": 90.0},
-                  "percentiles": {}, "n_by_ledger": {}},
+                  "indicators": {}, "n_by_ledger": {}},
             article_ids=["a1"], run_date=_RUN,
         )
-        # friction: data 50, news 25×2 = 50 → 50; order: data 10, news 25×1 → 17.5;
-        # information: no data, no news → null, so weights renormalise to .5/.5.
+        # A null question is an item at the ledger's data level. friction: F6=2
+        # → 50, five nulls at 50 → news 50 → ledger 50. order: O3=1 → 25, five
+        # nulls at 10 → news 12.5 → ledger .5×10 + .5×12.5 = 11.25. information:
+        # no data, all null → null, so the weights renormalise to .5/.5.
         assert scoring["ledgers"]["friction"]["score"] == 50.0
-        assert scoring["ledgers"]["order"]["score"] == 17.5
+        assert scoring["ledgers"]["order"]["score"] == 11.25
+        assert scoring["news_scores"]["order"]["n_from_data"] == 5
         assert scoring["ledgers"]["information"]["score"] is None
+        assert scoring["ledgers"]["edge"]["score"] == 90.0
         assert scoring["composite"]["renormalised"] is True
-        assert scoring["score_12m"] == 34
-        assert scoring["score_3m"] == 37  # one "up" event inside the horizon
+        assert scoring["score_12m"] == 31
+        assert scoring["score_3m"] == 34  # one "up" event inside the horizon
         assert scoring["article_weights"] == [{"id": "a1", "weight": 3, "questions": ["F6", "O3"]}]
         assert "PROMPT_VERSION = content_hash(" in __import__("pathlib").Path(ai_consts.__file__).read_text(encoding="utf-8")
 

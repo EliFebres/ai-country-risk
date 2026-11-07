@@ -156,7 +156,8 @@ def score_country(
         meter.add_response(model, response)
 
     parsed = response.get("parsed") if isinstance(response, dict) else response
-    checked = validate.validate(parsed, article_ids=article_ids, run_date=run_date)
+    checked = validate.validate(parsed, article_ids=article_ids, run_date=run_date,
+                                texts=validate.article_texts(payload))
 
     return {
         "answer": checked["answer"],
