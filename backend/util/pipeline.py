@@ -36,6 +36,7 @@ from backend.data_fetching import structural_facts
 from backend.data_fetching import data_retrieval
 from backend.llm import constants as ai_constants
 from backend.llm import combine, data_score
+from backend.llm import scoring as scoring_rule
 from backend.llm import langchain_llm
 from backend.llm import digest_engine
 from backend.llm import payload as payload_builder
@@ -327,30 +328,21 @@ def seed_roster() -> int:
     return written
 
 
-def assemble_country(
+def gather_candidates(
     country_name: str,
     iso2: str,
     run_as_of,
     run_meter: usage.Meter,
-    dump_dir: Optional[pathlib.Path] = None,
 ) -> Dict:
-    """Build one country's scoring payload: everything before the scorer call.
-
-    Economics, retrieval, the gate, one story per article, selection, digests,
-    the census and the payload, in that order. It writes the article bodies,
-    the indicator series and the gate and digest caches, as the weekly run
-    does. It does not score, and it writes neither `risk_snapshot` nor
-    `run_ledger`, so a measurement can freeze a payload with it and score the
-    frozen file as often as it needs to.
-
-    Returns:
-        ``{"items", "gate", "stories", "econ", "census", "scoring_payload",
-        "article_ids", "payload_tokens", "candidates", "labels"}``.
+    """Everything before selection: the economics block, retrieval, the gate
+    and the first story check. Returns ``{"econ", "candidates", "pool_report",
+    "labels", "stories"}``. Shared by the weekly run and by the step 5e
+    selection check, which runs old and new selection on the same candidates.
     """
     # 1) Macro payload (pretty, JSON-serializable). ALL_INDICATORS adds
     #    the merged non-WB indicators (Political Corruption Index) so they
     #    reach both the LLM payload and the DB upsert.
-    payload = data_retrieval.prepare_llm_payload_pretty(
+    data_retrieval.prepare_llm_payload_pretty(
         country_iso=iso2,
         indicators=constants.ALL_INDICATORS,
         since=2015,
@@ -412,52 +404,303 @@ def assemble_country(
         f"{sc['dropped']} set aside as the same story"
         + (f" (title fallback: {stories['problem']})" if stories["method"] != "llm" else "")
     )
+    return {
+        "econ": econ,
+        "candidates": candidates,
+        "pool_report": pool_report,
+        "labels": labels,
+        "stories": stories,
+    }
+
+
+#: How many post-selection story checks a country gets (step 5e, Fix 1).
+STORY_CHECK_ROUNDS = 3
+
+
+def _is_title_only(it: Dict) -> bool:
+    return not (it.get("text") or "").strip() or it.get("body_quality") == "not_article"
+
+
+def settle_selection(
+    gate: Dict,
+    *,
+    country_name: str,
+    iso2: str,
+    run_meter: usage.Meter,
+    story_rounds: int = STORY_CHECK_ROUNDS,
+    digest_mode: str = "both",
+) -> Dict:
+    """Turn the first cut of the selection into the final one.
+
+    The first cut (`relevance.select`) is made before any body has been
+    read. Two things can only be known after: whether an article is a
+    headline alone (its body is missing or the digest calls it a wall), and
+    whether two selected articles tell one story (the gate's sentence can be
+    wrong for a headline-only article). Both drop the article and give its
+    slot to the next eligible one (`relevance.refill`), and both are checked
+    again on the refilled set until nothing changes (step 5e, Fixes 1 and 2).
+
+    Each pass digests the newcomers, drops every headline-only or denylisted
+    article and refills until the set is stable, then runs the story check
+    on the selected titles and sentences. A check that finds duplicates
+    refills and starts another pass; the story check runs at most
+    `story_rounds` times, and the headline pass always runs last, so the
+    final set holds no headline-only article. If the ranking runs out, fewer
+    than the budget are sent and the shortfall is recorded. Nothing tops up
+    from ineligible articles.
+
+    After the set is final: the full-text slots go to the first three bodies
+    the digest called `full`; the masked digests and the masked full texts
+    are generated for what the scorer will read (`digest_mode` ``"both"``;
+    ``"named"`` skips masking, for a measurement that wants only the named
+    twin); the summaries and thumbnails are enriched.
+
+    Mutates ``gate["selected"]`` in place and returns ``{"items",
+    "digests", "selection", "mask", "post_selection_same_story"}``.
+    """
+    items = gate["selected"]
+    budget = gate["counts"]["budget"]
+    exclude: Dict[str, str] = {}
+    named: Dict[str, Dict] = {}
+    digest_counts = {"generated": 0, "cached": 0, "truncated_retry": 0, "failed": 0, "no_body": 0}
+    title_only_dropped: List[Dict] = []
+    blocked_dropped: List[Dict] = []
+    post_same_story: List[Dict] = []
+    refill_digests = 0
+    first_digest_round_done = False
+    story_checks = 0
+    passes = 0
+    final_story_check_clean = False
+
+    def url_of(it: Dict) -> str:
+        return it.get("publisher_link") or it.get("link") or ""
+
+    def attach_digest(it: Dict) -> None:
+        digest = named.get(url_of(it))
+        quality = (digest or {}).get("body_quality") if (it.get("text") or "").strip() else None
+        it["body_quality"] = quality
+        it["digest"] = None if quality == "not_article" else digest
+
+    with requests.Session() as _sess:
+        for pass_no in range(1, story_rounds + 2):
+            passes = pass_no
+            # (B) Headline-only and denylisted articles out, until stable.
+            while True:
+                for it in items:
+                    link = it.get("link")
+                    if not it.get("_resolved") and isinstance(link, str) and "news.google.com" in link:
+                        it["link"] = resolve_google_news_url(link, session=_sess)
+                    it["_resolved"] = True
+                bad: Dict[str, str] = {}
+                for it in items:
+                    if is_blocked_url(it.get("link")):
+                        bad[url_of(it)] = "blocked"
+                todo = [it for it in items
+                        if url_of(it) not in named and url_of(it) not in bad
+                        and (it.get("text") or "").strip()]
+                if todo:
+                    d = digest_engine.digest_articles(todo, meter=run_meter)
+                    named.update(d["digests"])
+                    for k in digest_counts:
+                        digest_counts[k] += d["counts"].get(k, 0)
+                    if first_digest_round_done:
+                        refill_digests += d["counts"].get("generated", 0)
+                first_digest_round_done = True
+                for it in items:
+                    attach_digest(it)
+                    if url_of(it) not in bad and _is_title_only(it):
+                        bad[url_of(it)] = "title-only"
+                if not bad:
+                    break
+                for it in items:
+                    reason = bad.get(url_of(it))
+                    if reason == "title-only":
+                        title_only_dropped.append({"url": url_of(it), "title": it.get("title"),
+                                                   "pass": pass_no})
+                    elif reason == "blocked":
+                        blocked_dropped.append({"url": url_of(it), "title": it.get("title")})
+                exclude.update(bad)
+                before = [url_of(it) for it in items]
+                relevance.refill(gate, exclude=exclude)
+                print(f"[select] {iso2}: pass {pass_no} dropped {len(bad)} "
+                      f"({sum(1 for r in bad.values() if r == 'title-only')} headline-only, "
+                      f"{sum(1 for r in bad.values() if r == 'blocked')} blocked), "
+                      f"{len(items)} selected after refill")
+                if [url_of(it) for it in items] == before:
+                    break
+            if pass_no > story_rounds:
+                break
+            # (A) One story, one article, checked on what was actually selected.
+            dup = relevance.dedupe_selected(items, country_name or iso2, meter=run_meter)
+            story_checks += 1
+            if not dup["same_story_as"]:
+                final_story_check_clean = True
+                break
+            for it in items:
+                u = url_of(it)
+                if u in dup["same_story_as"]:
+                    post_same_story.append({"url": u, "same_story_as": dup["same_story_as"][u],
+                                            "pass": "post_selection", "round": story_checks,
+                                            "method": dup["method"]})
+                    exclude[u] = "same_story"
+            relevance.refill(gate, exclude=exclude)
+            print(f"[select] {iso2}: post-selection story check {story_checks} set aside "
+                  f"{len(dup['same_story_as'])} second telling(s) ({dup['method']}), "
+                  f"{len(items)} selected after refill")
+
+        # The set is final. Full reads go to the first three bodies the
+        # digest called `full`, in the gate's own order. A `partial` body
+        # (the article, cut off by a wall) is digest-only.
+        full_reads = 0
+        for it in items:
+            attach_digest(it)
+            reads_full = it["body_quality"] == "full" and full_reads < relevance.FULL_TEXT_K
+            status, clipped, original = digest_engine.body_status_for(
+                it, full_text=reads_full, quality=it["body_quality"]
+            )
+            it["body_status"] = status
+            it["body_clipped"] = clipped
+            it["body_chars_original"] = original
+            full_reads += status in ("full", "clipped")
+
+        # What the scorer reads is anonymous (step 5e, Fix 8): the masked
+        # digest with its masked title for every article, and the masked
+        # full text for the ones read in full. Each is checked against the
+        # gazetteer as it is made; a digest or text the model could not
+        # produce is redacted by code so the country still scores.
+        mask = {"hits": 0, "regenerated": 0, "replaced_by_code": 0, "fallback_digests": 0,
+                "fallback_texts": 0, "terms": [], "publisher_mentions": 0,
+                "digests_generated": 0, "digests_cached": 0, "rewrites_generated": 0,
+                "rewrites_cached": 0}
+        if digest_mode == "both":
+            from backend.llm import mask_engine
+            from backend.util import gazetteer
+            md = mask_engine.masked_digest_articles(
+                items, iso2=iso2, country_name=country_name or iso2, meter=run_meter)
+            mask["digests_generated"] = md["counts"]["generated"]
+            mask["digests_cached"] = md["counts"]["cached"]
+            for k in ("hits", "regenerated", "replaced_by_code"):
+                mask[k] += md["mask"][k]
+            mask["terms"] += md["mask"]["terms"]
+            for it in items:
+                m = md["digests"].get(url_of(it))
+                if it.get("digest") and not m:
+                    m = mask_engine._redact_digest(iso2, {**it["digest"], "masked_title": it.get("title") or ""})
+                    mask["fallback_digests"] += 1
+                it["masked_digest"] = m
+                it["masked_title"] = (m or {}).get("masked_title") or gazetteer.redact(iso2, it.get("title") or "")[0]
+            full_items = [it for it in items if it.get("body_status") in ("full", "clipped")][:relevance.FULL_TEXT_K]
+            rw = mask_engine.rewrite_full_texts(
+                full_items, iso2=iso2, country_name=country_name or iso2,
+                body_cap_chars=digest_engine.BODY_CAP_CHARS, meter=run_meter)
+            mask["rewrites_generated"] = rw["counts"]["generated"]
+            mask["rewrites_cached"] = rw["counts"]["cached"]
+            for k in ("hits", "replaced_by_code"):
+                mask[k] += rw["mask"][k]
+            mask["terms"] += rw["mask"]["terms"]
+            for it in full_items:
+                text = rw["texts"].get(url_of(it))
+                if not text:
+                    text, _ = gazetteer.redact(iso2, (it.get("text") or "")[:digest_engine.BODY_CAP_CHARS])
+                    mask["fallback_texts"] += 1
+                it["masked_text"] = text
+            print(f"[mask] {iso2}: {mask['digests_generated']} masked digests generated, "
+                  f"{mask['digests_cached']} cached, {mask['rewrites_generated']}+{mask['rewrites_cached']} "
+                  f"full texts rewritten; {mask['hits']} gazetteer hits, {mask['regenerated']} regenerated, "
+                  f"{mask['replaced_by_code']} replaced by code")
+
+        # Summary and thumbnail (simple scraper, single GET) for the dashboard.
+        for it in items:
+            link = it.get("link")
+            if not isinstance(link, str) or not link.startswith("http"):
+                continue
+            cur_sum = (it.get("summary") or "").strip()
+            source = (it.get("source") or "").strip()
+            need_summary = (not cur_sum) or (len(cur_sum.split()) < 8) or (cur_sum.lower() == source.lower())
+            need_image = not it.get("image")
+            if need_summary or need_image:
+                thumb, summary, full_text = get_article_assets(link, session=_sess, max_words=160)
+                if need_summary and summary:
+                    it["summary"] = summary
+                if full_text:
+                    it["content"] = full_text[:24000]
+                if need_image and thumb:
+                    it["image"] = thumb
+
+    selection = {
+        "passes": passes,
+        "story_checks": story_checks,
+        "final_story_check_clean": final_story_check_clean,
+        "t5_selected": gate["counts"].get("t5_selected", 0),
+        "title_only_dropped": len(title_only_dropped),
+        "title_only_dropped_articles": title_only_dropped,
+        "post_selection_same_story": len(post_same_story),
+        "blocked_after_selection": len(blocked_dropped),
+        "refill_digests": refill_digests,
+        "shortfall": max(budget - len(items), 0),
+        "selected": len(items),
+    }
+    return {
+        "items": items,
+        "digests": digest_counts,
+        "selection": selection,
+        "mask": mask,
+        "post_selection_same_story": post_same_story,
+    }
+
+
+def assemble_country(
+    country_name: str,
+    iso2: str,
+    run_as_of,
+    run_meter: usage.Meter,
+    dump_dir: Optional[pathlib.Path] = None,
+    gathered: Optional[Dict] = None,
+) -> Dict:
+    """Build one country's scoring payload: everything before the scorer call.
+
+    Economics, retrieval, the gate, one story per article, selection, digests,
+    the refills, masking, the census and the payload, in that order. It writes
+    the article bodies, the indicator series and the gate, digest and rewrite
+    caches, as the weekly run does. It does not score, and it writes neither
+    `risk_snapshot` nor `run_ledger`, so a measurement can freeze a payload
+    with it and score the frozen file as often as it needs to. `gathered` is
+    a `gather_candidates` result to build from, for a measurement that wants
+    to run two selections on one set of candidates.
+
+    Returns:
+        ``{"items", "gate", "stories", "econ", "census", "scoring_payload"
+        (masked: what production sends), "scoring_payload_named" (the same
+        articles, named), "article_ids", "payload_tokens", "candidates",
+        "labels", "mask", "selection", "post_selection_same_story"}``.
+    """
+    g = gathered or gather_candidates(country_name, iso2, run_as_of, run_meter)
+    econ, candidates, pool_report = g["econ"], g["candidates"], g["pool_report"]
+    labels, stories = g["labels"], g["stories"]
+    sc = stories["counts"]
+
     gate = relevance.select(
         candidates, labels, iso2, same_story_as=stories["same_story_as"]
     )
-    items = gate["selected"]
     counts = gate["counts"]
     print(
         f"[gate] {iso2}: {counts['candidates']} candidates -> "
         f"{counts['eligible']} relevant -> {counts['selected']} selected "
-        f"(budget {counts['budget']}); rejected {counts['rejected_by_label']}"
+        f"(budget {counts['budget']}, {counts['t5_selected']} spillover); "
+        f"rejected {counts['rejected_by_label']}"
     )
-    print(f"[gate] {iso2}: per-ledger {gate['per_ledger']} | per-theme {gate['per_theme']}")
+
+    settled = settle_selection(gate, country_name=country_name, iso2=iso2, run_meter=run_meter)
+    items = settled["items"]
+    dc = settled["digests"]
+    print(f"[gate] {iso2}: per-ledger {gate['per_ledger']} | per-theme {gate['per_theme']} "
+          f"| final {len(items)} after {settled['selection']['passes']} pass(es)")
     dupes = relevance.duplicate_story_report(items)
     if dupes["duplicated_slots"]:
         print(
             f"[gate] {iso2}: {dupes['duplicated_slots']} of {len(items)} slots "
-            f"hold a story another selected article also tells"
+            f"hold a story another selected article also tells (title overlap)"
         )
-
-    # 2c) Stage one: digest every admitted article, then choose the few
-    #     to read in full. Breadth from the digests, depth from three —
-    #     twenty full bodies is unaffordable and twenty headlines throws
-    #     away the reporting already paid for.
-    #
-    #     The digest comes first because it says what each body is. Only
-    #     a body the digest calls `full` can be read in full, so the
-    #     three full reads go to the first three such articles in the
-    #     gate's order. A `partial` body (the article, cut off by a
-    #     wall) is digest-only; a `not_article` body (the wall itself)
-    #     is title-only and its digest is not sent. An article whose
-    #     digest failed is not vouched for, so it is not read in full.
-    digested = digest_engine.digest_articles(items, meter=run_meter)
-    full_reads = 0
-    for it in items:
-        key = it.get("publisher_link") or it.get("link")
-        digest = digested["digests"].get(key)
-        quality = (digest or {}).get("body_quality") if (it.get("text") or "").strip() else None
-        it["body_quality"] = quality
-        it["digest"] = None if quality == "not_article" else digest
-        reads_full = quality == "full" and full_reads < relevance.FULL_TEXT_K
-        status, clipped, original = digest_engine.body_status_for(
-            it, full_text=reads_full, quality=quality
-        )
-        it["body_status"] = status
-        it["body_clipped"] = clipped
-        it["body_chars_original"] = original
-        full_reads += status in ("full", "clipped")
 
     # Keep the evidence. Without it a score is unauditable after the
     # fact and last week's scoring cannot be re-run on what it saw.
@@ -466,7 +709,6 @@ def assemble_country(
     except Exception as e:
         print(f"[{iso2}] could not store articles: {e}")
 
-    dc = digested["counts"]
     status_mix: Dict[str, int] = {}
     quality_mix: Dict[str, int] = {}
     for it in items:
@@ -481,49 +723,14 @@ def assemble_country(
     )
     pool_report["digests"] = dc
     pool_report["body_status"] = status_mix
-
     pool_report["gate"] = counts
     pool_report["per_ledger"] = gate["per_ledger"]
     pool_report["rejected"] = gate["rejected"]
     pool_report["duplicate_slots"] = dupes["duplicated_slots"]
     pool_report["same_story"] = {"method": stories["method"],
                                  "problem": stories["problem"], **sc}
-
-    # --- Resolve and do light enrichment using ONLY the simple scraper ---
-    with requests.Session() as _sess:
-        # a) Replace news.google.com wrappers with publisher URLs
-        for it in items:
-            link = it.get("link")
-            if isinstance(link, str) and "news.google.com" in link:
-                it["link"] = resolve_google_news_url(link, session=_sess)
-
-        # a2) Defense-in-depth: drop denylisted sources now that links are
-        #     resolved, in case a wrapper couldn't be resolved earlier.
-        before = len(items)
-        items = [it for it in items if not is_blocked_url(it.get("link"))]
-        removed = before - len(items)
-        if removed:
-            print(f"[{iso2}] Blocked {removed} article(s) from denylisted sources.")
-
-        # b) Ensure summary/content and thumbnail (simple scraper, single GET)
-        for it in items:
-            link = it.get("link")
-            if not isinstance(link, str) or not link.startswith("http"):
-                continue
-
-            cur_sum = (it.get("summary") or "").strip()
-            source  = (it.get("source")  or "").strip()
-            need_summary = (not cur_sum) or (len(cur_sum.split()) < 8) or (cur_sum.lower() == source.lower())
-            need_image = not it.get("image")
-
-            if need_summary or need_image:
-                thumb, summary, full_text = get_article_assets(link, session=_sess, max_words=160)
-                if need_summary and summary:
-                    it["summary"] = summary
-                if full_text:
-                    it["content"] = full_text[:24000]
-                if need_image and thumb:
-                    it["image"] = thumb
+    pool_report["selection"] = settled["selection"]
+    pool_report["mask"] = {k: v for k, v in settled["mask"].items() if k != "terms"}
 
     # 2d) The census: what the registry promised against what reached
     #      the model. Stored, and read back — a census nobody stores
@@ -550,17 +757,16 @@ def assemble_country(
                 "gate_cache_version": relevance.cache_version(
                     relevance.DEFAULT_MODEL, relevance.DEFAULT_INPUT_MODE
                 ),
+                "questions_version": ai_constants.QUESTIONS_VERSION,
+                "masked_digest_prompt_version": _mask_versions()["masked_digest_prompt_version"],
+                "rewrite_prompt_version": _mask_versions()["rewrite_prompt_version"],
+                "gazetteer_version": _mask_versions()["gazetteer_version"],
+                "scorer_input": "masked",
             },
         ),
         budget=relevance.ARTICLE_BUDGET,
     )
     print(payload_health.format_census(census))
-
-    # The census travels inside the snapshot's manifest rather than in a
-    # table of its own that nothing joined to. Comparison against the
-    # country's own history is the quality report's job, at the end of
-    # the run, where it can be read as a block instead of scrolling past
-    # one country at a time.
 
     # The macro half of the evidence, kept as a series. `as_of` is in
     # the key, so a revision arrives as a new row and this week's score
@@ -570,17 +776,10 @@ def assemble_country(
     except Exception as e:
         print(f"[series] {iso2} could not store indicators: {e}")
 
-    # Assign stable ids ("a1","a2",...)
-    for i, it in enumerate(items, start=1):
-        it["id"] = f"a{i}"
-
-    # 3) Assemble the payload and score.
-    #    Structural facts first, so everything after is read against
-    #    them; then the economics by ledger, the theme counts, the
-    #    digests, the top-k full texts, and the computed coverage.
-    scoring_payload = payload_builder.build_scoring_payload(
-        iso2,
-        country_name,
+    # 3) Assemble the payloads. Ids are assigned by the builder, on the
+    #    final list, so the masked payload the scorer reads and the named
+    #    twin kept for measurement carry the same ids for the same articles.
+    payload_kwargs = dict(
         structural=structural_facts.for_country(iso2),
         economics=econ,
         pool_report=pool_report,
@@ -588,8 +787,28 @@ def assemble_country(
         coverage=census["coverage_components"],
         full_text_k=relevance.FULL_TEXT_K,
         body_cap_chars=digest_engine.BODY_CAP_CHARS,
+        as_of=run_as_of,
+        window_days=core.WINDOW_DAYS,
     )
+    scoring_payload = payload_builder.build_scoring_payload(
+        iso2, country_name, mode="masked", **payload_kwargs)
+    scoring_payload_named = payload_builder.build_scoring_payload(
+        iso2, country_name, mode="named", **payload_kwargs)
     article_ids = [a["id"] for a in scoring_payload["articles"]]
+
+    # The tripwire: a payload that still carries a gazetteer term is never
+    # sent. The per-digest checks above should have left nothing for it.
+    from backend.util import gazetteer
+    leaks = gazetteer.payload_leaks(iso2, scoring_payload)
+    settled["mask"]["payload_leaks"] = leaks
+    settled["mask"]["publisher_mentions"] = gazetteer.publisher_mentions(iso2, scoring_payload)
+    pool_report["mask"]["publisher_mentions"] = settled["mask"]["publisher_mentions"]
+    census["mask"]["publisher_mentions"] = settled["mask"]["publisher_mentions"]
+    census["mask"]["payload_leaks"] = len(leaks)
+    if leaks:
+        raise gazetteer.MaskLeak(
+            f"{iso2}: {len(leaks)} gazetteer term(s) survived masking: "
+            + ", ".join(f"{l['term']} at {l['path']}" for l in leaks[:5]))
 
     # What the self-hosted scorer would have to serve, measured on the
     # compact JSON that actually goes out rather than on a pretty-printed
@@ -600,10 +819,15 @@ def assemble_country(
     census["versions"]["payload_tokens"] = payload_tokens
 
     if dump_dir is not None:
-        # Exactly the bytes the model is about to be handed.
+        # Exactly the bytes the model is about to be handed, and the named twin.
         dump_dir.mkdir(parents=True, exist_ok=True)
         (dump_dir / f"{iso2}-payload.json").write_text(
             json.dumps(scoring_payload, indent=2, ensure_ascii=False,
+                       default=str),
+            encoding="utf-8",
+        )
+        (dump_dir / f"{iso2}-payload-named.json").write_text(
+            json.dumps(scoring_payload_named, indent=2, ensure_ascii=False,
                        default=str),
             encoding="utf-8",
         )
@@ -619,10 +843,24 @@ def assemble_country(
         "econ": econ,
         "census": census,
         "scoring_payload": scoring_payload,
+        "scoring_payload_named": scoring_payload_named,
         "article_ids": article_ids,
         "payload_tokens": payload_tokens,
         "candidates": candidates,
         "labels": labels,
+        "mask": settled["mask"],
+        "selection": settled["selection"],
+        "post_selection_same_story": settled["post_selection_same_story"],
+    }
+
+
+def _mask_versions() -> Dict[str, str]:
+    from backend.llm import mask_engine
+    from backend.util import gazetteer
+    return {
+        "masked_digest_prompt_version": mask_engine.MASKED_DIGEST_PROMPT_VERSION,
+        "rewrite_prompt_version": mask_engine.REWRITE_PROMPT_VERSION,
+        "gazetteer_version": gazetteer.GAZETTEER_VERSION,
     }
 
 
@@ -765,6 +1003,7 @@ def run_etl(
         spend_before = run_meter.spend_usd
         tokens_before = (run_meter.input_tokens, run_meter.output_tokens)
         outcome = "ok"
+        merge = None
         try:
             built = assemble_country(country_name, iso2, run_as_of, run_meter, dump_dir)
             items, gate, stories = built["items"], built["gate"], built["stories"]
@@ -773,11 +1012,11 @@ def run_etl(
             payload_tokens = built["payload_tokens"]
 
             # The model answers the checklist; it is never asked for a score.
-            # Three calls, merged by per-question median: the production mode
-            # measured in docs/scorer-checklist.md (step 5c).
-            calls = []
-            for _ in range(ai_constants.CALLS_PER_COUNTRY):
-                scored = langchain_llm.score_country(
+            # It reads the masked payload under the masked label. Three calls
+            # merged by per-question median when unanimous; a split vote gets
+            # more calls, merged by plurality (`scoring.run_scoring`, step 5e).
+            result = scoring_rule.run_scoring(
+                lambda i: langchain_llm.score_country(
                     iso2=iso2,
                     payload=scoring_payload,
                     article_ids=article_ids,
@@ -785,10 +1024,18 @@ def run_etl(
                     seed=42,
                     meter=run_meter,
                     run_date=run_as_of,
+                    country_label=ai_constants.MASKED_COUNTRY_LABEL,
+                    masked=True,
                 )
-                if scored["failed"] or not scored["answer"]:
-                    raise RuntimeError(f"scoring failed: {scored['failed']}")
-                calls.append(scored)
+            )
+            calls = result["calls"]
+            scored = calls[-1]
+            merge = result["merge"]
+            print(f"[score] {iso2}: {merge['k']} call(s), "
+                  f"{'unanimous at 3' if not merge['extended'] else 'split vote, extended'}"
+                  + (f", tied at the end: {merge['tied']}" if merge.get("tied") else ""))
+            census["versions"]["scoring_calls"] = merge["k"]
+            census["versions"]["merge_extended"] = bool(merge["extended"])
 
             violations = [v for c in calls for v in c["violations"]]
             counts: Dict[str, int] = {}
@@ -805,8 +1052,7 @@ def run_etl(
                 census["versions"]["violations"] = violations
                 census["versions"]["validation_counts"] = counts
 
-            answer = (calls[0]["answer"] if len(calls) == 1
-                      else combine.merge_answers([c["answer"] for c in calls]))
+            answer = result["answer"]
 
             # The data half: each scored indicator on its fixed scale. Then
             # the arithmetic, with last weeks' answers for the null
@@ -930,7 +1176,8 @@ def run_etl(
                     # a story that was kept, and how the stories were found.
                     "same_story": {"method": stories["method"],
                                    "problem": stories["problem"],
-                                   "articles": gate["same_story"]},
+                                   "articles": gate["same_story"]
+                                   + built["post_selection_same_story"]},
                     "indicators": [
                         {"code": i["code"], "period": i["period"],
                          "as_of": i["as_of"], "as_of_scheme": i["as_of_scheme"]}
@@ -961,7 +1208,9 @@ def run_etl(
         spent = run_meter.spend_usd - spend_before
         per_country.append(
             {"iso2": iso2, "seconds": round(elapsed, 1),
-             "usd": round(spent, 4), "outcome": outcome}
+             "usd": round(spent, 4), "outcome": outcome,
+             "calls": (merge or {}).get("k") if outcome == "ok" else None,
+             "extended": bool((merge or {}).get("extended")) if outcome == "ok" else None}
         )
         print(f"[time] {iso2}: {elapsed:.1f}s, ${spent:.4f}")
 
@@ -1000,6 +1249,11 @@ def run_etl(
               f"{total_s / len(per_country):.1f}s mean")
         print(f"[run] spend ${total_usd:.4f} total, "
               f"${total_usd / max(len(ok), 1):.4f} per scored country")
+        extended = [c for c in ok if c.get("extended")]
+        extended_text = ", ".join(f"{c['iso2']} k={c['calls']}" for c in extended)
+        print(f"[run] scorer calls {sum(c.get('calls') or 0 for c in ok)} over {len(ok)} countries; "
+              f"{len(extended)} split vote(s) extended"
+              + (f": {extended_text}" if extended else ""))
         slowest = sorted(per_country, key=lambda c: -c["seconds"])[:5]
         print(f"[run] slowest: "
               + ", ".join(f"{c['iso2']} {c['seconds']:.0f}s" for c in slowest))

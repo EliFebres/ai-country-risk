@@ -224,7 +224,16 @@ def build_census(
             "digests_failed": digests.get("failed", 0),
             "duplicate_slots": pool_report.get("duplicate_slots", 0),
             "query_name": pool_report.get("query_name"),
+            # What selection did after the first cut (step 5e): how many
+            # spillover articles were sent, how many headline-only articles
+            # and second tellings were dropped and refilled, and whether the
+            # pool ran out before the budget was met.
+            "selection": pool_report.get("selection", {}),
         },
+        # The masking census: gazetteer hits in the masked digests and full
+        # texts, how many were regenerated, how many replaced by code, and
+        # how many publisher names carry a term (reported, never failed).
+        "mask": pool_report.get("mask", {}),
         "versions": {**versions, "schema_violations": schema_violations},
     }
 

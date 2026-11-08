@@ -105,25 +105,43 @@ def score_country(
     meter: Optional["usage.Meter"] = None,
     structured: Any = None,
     run_date: Optional[date] = None,
+    country_label: Optional[str] = None,
+    masked: bool = False,
 ) -> Dict[str, Any]:
     """Ask the checklist about one country from its assembled payload.
 
-    The prompt goes in the **system** role, with the country's name in it, and
-    the evidence in the user turn. The model answers sixteen questions with a
-    level and its evidence; it is never asked for a score. Both the prompt text
-    and the schema's shape are part of the instrument: a strict grammar masks
-    every token that would make the output invalid.
+    The prompt goes in the **system** role, with the country's label and the
+    run date in it, and the evidence in the user turn. The model answers
+    sixteen questions with a level and its evidence; it is never asked for a
+    score. Both the prompt text and the schema's shape are part of the
+    instrument: a strict grammar masks every token that would make the output
+    invalid.
+
+    `country_label` is what the prompt calls the country: its name for a named
+    run, `MASKED_COUNTRY_LABEL` for a masked one (the default when the payload
+    carries no `country` block). With `masked=True` the payload is checked
+    against the gazetteer immediately before it is serialized and sent, and a
+    surviving term raises `gazetteer.MaskLeak` rather than being sent.
 
     The decoded answer is validated against the full contract (evidence ids,
-    event dates) before `combine` does the arithmetic, and the violations and
-    counts are returned so the census can count them.
+    quotes, event dates, headline-only evidence) before `combine` does the
+    arithmetic, and the violations and counts are returned so the census can
+    count them.
 
     Returns:
         ``{"answer", "violations", "counts", "badge", "raw", "failed"}``. On a
         failed call `answer` is None and `failed` carries the reason — a
         country with no score is better than a country with a fabricated one.
     """
-    country_name = (payload.get("country") or {}).get("name") or iso2
+    if country_label is None:
+        country_label = ((payload.get("country") or {}).get("name")
+                         or ai_constants.MASKED_COUNTRY_LABEL)
+    as_of = run_date or payload.get("as_of")
+    if not as_of:
+        raise ValueError("score_country needs run_date or payload[\"as_of\"]: the prompt tells the model what today is")
+    if masked:
+        from backend.util import gazetteer
+        gazetteer.assert_clean(iso2, payload)
     if structured is None:
         api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not api_key:
@@ -144,7 +162,7 @@ def score_country(
 
     try:
         response = structured.invoke([
-            SystemMessage(content=ai_constants.prompt_for(country_name)),
+            SystemMessage(content=ai_constants.prompt_for(country_label, as_of)),
             HumanMessage(content=json.dumps(payload, ensure_ascii=False, default=str)),
         ])
     except Exception as exc:
@@ -157,7 +175,8 @@ def score_country(
 
     parsed = response.get("parsed") if isinstance(response, dict) else response
     checked = validate.validate(parsed, article_ids=article_ids, run_date=run_date,
-                                texts=validate.article_texts(payload))
+                                texts=validate.article_texts(payload),
+                                title_only=validate.title_only_ids(payload))
 
     return {
         "answer": checked["answer"],

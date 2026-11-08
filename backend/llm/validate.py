@@ -35,16 +35,20 @@ from __future__ import annotations
 
 import datetime as dt
 import re
+import unicodedata
 from typing import Any, Dict, List, Optional, Sequence
 
 from backend.llm import constants as ai_constants
 from backend.util import constants as util_constants
 
 __all__ = ["validate", "ValidationResult", "COUNT_KEYS", "ROUTINE_DEADLINE_PATTERNS",
-           "article_texts", "date_in_text", "is_routine_deadline"]
+           "article_texts", "title_only_ids", "date_in_text", "is_routine_deadline",
+           "normalise_quote_text", "quote_found", "QUOTE_MATCH", "QUOTE_MIN_WORDS"]
 
 COUNT_KEYS = (
     "levels_nulled_no_evidence",
+    "levels_nulled_quote_not_found",
+    "levels_nulled_title_only",
     "levels_out_of_range",
     "evidence_dropped",
     "evidence_dropped_non_article",
@@ -52,6 +56,72 @@ COUNT_KEYS = (
     "events_dropped_date_not_in_article",
     "events_dropped_routine_deadline",
 )
+
+#: How a quote is matched against the cited articles' text (step 5e, Fix 3).
+#: ``"exact"``: the normalised quote is a substring of one cited article's
+#: normalised text. ``"ordered_90"``: at least 90% of the quote's words appear
+#: in order in one cited article; the pre-set fallback, switched on only if the
+#: exact rule nulls 15–30% of the model's levels and the failures are
+#: near-misses. ``"report"``: count and record, never null.
+QUOTE_MATCH = "exact"
+QUOTE_MIN_WORDS = 4
+QUOTE_ORDERED_SHARE = 0.9
+
+_CURLY = str.maketrans({
+    "‘": "'", "’": "'", "‚": "'", "‛": "'",
+    "“": '"', "”": '"', "„": '"', "‟": '"',
+    "′": "'", "″": '"', "´": "'", "`": "'",
+    "–": "-", "—": "-", "−": "-", " ": " ",
+})
+_EDGE_PUNCT = ".,;:!?\"'()[]{}<>…-/\\|*_~`"
+
+
+def normalise_quote_text(text: Any) -> str:
+    """Lower-case, straighten quotes and dashes, collapse whitespace, strip the
+    punctuation at either end. The same function runs on the quote and on the
+    article text, so a curly apostrophe on one side cannot fail the match."""
+    s = unicodedata.normalize("NFC", str(text or "")).translate(_CURLY).lower()
+    s = re.sub(r"\s+", " ", s).strip()
+    return s.strip(_EDGE_PUNCT + " ")
+
+
+def _words(text: str) -> List[str]:
+    return [w.strip(_EDGE_PUNCT) for w in text.split() if w.strip(_EDGE_PUNCT)]
+
+
+def _ordered_share(quote_words: List[str], text_words: List[str]) -> float:
+    """The share of `quote_words` that appear in `text_words` in order."""
+    if not quote_words:
+        return 0.0
+    hit = 0
+    pos = 0
+    for w in quote_words:
+        try:
+            pos = text_words.index(w, pos) + 1
+            hit += 1
+        except ValueError:
+            continue
+    return hit / len(quote_words)
+
+
+def quote_found(quote: Any, texts: Sequence[str], *, mode: Optional[str] = None) -> bool:
+    """Whether `quote` is copied from one of `texts`, under `QUOTE_MATCH`.
+
+    A quote shorter than `QUOTE_MIN_WORDS` never counts: four words is the
+    floor below which a match says nothing about the article.
+    """
+    mode = mode or QUOTE_MATCH
+    q = normalise_quote_text(quote)
+    qw = _words(q)
+    if len(qw) < QUOTE_MIN_WORDS:
+        return False
+    for t in texts:
+        nt = normalise_quote_text(t)
+        if q in nt:
+            return True
+        if mode == "ordered_90" and _ordered_share(qw, _words(nt)) >= QUOTE_ORDERED_SHARE:
+            return True
+    return False
 
 #: An event whose text matches one of these (case-insensitive, anywhere in the
 #: text) is a routine, recurring deadline and is dropped. Elections,
@@ -102,6 +172,12 @@ def article_texts(payload: Dict[str, Any]) -> Dict[str, str]:
     for f in payload.get("full_texts") or []:
         texts.setdefault(f.get("id"), []).append(str(f.get("text") or ""))
     return {aid: "\n".join(p) for aid, p in texts.items() if aid}
+
+
+def title_only_ids(payload: Dict[str, Any]) -> List[str]:
+    """The ids of the articles the model saw as a headline alone."""
+    return [a.get("id") for a in payload.get("articles") or []
+            if a.get("id") and a.get("body_status", "title-only") == "title-only"]
 
 
 def date_in_text(when: dt.date, text: str) -> bool:
@@ -183,6 +259,7 @@ def validate(
     article_ids: Sequence[str] = (),
     run_date: Optional[dt.date] = None,
     texts: Optional[Dict[str, str]] = None,
+    title_only: Sequence[str] = (),
 ) -> ValidationResult:
     """Validate a decoded checklist answer against the full contract.
 
@@ -194,7 +271,12 @@ def validate(
             horizon is measured from it. Defaults to today.
         texts: `article_texts(payload)`: what the model could read per
             article. When given, a scheduled event is kept only if its date
-            is written in the cited article. When None the check is skipped.
+            is written in the cited article, and a level's quote must be
+            copied from one of the articles it cites (`QUOTE_MATCH`). When
+            None both checks are skipped.
+        title_only: The ids the model saw as a headline alone. A level whose
+            only evidence is such articles is nulled and counted; after step
+            5e's selection fix it should always be 0 (a tripwire).
 
     Returns:
         A :class:`ValidationResult` carrying the cleaned answer under
@@ -214,6 +296,7 @@ def validate(
         })
 
     known = set(article_ids)
+    headline_only = set(title_only)
     level_max = ai_constants.SCORING["level_max"]
     cleaned: Dict[str, Any] = {"questions": {}}
 
@@ -221,7 +304,7 @@ def validate(
         row = answer.get(qid)
         if not isinstance(row, dict):
             violations.append({"field": qid, "problem": "missing", "raw": row})
-            cleaned["questions"][qid] = {"level": None, "evidence": [], "note": ""}
+            cleaned["questions"][qid] = {"level": None, "evidence": [], "quote": "", "note": ""}
             continue
 
         level = row.get("level")
@@ -269,9 +352,32 @@ def validate(
             counts["levels_nulled_no_evidence"] += 1
             level = None
 
+        quote = row.get("quote")
+        quote = quote.strip() if isinstance(quote, str) else ""
+        if level is not None and texts is not None:
+            # The quote must be copied from an article the level cites. An id
+            # that exists is not evidence that the article says anything about
+            # the question; the words are (step 5e, Fix 3).
+            cited_texts = [texts.get(aid, "") for aid in evidence]
+            if not quote_found(quote, cited_texts):
+                violations.append({"field": f"{qid}.quote", "problem": "quote not found",
+                                   "raw": quote})
+                counts["levels_nulled_quote_not_found"] += 1
+                if QUOTE_MATCH != "report":
+                    level = None
+
+        if level is not None and evidence and all(aid in headline_only for aid in evidence):
+            # A level built on eight to twelve words of headline. Selection
+            # no longer sends headline-only articles, so this should be 0.
+            violations.append({"field": f"{qid}.level", "problem": "title-only evidence",
+                               "raw": level})
+            counts["levels_nulled_title_only"] += 1
+            level = None
+
         cleaned["questions"][qid] = {
             "level": level,
             "evidence": evidence,
+            "quote": quote,
             "note": (row.get("note") or "").strip() if isinstance(row.get("note"), str) else "",
         }
 

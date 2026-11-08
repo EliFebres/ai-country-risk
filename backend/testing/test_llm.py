@@ -831,9 +831,9 @@ from backend.llm import constants as ai_consts  # noqa: E402
 def _answer(**over):
     import datetime as dt
     base = {
-        **{qid: {"level": None, "evidence": [], "note": ""} for qid in ai_consts.QUESTION_IDS},
-        "F6": {"level": 2, "evidence": ["a1"], "note": "downgrade"},
-        "O3": {"level": 1, "evidence": ["a1"], "note": "courts contested"},
+        **{qid: {"evidence": [], "quote": "", "note": "", "level": None} for qid in ai_consts.QUESTION_IDS},
+        "F6": {"evidence": ["a1"], "quote": "the agency cut the sovereign rating", "note": "downgrade", "level": 2},
+        "O3": {"evidence": ["a1"], "quote": "the court's ruling was contested by ministers", "note": "courts contested", "level": 1},
         "scheduled_events": [{
             "article_id": "a1", "date": (dt.date(2026, 9, 27) + dt.timedelta(days=30)).isoformat(),
             "event": "budget vote", "question": "F1", "direction": "up",

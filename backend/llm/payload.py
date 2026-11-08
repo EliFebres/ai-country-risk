@@ -228,8 +228,22 @@ def build_scoring_payload(
     coverage: Dict[str, Any],
     full_text_k: int,
     body_cap_chars: int,
+    as_of: Any = None,
+    mode: str = "named",
+    window_days: int = 30,
 ) -> Dict[str, Any]:
     """Assemble the payload, in the order the model reads it.
+
+    `as_of` is the run date and `window_days` how far back retrieval reached;
+    both are written at the top (step 5e, Fix 5), because the articles carry
+    dates up to a month apart and the model has to know what "today" is.
+
+    `mode` is ``"named"`` or ``"masked"`` (step 5e, Fix 8). Masked is what
+    production sends: no `country` block, no `name` in the structural facts,
+    each article's title and digest replaced by its `masked_title` and
+    `masked_digest`, each full text by its `masked_text`. Publishers stay.
+    Named is the twin kept for measurement. Both are built from the same
+    selected list, so the ids match.
 
     The order is deliberate and is the argument of the whole session:
 
@@ -253,22 +267,36 @@ def build_scoring_payload(
     per-article scores can be matched back, and the validator can notice one
     that was never answered.
     """
+    if mode not in ("named", "masked"):
+        raise ValueError(f"payload mode must be 'named' or 'masked', not {mode!r}")
+    masked = mode == "masked"
     selected = gate["selected"]
 
     articles = []
     for i, a in enumerate(selected, start=1):
         a["id"] = f"a{i}"
+        if masked:
+            digest = a.get("masked_digest")
+            title = (digest or {}).get("masked_title") or a.get("masked_title")
+            if a.get("digest") and not digest:
+                raise ValueError(f"{iso2} {a['id']}: no masked digest for a masked payload")
+            if title is None:
+                title = a.get("title") if not a.get("text", "").strip() else None
+            if title is None:
+                raise ValueError(f"{iso2} {a['id']}: no masked title for a masked payload")
+        else:
+            digest = a.get("digest")
+            title = a.get("title")
         entry = {
             "id": a["id"],
             "publisher": a.get("source"),
             "published": (a.get("page_published_at") or a.get("published") or "")[:10],
-            "title": a.get("title"),
+            "title": title,
             "themes": a.get("themes", []),
             "ledgers": (a.get("relevance") or {}).get("ledgers", []),
             "body_status": a.get("body_status", "title-only"),
         }
-        digest = a.get("digest")
-        if digest:
+        if digest and a.get("digest"):
             entry["digest"] = {
                 "what_happened": digest.get("what_happened"),
                 "institutions": digest.get("institutions", []),
@@ -276,6 +304,7 @@ def build_scoring_payload(
                 "numbers": digest.get("numbers", []),
             }
         articles.append(entry)
+    title_by_id = {e["id"]: e["title"] for e in articles}
 
     # The bodies read in full are the ones marked so, not the first k by rank:
     # a body the digest called partial or not_article is never sent as a full
@@ -285,14 +314,20 @@ def build_scoring_payload(
         body = (a.get("text") or "")[:body_cap_chars]
         if not body.strip():
             continue
+        if masked:
+            text = a.get("masked_text")
+            if not text:
+                raise ValueError(f"{iso2} {a['id']}: no masked full text for a masked payload")
+        else:
+            text = body
         full_texts.append({
             "id": a["id"],
-            "title": a.get("title"),
+            "title": title_by_id[a["id"]],
             "publisher": a.get("source"),
             "body_status": a.get("body_status"),
             "chars_read": len(body),
             "chars_original": a.get("body_chars_original"),
-            "text": body,
+            "text": text,
         })
 
     theme_counts = {
@@ -300,12 +335,23 @@ def build_scoring_payload(
         for theme in pool_report.get("per_theme", {})
     }
 
+    facts: Any = structural or {
+        "note": "No structural facts are on file for this country. Do not "
+                "assume a default monetary regime or income level."
+    }
+    if masked and isinstance(facts, dict):
+        facts = {k: v for k, v in facts.items() if k != "name"}
+
+    as_of_text = as_of.isoformat() if hasattr(as_of, "isoformat") else str(as_of or "")
+    head: Dict[str, Any] = {}
+    if not masked:
+        head["country"] = {"iso2": iso2, "name": country_name}
+    head["as_of"] = as_of_text
+    head["window"] = f"articles published in the {window_days} days before as_of"
+
     return {
-        "country": {"iso2": iso2, "name": country_name},
-        "structural_facts": structural or {
-            "note": "No structural facts are on file for this country. Do not "
-                    "assume a default monetary regime or income level."
-        },
+        **head,
+        "structural_facts": facts,
         "article_coverage": {
             "note": "Counts are of articles that passed the relevance gate. A "
                     "zero means no relevant coverage was found for that theme "

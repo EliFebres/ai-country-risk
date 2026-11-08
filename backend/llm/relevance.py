@@ -63,8 +63,11 @@ __all__ = [
     "relevance_key",
     "classify",
     "select",
+    "refill",
+    "T5_MAX_SELECTED",
     "story_clusters",
     "dedupe_stories",
+    "dedupe_selected",
     "duplicate_story_report",
 ]
 
@@ -495,6 +498,64 @@ def _published_sort_key(article: Dict[str, Any]) -> str:
     return (article.get("page_published_at") or article.get("published") or "")
 
 
+#: How many articles admitted under the spillover test (T5) may be selected
+#: for one country. Step 5c read 1,200 citations and found T5 articles went
+#: uncited 76% of the time; in the first production week four of Kuwait's
+#: twenty slots went to other countries' statistics and no question cited any
+#: of them. T5 sorts behind T1–T4 within every ledger and at most this many
+#: enter the selected set (step 5e, Fix 6). A high-impact event keeps its
+#: place at the front whatever its test code.
+T5_MAX_SELECTED = 2
+
+
+def _is_t5(article: Dict[str, Any]) -> bool:
+    return (article.get("relevance") or {}).get("test") == "T5"
+
+
+def _url_of(article: Dict[str, Any]) -> str:
+    return article.get("publisher_link") or article.get("link") or ""
+
+
+def _fill(
+    ranked: Sequence[Dict[str, Any]],
+    *,
+    budget: int,
+    exclude: Sequence[str] = (),
+    t5_cap: int = T5_MAX_SELECTED,
+) -> List[Dict[str, Any]]:
+    """Walk `ranked` in order and take the first `budget` articles that are
+    not excluded, skipping a T5 article once `t5_cap` are in. A high-impact
+    event is never skipped, but counts toward the cap."""
+    out: List[Dict[str, Any]] = []
+    skip = set(exclude)
+    t5 = 0
+    for a in ranked:
+        if len(out) >= budget:
+            break
+        if _url_of(a) in skip:
+            continue
+        if _is_t5(a):
+            if t5 >= t5_cap and not (a.get("relevance") or {}).get("high_impact_event"):
+                continue
+            t5 += 1
+        out.append(a)
+    return out
+
+
+def _tally(selected: Sequence[Dict[str, Any]]) -> Dict[str, Dict[str, int]]:
+    per_theme: Dict[str, int] = {}
+    for a in selected:
+        for t in a.get("themes", []):
+            per_theme[t] = per_theme.get(t, 0) + 1
+    per_ledger: Dict[str, int] = {led: 0 for led in LEDGERS}
+    for a in selected:
+        for led in a["relevance"].get("ledgers") or []:
+            if led in per_ledger:
+                per_ledger[led] += 1
+    return {"per_theme": per_theme, "per_ledger": per_ledger,
+            "t5_selected": sum(1 for a in selected if _is_t5(a))}
+
+
 def select(
     articles: Sequence[Dict[str, Any]],
     labels: Dict[str, Dict[str, Any]],
@@ -503,6 +564,7 @@ def select(
     budget: int = ARTICLE_BUDGET,
     input_mode: str = DEFAULT_INPUT_MODE,
     same_story_as: Optional[Dict[str, str]] = None,
+    t5_cap: int = T5_MAX_SELECTED,
 ) -> Dict[str, Any]:
     """Choose what the scorer reads. Only `relevant` articles are eligible.
 
@@ -527,6 +589,9 @@ def select(
        on a busy country can be eight versions of one story; interleaving by
        ledger spreads the budget without ever admitting something ineligible.
        A ledger with nothing eligible is simply skipped, and its count says zero.
+       Within a ledger, an article admitted under the spillover test (T5)
+       sits behind every T1–T4 article, and at most `t5_cap` T5 articles are
+       selected (step 5e, Fix 6).
     3. **Prefer a publisher not already selected** when two candidates tie, so
        one outlet cannot take the whole budget.
     4. **Tie-break on URL**, so the order is deterministic for a given eligible
@@ -535,9 +600,14 @@ def select(
     Articles that are relevant but bear on no ledger are not discarded; they
     are taken after the ledgered ones, in the same order.
 
+    The whole pool is ranked, not just the first `budget`: ``"ranked"`` is the
+    full order, so `refill` can replace an article dropped after selection
+    (a headline-only body, a second telling of a selected story) with the
+    next eligible one without re-running selection.
+
     Returns:
-        ``{"selected", "eligible", "rejected", "same_story", "gate_labels",
-        "per_theme", "per_ledger", "counts"}``.
+        ``{"selected", "ranked", "excluded", "eligible", "rejected",
+        "same_story", "gate_labels", "per_theme", "per_ledger", "counts"}``.
     """
     eligible: List[Dict[str, Any]] = []
     rejected: List[Dict[str, Any]] = []
@@ -580,7 +650,12 @@ def select(
     )
     rest = [a for a in pool if not a["relevance"].get("high_impact_event")]
 
-    for a in sorted(rest, key=order_key, reverse=True):
+    # Newest first, then a stable second sort that puts T5 behind T1–T4 in
+    # every bucket: a spillover article is read only when nothing about the
+    # country itself is left in its ledger.
+    rest = sorted(rest, key=order_key, reverse=True)
+    rest.sort(key=_is_t5)
+    for a in rest:
         led = a["relevance"].get("ledgers") or []
         if not led:
             buckets["(none)"].append(a)
@@ -588,23 +663,23 @@ def select(
             if name in buckets:
                 buckets[name].append(a)
 
-    selected: List[Dict[str, Any]] = []
+    # The ranking runs over the whole pool. The first `budget` of it are
+    # today's selection; the rest is what a freed slot is filled from.
+    ranked: List[Dict[str, Any]] = []
     taken_urls = set()
     publishers_used: Dict[str, int] = {}
 
     def take(article: Dict[str, Any]) -> bool:
-        url = article.get("publisher_link") or article.get("link") or ""
+        url = _url_of(article)
         if url in taken_urls:
             return False
         taken_urls.add(url)
         pub = (article.get("source") or "").strip()
         publishers_used[pub] = publishers_used.get(pub, 0) + 1
-        selected.append(article)
+        ranked.append(article)
         return True
 
     for article in events:
-        if len(selected) >= budget:
-            break
         take(article)
 
     def next_from(bucket: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
@@ -612,8 +687,7 @@ def select(
         publisher so one outlet cannot take the whole budget."""
         fallback = None
         for cand in bucket:
-            url = cand.get("publisher_link") or cand.get("link") or ""
-            if url in taken_urls:
+            if _url_of(cand) in taken_urls:
                 continue
             pub = (cand.get("source") or "").strip()
             if publishers_used.get(pub, 0) == 0:
@@ -625,11 +699,9 @@ def select(
     # Round-robin: one article from each ledger per round, in a fixed order, so
     # a busy ledger cannot crowd out a quiet one. A ledger with nothing eligible
     # is skipped and its count says zero.
-    while len(selected) < budget:
+    while True:
         progressed = False
         for name in LEDGERS:
-            if len(selected) >= budget:
-                break
             chosen = next_from(buckets[name])
             if chosen is not None and take(chosen):
                 progressed = True
@@ -639,20 +711,11 @@ def select(
     # Relevant articles that bear on no ledger are eligible and must not be
     # silently dropped; they follow the ledgered ones.
     for article in buckets["(none)"]:
-        if len(selected) >= budget:
-            break
         take(article)
 
-    per_theme: Dict[str, int] = {}
-    for a in selected:
-        for t in a.get("themes", []):
-            per_theme[t] = per_theme.get(t, 0) + 1
-
-    per_ledger: Dict[str, int] = {led: 0 for led in LEDGERS}
-    for a in selected:
-        for led in a["relevance"].get("ledgers") or []:
-            if led in per_ledger:
-                per_ledger[led] += 1
+    selected = _fill(ranked, budget=budget, t5_cap=t5_cap)
+    tally = _tally(selected)
+    per_theme, per_ledger = tally["per_theme"], tally["per_ledger"]
 
     label_counts: Dict[str, int] = {}
     for r in rejected:
@@ -683,6 +746,9 @@ def select(
 
     return {
         "selected": selected,
+        "ranked": ranked,
+        "excluded": {},
+        "t5_cap": t5_cap,
         "eligible": eligible,
         "rejected": rejected,
         "same_story": same_story,
@@ -696,9 +762,35 @@ def select(
             "same_story": len(same_story),
             "selected": len(selected),
             "budget": budget,
+            "t5_selected": tally["t5_selected"],
             "rejected_by_label": label_counts,
         },
     }
+
+
+def refill(gate: Dict[str, Any], *, exclude: Dict[str, str]) -> List[Dict[str, Any]]:
+    """Re-cut the selection from the full ranking with `exclude` removed.
+
+    `exclude` is ``{url: reason}`` for every article dropped after selection
+    (``"title-only"``, ``"same_story"``, ``"blocked"``). The survivors keep
+    their relative order and each freed slot goes to the next eligible article
+    in ranking order, under the same T5 cap. The result is written back into
+    ``gate["selected"]`` **in place**, so a caller holding that list sees the
+    change, and the per-theme, per-ledger and selected counts follow it. If
+    the ranking runs out the selection is shorter than the budget, which the
+    caller records as a shortfall; nothing tops up from ineligible articles.
+    """
+    gate["excluded"] = dict(exclude)
+    fresh = _fill(gate["ranked"], budget=gate["counts"]["budget"], exclude=list(exclude),
+                  t5_cap=gate.get("t5_cap", T5_MAX_SELECTED))
+    selected = gate["selected"]
+    selected[:] = fresh
+    tally = _tally(selected)
+    gate["per_theme"] = tally["per_theme"]
+    gate["per_ledger"] = tally["per_ledger"]
+    gate["counts"]["selected"] = len(selected)
+    gate["counts"]["t5_selected"] = tally["t5_selected"]
+    return selected
 
 
 # --- One story, one article -------------------------------------------------
@@ -811,13 +903,16 @@ def story_clusters(
     api_key: Optional[str] = None,
     seed: int = 42,
     meter: Optional[usage.Meter] = None,
+    line_of: Optional[Any] = None,
 ) -> Dict[str, Any]:
     """Group `items` by story, in one call.
 
     Each item carries ``what_happened`` (the gate's sentence) and ``title``.
     The model names, for every id, the first item telling the same story, and
     the links are joined into clusters here. An unreadable answer or a failed
-    call falls back to title overlap, and says so.
+    call falls back to title overlap, and says so. `line_of` builds the text
+    shown for an item; the default is the gate's sentence, or the title when
+    there is none.
 
     Returns:
         ``{"clusters": [[index, ...], ...], "method": "llm" | "title_jaccard",
@@ -826,16 +921,17 @@ def story_clusters(
     if len(items) < 2:
         return {"clusters": [[i] for i in range(len(items))], "method": "llm", "problem": None}
 
+    if line_of is None:
+        def line_of(a: Dict[str, Any]) -> str:
+            return (a.get("what_happened") or a.get("title") or "").strip()
+
     ids = [f"s{i + 1}" for i in range(len(items))]
     problem: Optional[str] = None
     api_key = api_key or os.getenv("OPENAI_API_KEY")
     if not api_key:
         problem = "OPENAI_API_KEY not set"
     else:
-        lines = "\n".join(
-            f"{sid}: {(a.get('what_happened') or a.get('title') or '').strip()}"
-            for sid, a in zip(ids, items)
-        )
+        lines = "\n".join(f"{sid}: {line_of(a)}" for sid, a in zip(ids, items))
         structured = ChatOpenAI(
             model=model, temperature=0.0, seed=seed, max_retries=0,
             max_tokens=STORY_MAX_OUTPUT_TOKENS, api_key=api_key,
@@ -905,7 +1001,24 @@ def dedupe_stories(
 
     got = story_clusters(eligible, country_name, meter=meter, **kwargs)
     groups = [[eligible[i] for i in c] for c in got["clusters"]]
+    same_story_as, multi = _same_story_from_groups(groups)
 
+    return {
+        "same_story_as": same_story_as,
+        "method": got["method"],
+        "problem": got["problem"],
+        "counts": {
+            "eligible": len(eligible),
+            "stories": len(groups),
+            "multi": multi,
+            "dropped": len(same_story_as),
+        },
+    }
+
+
+def _same_story_from_groups(groups: Sequence[Sequence[Dict[str, Any]]]):
+    """Apply the keep rule to each multi-article group. Returns
+    ``({dropped url: kept url}, number of multi-article groups)``."""
     publishers_used: Dict[str, int] = {}
     for g in groups:
         if len(g) == 1:
@@ -923,15 +1036,44 @@ def dedupe_stories(
         kept_url = kept.get("publisher_link") or kept.get("link")
         for other in ranked[1:]:
             same_story_as[other.get("publisher_link") or other.get("link")] = kept_url
+    return same_story_as, len(multi)
 
+
+def dedupe_selected(
+    selected: Sequence[Dict[str, Any]],
+    country_name: str,
+    *,
+    meter: Optional[usage.Meter] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """The story check again, on the selected articles only (step 5e, Fix 1).
+
+    The first pass works from the gate's `what_happened` sentences, which can
+    be wrong for a headline-only article (one read "Kuwait's federal cabinet"
+    when the story was Pakistan's). Here each item is its **title and** the
+    gate's sentence, and the keep rule is the same, now with the digest's
+    `body_quality` known for every article. Returns the same shape as
+    `dedupe_stories`, with ``counts.eligible`` the number of selected articles.
+    """
+    items = [{**a, "what_happened": (a.get("relevance") or {}).get("what_happened", "")}
+             for a in selected]
+
+    def line_of(a: Dict[str, Any]) -> str:
+        title = (a.get("title") or "").strip().rstrip(".")
+        what = (a.get("what_happened") or "").strip()
+        return f"{title}. {what}".strip(". ") if title and what else (title or what)
+
+    got = story_clusters(items, country_name, meter=meter, line_of=line_of, **kwargs)
+    groups = [[items[i] for i in c] for c in got["clusters"]]
+    same_story_as, multi = _same_story_from_groups(groups)
     return {
         "same_story_as": same_story_as,
         "method": got["method"],
         "problem": got["problem"],
         "counts": {
-            "eligible": len(eligible),
+            "eligible": len(items),
             "stories": len(groups),
-            "multi": len(multi),
+            "multi": multi,
             "dropped": len(same_story_as),
         },
     }

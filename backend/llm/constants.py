@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 from backend.util.hashing import content_hash
 
@@ -51,12 +51,13 @@ EVENT_DIRECTIONS: Tuple[str, ...] = ("up", "down", "unclear")
 
 #: The prompt, verbatim from the step 5b brief with the step 5c edits. `{country}` is substituted by
 #: plain replacement at call time (not `.format`, so braces elsewhere are safe).
-CHECKLIST_PROMPT = """You are a country-risk analyst reading one week of evidence about {country}. Answer each question below with a level from 0 to 4, using ONLY this week's articles. Do not use your own background knowledge of {country}, and do not let its reputation stand in for evidence.
+CHECKLIST_PROMPT = """You are a country-risk analyst. Today is {as_of}. You are reading the news about {country} published in the 30 days before today. Answer each question below with a level from 0 to 4, using ONLY these articles. Do not use your own background knowledge of {country}, and do not let its reputation stand in for evidence. Judge each condition as it stands today: an article about an earlier event counts only if the event happened in the last 30 days or the article says the condition is still going on.
 
-For every question:
-- level: 0 to 4 using the descriptions given, or null if this week's evidence says nothing about it. Null is correct and expected for many questions in a normal week. Do not guess.
-- evidence: the article ids (a1, a2, ...) that support the level. A non-null level MUST cite at least one.
+For every question, answer in this order:
+- evidence: the article ids (a1, a2, ...) that bear on the question. Empty if none do.
+- quote: up to 25 words copied exactly from one of the cited articles (its title, digest or full text) that shows the level. Copy, do not paraphrase. Empty if evidence is empty.
 - note: one sentence naming what the evidence shows.
+- level: 0 to 4 using the descriptions given, or null if the articles say nothing about it. Null is correct and expected for many questions. Use 0 only when an article shows normal functioning, never because nothing was reported. A level other than null MUST have evidence and a quote.
 
 The levels mean the same thing on every question:
   0 = no stress: the evidence shows normal functioning.
@@ -90,12 +91,25 @@ EDGE: is the system learning (observed only)
 E1 Business formation and investment. 0 strong and rising; 1 normal; 2 weakening, notable exits; 3 capital and firms leaving; 4 collapse of private investment.
 
 SCHEDULED EVENTS
-List every dated event in this week's evidence that falls within the next 90 days and could change the answers above: an election, a debt maturity, a budget deadline, a ceasefire expiry, a court ruling. For each give: the article id, the date, the event, the question it bears on (for example O2), and direction (up = more stress likely, down = less, unclear). Give an empty list if there are none. Never invent a date. Only list an event whose date is written in the article. Do not list routine, recurring deadlines such as tax filing dates, statistical releases or regular parliamentary sessions."""
+List every dated event in these articles that falls within the 90 days after today and could change the answers above: an election, a debt maturity, a budget deadline, a ceasefire expiry, a court ruling. For each give: the article id, the date, the event, the question it bears on (for example O2), and direction (up = more stress likely, down = less, unclear). Give an empty list if there are none. Never invent a date. Only list an event whose date is written in the article. Do not list routine, recurring deadlines such as tax filing dates, statistical releases or regular parliamentary sessions."""
 
 
-def prompt_for(country_name: str) -> str:
-    """The checklist prompt with the country's name in place of `{country}`."""
-    return CHECKLIST_PROMPT.replace("{country}", country_name)
+#: What the scorer is told the country is when its input is masked (step 5e,
+#: Fix 8). The questions never name the country, so the label is the only
+#: place the name would have appeared.
+MASKED_COUNTRY_LABEL = "the country"
+
+
+def prompt_for(country_name: str, as_of: Any = None) -> str:
+    """The checklist prompt with the country's label and the run date filled in.
+
+    `country_name` is the real name for a named run and `MASKED_COUNTRY_LABEL`
+    for a masked one. `as_of` is the run date (ISO string or date); the prompt
+    tells the model what "today" is because retrieval reaches back 30 days and
+    the articles carry their own dates.
+    """
+    as_of_text = as_of.isoformat() if hasattr(as_of, "isoformat") else str(as_of or "")
+    return CHECKLIST_PROMPT.replace("{country}", country_name).replace("{as_of}", as_of_text)
 
 
 # ---------------------------------------------------------------------------
@@ -135,11 +149,18 @@ SCORING: Dict = {
     "carry_forward_max_days": 70,
 }
 
-#: How many scorer calls production makes per country. 3 is the per-question
-#: median of three (`combine.merge_answers`), the production mode since step
-#: 5c. Not inside PROMPT_VERSION: it changes how many times the instrument is
-#: read, not what the instrument is, and the merge rule is fixed.
+#: How many scorer calls production makes per country before looking at the
+#: votes. 3 unanimous calls are merged as the per-question median of three
+#: (`combine.merge_answers`); a split vote gets more calls, not the lower level
+#: (step 5e, Fix 7): VOTE_CALLS in all, merged by plurality
+#: (`combine.vote_merge`), and one more call per remaining tie up to
+#: VOTE_MAX_CALLS. A question is non-null once VOTE_MIN_ANSWERED calls
+#: answered it. None of these is inside PROMPT_VERSION: they change how many
+#: times the instrument is read, not what the instrument is.
 CALLS_PER_COUNTRY = 3
+VOTE_CALLS = 5
+VOTE_MAX_CALLS = 7
+VOTE_MIN_ANSWERED = 3
 
 
 # Nullable fields use type unions rather than a bare type plus a convention.
@@ -161,16 +182,21 @@ LEDGER_FIELDS = ("friction", "order", "information", "edge")
 
 #: One question's answer. The id is the key the entry sits under. Evidence is a
 #: list of free strings; the validator keeps only the article ids that were sent
-#: and counts the rest.
+#: and counts the rest. The order is the instrument (step 5e, Fix 4): structured
+#: outputs generate in schema order, so the model writes its evidence and the
+#: quote before it commits to a level, and a level with nothing behind it has
+#: nowhere to come from. The quote is checked by code against the cited
+#: articles' text (Fix 3).
 QUESTION_ANSWER_SCHEMA: Dict = {
     "type": "object",
     "additionalProperties": False,
     "properties": {
-        "level": _LEVEL,
         "evidence": {"type": "array", "items": {"type": "string"}},
+        "quote": {"type": "string"},
         "note": {"type": "string"},
+        "level": _LEVEL,
     },
-    "required": ["level", "evidence", "note"],
+    "required": ["evidence", "quote", "note", "level"],
 }
 
 SCHEDULED_EVENT_SCHEMA: Dict = {

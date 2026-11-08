@@ -298,33 +298,114 @@ def merge_answers(answers: Sequence[Dict[str, Any]]) -> Dict[str, Any]:
         answered = sorted(v for v in levels if v is not None)
         if len(answered) >= 2:
             level = answered[(len(answered) - 1) // 2]
-            evidence = sorted({aid for r in rows if r.get("level") == level for aid in r.get("evidence") or []})
-            note = next((r.get("note") or "" for r in rows if r.get("level") == level), "")
+            evidence, quote, note = _winning_evidence(rows, level)
         else:
-            level, evidence, note = None, [], ""
-        questions[qid] = {"level": level, "evidence": evidence, "note": note}
+            level, evidence, quote, note = None, [], "", ""
+        questions[qid] = {"level": level, "evidence": evidence, "quote": quote, "note": note}
 
+    return {
+        "questions": questions,
+        "scheduled_events": _majority_events(answers),
+        "condition_flags": _majority_flags(answers),
+        "bullet_summary": answers[0].get("bullet_summary") or "",
+        "merge": {"k": k, "votes": votes, "extended": False, "tied": []},
+    }
+
+
+def _winning_evidence(rows: Sequence[Dict[str, Any]], level: int):
+    """The evidence behind the calls that gave `level`: the union of their
+    article ids, and the first such call's quote and note."""
+    evidence = sorted({aid for r in rows if r.get("level") == level for aid in r.get("evidence") or []})
+    first = next((r for r in rows if r.get("level") == level), {})
+    return evidence, first.get("quote") or "", first.get("note") or ""
+
+
+def _majority_events(answers: Sequence[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """Scheduled events listed by more than half the calls, keyed on
+    `(article_id, question, direction)`, at the earliest date given. Counted
+    per distinct call: one call listing the same key under two dates is one
+    vote, not two."""
+    k = len(answers)
     seen: Dict[tuple, List[Dict[str, Any]]] = {}
-    for a in answers:
+    callers: Dict[tuple, set] = {}
+    for i, a in enumerate(answers):
         for ev in a.get("scheduled_events") or []:
-            seen.setdefault((ev.get("article_id"), ev.get("question"), ev.get("direction")), []).append(ev)
+            key = (ev.get("article_id"), ev.get("question"), ev.get("direction"))
+            seen.setdefault(key, []).append(ev)
+            callers.setdefault(key, set()).add(i)
     events = []
     for key, copies in seen.items():
-        if len(copies) >= 2:
+        if len(callers[key]) * 2 > k:
             first = min(copies, key=lambda e: e.get("date") or "")
             events.append(dict(first))
+    return events
 
+
+def _majority_flags(answers: Sequence[Dict[str, Any]]) -> Dict[str, bool]:
     flags = {}
     for name in ai_constants.CONDITION_FLAGS:
         c = Counter(bool((a.get("condition_flags") or {}).get(name)) for a in answers)
         flags[name] = c[True] > c[False]
+    return flags
+
+
+def is_unanimous(answers: Sequence[Dict[str, Any]]) -> bool:
+    """Whether every question has the same level (null included) in every call."""
+    answers = [a for a in answers if a]
+    for qid in ai_constants.QUESTION_IDS:
+        levels = {((a.get("questions") or {}).get(qid) or {}).get("level") for a in answers}
+        if len(levels) > 1:
+            return False
+    return True
+
+
+def vote_merge(answers: Sequence[Dict[str, Any]], *, final: bool = False) -> Dict[str, Any]:
+    """Merge a split vote by plurality (step 5e, Fix 7).
+
+    Per question: the question is non-null when at least
+    `VOTE_MIN_ANSWERED` calls answered it, and its level is the most common
+    answered level. When two levels tie for most common the question is
+    listed in ``merge["tied"]`` with a null level, so the caller can make one
+    more call and recount; with ``final=True`` a tie is settled as the median
+    of the answered levels, the upper middle on an even count. Events and
+    flags keep their majority rules over however many calls were made.
+    """
+    answers = [a for a in answers if a]
+    if not answers:
+        raise ValueError("no answers to merge")
+    k = len(answers)
+    need = ai_constants.VOTE_MIN_ANSWERED
+    questions: Dict[str, Dict[str, Any]] = {}
+    votes: Dict[str, List[Optional[int]]] = {}
+    tied: List[str] = []
+    for qid in ai_constants.QUESTION_IDS:
+        rows = [(a.get("questions") or {}).get(qid) or {} for a in answers]
+        levels = [r.get("level") for r in rows]
+        votes[qid] = levels
+        answered = sorted(v for v in levels if v is not None)
+        level: Optional[int] = None
+        if len(answered) >= need:
+            tally = Counter(answered).most_common()
+            top = tally[0][1]
+            leaders = sorted(lv for lv, n in tally if n == top)
+            if len(leaders) == 1:
+                level = leaders[0]
+            elif final:
+                level = answered[len(answered) // 2]
+            else:
+                tied.append(qid)
+        if level is not None:
+            evidence, quote, note = _winning_evidence(rows, level)
+        else:
+            evidence, quote, note = [], "", ""
+        questions[qid] = {"level": level, "evidence": evidence, "quote": quote, "note": note}
 
     return {
         "questions": questions,
-        "scheduled_events": events,
-        "condition_flags": flags,
+        "scheduled_events": _majority_events(answers),
+        "condition_flags": _majority_flags(answers),
         "bullet_summary": answers[0].get("bullet_summary") or "",
-        "merge": {"k": k, "votes": votes},
+        "merge": {"k": k, "votes": votes, "extended": True, "tied": tied},
     }
 
 
