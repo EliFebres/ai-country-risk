@@ -140,7 +140,15 @@ fix is a deliberate, visible act rather than an accident. The Top-3 selection
 this function serves is being replaced when the scorer is rewritten, which may
 delete the problem rather than fix it.
 
-## 6. Masking is not built, and the seam is marked
+## 6. Masking is not built, and the seam is marked — **closed 2026-11-08**
+
+Built in step 5e, for the scorer's input only (`docs/scorer-checklist.md`,
+Step 5e §28, Fix 8): masked digests and rewritten full texts cached under
+`mode = 'masked'`, a gazetteer check in code, and the masked payload as what
+production sends. Retrieval, the gate, the story checks, selection, the
+database and the frontend keep real names. The six masked payloads and the
+first masked merge per country under `backend/measurements/step5e/` are the
+reference set for step 6. The rest of this entry is the seam as it was marked.
 
 Not a decision this session was asked to make. The seam is `llm_artifact.mode`,
 which is in the artifact primary key and carries `'named'` throughout, plus the

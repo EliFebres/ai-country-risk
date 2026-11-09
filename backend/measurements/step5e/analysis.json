@@ -1,0 +1,3057 @@
+{
+ "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+ "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+ "quote_match": "exact",
+ "selection_check": {
+  "run_date": "2026-11-08",
+  "countries": {
+   "US": {
+    "old": {
+     "multi_article_stories": 1,
+     "same_story_dropped_if_checked": 1,
+     "title_only_sent": 7,
+     "t5_sent": 3,
+     "articles_sent": 20,
+     "story_method": "llm"
+    },
+    "new": {
+     "multi_article_stories": 0,
+     "title_only_sent": 0,
+     "t5_sent": 2,
+     "articles_sent": 20,
+     "shortfall": 0,
+     "refill_digests": 6,
+     "passes": 1,
+     "story_checks": 1,
+     "post_selection_same_story": 0,
+     "title_only_dropped": 8,
+     "blocked_after_selection": 0,
+     "final_story_check_clean": true,
+     "confirmation_check_method": "llm"
+    },
+    "mask": {
+     "hits": 28,
+     "regenerated": 13,
+     "replaced_by_code": 20,
+     "fallback_digests": 0,
+     "fallback_texts": 0,
+     "publisher_mentions": 5,
+     "digests_generated": 20,
+     "digests_cached": 0,
+     "rewrites_generated": 3,
+     "rewrites_cached": 0,
+     "payload_leaks": []
+    },
+    "eligible": 35,
+    "candidates": 47
+   },
+   "PT": {
+    "old": {
+     "multi_article_stories": 2,
+     "same_story_dropped_if_checked": 6,
+     "title_only_sent": 5,
+     "t5_sent": 2,
+     "articles_sent": 20,
+     "story_method": "llm"
+    },
+    "new": {
+     "multi_article_stories": 0,
+     "title_only_sent": 0,
+     "t5_sent": 2,
+     "articles_sent": 12,
+     "shortfall": 8,
+     "refill_digests": 0,
+     "passes": 3,
+     "story_checks": 3,
+     "post_selection_same_story": 3,
+     "title_only_dropped": 5,
+     "blocked_after_selection": 0,
+     "final_story_check_clean": true,
+     "confirmation_check_method": "llm"
+    },
+    "mask": {
+     "hits": 14,
+     "regenerated": 5,
+     "replaced_by_code": 4,
+     "fallback_digests": 0,
+     "fallback_texts": 0,
+     "publisher_mentions": 3,
+     "digests_generated": 12,
+     "digests_cached": 0,
+     "rewrites_generated": 3,
+     "rewrites_cached": 0,
+     "payload_leaks": []
+    },
+    "eligible": 20,
+    "candidates": 34
+   },
+   "KW": {
+    "old": {
+     "multi_article_stories": 0,
+     "same_story_dropped_if_checked": 0,
+     "title_only_sent": 3,
+     "t5_sent": 6,
+     "articles_sent": 20,
+     "story_method": "llm"
+    },
+    "new": {
+     "multi_article_stories": 0,
+     "title_only_sent": 0,
+     "t5_sent": 2,
+     "articles_sent": 16,
+     "shortfall": 4,
+     "refill_digests": 0,
+     "passes": 1,
+     "story_checks": 1,
+     "post_selection_same_story": 0,
+     "title_only_dropped": 2,
+     "blocked_after_selection": 0,
+     "final_story_check_clean": true,
+     "confirmation_check_method": "llm"
+    },
+    "mask": {
+     "hits": 28,
+     "regenerated": 10,
+     "replaced_by_code": 10,
+     "fallback_digests": 0,
+     "fallback_texts": 0,
+     "publisher_mentions": 12,
+     "digests_generated": 16,
+     "digests_cached": 0,
+     "rewrites_generated": 3,
+     "rewrites_cached": 0,
+     "payload_leaks": []
+    },
+    "eligible": 28,
+    "candidates": 39
+   },
+   "HK": {
+    "old": {
+     "multi_article_stories": 1,
+     "same_story_dropped_if_checked": 1,
+     "title_only_sent": 3,
+     "t5_sent": 1,
+     "articles_sent": 20,
+     "story_method": "llm"
+    },
+    "new": {
+     "multi_article_stories": 0,
+     "title_only_sent": 0,
+     "t5_sent": 1,
+     "articles_sent": 16,
+     "shortfall": 4,
+     "refill_digests": 0,
+     "passes": 2,
+     "story_checks": 2,
+     "post_selection_same_story": 3,
+     "title_only_dropped": 3,
+     "blocked_after_selection": 0,
+     "final_story_check_clean": true,
+     "confirmation_check_method": "llm"
+    },
+    "mask": {
+     "hits": 36,
+     "regenerated": 10,
+     "replaced_by_code": 28,
+     "fallback_digests": 0,
+     "fallback_texts": 0,
+     "publisher_mentions": 7,
+     "digests_generated": 16,
+     "digests_cached": 0,
+     "rewrites_generated": 3,
+     "rewrites_cached": 0,
+     "payload_leaks": []
+    },
+    "eligible": 36,
+    "candidates": 48
+   },
+   "TW": {
+    "old": {
+     "multi_article_stories": 0,
+     "same_story_dropped_if_checked": 0,
+     "title_only_sent": 4,
+     "t5_sent": 2,
+     "articles_sent": 20,
+     "story_method": "llm"
+    },
+    "new": {
+     "multi_article_stories": 0,
+     "title_only_sent": 0,
+     "t5_sent": 1,
+     "articles_sent": 20,
+     "shortfall": 0,
+     "refill_digests": 3,
+     "passes": 2,
+     "story_checks": 2,
+     "post_selection_same_story": 1,
+     "title_only_dropped": 6,
+     "blocked_after_selection": 0,
+     "final_story_check_clean": true,
+     "confirmation_check_method": "llm"
+    },
+    "mask": {
+     "hits": 44,
+     "regenerated": 17,
+     "replaced_by_code": 27,
+     "fallback_digests": 0,
+     "fallback_texts": 0,
+     "publisher_mentions": 12,
+     "digests_generated": 20,
+     "digests_cached": 0,
+     "rewrites_generated": 3,
+     "rewrites_cached": 0,
+     "payload_leaks": []
+    },
+    "eligible": 38,
+    "candidates": 45
+   },
+   "RU": {
+    "old": {
+     "multi_article_stories": 1,
+     "same_story_dropped_if_checked": 1,
+     "title_only_sent": 7,
+     "t5_sent": 2,
+     "articles_sent": 20,
+     "story_method": "llm"
+    },
+    "new": {
+     "multi_article_stories": 0,
+     "title_only_sent": 0,
+     "t5_sent": 2,
+     "articles_sent": 20,
+     "shortfall": 0,
+     "refill_digests": 7,
+     "passes": 1,
+     "story_checks": 1,
+     "post_selection_same_story": 0,
+     "title_only_dropped": 7,
+     "blocked_after_selection": 0,
+     "final_story_check_clean": true,
+     "confirmation_check_method": "llm"
+    },
+    "mask": {
+     "hits": 37,
+     "regenerated": 15,
+     "replaced_by_code": 29,
+     "fallback_digests": 0,
+     "fallback_texts": 0,
+     "publisher_mentions": 2,
+     "digests_generated": 20,
+     "digests_cached": 0,
+     "rewrites_generated": 3,
+     "rewrites_cached": 0,
+     "payload_leaks": []
+    },
+    "eligible": 45,
+    "candidates": 50
+   }
+  },
+  "spend_usd": 0.2223,
+  "meter": "[cost] actual $0.1898 — gpt-4o-mini-2024-07-18: 434 calls, 1009717+63977 tok, $0.1898",
+  "refrozen": {
+   "countries": [
+    "HK",
+    "TW"
+   ],
+   "run_date": "2026-11-09",
+   "spend_usd": 0.0325,
+   "why": "Beijing/Chinese/PLA moved from the subject's own terms to a rival kind, so code replacement writes [another country]"
+  }
+ },
+ "quote_rule": {
+  "nonnull_raw_levels": 1918,
+  "quote_nulled": 47,
+  "rate": 0.025,
+  "decision": "keep the rule",
+  "by_arm": {
+   "old_named": {
+    "calls": 80,
+    "nonnull_raw_levels": 686,
+    "quote_nulled": 13,
+    "rate": 0.019,
+    "title_only_nulled": 23,
+    "no_evidence_nulled": 208
+   },
+   "new_masked": {
+    "calls": 124,
+    "nonnull_raw_levels": 806,
+    "quote_nulled": 34,
+    "rate": 0.042,
+    "title_only_nulled": 0,
+    "no_evidence_nulled": 9
+   },
+   "new_named": {
+    "calls": 76,
+    "nonnull_raw_levels": 426,
+    "quote_nulled": 0,
+    "rate": 0.0,
+    "title_only_nulled": 0,
+    "no_evidence_nulled": 73
+   }
+  },
+  "examples": [
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   },
+   {
+    "arm": "old_named",
+    "iso2": "US",
+    "field": "O5.quote",
+    "quote": "Cuba's deputy foreign minister condemned the possibility of US military action against Cuba."
+   }
+  ]
+ },
+ "no_evidence": {
+  "before_per_call": 5.6,
+  "after_per_call": 2.6,
+  "before_calls": 30,
+  "after_calls": 80,
+  "per_country": {
+   "US": {
+    "before": 7.67,
+    "after": 6.38
+   },
+   "PT": {
+    "before": 13.0,
+    "after": 8.07
+   },
+   "KW": {
+    "before": 3.13,
+    "after": 0.0
+   },
+   "HK": {
+    "before": 8.0,
+    "after": 0.0
+   },
+   "TW": {
+    "before": 11.67,
+    "after": 0.31
+   },
+   "RU": {
+    "before": 0.0,
+    "after": 0.0
+   }
+  }
+ },
+ "extension": {
+  "old_named": {
+   "merges": 18,
+   "extended": 13,
+   "k_counts": {
+    "5": 13,
+    "3": 5
+   },
+   "tied_at_end": 0
+  },
+  "new_masked": {
+   "merges": 30,
+   "extended": 16,
+   "k_counts": {
+    "5": 15,
+    "7": 1,
+    "3": 14
+   },
+   "tied_at_end": 1
+  },
+  "new_named": {
+   "merges": 18,
+   "extended": 11,
+   "k_counts": {
+    "5": 11,
+    "3": 7
+   },
+   "tied_at_end": 0
+  }
+ },
+ "old_vs_step5d": {
+  "US": {
+   "step5d_median": 29,
+   "now_median": 29,
+   "delta": 0,
+   "merges": 3,
+   "changed_questions": [
+    {
+     "question": "F3",
+     "step5d": 2,
+     "now": null,
+     "why": "level moved on the same evidence",
+     "quote_nulls": 0,
+     "raw_null_share": 0.15,
+     "quote": ""
+    },
+    {
+     "question": "O1",
+     "step5d": null,
+     "now": 2,
+     "why": "vote",
+     "quote_nulls": 0,
+     "raw_null_share": 0.15,
+     "quote": "Donald Trump has corrupted presidential power during his terms, attacking core institutions."
+    },
+    {
+     "question": "O5",
+     "step5d": 1,
+     "now": null,
+     "why": "quote rule",
+     "quote_nulls": 13,
+     "raw_null_share": 0.0,
+     "quote": ""
+    }
+   ]
+  },
+  "PT": {
+   "step5d_median": 19,
+   "now_median": 19,
+   "delta": 0,
+   "merges": 3,
+   "changed_questions": [
+    {
+     "question": "F4",
+     "step5d": null,
+     "now": 2,
+     "why": "level moved on the same evidence",
+     "quote_nulls": 0,
+     "raw_null_share": 0.0,
+     "quote": "Portugal's nationality law now requires ten years of legal residence for most foreign nationals to naturalize, with the residency count starting only after the Agency for Integration, Migration and Asylum (AIMA) issues a residence permit."
+    },
+    {
+     "question": "O5",
+     "step5d": null,
+     "now": 0,
+     "why": "vote",
+     "quote_nulls": 0,
+     "raw_null_share": 0.07,
+     "quote": "The EU OPEX programme is being conducted within the Portuguese Army’s ARTEX 26 campaign to assess various unmanned systems and technologies for military use."
+    }
+   ]
+  },
+  "KW": {
+   "step5d_median": 39,
+   "now_median": 40,
+   "delta": 1,
+   "merges": 3,
+   "changed_questions": [
+    {
+     "question": "F1",
+     "step5d": 0,
+     "now": 2,
+     "why": "level moved on the same evidence",
+     "quote_nulls": 0,
+     "raw_null_share": 0.33,
+     "quote": "Kuwait has approved its first law governing sovereign sukuk, allowing the government to issue Sharia-compliant debt to expand its borrowing program amid a liquidity shortage due to declining oil income."
+    },
+    {
+     "question": "F3",
+     "step5d": 1,
+     "now": null,
+     "why": "level moved on the same evidence",
+     "quote_nulls": 0,
+     "raw_null_share": 0.0,
+     "quote": ""
+    },
+    {
+     "question": "O1",
+     "step5d": 0,
+     "now": 2,
+     "why": "vote",
+     "quote_nulls": 0,
+     "raw_null_share": 0.0,
+     "quote": "Kuwait Court Orders Imprisonment of Former MPs, Including Musallam Al-Barrak"
+    },
+    {
+     "question": "O3",
+     "step5d": 1,
+     "now": 0,
+     "why": "vote",
+     "quote_nulls": 0,
+     "raw_null_share": 0.0,
+     "quote": "Kuwait's Administrative Court annulled Article 15 of the new delivery regulations, which set penalties for violations by delivery platforms and merchants."
+    },
+    {
+     "question": "O5",
+     "step5d": 3,
+     "now": 2,
+     "why": "vote",
+     "quote_nulls": 0,
+     "raw_null_share": 0.0,
+     "quote": "Iran launched missiles and drones at a U.S. base in Kuwait"
+    },
+    {
+     "question": "E1",
+     "step5d": 1,
+     "now": 0,
+     "why": "level moved on the same evidence",
+     "quote_nulls": 0,
+     "raw_null_share": 0.0,
+     "quote": "Sudan Begins Exporting Meat to Kuwait"
+    }
+   ]
+  },
+  "HK": {
+   "step5d_median": 25,
+   "now_median": 25,
+   "delta": 0,
+   "merges": 3,
+   "changed_questions": [
+    {
+     "question": "F1",
+     "step5d": 0,
+     "now": null,
+     "why": "model now answers null (date sentence / use 0 only for shown normal functioning)",
+     "quote_nulls": 0,
+     "raw_null_share": 1.0,
+     "quote": ""
+    },
+    {
+     "question": "F3",
+     "step5d": 0,
+     "now": null,
+     "why": "model now answers null (date sentence / use 0 only for shown normal functioning)",
+     "quote_nulls": 0,
+     "raw_null_share": 1.0,
+     "quote": ""
+    },
+    {
+     "question": "F4",
+     "step5d": 1,
+     "now": null,
+     "why": "model now answers null (date sentence / use 0 only for shown normal functioning)",
+     "quote_nulls": 0,
+     "raw_null_share": 1.0,
+     "quote": ""
+    },
+    {
+     "question": "O5",
+     "step5d": null,
+     "now": 2,
+     "why": "level moved on the same evidence",
+     "quote_nulls": 0,
+     "raw_null_share": 0.0,
+     "quote": "The Pentagon is investigating how parts of the F-35 fighter jet ended up in Hong Kong."
+    },
+    {
+     "question": "E1",
+     "step5d": 0,
+     "now": null,
+     "why": "model now answers null (date sentence / use 0 only for shown normal functioning)",
+     "quote_nulls": 0,
+     "raw_null_share": 0.54,
+     "quote": ""
+    }
+   ]
+  },
+  "TW": {
+   "step5d_median": 18,
+   "now_median": 18,
+   "delta": 0,
+   "merges": 3,
+   "changed_questions": [
+    {
+     "question": "F3",
+     "step5d": 0,
+     "now": null,
+     "why": "vote",
+     "quote_nulls": 0,
+     "raw_null_share": 0.46,
+     "quote": ""
+    }
+   ]
+  },
+  "RU": {
+   "step5d_median": 58,
+   "now_median": 58,
+   "delta": 0,
+   "merges": 3,
+   "changed_questions": []
+  }
+ },
+ "m1": {
+  "per_country": {
+   "US": {
+    "merges": 5,
+    "score_12m": {
+     "n": 5,
+     "distinct": [
+      27,
+      28,
+      29
+     ],
+     "range": 2,
+     "sd": 0.707,
+     "median": 28,
+     "mean": 28
+    },
+    "score_3m": {
+     "n": 5,
+     "distinct": [
+      24,
+      25,
+      26
+     ],
+     "range": 2,
+     "sd": 0.707,
+     "median": 25,
+     "mean": 25
+    },
+    "ledgers": {
+     "friction": {
+      "n": 5,
+      "distinct": [
+       31,
+       32
+      ],
+      "range": 1,
+      "sd": 0.447,
+      "median": 31,
+      "mean": 31.2
+     },
+     "order": {
+      "n": 5,
+      "distinct": [
+       27,
+       29,
+       31
+      ],
+      "range": 4,
+      "sd": 1.414,
+      "median": 29,
+      "mean": 29
+     },
+     "information": {
+      "n": 5,
+      "distinct": [
+       21
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 21,
+      "mean": 21
+     },
+     "edge": {
+      "n": 5,
+      "distinct": [
+       19
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 19,
+      "mean": 19
+     }
+    },
+    "answered": [
+     13,
+     12,
+     13,
+     13,
+     13
+    ],
+    "questions": {
+     "F1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       1,
+       null,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 0.8,
+      "null_share": 0.2,
+      "flips": 1
+     },
+     "O1": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       0
+      ],
+      "modal": 1,
+      "modal_share": 0.8,
+      "null_share": 0.0,
+      "flips": 1
+     },
+     "O3": {
+      "levels": [
+       1,
+       1,
+       2,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 0.8,
+      "null_share": 0.0,
+      "flips": 1
+     },
+     "O4": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     }
+    },
+    "k": [
+     5,
+     5,
+     5,
+     7,
+     5
+    ]
+   },
+   "PT": {
+    "merges": 5,
+    "score_12m": {
+     "n": 5,
+     "distinct": [
+      20
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 20,
+     "mean": 20
+    },
+    "score_3m": {
+     "n": 5,
+     "distinct": [
+      20,
+      23
+     ],
+     "range": 3,
+     "sd": 1.643,
+     "median": 23,
+     "mean": 21.8
+    },
+    "ledgers": {
+     "friction": {
+      "n": 5,
+      "distinct": [
+       23
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 23,
+      "mean": 23
+     },
+     "order": {
+      "n": 5,
+      "distinct": [
+       26
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 26,
+      "mean": 26
+     },
+     "information": {
+      "n": 5,
+      "distinct": [
+       3
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 3,
+      "mean": 3
+     },
+     "edge": {
+      "n": 5,
+      "distinct": [
+       15
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 15,
+      "mean": 15
+     }
+    },
+    "answered": [
+     4,
+     4,
+     4,
+     4,
+     4
+    ],
+    "questions": {
+     "F1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     }
+    },
+    "k": [
+     3,
+     3,
+     5,
+     3,
+     3
+    ]
+   },
+   "KW": {
+    "merges": 5,
+    "score_12m": {
+     "n": 5,
+     "distinct": [
+      40
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 40,
+     "mean": 40
+    },
+    "score_3m": {
+     "n": 5,
+     "distinct": [
+      40
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 40,
+     "mean": 40
+    },
+    "ledgers": {
+     "friction": {
+      "n": 5,
+      "distinct": [
+       27
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 27,
+      "mean": 27
+     },
+     "order": {
+      "n": 5,
+      "distinct": [
+       40
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 40,
+      "mean": 40
+     },
+     "information": {
+      "n": 5,
+      "distinct": [
+       66
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 66,
+      "mean": 66
+     },
+     "edge": {
+      "n": 5,
+      "distinct": [
+       24
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 24,
+      "mean": 24
+     }
+    },
+    "answered": [
+     4,
+     4,
+     4,
+     4,
+     4
+    ],
+    "questions": {
+     "F1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     }
+    },
+    "k": [
+     3,
+     3,
+     3,
+     3,
+     3
+    ]
+   },
+   "HK": {
+    "merges": 5,
+    "score_12m": {
+     "n": 5,
+     "distinct": [
+      25
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 25,
+     "mean": 25
+    },
+    "score_3m": {
+     "n": 5,
+     "distinct": [
+      25
+     ],
+     "range": 0,
+     "sd": 0.0,
+     "median": 25,
+     "mean": 25
+    },
+    "ledgers": {
+     "friction": {
+      "n": 5,
+      "distinct": [
+       9
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 9,
+      "mean": 9
+     },
+     "order": {
+      "n": 5,
+      "distinct": [
+       20
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 20,
+      "mean": 20
+     },
+     "information": {
+      "n": 5,
+      "distinct": [
+       67
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 67,
+      "mean": 67
+     },
+     "edge": {
+      "n": 5,
+      "distinct": [
+       10
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 10,
+      "mean": 10
+     }
+    },
+    "answered": [
+     3,
+     3,
+     3,
+     3,
+     3
+    ],
+    "questions": {
+     "F1": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       1,
+       1,
+       1,
+       1,
+       1
+      ],
+      "modal": 1,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       0,
+       0,
+       0,
+       0,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     }
+    },
+    "k": [
+     3,
+     3,
+     3,
+     3,
+     3
+    ]
+   },
+   "TW": {
+    "merges": 5,
+    "score_12m": {
+     "n": 5,
+     "distinct": [
+      23,
+      24
+     ],
+     "range": 1,
+     "sd": 0.548,
+     "median": 23,
+     "mean": 23.4
+    },
+    "score_3m": {
+     "n": 5,
+     "distinct": [
+      23,
+      24
+     ],
+     "range": 1,
+     "sd": 0.548,
+     "median": 23,
+     "mean": 23.4
+    },
+    "ledgers": {
+     "friction": {
+      "n": 5,
+      "distinct": [
+       28
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 28,
+      "mean": 28
+     },
+     "order": {
+      "n": 5,
+      "distinct": [
+       24
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 24,
+      "mean": 24
+     },
+     "information": {
+      "n": 5,
+      "distinct": [
+       14
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 14,
+      "mean": 14
+     },
+     "edge": {
+      "n": 5,
+      "distinct": [
+       0
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 0,
+      "mean": 0
+     }
+    },
+    "answered": [
+     6,
+     6,
+     7,
+     7,
+     6
+    ],
+    "questions": {
+     "F1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       null,
+       null,
+       1,
+       1,
+       null
+      ],
+      "modal": null,
+      "modal_share": 0.6,
+      "null_share": 0.6,
+      "flips": 2
+     },
+     "O4": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     }
+    },
+    "k": [
+     5,
+     5,
+     5,
+     5,
+     5
+    ]
+   },
+   "RU": {
+    "merges": 5,
+    "score_12m": {
+     "n": 5,
+     "distinct": [
+      56,
+      57
+     ],
+     "range": 1,
+     "sd": 0.548,
+     "median": 56,
+     "mean": 56.4
+    },
+    "score_3m": {
+     "n": 5,
+     "distinct": [
+      56,
+      57
+     ],
+     "range": 1,
+     "sd": 0.548,
+     "median": 56,
+     "mean": 56.4
+    },
+    "ledgers": {
+     "friction": {
+      "n": 5,
+      "distinct": [
+       41,
+       43
+      ],
+      "range": 2,
+      "sd": 1.095,
+      "median": 41,
+      "mean": 41.8
+     },
+     "order": {
+      "n": 5,
+      "distinct": [
+       64
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 64,
+      "mean": 64
+     },
+     "information": {
+      "n": 5,
+      "distinct": [
+       68
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 68,
+      "mean": 68
+     },
+     "edge": {
+      "n": 5,
+      "distinct": [
+       64
+      ],
+      "range": 0,
+      "sd": 0.0,
+      "median": 64,
+      "mean": 64
+     }
+    },
+    "answered": [
+     4,
+     4,
+     4,
+     4,
+     4
+    ],
+    "questions": {
+     "F1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F3": {
+      "levels": [
+       0,
+       0,
+       1,
+       1,
+       0
+      ],
+      "modal": 0,
+      "modal_share": 0.6,
+      "null_share": 0.0,
+      "flips": 2
+     },
+     "F4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F5": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "F6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O3": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O4": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "O5": {
+      "levels": [
+       2,
+       2,
+       2,
+       2,
+       2
+      ],
+      "modal": 2,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "O6": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I1": {
+      "levels": [
+       3,
+       3,
+       3,
+       3,
+       3
+      ],
+      "modal": 3,
+      "modal_share": 1.0,
+      "null_share": 0.0,
+      "flips": 0
+     },
+     "I2": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "I3": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     },
+     "E1": {
+      "levels": [
+       null,
+       null,
+       null,
+       null,
+       null
+      ],
+      "modal": null,
+      "modal_share": 1.0,
+      "null_share": 1.0,
+      "flips": 0
+     }
+    },
+    "k": [
+     5,
+     5,
+     5,
+     5,
+     5
+    ]
+   }
+  },
+  "worst_sd": 0.707,
+  "pass": true,
+  "flipping_questions": {
+   "US": [
+    "F6",
+    "O2",
+    "O3"
+   ],
+   "PT": [],
+   "KW": [],
+   "HK": [],
+   "TW": [
+    "O3"
+   ],
+   "RU": [
+    "F3"
+   ]
+  }
+ },
+ "face_validity": {
+  "order": [
+   [
+    "RU",
+    56
+   ],
+   [
+    "KW",
+    40
+   ],
+   [
+    "US",
+    28
+   ],
+   [
+    "HK",
+    25
+   ],
+   [
+    "TW",
+    23
+   ],
+   [
+    "PT",
+    20
+   ]
+  ],
+  "ru_highest": true,
+  "pt_from_bottom": 1,
+  "pass": true
+ },
+ "m4": {
+  "gaps": [
+   {
+    "iso2": "US",
+    "merge": 0,
+    "gap": 3,
+    "events": [
+     {
+      "article_id": "a13",
+      "date": "2027-01-01",
+      "event": "Opportunity Zones designations take effect",
+      "question": "E1",
+      "direction": "down"
+     }
+    ]
+   },
+   {
+    "iso2": "US",
+    "merge": 1,
+    "gap": 3,
+    "events": [
+     {
+      "article_id": "a13",
+      "date": "2027-01-01",
+      "event": "Opportunity Zones designations take effect",
+      "question": "E1",
+      "direction": "down"
+     }
+    ]
+   },
+   {
+    "iso2": "US",
+    "merge": 2,
+    "gap": 3,
+    "events": [
+     {
+      "article_id": "a13",
+      "date": "2027-01-01",
+      "event": "Opportunity Zones designations take effect",
+      "question": "E1",
+      "direction": "down"
+     }
+    ]
+   },
+   {
+    "iso2": "US",
+    "merge": 3,
+    "gap": 3,
+    "events": [
+     {
+      "article_id": "a13",
+      "date": "2027-01-01",
+      "event": "Opportunity Zones designations take effect",
+      "question": "E1",
+      "direction": "down"
+     }
+    ]
+   },
+   {
+    "iso2": "US",
+    "merge": 4,
+    "gap": 3,
+    "events": [
+     {
+      "article_id": "a13",
+      "date": "2027-01-01",
+      "event": "Opportunity Zones designations take effect",
+      "question": "E1",
+      "direction": "down"
+     }
+    ]
+   },
+   {
+    "iso2": "PT",
+    "merge": 0,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a1",
+      "date": "2026-11-18",
+      "event": "University students will march to protest rising housing costs and cuts to education funding.",
+      "question": "O4",
+      "direction": "up"
+     }
+    ]
+   },
+   {
+    "iso2": "PT",
+    "merge": 1,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a1",
+      "date": "2026-11-18",
+      "event": "University students will march to protest rising housing costs and cuts to education funding.",
+      "question": "O4",
+      "direction": "up"
+     }
+    ]
+   },
+   {
+    "iso2": "PT",
+    "merge": 3,
+    "gap": -3,
+    "events": [
+     {
+      "article_id": "a1",
+      "date": "2026-11-18",
+      "event": "University students will march to protest rising housing costs and cuts to education funding.",
+      "question": "O4",
+      "direction": "up"
+     }
+    ]
+   }
+  ],
+  "untraced": [],
+  "dropped_events": {
+   "date not in article": 41,
+   "past": 6
+  },
+  "pass": true
+ },
+ "masking_cost": {
+  "per_country": {
+   "US": {
+    "masked_median": 28,
+    "named_median": 28,
+    "masked_minus_named": 0,
+    "named_merges": 3,
+    "masked_merges": 5,
+    "differing_questions": [
+     {
+      "question": "F1",
+      "masked": 1,
+      "named": null,
+      "masked_quote": "A government unveiled a budget aimed at reducing dependence on a major trading partner amid ongoing trade tensions.",
+      "masked_evidence": [
+       "a6"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "F2",
+      "masked": 1,
+      "named": 2,
+      "masked_quote": "Consumer inflation expectations for the next year registered at 4.3% in November, which is above the expected rate of 0%.",
+      "masked_evidence": [
+       "a14"
+      ],
+      "named_quote": "United States UoM 1-year Consumer Inflation Expectations registered at 4.3% above expectations (0%) in November.",
+      "named_evidence": [
+       "a14"
+      ]
+     },
+     {
+      "question": "F3",
+      "masked": 2,
+      "named": null,
+      "masked_quote": "The government has imposed sanctions on several Canadian currency-exchange businesses for allegedly assisting the Iranian regime.",
+      "masked_evidence": [
+       "a4"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "F4",
+      "masked": 2,
+      "named": 0,
+      "masked_quote": "Prosecutors have dropped all criminal charges against a scientist who was detained after arriving with frog embryos for cancer research.",
+      "masked_evidence": [
+       "a2"
+      ],
+      "named_quote": "U.S. prosecutors have dropped all criminal charges against a Russian scientist...",
+      "named_evidence": [
+       "a2"
+      ]
+     },
+     {
+      "question": "F5",
+      "masked": 1,
+      "named": null,
+      "masked_quote": "The article discusses an agenda for the new Congress that aims to address corruption in government.",
+      "masked_evidence": [
+       "a19"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "F6",
+      "masked": 1,
+      "named": null,
+      "masked_quote": "[local currency]62.3 billion Canadian deficit for 2026-27",
+      "masked_evidence": [
+       "a6"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "O3",
+      "masked": 1,
+      "named": null,
+      "masked_quote": "On October 9, 2026, the Department of State announced sanctions against the International Criminal Court.",
+      "masked_evidence": [
+       "a18"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "O4",
+      "masked": 1,
+      "named": null,
+      "masked_quote": "Faculty members at an elite college voted to pass a no-confidence resolution against the college's leadership.",
+      "masked_evidence": [
+       "a12"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "O6",
+      "masked": 0,
+      "named": null,
+      "masked_quote": "Officials reported that states were on high alert for election interference during the midterm elections.",
+      "masked_evidence": [
+       "a11"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     }
+    ]
+   },
+   "PT": {
+    "masked_median": 20,
+    "named_median": 21,
+    "masked_minus_named": -1,
+    "named_merges": 3,
+    "masked_merges": 5,
+    "differing_questions": [
+     {
+      "question": "O1",
+      "masked": null,
+      "named": 2,
+      "masked_quote": "",
+      "masked_evidence": [],
+      "named_quote": "Housing protesters have returned to Lisbon's Rossio Square, setting up around 100 tents following a court ruling.",
+      "named_evidence": [
+       "a10",
+       "a6"
+      ]
+     }
+    ]
+   },
+   "KW": {
+    "masked_median": 40,
+    "named_median": 39,
+    "masked_minus_named": 1,
+    "named_merges": 3,
+    "masked_merges": 5,
+    "differing_questions": [
+     {
+      "question": "O5",
+      "masked": 2,
+      "named": 1,
+      "masked_quote": "Houthi missile and drone attacks targeting an oil giant in a major city.",
+      "masked_evidence": [
+       "a10",
+       "a4"
+      ],
+      "named_quote": "Kuwait, and Syria condemned recent Houthi missile and drone attacks on Saudi Arabia.",
+      "named_evidence": [
+       "a10",
+       "a4"
+      ]
+     }
+    ]
+   },
+   "HK": {
+    "masked_median": 25,
+    "named_median": 25,
+    "masked_minus_named": 0,
+    "named_merges": 3,
+    "masked_merges": 5,
+    "differing_questions": [
+     {
+      "question": "F1",
+      "masked": 1,
+      "named": null,
+      "masked_quote": "A team has been formed to provide technical support and answer questions regarding crypto-asset reporting rules that will take effect in 2027.",
+      "masked_evidence": [
+       "a3"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "E1",
+      "masked": 0,
+      "named": 2,
+      "masked_quote": "The government is increasing efforts to attract private investment in artificial intelligence and other emerging technologies by launching a new fund.",
+      "masked_evidence": [
+       "a4"
+      ],
+      "named_quote": "Ganzhou Hemay Pharmaceutical postponed its global offering due to market conditions",
+      "named_evidence": [
+       "a4",
+       "a9"
+      ]
+     }
+    ]
+   },
+   "TW": {
+    "masked_median": 23,
+    "named_median": 24,
+    "masked_minus_named": -1,
+    "named_merges": 3,
+    "masked_merges": 5,
+    "differing_questions": [
+     {
+      "question": "F5",
+      "masked": 2,
+      "named": null,
+      "masked_quote": "An independent lawmaker and three others were indicted on national security and corruption charges",
+      "masked_evidence": [
+       "a18"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "O1",
+      "masked": 2,
+      "named": null,
+      "masked_quote": "Fraud cases related to upcoming local elections have resulted in financial losses",
+      "masked_evidence": [
+       "a2",
+       "a4",
+       "a5",
+       "a7"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     },
+     {
+      "question": "O5",
+      "masked": null,
+      "named": 2,
+      "masked_quote": "",
+      "masked_evidence": [],
+      "named_quote": "Taiwan's Ministry of National Defence reported detecting Chinese military aircraft and vessels around the island.",
+      "named_evidence": [
+       "a8",
+       "a9"
+      ]
+     },
+     {
+      "question": "O6",
+      "masked": null,
+      "named": 2,
+      "masked_quote": "",
+      "masked_evidence": [],
+      "named_quote": "Taiwan authorities detained Lin Te-wang, the leader of the Taiwan People’s Communist Party, for allegedly running as a candidate under the direction and sponsorship of China's Communist Party.",
+      "named_evidence": [
+       "a7"
+      ]
+     }
+    ]
+   },
+   "RU": {
+    "masked_median": 56,
+    "named_median": 57,
+    "masked_minus_named": -1,
+    "named_merges": 3,
+    "masked_merges": 5,
+    "differing_questions": [
+     {
+      "question": "F3",
+      "masked": 0,
+      "named": 1,
+      "masked_quote": "The central bank opened the crypto market to retail investors.",
+      "masked_evidence": [
+       "a1"
+      ],
+      "named_quote": "Russia’s central bank opened the crypto market to retail investors.",
+      "named_evidence": [
+       "a1"
+      ]
+     },
+     {
+      "question": "O3",
+      "masked": 2,
+      "named": null,
+      "masked_quote": "A European news outlet critical of the government has gained recognition...",
+      "masked_evidence": [
+       "a3"
+      ],
+      "named_quote": "",
+      "named_evidence": []
+     }
+    ]
+   }
+  },
+  "over_5": [],
+  "adopt": true
+ },
+ "probe": {
+  "run1": {
+   "model": "gpt-4o-mini-2024-07-18",
+   "run": "run1",
+   "countries": {
+    "US": {
+     "country": "United States",
+     "verdict": "identified",
+     "top": {
+      "country": "United States",
+      "probability": 0.7,
+      "reason": "References to the National Guard and Customs and Border Protection, which are specific to the U.S."
+     },
+     "guesses": [
+      {
+       "country": "United States",
+       "probability": 0.7,
+       "reason": "References to the National Guard and Customs and Border Protection, which are specific to the U.S."
+      },
+      {
+       "country": "Canada",
+       "probability": 0.2,
+       "reason": "Mention of Canadian currency and Canadian businesses in sanctions context."
+      },
+      {
+       "country": "Mexico",
+       "probability": 0.1,
+       "reason": "Geographical context of the southwest border, but less specific indicators."
+      }
+     ],
+     "gave_away": "References to the National Guard and Customs and Border Protection, which are specific to the U.S.",
+     "name_in_reason": false
+    },
+    "PT": {
+     "country": "Portugal",
+     "verdict": "not enough to tell",
+     "top": {
+      "country": "Portugal",
+      "probability": 0.4,
+      "reason": "The mention of a shared currency (euro area) and specific references to protests in the capital and housing issues suggest a European context, particularly Portugal."
+     },
+     "guesses": [
+      {
+       "country": "Portugal",
+       "probability": 0.4,
+       "reason": "The mention of a shared currency (euro area) and specific references to protests in the capital and housing issues suggest a European context, particularly Portugal."
+      },
+      {
+       "country": "Spain",
+       "probability": 0.3,
+       "reason": "The context of protests and housing issues is also relevant to Spain, which shares cultural and economic ties with Portugal."
+      },
+      {
+       "country": "Italy",
+       "probability": 0.3,
+       "reason": "The mention of tax policies and residency-by-investment programs aligns with Italy's economic landscape, but less directly than Portugal."
+      }
+     ],
+     "gave_away": "The mention of a shared currency (euro area) and specific references to protests in the capital and housing issues suggest a European context, particularly Portugal.",
+     "name_in_reason": true
+    },
+    "KW": {
+     "country": "Kuwait",
+     "verdict": "identified",
+     "top": {
+      "country": "Kuwait",
+      "probability": 0.7,
+      "reason": "Multiple articles published by 'Kuwait Times' and 'Arab Times Kuwait News' indicate the country is Kuwait."
+     },
+     "guesses": [
+      {
+       "country": "Kuwait",
+       "probability": 0.7,
+       "reason": "Multiple articles published by 'Kuwait Times' and 'Arab Times Kuwait News' indicate the country is Kuwait."
+      },
+      {
+       "country": "Saudi Arabia",
+       "probability": 0.2,
+       "reason": "Regional context and economic development themes suggest a connection to Saudi Arabia."
+      },
+      {
+       "country": "United Arab Emirates",
+       "probability": 0.1,
+       "reason": "Mention of regional banking awards and investment initiatives could relate to UAE."
+      }
+     ],
+     "gave_away": "Multiple articles published by 'Kuwait Times' and 'Arab Times Kuwait News' indicate the country is Kuwait.",
+     "name_in_reason": true
+    },
+    "HK": {
+     "country": "Hong Kong SAR, China",
+     "verdict": "not enough to tell",
+     "top": {
+      "country": "Hong Kong",
+      "probability": 0.5,
+      "reason": "References to 'one country, two systems' and the South China Morning Post as a publisher."
+     },
+     "guesses": [
+      {
+       "country": "Hong Kong",
+       "probability": 0.5,
+       "reason": "References to 'one country, two systems' and the South China Morning Post as a publisher."
+      },
+      {
+       "country": "Singapore",
+       "probability": 0.3,
+       "reason": "Mentions of fintech events and significant participation from institutions suggest a strong financial hub."
+      },
+      {
+       "country": "Macau",
+       "probability": 0.2,
+       "reason": "The context of a high-income region in East Asia with a currency board linked to the US dollar."
+      }
+     ],
+     "gave_away": "References to 'one country, two systems' and the South China Morning Post as a publisher.",
+     "name_in_reason": false
+    },
+    "TW": {
+     "country": "Taiwan",
+     "verdict": "identified",
+     "top": {
+      "country": "Taiwan",
+      "probability": 0.6,
+      "reason": "The mention of the Apec leaders’ summit and complaints about diplomatic protocol suggests Taiwan's unique international status."
+     },
+     "guesses": [
+      {
+       "country": "Taiwan",
+       "probability": 0.6,
+       "reason": "The mention of the Apec leaders’ summit and complaints about diplomatic protocol suggests Taiwan's unique international status."
+      },
+      {
+       "country": "Papua New Guinea",
+       "probability": 0.2,
+       "reason": "The article discusses the closure of a representative office in Papua New Guinea, indicating its relevance to the news."
+      },
+      {
+       "country": "China",
+       "probability": 0.2,
+       "reason": "References to a 'major power' and regional rival suggest the context of China's influence in the region."
+      }
+     ],
+     "gave_away": "The mention of the Apec leaders’ summit and complaints about diplomatic protocol suggests Taiwan's unique international status.",
+     "name_in_reason": true
+    },
+    "RU": {
+     "country": "Russia",
+     "verdict": "not enough to tell",
+     "top": {
+      "country": "Ukraine",
+      "probability": 0.4,
+      "reason": "The articles discuss missile strikes and energy infrastructure attacks, which are indicative of the ongoing conflict involving Ukraine."
+     },
+     "guesses": [
+      {
+       "country": "Ukraine",
+       "probability": 0.4,
+       "reason": "The articles discuss missile strikes and energy infrastructure attacks, which are indicative of the ongoing conflict involving Ukraine."
+      },
+      {
+       "country": "Russia",
+       "probability": 0.3,
+       "reason": "References to a major power and military actions suggest involvement of Russia, especially in the context of the conflict with Ukraine."
+      },
+      {
+       "country": "Belarus",
+       "probability": 0.3,
+       "reason": "The mention of a news outlet critical of the government and the regime's actions aligns with the situation in Belarus."
+      }
+     ],
+     "gave_away": "The articles discuss missile strikes and energy infrastructure attacks, which are indicative of the ongoing conflict involving Ukraine.",
+     "name_in_reason": false
+    }
+   },
+   "spend_usd": 0.006
+  }
+ },
+ "spend": {
+  "by_arm": {
+   "old_named": {
+    "calls": 80,
+    "usd": 2.4105
+   },
+   "new_masked": {
+    "calls": 124,
+    "usd": 3.5764
+   },
+   "new_named": {
+    "calls": 76,
+    "usd": 2.2286
+   }
+  },
+  "scorer_total_usd": 8.2155,
+  "observed_call": {
+   "calls": 280,
+   "in_tokens": 8844,
+   "out_tokens": 723,
+   "usd_per_call": 0.0293,
+   "calls_per_merge": 4.24,
+   "extended_share": 0.61
+  }
+ },
+ "lines": [
+  "Selection: PASS — US: stories 1->0, title-only 7->0, T5 3->2, sent 20->20; PT: stories 2->0, title-only 5->0, T5 2->2, sent 20->12; KW: stories 0->0, title-only 3->0, T5 6->2, sent 20->16; HK: stories 1->0, title-only 3->0, T5 1->1, sent 20->16; TW: stories 0->0, title-only 4->0, T5 2->1, sent 20->20; RU: stories 1->0, title-only 7->0, T5 2->2, sent 20->20",
+  "Leaks in the frozen payloads: PASS {'US': [], 'PT': [], 'KW': [], 'HK': [], 'TW': [], 'RU': []}",
+  "Quote rule (Fix 3): 47 of 1918 non-null levels nulled (2.5%) -> keep the rule",
+  "Title-only tripwire (Fix 2): 23 levels nulled (LOOK)",
+  "No-evidence nulls (Fix 4): 5.60 per call before (step 5d, 30 calls) -> 2.60 after (old payloads, new instrument, 80 calls)",
+  "Split votes (Fix 7): old_named 13/18 merges extended, k {5: 13, 3: 5}; new_masked 16/30 merges extended, k {5: 15, 7: 1, 3: 14}; new_named 11/18 merges extended, k {5: 11, 3: 7}",
+  "3a old payloads, new instrument vs step 5d: US 29->29 (3 q changed); PT 19->19 (2 q changed); KW 39->40 (6 q changed); HK 25->25 (5 q changed); TW 18->18 (1 q changed); RU 58->58 (0 q changed)",
+  "M1 (masked, worst score_12m SD over merges): 0.707 -> PASS; flipping: {'US': ['F6', 'O2', 'O3'], 'TW': ['O3'], 'RU': ['F3']}",
+  "Face validity (masked medians): [('RU', 56), ('KW', 40), ('US', 28), ('HK', 25), ('TW', 23), ('PT', 20)] -> PASS",
+  "M4 (masked): 8 merge(s) with a 3m gap, 0 untraced -> PASS; events dropped {'date not in article': 41, 'past': 6}",
+  "Masking cost (median masked − median named): US +0.0 (9 q differ), PT -1.0 (1 q differ), KW +1.0 (1 q differ), HK +0.0 (2 q differ), TW -1.0 (4 q differ), RU -1.0 (2 q differ) -> ADOPT (all within 5)",
+  "Identifiability (run1): US identified; PT not enough to tell (names in reason); KW identified (names in reason); HK not enough to tell; TW identified (names in reason); RU not enough to tell",
+  "Scorer spend: 8.2155 USD over 280 calls; per call 0.0293, calls per merge 4.24"
+ ]
+}

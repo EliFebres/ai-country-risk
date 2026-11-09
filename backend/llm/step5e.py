@@ -542,19 +542,30 @@ PROBE_SCHEMA = {
 }
 
 
-def probe(countries: List[str], run_label: str = "run1") -> Dict[str, Any]:
+def _blank_publishers(payload: Dict[str, Any]) -> Dict[str, Any]:
+    p = copy.deepcopy(payload)
+    for a in p.get("articles", []) + p.get("full_texts", []):
+        if "publisher" in a:
+            a["publisher"] = "[publisher]"
+    return p
+
+
+def probe(countries: List[str], run_label: str = "run1", *, no_publisher: bool = False) -> Dict[str, Any]:
+    """Which country is this? `no_publisher` blanks the publisher names, to
+    measure how much the outlets alone give away (the brief keeps them)."""
     from langchain_core.messages import HumanMessage, SystemMessage
     from langchain_openai import ChatOpenAI
     meter = usage.Meter()
     structured = ChatOpenAI(model=PROBE_MODEL, temperature=0.0, seed=SEED, max_retries=0,
                             api_key=os.getenv("OPENAI_API_KEY")).with_structured_output(
         schema=PROBE_SCHEMA, strict=True, include_raw=True)
-    out: Dict[str, Any] = {"model": PROBE_MODEL, "run": run_label, "countries": {}}
+    out: Dict[str, Any] = {"model": PROBE_MODEL, "run": run_label, "no_publisher": no_publisher, "countries": {}}
     for iso2 in countries:
         frozen = _load_new(iso2, "masked")
         name = frozen["country"]
+        sent = _blank_publishers(frozen["payload"]) if no_publisher else frozen["payload"]
         response = structured.invoke([SystemMessage(content=PROBE_PROMPT),
-                                      HumanMessage(content=sm._sent_bytes(frozen["payload"]))])
+                                      HumanMessage(content=sm._sent_bytes(sent))])
         meter.add_response(PROBE_MODEL, response)
         parsed = response.get("parsed") if isinstance(response, dict) else response
         guesses = sorted(parsed.get("guesses") or [], key=lambda g: -g.get("probability", 0))
@@ -876,6 +887,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     p = sub.add_parser("probe")
     p.add_argument("--countries", nargs="*", default=COUNTRIES)
     p.add_argument("--run", default="run1")
+    p.add_argument("--no-publisher", action="store_true")
     sub.add_parser("analyse")
     p = sub.add_parser("reference")
     p.add_argument("--countries", nargs="*", default=COUNTRIES)
@@ -889,7 +901,7 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
     elif args.cmd == "revalidate":
         revalidate(args.arm, args.quote_match, [c.upper() for c in args.countries])
     elif args.cmd == "probe":
-        probe([c.upper() for c in args.countries], args.run)
+        probe([c.upper() for c in args.countries], args.run, no_publisher=args.no_publisher)
     elif args.cmd == "analyse":
         analyse()
     elif args.cmd == "reference":

@@ -1,0 +1,97 @@
+[cost] new_named: 3 merges x 6 countries at 4.16 calls/merge -> projected $2.16 (observed so far: {'calls': 129, 'in_tokens': 8663, 'out_tokens': 724, 'usd_per_call': 0.0289, 'calls_per_merge': 4.16, 'extended_share': 0.55})
+[score] new_named US merge 1 call 1: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 39} (ok) $0.028 so far
+[score] new_named US merge 1 call 2: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19} (ok) $0.056 so far
+[score] new_named US merge 1 call 3: 12m=28 3m=25 ledgers={'friction': 32, 'order': 27, 'information': 21, 'edge': 19} (ok) $0.085 so far
+[score] new_named US merge 1 call 4: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 39} (ok) $0.113 so far
+[score] new_named US merge 1 call 5: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19} (ok) $0.141 so far
+[merge] new_named US merge 1: k=5 extended=True 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19}
+[score] new_named US merge 2 call 1: 12m=28 3m=25 ledgers={'friction': 29, 'order': 30, 'information': 21, 'edge': 39} (ok) $0.169 so far
+[score] new_named US merge 2 call 2: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19} (ok) $0.197 so far
+[score] new_named US merge 2 call 3: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 39} (ok) $0.226 so far
+[score] new_named US merge 2 call 4: 12m=28 3m=25 ledgers={'friction': 31, 'order': 30, 'information': 21, 'edge': 32} (ok) $0.254 so far
+[score] new_named US merge 2 call 5: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19} (ok) $0.282 so far
+[merge] new_named US merge 2: k=5 extended=True 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19}
+[score] new_named US merge 3 call 1: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19} (ok) $0.310 so far
+[score] new_named US merge 3 call 2: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19} (ok) $0.339 so far
+[score] new_named US merge 3 call 3: 12m=29 3m=26 ledgers={'friction': 36, 'order': 27, 'information': 21, 'edge': 19} (ok) $0.368 so far
+[score] new_named US merge 3 call 4: 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 39} (ok) $0.396 so far
+[score] new_named US merge 3 call 5: 12m=29 3m=26 ledgers={'friction': 36, 'order': 27, 'information': 21, 'edge': 39} (ok) $0.424 so far
+[merge] new_named US merge 3: k=5 extended=True 12m=28 3m=25 ledgers={'friction': 29, 'order': 32, 'information': 21, 'edge': 19}
+[score] new_named PT merge 1 call 1: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.450 so far
+[score] new_named PT merge 1 call 2: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.476 so far
+[score] new_named PT merge 1 call 3: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.503 so far
+[merge] new_named PT merge 1: k=3 extended=False 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15}
+[score] new_named PT merge 2 call 1: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.529 so far
+[score] new_named PT merge 2 call 2: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.555 so far
+[score] new_named PT merge 2 call 3: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.581 so far
+[merge] new_named PT merge 2: k=3 extended=False 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15}
+[score] new_named PT merge 3 call 1: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.607 so far
+[score] new_named PT merge 3 call 2: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.633 so far
+[score] new_named PT merge 3 call 3: 12m=20 3m=23 ledgers={'friction': 21, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.660 so far
+[score] new_named PT merge 3 call 4: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.686 so far
+[score] new_named PT merge 3 call 5: 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15} (ok) $0.712 so far
+[merge] new_named PT merge 3: k=5 extended=True 12m=21 3m=24 ledgers={'friction': 23, 'order': 28, 'information': 3, 'edge': 15}
+[score] new_named KW merge 1 call 1: 12m=40 3m=40 ledgers={'friction': 27, 'order': 40, 'information': 66, 'edge': 24} (ok) $0.740 so far
+[score] new_named KW merge 1 call 2: 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24} (ok) $0.767 so far
+[score] new_named KW merge 1 call 3: 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24} (ok) $0.795 so far
+[score] new_named KW merge 1 call 4: 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24} (ok) $0.823 so far
+[score] new_named KW merge 1 call 5: 12m=40 3m=40 ledgers={'friction': 27, 'order': 40, 'information': 66, 'edge': 24} (ok) $0.850 so far
+[merge] new_named KW merge 1: k=5 extended=True 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24}
+[score] new_named KW merge 2 call 1: 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24} (ok) $0.878 so far
+[score] new_named KW merge 2 call 2: 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24} (ok) $0.905 so far
+[score] new_named KW merge 2 call 3: 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24} (ok) $0.933 so far
+[merge] new_named KW merge 2: k=3 extended=False 12m=39 3m=39 ledgers={'friction': 27, 'order': 38, 'information': 66, 'edge': 24}
+[score] new_named KW merge 3 call 1: 12m=40 3m=40 ledgers={'friction': 27, 'order': 40, 'information': 66, 'edge': 24} (ok) $0.960 so far
+[score] new_named KW merge 3 call 2: 12m=40 3m=40 ledgers={'friction': 27, 'order': 40, 'information': 66, 'edge': 24} (ok) $0.988 so far
+[score] new_named KW merge 3 call 3: 12m=40 3m=40 ledgers={'friction': 27, 'order': 40, 'information': 66, 'edge': 24} (ok) $1.015 so far
+[merge] new_named KW merge 3: k=3 extended=False 12m=40 3m=40 ledgers={'friction': 27, 'order': 40, 'information': 66, 'edge': 24}
+[score] new_named HK merge 1 call 1: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.043 so far
+[score] new_named HK merge 1 call 2: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.070 so far
+[score] new_named HK merge 1 call 3: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.098 so far
+[merge] new_named HK merge 1: k=3 extended=False 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35}
+[score] new_named HK merge 2 call 1: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.125 so far
+[score] new_named HK merge 2 call 2: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.153 so far
+[score] new_named HK merge 2 call 3: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.180 so far
+[merge] new_named HK merge 2: k=3 extended=False 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35}
+[score] new_named HK merge 3 call 1: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 10} (ok) $1.208 so far
+[score] new_named HK merge 3 call 2: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.235 so far
+[score] new_named HK merge 3 call 3: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.262 so far
+[score] new_named HK merge 3 call 4: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.289 so far
+[score] new_named HK merge 3 call 5: 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35} (ok) $1.317 so far
+[merge] new_named HK merge 3: k=5 extended=True 12m=25 3m=25 ledgers={'friction': 8, 'order': 20, 'information': 67, 'edge': 35}
+[score] new_named TW merge 1 call 1: 12m=23 3m=23 ledgers={'friction': 25, 'order': 24, 'information': 14, 'edge': 0} (ok) $1.348 so far
+[score] new_named TW merge 1 call 2: 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0} (ok) $1.378 so far
+[score] new_named TW merge 1 call 3: 12m=21 3m=21 ledgers={'friction': 25, 'order': 20, 'information': 14, 'edge': 0} (ok) $1.409 so far
+[score] new_named TW merge 1 call 4: 12m=23 3m=23 ledgers={'friction': 28, 'order': 22, 'information': 14, 'edge': 0} (ok) $1.440 so far
+[score] new_named TW merge 1 call 5: 12m=22 3m=22 ledgers={'friction': 25, 'order': 24, 'information': 14, 'edge': 0} (ok) $1.471 so far
+[merge] new_named TW merge 1: k=5 extended=True 12m=23 3m=23 ledgers={'friction': 25, 'order': 24, 'information': 14, 'edge': 0}
+[score] new_named TW merge 2 call 1: 12m=23 3m=23 ledgers={'friction': 25, 'order': 24, 'information': 14, 'edge': 0} (ok) $1.501 so far
+[score] new_named TW merge 2 call 2: 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0} (ok) $1.532 so far
+[score] new_named TW merge 2 call 3: 12m=23 3m=23 ledgers={'friction': 25, 'order': 24, 'information': 14, 'edge': 0} (ok) $1.563 so far
+[score] new_named TW merge 2 call 4: 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0} (ok) $1.594 so far
+[score] new_named TW merge 2 call 5: 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0} (ok) $1.624 so far
+[merge] new_named TW merge 2: k=5 extended=True 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0}
+[score] new_named TW merge 3 call 1: 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0} (ok) $1.655 so far
+[score] new_named TW merge 3 call 2: 12m=22 3m=22 ledgers={'friction': 25, 'order': 24, 'information': 14, 'edge': 0} (ok) $1.685 so far
+[score] new_named TW merge 3 call 3: 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0} (ok) $1.716 so far
+[score] new_named TW merge 3 call 4: 12m=23 3m=23 ledgers={'friction': 28, 'order': 22, 'information': 14, 'edge': 0} (ok) $1.747 so far
+[score] new_named TW merge 3 call 5: 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0} (ok) $1.778 so far
+[merge] new_named TW merge 3: k=5 extended=True 12m=24 3m=24 ledgers={'friction': 25, 'order': 27, 'information': 14, 'edge': 0}
+[score] new_named RU merge 1 call 1: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $1.812 so far
+[score] new_named RU merge 1 call 2: 12m=57 3m=57 ledgers={'friction': 44, 'order': 66, 'information': 68, 'edge': 64} (ok) $1.847 so far
+[score] new_named RU merge 1 call 3: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $1.882 so far
+[score] new_named RU merge 1 call 4: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $1.916 so far
+[score] new_named RU merge 1 call 5: 12m=56 3m=56 ledgers={'friction': 41, 'order': 66, 'information': 68, 'edge': 64} (ok) $1.951 so far
+[merge] new_named RU merge 1: k=5 extended=True 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64}
+[score] new_named RU merge 2 call 1: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $1.986 so far
+[score] new_named RU merge 2 call 2: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $2.021 so far
+[score] new_named RU merge 2 call 3: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $2.055 so far
+[merge] new_named RU merge 2: k=3 extended=False 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64}
+[score] new_named RU merge 3 call 1: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $2.090 so far
+[score] new_named RU merge 3 call 2: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $2.125 so far
+[score] new_named RU merge 3 call 3: 12m=56 3m=56 ledgers={'friction': 41, 'order': 66, 'information': 68, 'edge': 64} (ok) $2.159 so far
+[score] new_named RU merge 3 call 4: 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64} (ok) $2.194 so far
+[score] new_named RU merge 3 call 5: 12m=56 3m=56 ledgers={'friction': 41, 'order': 66, 'information': 68, 'edge': 64} (ok) $2.229 so far
+[merge] new_named RU merge 3: k=5 extended=True 12m=57 3m=57 ledgers={'friction': 43, 'order': 66, 'information': 68, 'edge': 64}
+[cost] actual $2.2286 — gpt-4o-2024-08-06: 76 calls, 680968+52619 tok, $2.2286
+exit 0
