@@ -1,0 +1,1197 @@
+{
+ "iso2": "KW",
+ "country": "Kuwait",
+ "mode": "masked",
+ "run_date": "2026-11-08",
+ "payload_fingerprint": "5f20e6969f48f45275cd2b3bf3ac768987a2e39b025f323f782a6e86207484ff",
+ "payload_sha256": "1321a8513eae17c8fd308bbbe440adf7aa79ce9f3d972120258614f7360ba56d",
+ "payload_tokens": 5182,
+ "versions": {
+  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
+  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
+  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "scorer_input": "masked",
+  "schema_violations": 0,
+  "payload_tokens": 5182
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://kuwaittimes.com/article/53258/kuwait/kisr-develops-polymer-fibers-to-improve-reinforced-concrete/",
+   "title": "KISR develops polymer fibers to improve reinforced concrete - Kuwait Times",
+   "masked_title": "Research institute develops polymer fibers to improve reinforced concrete",
+   "publisher": "Kuwait Times",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Kuwait Institute for Scientific Research (KISR) announced the completion of a project to develop synthetic polymer fibers to improve reinforced concrete properties.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.arabtimesonline.com/news/kuwait-economic-zones-67-pct-complete/",
+   "title": "Kuwait economic zones 67 pct complete - Arab Times Kuwait News",
+   "masked_title": "Economic zones 67 pct complete - Regional News",
+   "publisher": "Arab Times Kuwait News",
+   "published": "2026-11-09",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's government is advancing the construction of economic zones to attract foreign investment and diversify its economy.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://timeskuwait.com/kuwait-moves-to-turn-seven-historic-landmarks-into-investment-hotel-destinations/",
+   "title": "Kuwait moves to turn seven historic landmarks into investment, hotel destinations - Times Kuwait",
+   "masked_title": "Government moves to turn seven historic landmarks into investment, hotel destinations",
+   "publisher": "Times Kuwait",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Kuwait is preparing to turn seven historic buildings and sites into commercial, hotel and cultural destinations as part of a broader economic initiative.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://africa.businessinsider.com/local/markets/africas-most-powerful-military-joins-bahrain-kuwait-and-syria-in-fierce-backlash-over/2ee22cn",
+   "title": "Africa’s most powerful military joins Bahrain, Kuwait and Syria in fierce backlash over Houthi attacks on Saudi Arabia’s $1.7 trillion oil giant, Aramco - Business Insider Africa",
+   "masked_title": "Regional powers condemn Houthi attacks on major oil facility, raising concerns over stability",
+   "publisher": "Business Insider Africa",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Kuwait condemned recent Houthi missile and drone attacks on Saudi Arabia's Aramco, joining Egypt and Bahrain in expressing solidarity with Saudi Arabia.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.law.com/international-edition/2026/11/06/baker-mckenzie-scores-win-for-kuwait-wealth-fund-in-london-case-involving-sovereign-immunity/",
+   "title": "Baker McKenzie Scores Win for Kuwait Wealth Fund in London Case Involving Sovereign Immunity - Law.com",
+   "masked_title": "Baker McKenzie Secures Win for Sovereign Wealth Fund in London Case Involving Sovereign Immunity",
+   "publisher": "Law.com",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Baker McKenzie won a case for the Kuwait Investment Authority against its former London chief regarding claims of unfair dismissal and whistleblowing.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.zawya.com/en/business/gcc/direct-investment-inflows-into-kuwait-reach-3.04bln-kdipa-2044673",
+   "title": "Direct investment inflows into Kuwait reach $3.04bln: KDIPA - Zawya",
+   "masked_title": "Direct investment inflows into the country reach $3.04bln: Relevant Authority",
+   "publisher": "Zawya",
+   "published": "2026-11-06",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Kuwait Direct Investment Promotion Authority reported that direct investment inflows into Kuwait rose to KD 948 million during the fiscal year 2025/2026, reflecting the country's growing attractiveness to international capital.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://kpmg.com/kw/en/insights/2026/10/kuwait-approves-cbc-mcaa.html",
+   "title": "Kuwait Tax Alert: October 2026 - kpmg.com",
+   "masked_title": "Tax Alert: October 2026",
+   "publisher": "kpmg.com",
+   "published": "2026-10-29",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Kuwait published Decree-Law No. 116 of 2026, approving the Multilateral Competent Authority Agreement on the Exchange of Country-by-Country Reports.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+   "title": "Pakistan Gives Nod To Landmark 5-Year Defence Cooperation Deal With Kuwait To Broaden Military Ties - News18",
+   "masked_title": "Pakistan Approves Landmark 5-Year Defence Cooperation Deal To Broaden Military Ties",
+   "publisher": "News18",
+   "published": "2026-11-05",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Pakistan and Kuwait have officially approved a comprehensive defence cooperation agreement to strengthen military ties between the two countries.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://usafacts.org/answers/what-is-the-average-us-tariff-rate-overall/countries/kuwait/",
+   "title": "What is the average US tariff rate for Kuwait? - USAFacts",
+   "masked_title": "What is the average US tariff rate for a certain country?",
+   "publisher": "USAFacts",
+   "published": "2026-10-16",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the average effective tariff rate on goods from Kuwait, which was 0.19% in August 2026, as reported by USAFacts.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://kw.usembassy.gov/travel-advisory-kuwait-october-2026/",
+   "title": "Travel Advisory: Kuwait October 2026 - U.S. Embassy in Kuwait (.gov)",
+   "masked_title": "Travel Advisory: Country October 2026 - U.S. Embassy in Country",
+   "publisher": "U.S. Embassy in Kuwait (.gov)",
+   "published": "2026-10-24",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The U.S. Embassy updated its travel advisory for Kuwait due to increased threats from Iranian-supported Houthis and potential armed attacks.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://kuwaittimes.com/article/53083/business/us-slaps-sanctions-on-indian-turkish-companies-and-people-for-aiding-iran/",
+   "title": "US slaps sanctions on Indian, Turkish companies and people for aiding Iran - Kuwait Times",
+   "masked_title": "US imposes sanctions on companies and individuals for aiding Iran",
+   "publisher": "Kuwait Times",
+   "published": "2026-11-05",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The US Treasury imposed sanctions on Indian and Turkish companies and individuals for aiding Iran, impacting their ability to sell oil.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://timeskuwait.com/kuwait-army-wraps-up-desert-flash-1-military-exercise/",
+   "title": "Kuwait Army wraps up ‘Desert Flash 1’ military exercise - Times Kuwait",
+   "masked_title": "Military concludes ‘Desert Flash 1’ exercise",
+   "publisher": "Times Kuwait",
+   "published": "2026-11-07",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Kuwait Army concluded the 'Desert Flash 1' military exercise focused on operational preparedness and emergency communications.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://www.arabtimesonline.com/news/kuwait-steps-up-military-readiness-food-supplies-and-medical-stockpiles-amid-regional-developments/",
+   "title": "Kuwait Steps Up Military Readiness, Food Supplies and Medical Stockpiles Amid Regional Developments - Arab Times Kuwait News",
+   "masked_title": "Country Enhances Military Readiness, Food Supplies and Medical Stockpiles Amid Regional Developments",
+   "publisher": "Arab Times Kuwait News",
+   "published": "2026-11-05",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Kuwait's First Deputy Prime Minister and Minister of Interior Sheikh Fahad Al-Yousef reaffirmed the country's commitment to maintaining military readiness and public safety amid regional developments.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "title": "GCC inflation edges up to 2.2% in July - Kuwait Times",
+   "masked_title": "GCC inflation edges up to 2.2% in July",
+   "publisher": "Kuwait Times",
+   "published": "2026-11-04",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The GCC Statistical Center reported that annual inflation across the Gulf Cooperation Council, including Kuwait, rose to 2.2 percent in July from 2.1 percent in June.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://kuwaittimes.com/article/53225/kuwait/private-universities-council-approves-new-auk-masters-programs/",
+   "title": "Private universities council approves new AUK master’s programs - Kuwait Times",
+   "masked_title": "Private universities council approves new master’s programs",
+   "publisher": "Kuwait Times",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "none",
+   "high_impact_event": false,
+   "what_happened": "The Private Universities Council in Kuwait approved new master's programs at the American University of Kuwait and discussed efforts to improve academic quality.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://www.zawya.com/en/press-release/companies-news/markaz-wins-best-investment-bank-in-kuwait-at-meed-mena-banking-excellence-awards-2026-2126428",
+   "title": "Markaz wins “Best Investment Bank in Kuwait” at MEED MENA Banking Excellence Awards 2026 - Zawya",
+   "masked_title": "Investment Bank Wins Award at MEED MENA Banking Excellence Awards 2026",
+   "publisher": "Zawya",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "none",
+   "high_impact_event": false,
+   "what_happened": "Kuwait Financial Centre 'Markaz' was awarded 'Best Investment Bank in Kuwait' at the MEED MENA Banking Excellence Awards 2026.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 4,
+   "order": 5,
+   "information": 3,
+   "edge": 2
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 5
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 6,
+    "resolved": 6
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 0
+   }
+  },
+  "dropped": [
+   {
+    "code": "SI.POV.GINI",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Income inequality (Gini)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Interest payments (% revenue)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "OECD.PISA.MEAN",
+    "ledger": "edge",
+    "source": "OECD PISA",
+    "label": "PISA mean score (maths/reading/science)",
+    "reason": "no row"
+   }
+  ],
+  "as_of_schemes": {
+   "first-seen": 9,
+   "publication-lag-estimate": 4,
+   "source-published": 1
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 28,
+  "stories": 22,
+  "multi": 2,
+  "dropped": 6,
+  "same_story_as": {
+   "https://www.solicitorsjournal.com/sjarticle/al-ateeqi-v-kuwait-investment-authority-eat-upholds-state-immunity-in-sovereign-wealth-fund-whistleblowing-claim?category=none": "https://www.law.com/international-edition/2026/11/06/baker-mckenzie-scores-win-for-kuwait-wealth-fund-in-london-case-involving-sovereign-immunity/",
+   "https://abbtakk.tv/cabinet-approves-pakistan-kuwait-defence-pact-new-currency-designs/": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+   "https://tribune.com.pk/story/2638734/cabinet-ratifies-defence-pact-with-kuwait": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+   "https://thediplomaticinsight.com/cabinet-ratifies-defense-cooperation-agreement-kuwait/": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+   "https://www.rediff.com/news/report/pakistan-ratifies-defence-cooperation-pact-with-kuwait/20261104.htm": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+   "https://ina.iq/en/international/53516-pakistani-cabinet-ratifies-defense-cooperation-agreement-with-kuwait.html": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html"
+  },
+  "post_selection": []
+ },
+ "selection": {
+  "passes": 1,
+  "story_checks": 1,
+  "final_story_check_clean": true,
+  "t5_selected": 2,
+  "title_only_dropped": 2,
+  "title_only_dropped_articles": [
+   {
+    "url": "https://tvoneusa.com/tag/federal-cabinet-approves-kp-governor-powers-transfer-kuwait-defense-deal-2026/",
+    "title": "federal-cabinet-approves-kp-governor-powers-transfer-kuwait-defense-deal-2026 Archives - TV ONE USA",
+    "pass": 1
+   },
+   {
+    "url": "https://globalinvestigationsreview.com/article/kuwait-pension-fund-victim-of-breathtaking-corruption",
+    "title": "Kuwait pension fund victim of “breathtaking” corruption - Global Investigations Review",
+    "pass": 1
+   }
+  ],
+  "post_selection_same_story": 0,
+  "blocked_after_selection": 0,
+  "refill_digests": 0,
+  "shortfall": 4,
+  "selected": 16
+ },
+ "mask": {
+  "hits": 28,
+  "regenerated": 10,
+  "replaced_by_code": 10,
+  "fallback_digests": 0,
+  "fallback_texts": 0,
+  "publisher_mentions": 12,
+  "digests_generated": 16,
+  "digests_cached": 0,
+  "rewrites_generated": 3,
+  "rewrites_cached": 0,
+  "payload_leaks": []
+ },
+ "mask_terms": [
+  {
+   "where": "digest:https://kuwaittimes.com/article/53258/kuwait/kisr-develops-polymer-fibers-to-improve-reinforced-concrete/",
+   "term": "Kuwait",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.arabtimesonline.com/news/kuwait-economic-zones-67-pct-complete/",
+   "term": "KDIPA",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://africa.businessinsider.com/local/markets/africas-most-powerful-military-joins-bahrain-kuwait-and-syria-in-fierce-backlash-over/2ee22cn",
+   "term": "Saudi Arabia",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://africa.businessinsider.com/local/markets/africas-most-powerful-military-joins-bahrain-kuwait-and-syria-in-fierce-backlash-over/2ee22cn",
+   "term": "Kuwait",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://africa.businessinsider.com/local/markets/africas-most-powerful-military-joins-bahrain-kuwait-and-syria-in-fierce-backlash-over/2ee22cn",
+   "term": "Egypt",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://africa.businessinsider.com/local/markets/africas-most-powerful-military-joins-bahrain-kuwait-and-syria-in-fierce-backlash-over/2ee22cn",
+   "term": "Saudi",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.law.com/international-edition/2026/11/06/baker-mckenzie-scores-win-for-kuwait-wealth-fund-in-london-case-involving-sovereign-immunity/",
+   "term": "Kuwait",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.zawya.com/en/business/gcc/direct-investment-inflows-into-kuwait-reach-3.04bln-kdipa-2044673",
+   "term": "Kuwait",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.zawya.com/en/business/gcc/direct-investment-inflows-into-kuwait-reach-3.04bln-kdipa-2044673",
+   "term": "KDIPA",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+   "term": "Kuwait",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+   "term": "Kuwaiti",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53083/business/us-slaps-sanctions-on-indian-turkish-companies-and-people-for-aiding-iran/",
+   "term": "Turkey",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53083/business/us-slaps-sanctions-on-indian-turkish-companies-and-people-for-aiding-iran/",
+   "term": "India",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "India",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "Brazil",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "United States",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "United Kingdom",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "Italy",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "South Korea",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "Korea",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "Germany",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "France",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "Japan",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+   "term": "China",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kuwaittimes.com/article/53225/kuwait/private-universities-council-approves-new-auk-masters-programs/",
+   "term": "Kuwait",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.zawya.com/en/press-release/companies-news/markaz-wins-best-investment-bank-in-kuwait-at-meed-mena-banking-excellence-awards-2026-2126428",
+   "term": "Kuwait",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.zawya.com/en/press-release/companies-news/markaz-wins-best-investment-bank-in-kuwait-at-meed-mena-banking-excellence-awards-2026-2126428",
+   "term": "Markaz",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.zawya.com/en/press-release/companies-news/markaz-wins-best-investment-bank-in-kuwait-at-meed-mena-banking-excellence-awards-2026-2126428",
+   "term": "KD",
+   "kind": "symbol"
+  }
+ ],
+ "data": {
+  "indicators": {
+   "FP.CPI.TOTL.ZG": {
+    "code": "FP.CPI.TOTL.ZG",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 2.362,
+    "scaled_input": 0.362,
+    "score": 0.0,
+    "clamped": true
+   },
+   "GOV_WGI_RQ.EST": {
+    "code": "GOV_WGI_RQ.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 0.3581,
+    "scaled_input": 0.3581,
+    "score": 41.05,
+    "clamped": false
+   },
+   "GOV_WGI_CC.EST": {
+    "code": "GOV_WGI_CC.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 0.2831,
+    "scaled_input": 0.2831,
+    "score": 42.92,
+    "clamped": false
+   },
+   "GOV_WGI_PV.EST": {
+    "code": "GOV_WGI_PV.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": 0.2939,
+    "scaled_input": 0.2939,
+    "score": 30.15,
+    "clamped": false
+   },
+   "GOV_WGI_RL.EST": {
+    "code": "GOV_WGI_RL.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": 0.2308,
+    "scaled_input": 0.2308,
+    "score": 44.23,
+    "clamped": false
+   },
+   "GOV_WGI_GE.EST": {
+    "code": "GOV_WGI_GE.EST",
+    "ledger": "order",
+    "period": 2025,
+    "value": 0.2561,
+    "scaled_input": 0.2561,
+    "score": 43.6,
+    "clamped": false
+   },
+   "IQ.SPI.OVRL": {
+    "code": "IQ.SPI.OVRL",
+    "ledger": "information",
+    "period": 2024,
+    "value": 63.3754,
+    "scaled_input": 63.3754,
+    "score": 53.25,
+    "clamped": false
+   },
+   "RSF.PRESS.SCORE": {
+    "code": "RSF.PRESS.SCORE",
+    "ledger": "information",
+    "period": 2025,
+    "value": 40.44,
+    "scaled_input": 40.44,
+    "score": 74.27,
+    "clamped": false
+   },
+   "GOV_WGI_VA.EST": {
+    "code": "GOV_WGI_VA.EST",
+    "ledger": "information",
+    "period": 2025,
+    "value": -0.9191,
+    "scaled_input": -0.9191,
+    "score": 69.12,
+    "clamped": false
+   },
+   "BX.KLT.DINV.WD.GD.ZS": {
+    "code": "BX.KLT.DINV.WD.GD.ZS",
+    "ledger": "edge",
+    "period": 2025,
+    "value": 0.2628,
+    "scaled_input": 0.2628,
+    "score": 94.74,
+    "clamped": false
+   },
+   "SE.XPD.TOTL.GD.ZS": {
+    "code": "SE.XPD.TOTL.GD.ZS",
+    "ledger": "edge",
+    "period": 2024,
+    "value": 6.4359,
+    "scaled_input": 6.4359,
+    "score": 0.0,
+    "clamped": true
+   }
+  },
+  "data_scores": {
+   "friction": 27.99,
+   "order": 39.33,
+   "information": 65.55,
+   "edge": 47.37
+  },
+  "n_by_ledger": {
+   "friction": 3,
+   "order": 3,
+   "information": 3,
+   "edge": 2
+  },
+  "unscored": [
+   "OWID.VDEM.CORRUPTION",
+   "SL.UEM.TOTL.ZS",
+   "NY.GDP.PCAP.KD.ZG"
+  ]
+ },
+ "check": {
+  "old": {
+   "multi_article_stories": 0,
+   "same_story_dropped_if_checked": 0,
+   "title_only_sent": 3,
+   "t5_sent": 6,
+   "articles_sent": 20,
+   "story_method": "llm"
+  },
+  "new": {
+   "multi_article_stories": 0,
+   "title_only_sent": 0,
+   "t5_sent": 2,
+   "articles_sent": 16,
+   "shortfall": 4,
+   "refill_digests": 0,
+   "passes": 1,
+   "story_checks": 1,
+   "post_selection_same_story": 0,
+   "title_only_dropped": 2,
+   "blocked_after_selection": 0,
+   "final_story_check_clean": true,
+   "confirmation_check_method": "llm"
+  },
+  "mask": {
+   "hits": 28,
+   "regenerated": 10,
+   "replaced_by_code": 10,
+   "fallback_digests": 0,
+   "fallback_texts": 0,
+   "publisher_mentions": 12,
+   "digests_generated": 16,
+   "digests_cached": 0,
+   "rewrites_generated": 3,
+   "rewrites_cached": 0,
+   "payload_leaks": []
+  },
+  "eligible": 28,
+  "candidates": 39
+ },
+ "payload": {
+  "as_of": "2026-11-08",
+  "window": "articles published in the 30 days before as_of",
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "regime": "peg to an undisclosed currency basket",
+   "region": "Middle East, North Africa, Afghanistan & Pakistan",
+   "sovereignty": "constrained",
+   "tier": "EM"
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 3,
+    "order": 1,
+    "security": 5,
+    "information": 0,
+    "edge": 7,
+    "broad": 0
+   },
+   "selected_per_ledger": {
+    "friction": 6,
+    "order": 8,
+    "information": 0,
+    "edge": 0
+   },
+   "candidates_fetched": 41,
+   "passed_the_gate": 28,
+   "selected": 16,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "Kuwait Times",
+    "published": "2026-11-08",
+    "title": "Research institute develops polymer fibers to improve reinforced concrete",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "A research project has been completed to develop synthetic polymer fibers from polypropylene and polyethylene to enhance the properties of reinforced concrete. The project aims to improve impact resistance and toughness in concrete, supporting the construction sector and national industry.",
+     "institutions": [
+      "[the country] Institute for Scientific Research",
+      "Equate Petrochemical Company",
+      "[the country] Foundation for the Advancement of Sciences"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "polymer fibers made from polypropylene and linear low-density polyethylene",
+      "improved impact resistance",
+      "greater toughness",
+      "better ability to withstand loads after cracking"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "Arab Times Kuwait News",
+    "published": "2026-11-09",
+    "title": "Economic zones 67 pct complete - Regional News",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The ongoing construction of economic zones is 67% complete, reflecting a shift in the government’s approach from planning to implementation. By the end of the decade, a significant increase in foreign investment is expected, which will help diversify income sources and create jobs in non-oil sectors.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "67% completion of economic zones",
+      "19 square kilometers total area for development"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Times Kuwait",
+    "published": "2026-11-08",
+    "title": "Government moves to turn seven historic landmarks into investment, hotel destinations",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The government is planning to transform seven historic buildings and sites into commercial, hotel, and cultural destinations to unlock economic value and attract private investment. This initiative represents a shift from traditional restoration approaches to sustainable uses that generate revenue and preserve cultural identity.",
+     "institutions": [
+      "Public-Private Partnership Projects Authority",
+      "National Council for Culture, Arts and Letters",
+      "Public Authority for Industry",
+      "Ministry of Finance",
+      "Civil Service Bureau",
+      "Fatwa and Legislation Department"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "56 public libraries",
+      "three initial locations"
+     ]
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "Business Insider Africa",
+    "published": "2026-11-08",
+    "title": "Regional powers condemn Houthi attacks on major oil facility, raising concerns over stability",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Several countries condemned recent Houthi missile and drone attacks targeting an oil giant in a major city, emphasizing violations of international law and expressing solidarity with the affected nation. The attacks disrupted a previous UN-brokered truce in Yemen and raised concerns over regional stability.",
+     "institutions": [
+      "[another country]'s Ministry of Foreign Affairs"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "$1.7 trillion state-owned oil giant",
+      "October 10 strike killed 13 people and injured more than 300"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "Law.com",
+    "published": "2026-11-06",
+    "title": "Baker McKenzie Secures Win for Sovereign Wealth Fund in London Case Involving Sovereign Immunity",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A legal victory was secured for a sovereign wealth fund in a case involving claims of unfair dismissal and whistleblowing by its former London chief. The ruling may have significant implications for sovereign wealth funds and their business dealings.",
+     "institutions": [
+      "Baker McKenzie",
+      "the [the country] Investment Authority"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "Zawya",
+    "published": "2026-11-06",
+    "title": "Direct investment inflows into the country reach $3.04bln: Relevant Authority",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Direct investment inflows into the country rose to local currency 948 million during the fiscal year 2025/2026, according to figures released by the relevant authority. The authority approved 17 new investment entities during the fiscal year, bringing the total cumulative approved investments since 2015 to approximately local currency 2.92 billion.",
+     "institutions": [
+      "the [the country] Direct Investment Promotion Authority"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "local currency 948 million during the fiscal year 2025/2026",
+      "approximately local currency 2.92 billion since 2015"
+     ]
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "kpmg.com",
+    "published": "2026-10-29",
+    "title": "Tax Alert: October 2026",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "On 18 October 2026, a decree-law was published approving an agreement for the automatic exchange of Country-by-Country Reports. This agreement had been signed on 22 June 2026 and took effect immediately upon publication.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "News18",
+    "published": "2026-11-05",
+    "title": "Pakistan Approves Landmark 5-Year Defence Cooperation Deal To Broaden Military Ties",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Pakistan and [the country] have officially approved a comprehensive defence cooperation agreement that will last for five years. This agreement aims to strengthen military ties and includes provisions for joint training exercises, personnel exchanges, and collaboration in industrial and technological domains.",
+     "institutions": [
+      "Pakistani federal cabinet",
+      "[the country] government"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "five-year term for the defence pact",
+      "agreement ratified on July 19, 2023"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "USAFacts",
+    "published": "2026-10-16",
+    "title": "What is the average US tariff rate for a certain country?",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The average effective tariff rate on goods from a certain country was 0.19% in August 2026, up from 0.13% in 2025. The effective tariff rate is based on estimated customs duties and can vary due to factors such as trade agreements and product types.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "0.19% average effective tariff rate in August 2026",
+      "0.13% average effective tariff rate in 2025"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "U.S. Embassy in Kuwait (.gov)",
+    "published": "2026-10-24",
+    "title": "Travel Advisory: Country October 2026 - U.S. Embassy in Country",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Travel Advisory for the country was updated to reflect the threat of increased Iranian-supported Houthi regional aggression. The advisory warns against travel due to armed conflict, landmines, and crime, while noting that there were no changes to the advisory level or risk indicators.",
+     "institutions": [
+      "U.S. government",
+      "Federal Aviation Administration",
+      "Centers for Disease Control and Prevention"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "October 23, 2026 update",
+      "1990 Gulf War"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "Kuwait Times",
+    "published": "2026-11-05",
+    "title": "US imposes sanctions on companies and individuals for aiding Iran",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The US Treasury imposed new sanctions on companies and individuals based in two countries for their support of Iran, as part of an effort to limit Iran's oil sales and economic capabilities. The sanctions target a network involved in providing false documentation for vessels transporting Iranian petroleum and a company supporting Iran's aviation sector.",
+     "institutions": [
+      "US Treasury"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "90 percent domestic inflation rates",
+      "50 percent ownership threshold for sanctions"
+     ]
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "Times Kuwait",
+    "published": "2026-11-07",
+    "title": "Military concludes ‘Desert Flash 1’ exercise",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The military conducted the ‘Desert Flash 1’ exercise from November 3 to 5, 2026, focusing on emergency communications readiness and operational preparedness. The exercise aimed to enhance the ability of officers to assess situations and maintain communications during emergencies.",
+     "institutions": [
+      "the Army",
+      "the Signal Corps",
+      "the General Staff"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "Arab Times Kuwait News",
+    "published": "2026-11-05",
+    "title": "Country Enhances Military Readiness, Food Supplies and Medical Stockpiles Amid Regional Developments",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The First Deputy Prime Minister and Minister of Interior has reaffirmed the country's commitment to maintaining high levels of preparedness for national security and public safety amid regional developments. A meeting was held to review emergency plans, food security arrangements, and the readiness of health and education sectors.",
+     "institutions": [
+      "Ministry of Interior",
+      "Supreme Civil Defence Committee",
+      "Cooperative Societies Union"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "not stated"
+     ]
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "Kuwait Times",
+    "published": "2026-11-04",
+    "title": "GCC inflation edges up to 2.2% in July",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Annual inflation across the Gulf Cooperation Council rose to 2.2 percent in July from 2.1 percent in June. The largest contributors to this inflation were housing, water, electricity, and gas, followed by food and non-alcoholic beverages and transport.",
+     "institutions": [
+      "GCC Statistical Center"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "inflation 2.2% in July",
+      "inflation 2.1% in June",
+      "housing and utilities price increase 3.3%",
+      "food and non-alcoholic beverages price increase 2.8%",
+      "transport price increase 2.4%",
+      "restaurants and hotels price increase 2.3%",
+      "inflation 4.1% in OECD",
+      "inflation 3.9% in G20",
+      "inflation 3% in G7",
+      "inflation 3% in European Union",
+      "inflation 3% in eurozone",
+      "inflation 4.6% in [another country]",
+      "inflation 4.4% in a neighbouring country",
+      "inflation 3.4% in a major power",
+      "inflation 3.1% in a major power",
+      "inflation 2.9% in a major power",
+      "inflation 2.8% in a major power",
+      "inflation 2.1% in a major power",
+      "inflation 1.9% in a major power",
+      "inflation 0.5% in a major power"
+     ]
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "Kuwait Times",
+    "published": "2026-11-08",
+    "title": "Private universities council approves new master’s programs",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Private Universities Council approved the launch of two master’s programs at a university and discussed efforts to enhance the quality of academic programs and graduates. The council is focused on ensuring that graduates meet labor market needs and support national development.",
+     "institutions": [
+      "Private Universities Council",
+      "American University of [the country]",
+      "Minister of Higher Education and Scientific Research",
+      "[the country] News Agency"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "two master’s programs approved",
+      "Master of Business Administration (MBA)",
+      "Master of Science in Computer Science"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "Zawya",
+    "published": "2026-11-08",
+    "title": "Investment Bank Wins Award at MEED MENA Banking Excellence Awards 2026",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "An investment banking institution has been awarded \"Best Investment Bank\" at the MEED MENA Banking Excellence Awards 2026, highlighting its leadership and commitment to innovative financial solutions. The award ceremony took place in Dubai, recognizing outstanding performance in the banking sector across the region.",
+     "institutions": [
+      "[the country] Financial Centre \"[the country]\"",
+      "MEED",
+      "MENA Banking Excellence Awards"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "total assets under management of local currency 1.57 billion (USD 5.11 billion) as of 30 June 2026"
+     ]
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Research institute develops polymer fibers to improve reinforced concrete",
+    "publisher": "Kuwait Times",
+    "body_status": "full",
+    "chars_read": 1708,
+    "chars_original": 1708,
+    "text": "The country: The Institute for Scientific Research announced Sunday the completion of a research project to develop synthetic polymer fibers made from polypropylene and polyethylene to improve reinforced concrete properties and enhance its resistance to impacts and cracking.\nIn a press statement, the Institute said the project was carried out by its Petroleum Research Center, headed by Petrochemicals and Materials Technology Program Director Dr Salah Al-Enezi, in cooperation with a Petrochemical Company and with support from the Foundation for the Advancement of Sciences.\nThe project resulted in the development of polymer fibers made from polypropylene and linear low-density polyethylene (PP/LLDPE) blends that can be manufactured and used in concrete.\nTests showed that fiber-reinforced concrete had improved impact resistance, greater toughness and a better ability to withstand loads after cracking, while the effect on compressive strength was limited. The Institute said the project aims to maximize the added value of locally available polymers by converting them into specialized engineering products that support the construction sector and national industry.\nThe project also identified potential applications for the developed fibers in industrial flooring, pavements and precast concrete elements. Its findings were submitted for publication in the international peer-reviewed Journal of Building Engineering. The Institute said the project is part of its efforts to develop innovative scientific and technological solutions, make better use of local materials and strengthen cooperation between the research and industrial sectors in support of sustainable development in the country."
+   },
+   {
+    "id": "a2",
+    "title": "Economic zones 67 pct complete - Regional News",
+    "publisher": "Arab Times Kuwait News",
+    "body_status": "full",
+    "chars_read": 2370,
+    "chars_original": 2370,
+    "text": "09/11/2026\n09/11/2026\nAccording to informed sources, the ongoing construction reflects a shift in the government’s approach from planning to implementation. By the end of this decade, the country is expected to see a significant increase in foreign investment, which will play a crucial role in diversifying national income sources, creating employment opportunities in non-oil sectors and strengthening the local economy’s integration into global supply chains. The sources revealed that the relevant authority is moving ahead with efforts to reshape the country’s economic landscape.\nThey explained that the relevant authority, through a comprehensive portfolio of investment-ready opportunities in strategic locations, aims to strengthen the country’s position as a competitive regional investment hub, attract international capital and encourage the localization of advanced technologies and innovation. The initiative involves developing land allocated to the relevant authority, covering an estimated total area of 19 square kilometers. This extensive area is expected to be transformed into attractive destinations for foreign direct investment (FDI), offering fully developed land and facilities suitable for industrial, technological and logistics businesses. This will enable foreign investors to enter the market while benefiting from competitive investment advantages.\nRegarding the project’s development and social impact, the sources noted that its expected benefits extend well beyond financial returns. At its core, the project aims to bring modern technologies and advanced technical expertise into the country while creating high-quality, sustainable job opportunities for young nationals in innovative sectors. It will also provide opportunities to develop local skills and train national professionals to meet the highest international standards. The sources stressed that diversifying the country’s national income is no longer simply an option but an essential requirement for ensuring the country’s long-term economic future.\nThey affirmed that linking these economic zones to the “value-added” concept is primarily aimed at attracting advanced manufacturing, technology and logistics industries. These sectors would help reduce reliance on oil as the main driver of economic activity while capitalizing on the country’s strategic geographical location to secure a greater share of regional and international supply chains."
+   },
+   {
+    "id": "a3",
+    "title": "Government moves to turn seven historic landmarks into investment, hotel destinations",
+    "publisher": "Times Kuwait",
+    "body_status": "full",
+    "chars_read": 5454,
+    "chars_original": 5454,
+    "text": "The country is preparing to turn seven historic buildings and sites into commercial, hotel and cultural destinations as part of a broader plan to unlock the economic value of heritage assets, attract private investment and revitalize the capital’s city center.\nThe initiative marks a shift in the way the government views historic properties, moving beyond the traditional approach of spending on restoration and maintenance towards finding sustainable uses that can generate revenue, support businesses and preserve the country’s architectural and cultural identity.\nThe initial development plan covers the Mishref Palace, the old Chest Hospital and Al-Mubarakiya School. Four additional sites that are being considered are Fahad Al-Salem Palace, the Awqaf Complex, the Palace of Justice and Safafir Market, also known as the Coppersmiths’ Market.\nThe authorities are also examining a proposal to revive the Qibla Cultural District by connecting unused spaces and heritage locations into an integrated cultural and commercial destination.\nThe Public-Private Partnership Projects Authority has already presented a project to prepare and develop educational infrastructure for the creative economy under the National Council for Culture, Arts and Letters’ strategic roadmap.\nThe first phase focuses on the three initial locations, while the National Council, in cooperation with the Public Authority for Industry and the Ministry of Finance, is studying how the other sites could be incorporated into the development program.\nThe proposals offer different investment possibilities based on the character and location of each property. Fahad Al-Salem Palace, opposite the Amiri Hospital, is being considered for conversion into a boutique hotel or entertainment destination, subject to site assessments and feasibility studies.\nThe Palace of Justice could be repurposed as a heritage hotel hosting cultural events and activities, while the Al-Mubarakiya School could be linked more closely to the traditional market and used for design, architecture and urban planning activities.\nSafafir Market is expected to play a crucial role in developing the creative economy by moving beyond its traditional retail function and becoming a center for crafts, creative manufacturing and related productive activities.\nThe National Council has submitted a proposal to the Public Authority for Industry to use the market as part of efforts to revive central the country’s capital, attract private-sector investment and create opportunities for local craftspeople and creative businesses.\nThe proposed revival of the Qibla Cultural District would connect Qibla School, the National Museum and the National Library with the Al-Mubarakiya School and the inner market. The aim is to create a more connected urban destination capable of attracting cultural, commercial and tourism activities.\nThe Awqaf Complex is also under review, with authorities examining a more integrated economic and cultural use for the property. The assessment takes into account its high capital cost and the challenges of achieving strong occupancy rates in central the country’s capital.\nThe plan extends beyond heritage buildings to the country’s network of 56 public libraries. Authorities are considering ways to expand their role as spaces for learning, research, design and innovation, while hosting exhibitions, workshops, professional programs and cultural events in cooperation with private-sector companies and cultural institutions.\nThe proposals also seek to diversify funding, improve operational efficiency and measure the libraries’ wider social, educational and economic contribution. For investors, the proposed program could open opportunities in hospitality, cultural tourism, creative manufacturing, design, event management and the operation of heritage properties. It could also create business opportunities for small enterprises, designers, artisans and other professionals linked to the creative industries.\nHowever, the projects remain at the conceptual, feasibility-study and private-sector consultation stages. No investment requirements, projected financial returns or implementation schedules have yet been announced.\nTheir commercial viability will depend on the development models adopted, operating costs, investor participation and the ability to attract sustained demand without compromising the heritage value of the properties.\nLegislative framework\nAlongside the property development plan, government agencies are working with the Ministry of Finance, the Civil Service Bureau and the Fatwa and Legislation Department to prepare a draft decree-law governing creative industries.\nThe proposed legislation is intended to provide a more flexible framework for cultural and creative businesses, allowing the National Council to expand partnerships with private investors and attract creative talent.\nIt is also expected to establish clearer arrangements for financing, project operation and risk management, helping ensure the long-term sustainability of investments while protecting the cultural and historical value of the assets.\nThe initiative comes as the country seeks to diversify its sources of income and strengthen its knowledge-based economy. By putting underused public properties to productive use, the government aims to combine heritage preservation with commercial activity, support local businesses and position the country as a regional destination for design and creative industries."
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 0.8,
+    "body_depth": 0.5938,
+    "indicator_resolution": 0.8333,
+    "freshness": 1.0
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

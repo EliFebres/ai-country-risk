@@ -1,0 +1,121 @@
+
+===== US United States =====
+[econ] US: resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'publication-lag-estimate': 7, 'first-seen': 8, 'source-published': 2}
+[pool] US: friction=10 order=10 security=10 information=0 edge=10 broad=10 | fetched=50 stale=1 deduped=47 | top: Reuters(3), Centers for Disease Control and Prevention | CDC (.gov)(2), Department of Justice (.gov)(2), PBS(2), The New York Times(2)
+[gate] US: 35 relevant in 34 stories, 1 set aside as the same story
+[gate] US: 47 candidates -> 35 relevant -> 20 selected (budget 20, 2 spillover); rejected {'irrelevant': 12}
+[select] US: pass 1 dropped 6 (6 headline-only, 0 blocked), 20 selected after refill
+[select] US: pass 1 dropped 2 (2 headline-only, 0 blocked), 20 selected after refill
+[mask] US: 20 masked digests generated, 0 cached, 3+0 full texts rewritten; 28 gazetteer hits, 13 regenerated, 20 replaced by code
+[gate] US: per-ledger {'friction': 3, 'order': 17, 'information': 0, 'edge': 0} | per-theme {'security': 5, 'edge': 4, 'broad': 4, 'friction': 5, 'order': 3} | final 20 after 1 pass(es)
+[digest] US: 15 generated, 5 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 17} | quality {'full': 20}
+[census] US 2026-11-08  coverage=90  fingerprint=22d4ba90db30
+[census]   indicators resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'publication-lag-estimate': 7, 'first-seen': 8, 'source-published': 2}
+[census]   articles fetched=50 deduped=47 passed=35 selected=20/20 rejected={'irrelevant': 12}
+[census]   bodies {'full': 3, 'digest-only': 17}  quality {'full': 20}  digests 15 new / 5 cached / 0 truncated-retry
+[census]   per-theme selected {'security': 5, 'edge': 4, 'broad': 4, 'friction': 5, 'order': 3}  per-ledger {'friction': 3, 'order': 17, 'information': 0, 'edge': 0}
+[check] US: old -> new | multi-article stories 1 -> 0 | title-only 7 -> 0 | T5 3 -> 2 | sent 20 -> 20 (shortfall 0) | refill digests 6
+[check] US: mask hits 28, regenerated 13, replaced by code 20, publisher mentions 5, payload leaks []
+[freeze] US: 20 articles, 5497 masked tokens, 5947 named tokens, $0.035 so far
+
+===== PT Portugal =====
+[econ] PT: resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'first-seen': 8, 'publication-lag-estimate': 7, 'source-published': 2}
+[pool] PT: friction=5 order=10 security=5 information=7 edge=6 broad=3 | fetched=36 stale=1 deduped=34 | top: Essential Business(2), World Soccer Talk(2), Adventist Today(1), Al Jazeera(1), Amnesty International(1)
+[gate] PT: 20 relevant in 20 stories, 0 set aside as the same story
+[gate] PT: 34 candidates -> 20 relevant -> 20 selected (budget 20, 2 spillover); rejected {'irrelevant': 14}
+[select] PT: pass 1 dropped 5 (5 headline-only, 0 blocked), 15 selected after refill
+[select] PT: post-selection story check 1 set aside 2 second telling(s) (llm), 13 selected after refill
+[select] PT: post-selection story check 2 set aside 1 second telling(s) (llm), 12 selected after refill
+[mask] PT: 12 masked digests generated, 0 cached, 3+0 full texts rewritten; 14 gazetteer hits, 5 regenerated, 4 replaced by code
+[gate] PT: per-ledger {'friction': 6, 'order': 6, 'information': 0, 'edge': 0} | per-theme {'order': 2, 'edge': 3, 'friction': 4, 'information': 1, 'security': 3} | final 12 after 3 pass(es)
+[digest] PT: 7 generated, 9 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 9} | quality {'full': 12}
+[census] PT 2026-11-08  coverage=78  fingerprint=3e05b2ce1994
+[census]   indicators resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'first-seen': 8, 'publication-lag-estimate': 7, 'source-published': 2}
+[census]   articles fetched=36 deduped=34 passed=20 selected=12/20 rejected={'irrelevant': 14}
+[census]   bodies {'full': 3, 'digest-only': 9}  quality {'full': 12}  digests 7 new / 9 cached / 0 truncated-retry
+[census]   per-theme selected {'order': 2, 'edge': 3, 'friction': 4, 'information': 1, 'security': 3}  per-ledger {'friction': 6, 'order': 6, 'information': 0, 'edge': 0}
+[check] PT: old -> new | multi-article stories 2 -> 0 | title-only 5 -> 0 | T5 2 -> 2 | sent 20 -> 12 (shortfall 8) | refill digests 0
+[check] PT: mask hits 14, regenerated 5, replaced by code 4, publisher mentions 3, payload leaks []
+[freeze] PT: 12 articles, 5101 masked tokens, 5322 named tokens, $0.053 so far
+
+===== KW Kuwait =====
+[econ] KW: resolved {'friction': 4, 'order': 5, 'information': 3, 'edge': 2} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'first-seen': 9, 'publication-lag-estimate': 4, 'source-published': 1}
+[pool] KW: friction=8 order=10 security=8 information=1 edge=10 broad=4 | fetched=41 stale=0 deduped=39 | top: Kuwait Times(14), Arab Times Kuwait News(3), Times Kuwait(3), Zawya(2), Abb Takk News(1)
+[gate] KW: 28 relevant in 22 stories, 6 set aside as the same story
+[gate] KW: 39 candidates -> 28 relevant -> 18 selected (budget 20, 2 spillover); rejected {'irrelevant': 11}
+[select] KW: pass 1 dropped 2 (2 headline-only, 0 blocked), 16 selected after refill
+[mask] KW: 16 masked digests generated, 0 cached, 3+0 full texts rewritten; 28 gazetteer hits, 10 regenerated, 10 replaced by code
+[gate] KW: per-ledger {'friction': 6, 'order': 8, 'information': 0, 'edge': 0} | per-theme {'edge': 7, 'security': 5, 'friction': 3, 'order': 1} | final 16 after 1 pass(es)
+[digest] KW: 0 generated, 18 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 13} | quality {'full': 16}
+[census] KW 2026-11-08  coverage=80  fingerprint=5f20e6969f48
+[census]   indicators resolved {'friction': 4, 'order': 5, 'information': 3, 'edge': 2} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'first-seen': 9, 'publication-lag-estimate': 4, 'source-published': 1}
+[census]   articles fetched=41 deduped=39 passed=28 selected=16/20 rejected={'irrelevant': 11}
+[census]   bodies {'full': 3, 'digest-only': 13}  quality {'full': 16}  digests 0 new / 18 cached / 0 truncated-retry
+[census]   per-theme selected {'edge': 7, 'security': 5, 'friction': 3, 'order': 1}  per-ledger {'friction': 6, 'order': 8, 'information': 0, 'edge': 0}
+[census]   dropped: SI.POV.GINI (unmapped), GC.XPN.INTP.RV.ZS (unmapped), OECD.PISA.MEAN (no row)
+[check] KW: old -> new | multi-article stories 0 -> 0 | title-only 3 -> 0 | T5 6 -> 2 | sent 20 -> 16 (shortfall 4) | refill digests 0
+[check] KW: mask hits 28, regenerated 10, replaced by code 10, publisher mentions 12, payload leaks []
+[freeze] KW: 16 articles, 5182 masked tokens, 5943 named tokens, $0.063 so far
+
+===== HK Hong Kong SAR, China =====
+[econ] HK: resolved {'friction': 4, 'order': 5, 'information': 2, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'first-seen': 8, 'publication-lag-estimate': 4, 'source-published': 2}
+[pool] HK as 'Hong Kong': friction=10 order=10 security=10 information=3 edge=10 broad=10 | fetched=53 stale=0 deduped=48 | top: South China Morning Post(8), Bloomberg.com(2), Britannica(2), Hong Kong Customs and Excise Department(2), Reuters(2)
+[gate] HK: 36 relevant in 21 stories, 15 set aside as the same story
+[gate] HK: 48 candidates -> 36 relevant -> 20 selected (budget 20, 1 spillover); rejected {'irrelevant': 12}
+[select] HK: pass 1 dropped 3 (3 headline-only, 0 blocked), 18 selected after refill
+[select] HK: post-selection story check 1 set aside 3 second telling(s) (llm), 15 selected after refill
+[mask] HK: 15 masked digests generated, 0 cached, 3+0 full texts rewritten; 36 gazetteer hits, 10 regenerated, 20 replaced by code
+[gate] HK: per-ledger {'friction': 6, 'order': 8, 'information': 0, 'edge': 0} | per-theme {'friction': 4, 'security': 5, 'edge': 3, 'broad': 5} | final 15 after 2 pass(es)
+[digest] HK: 11 generated, 8 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 12} | quality {'full': 15}
+[census] HK 2026-11-08  coverage=78  fingerprint=0541fd8a8eda
+[census]   indicators resolved {'friction': 4, 'order': 5, 'information': 2, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'first-seen': 8, 'publication-lag-estimate': 4, 'source-published': 2}
+[census]   articles fetched=53 deduped=48 passed=36 selected=15/20 rejected={'irrelevant': 12}
+[census]   bodies {'full': 3, 'digest-only': 12}  quality {'full': 15}  digests 11 new / 8 cached / 0 truncated-retry
+[census]   per-theme selected {'friction': 4, 'security': 5, 'edge': 3, 'broad': 5}  per-ledger {'friction': 6, 'order': 8, 'information': 0, 'edge': 0}
+[census]   dropped: SI.POV.GINI (unmapped), GC.XPN.INTP.RV.ZS (unmapped), IQ.SPI.OVRL (unmapped)
+[check] HK: old -> new | multi-article stories 2 -> 0 | title-only 3 -> 0 | T5 1 -> 1 | sent 20 -> 15 (shortfall 5) | refill digests 0
+[check] HK: mask hits 36, regenerated 10, replaced by code 20, publisher mentions 7, payload leaks []
+[freeze] HK: 15 articles, 5503 masked tokens, 5998 named tokens, $0.095 so far
+
+===== TW Taiwan =====
+[econ] TW: resolved {'friction': 3, 'order': 3, 'information': 2, 'edge': 1} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'publication-lag-estimate': 3, 'first-seen': 4, 'source-published': 2}
+[pool] TW: friction=10 order=10 security=10 information=1 edge=10 broad=10 | fetched=51 stale=0 deduped=45 | top: Focus Taiwan(5), Taipei Times(5), ASU News(2), BigGo Finance(2), Bloomberg(2)
+[gate] TW: 39 relevant in 35 stories, 4 set aside as the same story
+[gate] TW: 45 candidates -> 39 relevant -> 20 selected (budget 20, 1 spillover); rejected {'irrelevant': 6}
+[select] TW: pass 1 dropped 1 (1 headline-only, 0 blocked), 20 selected after refill
+[select] TW: post-selection story check 1 set aside 1 second telling(s) (llm), 20 selected after refill
+[select] TW: post-selection story check 2 set aside 1 second telling(s) (llm), 20 selected after refill
+[select] TW: pass 3 dropped 1 (1 headline-only, 0 blocked), 20 selected after refill
+[mask] TW: 20 masked digests generated, 0 cached, 3+0 full texts rewritten; 46 gazetteer hits, 17 regenerated, 32 replaced by code
+[gate] TW: per-ledger {'friction': 4, 'order': 16, 'information': 0, 'edge': 0} | per-theme {'friction': 5, 'security': 6, 'order': 4, 'broad': 6, 'edge': 1} | final 20 after 3 pass(es)
+[digest] TW: 16 generated, 6 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 17} | quality {'full': 19, 'partial': 1}
+[census] TW 2026-11-08  coverage=73  fingerprint=8b350c3f7d0f
+[census]   indicators resolved {'friction': 3, 'order': 3, 'information': 2, 'edge': 1} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'publication-lag-estimate': 3, 'first-seen': 4, 'source-published': 2}
+[census]   articles fetched=51 deduped=45 passed=39 selected=20/20 rejected={'irrelevant': 6}
+[census]   bodies {'full': 3, 'digest-only': 17}  quality {'full': 19, 'partial': 1}  digests 16 new / 6 cached / 0 truncated-retry
+[census]   per-theme selected {'friction': 5, 'security': 6, 'order': 4, 'broad': 6, 'edge': 1}  per-ledger {'friction': 4, 'order': 16, 'information': 0, 'edge': 0}
+[census]   dropped: FP.CPI.TOTL.ZG (unmapped), SI.POV.GINI (unmapped), GC.XPN.INTP.RV.ZS (unmapped), SL.UEM.TOTL.ZS (unmapped), NY.GDP.PCAP.KD.ZG (unmapped), IQ.SPI.OVRL (unmapped), BX.KLT.DINV.WD.GD.ZS (unmapped), SE.XPD.TOTL.GD.ZS (unmapped)
+[check] TW: old -> new | multi-article stories 1 -> 0 | title-only 1 -> 0 | T5 1 -> 1 | sent 20 -> 20 (shortfall 0) | refill digests 1
+[check] TW: mask hits 46, regenerated 17, replaced by code 32, publisher mentions 8, payload leaks []
+[freeze] TW: 20 articles, 7585 masked tokens, 7800 named tokens, $0.134 so far
+
+===== RU Russia =====
+[econ] RU: resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 2} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'first-seen': 9, 'publication-lag-estimate': 6, 'source-published': 1}
+[pool] RU: friction=6 order=10 security=10 information=10 edge=5 broad=10 | fetched=51 stale=0 deduped=50 | top: Institute for the Study of War(3), AP News(2), Al Jazeera(2), Latin Times(2), Reuters(2)
+[gate] RU: 45 relevant in 38 stories, 7 set aside as the same story
+[gate] RU: 50 candidates -> 45 relevant -> 20 selected (budget 20, 1 spillover); rejected {'irrelevant': 5}
+[select] RU: pass 1 dropped 7 (7 headline-only, 0 blocked), 20 selected after refill
+[mask] RU: 20 masked digests generated, 0 cached, 3+0 full texts rewritten; 37 gazetteer hits, 15 regenerated, 29 replaced by code
+[gate] RU: per-ledger {'friction': 9, 'order': 10, 'information': 1, 'edge': 0} | per-theme {'friction': 3, 'security': 6, 'information': 3, 'broad': 4, 'order': 5} | final 20 after 1 pass(es)
+[digest] RU: 20 generated, 0 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 17} | quality {'full': 20}
+[census] RU 2026-11-08  coverage=86  fingerprint=5fa2eacca6af
+[census]   indicators resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 2} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'first-seen': 9, 'publication-lag-estimate': 6, 'source-published': 1}
+[census]   articles fetched=51 deduped=50 passed=45 selected=20/20 rejected={'irrelevant': 5}
+[census]   bodies {'full': 3, 'digest-only': 17}  quality {'full': 20}  digests 20 new / 0 cached / 0 truncated-retry
+[census]   per-theme selected {'friction': 3, 'security': 6, 'information': 3, 'broad': 4, 'order': 5}  per-ledger {'friction': 9, 'order': 10, 'information': 1, 'edge': 0}
+[census]   dropped: OECD.PISA.MEAN (no row)
+[check] RU: old -> new | multi-article stories 1 -> 0 | title-only 7 -> 0 | T5 2 -> 2 | sent 20 -> 20 (shortfall 0) | refill digests 7
+[check] RU: mask hits 37, regenerated 15, replaced by code 29, publisher mentions 2, payload leaks []
+[freeze] RU: 20 articles, 8445 masked tokens, 8873 named tokens, $0.190 so far
+[cost] actual $0.1898 — gpt-4o-mini-2024-07-18: 434 calls, 1009717+63977 tok, $0.1898
+exit 0

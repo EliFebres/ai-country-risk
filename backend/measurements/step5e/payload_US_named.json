@@ -1,0 +1,1418 @@
+{
+ "iso2": "US",
+ "country": "United States",
+ "mode": "named",
+ "run_date": "2026-11-08",
+ "payload_fingerprint": "22d4ba90db3070b3a07fcbdeb7068f01bd73c4426587e020652f17274dccdd3a",
+ "payload_sha256": "0b1fea559f13ab110735cc0c49851cc0e3ead30f358d8a7facf442a5978be551",
+ "payload_tokens": 5947,
+ "versions": {
+  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
+  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
+  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "scorer_input": "masked",
+  "schema_violations": 0,
+  "payload_tokens": 5497
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://www.cbsnews.com/detroit/news/michigan-national-guard-us-mexico-border-deployment/",
+   "title": "Michigan National Guard soldiers to support Customs and Border Protection at U.S-Mexico border - CBS News",
+   "masked_title": "National Guard soldiers to support Customs and Border Protection at border",
+   "publisher": "CBS News",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Michigan National Guard soldiers are deploying to support Customs and Border Protection at the U.S.-Mexico border.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.usnews.com/news/news/articles/2026-11-04/federal-judge-dismisses-case-against-russian-born-scientist-accused-of-smuggling-frog-embryos",
+   "title": "Scientist Who Brought Frog Embryos to Boston for Cancer Research Is Cleared of Smuggling Charges - U.S. News & World Report",
+   "masked_title": "Scientist Cleared of Smuggling Charges After Bringing Frog Embryos for Research",
+   "publisher": "U.S. News & World Report",
+   "published": "2026-11-04",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "U.S. prosecutors dropped all charges against Russian scientist Kseniia Petrova, who was detained for bringing frog embryos into the U.S. for cancer research.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.bloomberg.com/news/articles/2026-11-08/trump-s-1-5-trillion-defense-budget-to-be-blocked-by-democrats",
+   "title": "Trump’s $1.5 Trillion Defense Budget to Be Blocked by Democrats - Bloomberg",
+   "masked_title": "Head of Government’s [local currency]1.5 Trillion Defense Budget to Be Blocked by Opposition",
+   "publisher": "Bloomberg",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Democrats signal they will block President Trump's $1.5 trillion defense budget request following their midterm election victories.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://www.cbc.ca/news/canada/us-government-sanctions-canadian-businesses-iran-transactions-9.7413168",
+   "title": "U.S. sanctions Canadian money-exchange businesses allegedly connected to Iranian regime, Ryan Wedding - CBC",
+   "masked_title": "Government sanctions Canadian money-exchange businesses allegedly connected to foreign regime",
+   "publisher": "CBC",
+   "published": "2026-11-06",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The United States government imposed sanctions on several Canadian currency-exchange businesses for allegedly facilitating financial transactions for the Iranian regime.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.aljazeera.com/news/2026/11/8/us-task-force-to-cut-off-irans-transport-of-advanced-weapons-what-we-know",
+   "title": "US task force to cut off Iran’s transport of advanced weapons: What we know - Al Jazeera",
+   "masked_title": "New task force to cut off Iran’s transport of advanced weapons: What we know",
+   "publisher": "Al Jazeera",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The US military announced the formation of Task Force Iron Gate to cut off Iran's transport of advanced weapons and materials.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://abcnews.com/International/wireStory/carney-unveils-budget-strengthen-canadas-economy-trumps-trade-137894318",
+   "title": "Carney unveils budget to strengthen Canada's economy as Trump's trade war continues - ABC News - Breaking News, Latest News and Videos",
+   "masked_title": "Government unveils budget to strengthen economy as trade tensions continue",
+   "publisher": "ABC News - Breaking News, Latest News and Videos",
+   "published": "2026-11-06",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Canadian Prime Minister Mark Carney's government unveiled a budget aimed at reducing Canada's dependence on the United States amid Trump's trade war.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://www.iraqinews.com/iraq/iraq-restricts-airspace-as-united-states-calls-for-iran-border-closures/",
+   "title": "Iraq restricts airspace as United States calls for Iran border closures - IraqiNews",
+   "masked_title": "Country restricts airspace as major power calls for neighboring border closures",
+   "publisher": "IraqiNews",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Iraq has restricted its airspace and is responding to a US demand to close border crossings with Iran due to rising regional tensions.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://thehill.com/policy/defense/6205977-trump-launches-iran-limited-strikes/",
+   "title": "US military targets Iranian defense system in latest round of limited strikes - The Hill",
+   "masked_title": "Military targets Iranian defense system in latest round of limited strikes",
+   "publisher": "The Hill",
+   "published": "2026-11-07",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The US military launched defensive strikes against Iranian air defense systems, targeting Qeshm Island and marking the first strikes since the midterm elections.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://www.thestar.com/news/world/united-states/from-high-flying-ai-stocks-to-tariff-hit-alcohol-companies-the-midterms-shook-up-wall-street/article_7e884f4c-623b-5ae9-9b06-82f87ea7826f.html",
+   "title": "From high-flying AI stocks to tariff-hit alcohol companies, the midterms shook up Wall Street - Toronto Star",
+   "masked_title": "From high-flying AI stocks to tariff-hit alcohol companies, the midterms shook up the financial markets",
+   "publisher": "Toronto Star",
+   "published": "2026-11-07",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The overwhelming victory by the Democrats in the midterm elections caused significant fluctuations in Wall Street stocks, particularly affecting AI, defense, and liquor companies.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://www.straitstimes.com/world/united-states/imf-chief-says-any-slowdown-in-ai-driven-growth-would-be-factor-for-central-banks",
+   "title": "IMF chief says any slowdown in AI-driven growth would be factor for central banks - The Straits Times",
+   "masked_title": "IMF chief says any slowdown in AI-driven growth would be factor for central banks",
+   "publisher": "The Straits Times",
+   "published": "2026-11-07",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "IMF chief Kristalina Georgieva warned that a slowdown in AI-driven growth could complicate central banks' efforts to tackle inflation, particularly following the Democrats' victory in the US midterm elections which may lead to increased regulatory scrutiny of AI.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://abc7chicago.com/post/assessing-threat-2026-midterm-election-day-interference-attempts-outside-us/20021264/",
+   "title": "Assessing the Threat: 2026 midterm Election Day interference attempts from outside, within US - ABC7 Chicago",
+   "masked_title": "Assessing the Threat: 2026 midterm Election Day interference attempts from outside, within the country",
+   "publisher": "ABC7 Chicago",
+   "published": "2026-11-07",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Officials across the United States prepared for potential election interference from both foreign and domestic threats during the 2026 midterm elections.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://www.firstpost.com/world/united-states/cornell-university-faculty-vote-no-confidence-in-leadership-over-alleged-gang-rape-handling-14058481.html",
+   "title": "Cornell University faculty vote no-confidence in leadership over alleged gang rape handling - Firstpost",
+   "masked_title": "Elite college faculty vote no-confidence in leadership over alleged gang rape handling",
+   "publisher": "Firstpost",
+   "published": "2026-11-07",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Cornell University faculty voted no-confidence in the leadership over its handling of an alleged gang rape case, which has sparked protests across the United States.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://nationpathindia.com/international/us-designates-6576-opportunity-zones-investment-2026",
+   "title": "US Designates 6,576 Opportunity Zones to Attract Investment in Underserved Communities - www.nationpathindia.com",
+   "masked_title": "Federal Programme Designates 6,576 Opportunity Zones to Attract Investment in Underserved Communities",
+   "publisher": "www.nationpathindia.com",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The US Department of the Treasury and the IRS designated 6,576 census tracts as Qualified Opportunity Zones to attract private investment in economically distressed communities.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://www.tmgm.com/en-eu/analysis/market-news/article/united-states-uom-1-year-consumer-inflation-expectations-registered-at-43-above-expectations-0-in-november-202611061500",
+   "title": "United States UoM 1-year Consumer Inflation Expectations registered at 4.3% above expectations (0%) in November - www.tmgm.com",
+   "masked_title": "Consumer Inflation Expectations Registered at 4.3% Above Expectations in November",
+   "publisher": "www.tmgm.com",
+   "published": "2026-11-06",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The University of Michigan reported that the 1-year Consumer Inflation Expectations in the United States registered at 4.3%, significantly above the expected rate of 0%.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://www.cdc.gov/measles/data-research/index.html",
+   "title": "Measles Cases and Outbreaks - Centers for Disease Control and Prevention | CDC (.gov)",
+   "masked_title": "Measles Cases and Outbreaks - Health Authority",
+   "publisher": "Centers for Disease Control and Prevention | CDC (.gov)",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The CDC reported 5,182 confirmed measles cases in the United States for 2026, with 43 new outbreaks identified.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://www.pbs.org/newshour/world/trump-administration-held-talks-with-iran-on-deporting-iranians-during-the-war-court-documents-show",
+   "title": "Trump administration held talks with Iran on deporting Iranians during the war, court documents show - PBS",
+   "masked_title": "Administration held talks with foreign government on deporting individuals during the conflict, court documents show",
+   "publisher": "PBS",
+   "published": "2026-11-05",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Trump administration held secret talks with Iran regarding the deportation of Iranians during the ongoing war.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://blogs.lse.ac.uk/usappblog/2026/11/05/midterms-governors-diversity-representation/",
+   "title": "Following the 2026 midterms, America’s governors will now better reflect America’s diversity - LSE Blogs",
+   "masked_title": "Following the 2026 midterms, state governors will now better reflect national diversity",
+   "publisher": "LSE Blogs",
+   "published": "2026-11-05",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The 2026 midterm elections resulted in significant victories for diverse candidates at both state and national levels, reshaping representation in American politics.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://asil.org/ilib/united-states-imposes-sanctions-on-the-international-criminal-court/",
+   "title": "United States Imposes Sanctions on the International Criminal Court - American Society of International Law",
+   "masked_title": "Country Imposes Sanctions on the International Criminal Court - Society of International Law",
+   "publisher": "American Society of International Law",
+   "published": "2026-11-04",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The U.S. Department of State imposed sanctions on the International Criminal Court (ICC) for its actions against U.S. interests.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://www.citizensforethics.org/legal-action/letters/an-anti-corruption-agenda-for-the-new-congress/",
+   "title": "An anti-corruption agenda for the new Congress - Citizens for Responsibility and Ethics in Washington",
+   "masked_title": "An anti-corruption agenda for the new legislature",
+   "publisher": "Citizens for Responsibility and Ethics in Washington",
+   "published": "2026-11-04",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Citizens for Responsibility and Ethics in Washington and other organizations urge the new Congress to prioritize an anti-corruption agenda to rebuild public trust and address national security vulnerabilities.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.deloitte.com/us/en/insights/topics/economy/global-economic-outlook/weekly-update.html",
+   "title": "What’s happening this week in economics? - Deloitte",
+   "masked_title": "What’s happening this week in economics?",
+   "publisher": "Deloitte",
+   "published": "2026-11-02",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Global investors have significantly increased their capital inflow into the US equity market, influenced by enthusiasm for AI and the relative economic stability of the US amid global conflicts.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 3
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 7
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 6,
+    "resolved": 6
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 1
+   }
+  },
+  "dropped": [],
+  "as_of_schemes": {
+   "publication-lag-estimate": 7,
+   "first-seen": 8,
+   "source-published": 2
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 35,
+  "stories": 34,
+  "multi": 1,
+  "dropped": 1,
+  "same_story_as": {
+   "https://www.cnbc.com/2026/11/05/emocratic-midterm-economy.html": "https://www.thestar.com/news/world/united-states/from-high-flying-ai-stocks-to-tariff-hit-alcohol-companies-the-midterms-shook-up-wall-street/article_7e884f4c-623b-5ae9-9b06-82f87ea7826f.html"
+  },
+  "post_selection": []
+ },
+ "selection": {
+  "passes": 1,
+  "story_checks": 1,
+  "final_story_check_clean": true,
+  "t5_selected": 2,
+  "title_only_dropped": 8,
+  "title_only_dropped_articles": [
+   {
+    "url": "https://www.tennessean.com/story/money/business/2026/11/06/ai-regulation-united-states/92616643007/",
+    "title": "AI companies warn of danger. So what would AI regulation look like? - The Tennessean",
+    "pass": 1
+   },
+   {
+    "url": "https://www.upi.com/Top_News/World-News/2026/11/08/mideast-iran-israel-united-states/6431794168511/",
+    "title": "Iran executes 3 men accused of working with Israel, United States - upi",
+    "pass": 1
+   },
+   {
+    "url": "https://www.reuters.com/world/americas/us-issues-new-cuba-sanctions-takes-aim-sectors-cuban-economy-2026-11-05/",
+    "title": "US issues new Cuba sanctions, takes aim at sectors of Cuban economy - Reuters",
+    "pass": 1
+   },
+   {
+    "url": "https://www.politico.com/news/2026/11/08/sotomayor-sees-united-states-rough-patch-rule-of-law",
+    "title": "Sotomayor sees US in ‘rough patch’ for rule of law - Politico",
+    "pass": 1
+   },
+   {
+    "url": "https://www.reuters.com/legal/transactional/democrats-gain-influence-over-trade-agenda-tariff-repeals-hit-trump-veto-wall-2026-11-05/",
+    "title": "Democrats gain influence over trade agenda, but tariff repeals to hit Trump veto wall - Reuters",
+    "pass": 1
+   },
+   {
+    "url": "https://en.tempo.co/read/2123169/middle-east-could-have-big-role-in-democrats-trump-corruption-inquiry",
+    "title": "Middle East Could Have Big Role in Democrats' Trump Corruption Inquiry - Tempo.co English",
+    "pass": 1
+   },
+   {
+    "url": "https://www.silive.com/weather/2026/11/el-nino-could-push-us-inflation-higher-in-2027-federal-reserve-bank-analysis-finds.html",
+    "title": "El Niño could push U.S. inflation higher in 2027, Federal Reserve Bank analysis finds - SILive.com",
+    "pass": 1
+   },
+   {
+    "url": "https://www.nytimes.com/2026/11/05/us/politics/supreme-court-trump-abortion-leak-dobbs.html",
+    "title": "Justice Dept. Steps Up Criminal Inquiry of Supreme Court Abortion Decision Leak - The New York Times",
+    "pass": 1
+   }
+  ],
+  "post_selection_same_story": 0,
+  "blocked_after_selection": 0,
+  "refill_digests": 6,
+  "shortfall": 0,
+  "selected": 20
+ },
+ "mask": {
+  "hits": 28,
+  "regenerated": 13,
+  "replaced_by_code": 20,
+  "fallback_digests": 0,
+  "fallback_texts": 0,
+  "publisher_mentions": 5,
+  "digests_generated": 20,
+  "digests_cached": 0,
+  "rewrites_generated": 3,
+  "rewrites_cached": 0,
+  "payload_leaks": []
+ },
+ "mask_terms": [
+  {
+   "where": "digest:https://www.usnews.com/news/news/articles/2026-11-04/federal-judge-dismisses-case-against-russian-born-scientist-accused-of-smuggling-frog-embryos",
+   "term": "U.S.",
+   "kind": "code"
+  },
+  {
+   "where": "digest:https://www.bloomberg.com/news/articles/2026-11-08/trump-s-1-5-trillion-defense-budget-to-be-blocked-by-democrats",
+   "term": "$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://www.cbc.ca/news/canada/us-government-sanctions-canadian-businesses-iran-transactions-9.7413168",
+   "term": "United States",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.cbc.ca/news/canada/us-government-sanctions-canadian-businesses-iran-transactions-9.7413168",
+   "term": "U.S. dollar",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://www.cbc.ca/news/canada/us-government-sanctions-canadian-businesses-iran-transactions-9.7413168",
+   "term": "dollar",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://www.cbc.ca/news/canada/us-government-sanctions-canadian-businesses-iran-transactions-9.7413168",
+   "term": "U.S.",
+   "kind": "code"
+  },
+  {
+   "where": "digest:https://www.cbc.ca/news/canada/us-government-sanctions-canadian-businesses-iran-transactions-9.7413168",
+   "term": "dollars",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://www.aljazeera.com/news/2026/11/8/us-task-force-to-cut-off-irans-transport-of-advanced-weapons-what-we-know",
+   "term": "United States",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://abcnews.com/International/wireStory/carney-unveils-budget-strengthen-canadas-economy-trumps-trade-137894318",
+   "term": "$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://abcnews.com/International/wireStory/carney-unveils-budget-strengthen-canadas-economy-trumps-trade-137894318",
+   "term": "United States",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://thehill.com/policy/defense/6205977-trump-launches-iran-limited-strikes/",
+   "term": "U.S.",
+   "kind": "code"
+  },
+  {
+   "where": "digest:https://www.thestar.com/news/world/united-states/from-high-flying-ai-stocks-to-tariff-hit-alcohol-companies-the-midterms-shook-up-wall-street/article_7e884f4c-623b-5ae9-9b06-82f87ea7826f.html",
+   "term": "dollar",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://www.thestar.com/news/world/united-states/from-high-flying-ai-stocks-to-tariff-hit-alcohol-companies-the-midterms-shook-up-wall-street/article_7e884f4c-623b-5ae9-9b06-82f87ea7826f.html",
+   "term": "Trump",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.thestar.com/news/world/united-states/from-high-flying-ai-stocks-to-tariff-hit-alcohol-companies-the-midterms-shook-up-wall-street/article_7e884f4c-623b-5ae9-9b06-82f87ea7826f.html",
+   "term": "Wall Street",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.straitstimes.com/world/united-states/imf-chief-says-any-slowdown-in-ai-driven-growth-would-be-factor-for-central-banks",
+   "term": "US",
+   "kind": "code"
+  },
+  {
+   "where": "digest:https://abc7chicago.com/post/assessing-threat-2026-midterm-election-day-interference-attempts-outside-us/20021264/",
+   "term": "U.S.",
+   "kind": "code"
+  },
+  {
+   "where": "digest:https://nationpathindia.com/international/us-designates-6576-opportunity-zones-investment-2026",
+   "term": "US",
+   "kind": "code"
+  },
+  {
+   "where": "digest:https://nationpathindia.com/international/us-designates-6576-opportunity-zones-investment-2026",
+   "term": "IRS",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://nationpathindia.com/international/us-designates-6576-opportunity-zones-investment-2026",
+   "term": "$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://asil.org/ilib/united-states-imposes-sanctions-on-the-international-criminal-court/",
+   "term": "U.S.",
+   "kind": "code"
+  },
+  {
+   "where": "digest:https://www.citizensforethics.org/legal-action/letters/an-anti-corruption-agenda-for-the-new-congress/",
+   "term": "Republicans",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.citizensforethics.org/legal-action/letters/an-anti-corruption-agenda-for-the-new-congress/",
+   "term": "Democrats",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.citizensforethics.org/legal-action/letters/an-anti-corruption-agenda-for-the-new-congress/",
+   "term": "$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://www.citizensforethics.org/legal-action/letters/an-anti-corruption-agenda-for-the-new-congress/",
+   "term": "dollar",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://www.deloitte.com/us/en/insights/topics/economy/global-economic-outlook/weekly-update.html",
+   "term": "Federal Reserve",
+   "kind": "extra"
+  },
+  {
+   "where": "rewrite:https://www.usnews.com/news/news/articles/2026-11-04/federal-judge-dismisses-case-against-russian-born-scientist-accused-of-smuggling-frog-embryos",
+   "term": "U.S.",
+   "kind": "code"
+  },
+  {
+   "where": "rewrite:https://www.usnews.com/news/news/articles/2026-11-04/federal-judge-dismisses-case-against-russian-born-scientist-accused-of-smuggling-frog-embryos",
+   "term": "DOJ",
+   "kind": "extra"
+  },
+  {
+   "where": "rewrite:https://www.bloomberg.com/news/articles/2026-11-08/trump-s-1-5-trillion-defense-budget-to-be-blocked-by-democrats",
+   "term": "$",
+   "kind": "symbol"
+  }
+ ],
+ "data": {
+  "indicators": {
+   "FP.CPI.TOTL.ZG": {
+    "code": "FP.CPI.TOTL.ZG",
+    "ledger": "friction",
+    "period": 2024,
+    "value": 2.9495,
+    "scaled_input": 0.9495,
+    "score": 0.0,
+    "clamped": true
+   },
+   "GC.XPN.INTP.RV.ZS": {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "period": 2024,
+    "value": 20.2909,
+    "scaled_input": 20.2909,
+    "score": 65.32,
+    "clamped": false
+   },
+   "GOV_WGI_RQ.EST": {
+    "code": "GOV_WGI_RQ.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 1.006,
+    "scaled_input": 1.006,
+    "score": 24.85,
+    "clamped": false
+   },
+   "GOV_WGI_CC.EST": {
+    "code": "GOV_WGI_CC.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 0.8652,
+    "scaled_input": 0.8652,
+    "score": 28.37,
+    "clamped": false
+   },
+   "GOV_WGI_PV.EST": {
+    "code": "GOV_WGI_PV.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": -0.0951,
+    "scaled_input": -0.0951,
+    "score": 39.88,
+    "clamped": false
+   },
+   "GOV_WGI_RL.EST": {
+    "code": "GOV_WGI_RL.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": 0.9618,
+    "scaled_input": 0.9618,
+    "score": 25.96,
+    "clamped": false
+   },
+   "GOV_WGI_GE.EST": {
+    "code": "GOV_WGI_GE.EST",
+    "ledger": "order",
+    "period": 2025,
+    "value": 1.191,
+    "scaled_input": 1.191,
+    "score": 20.22,
+    "clamped": false
+   },
+   "IQ.SPI.OVRL": {
+    "code": "IQ.SPI.OVRL",
+    "ledger": "information",
+    "period": 2024,
+    "value": 90.0588,
+    "scaled_input": 90.0588,
+    "score": 0.0,
+    "clamped": true
+   },
+   "RSF.PRESS.SCORE": {
+    "code": "RSF.PRESS.SCORE",
+    "ledger": "information",
+    "period": 2025,
+    "value": 62.61,
+    "scaled_input": 62.61,
+    "score": 37.32,
+    "clamped": false
+   },
+   "GOV_WGI_VA.EST": {
+    "code": "GOV_WGI_VA.EST",
+    "ledger": "information",
+    "period": 2025,
+    "value": 0.6448,
+    "scaled_input": 0.6448,
+    "score": 24.43,
+    "clamped": false
+   },
+   "BX.KLT.DINV.WD.GD.ZS": {
+    "code": "BX.KLT.DINV.WD.GD.ZS",
+    "ledger": "edge",
+    "period": 2025,
+    "value": 1.3017,
+    "scaled_input": 1.3017,
+    "score": 73.97,
+    "clamped": false
+   },
+   "SE.XPD.TOTL.GD.ZS": {
+    "code": "SE.XPD.TOTL.GD.ZS",
+    "ledger": "edge",
+    "period": 2021,
+    "value": 5.4204,
+    "scaled_input": 5.4204,
+    "score": 14.49,
+    "clamped": false
+   },
+   "OECD.PISA.MEAN": {
+    "code": "OECD.PISA.MEAN",
+    "ledger": "edge",
+    "period": 2022,
+    "value": 489.41,
+    "scaled_input": 489.41,
+    "score": 28.47,
+    "clamped": false
+   }
+  },
+  "data_scores": {
+   "friction": 29.63,
+   "order": 28.69,
+   "information": 20.58,
+   "edge": 38.98
+  },
+  "n_by_ledger": {
+   "friction": 4,
+   "order": 3,
+   "information": 3,
+   "edge": 3
+  },
+  "unscored": [
+   "SI.POV.GINI",
+   "OWID.VDEM.CORRUPTION",
+   "SL.UEM.TOTL.ZS",
+   "NY.GDP.PCAP.KD.ZG"
+  ]
+ },
+ "check": {
+  "old": {
+   "multi_article_stories": 1,
+   "same_story_dropped_if_checked": 1,
+   "title_only_sent": 7,
+   "t5_sent": 3,
+   "articles_sent": 20,
+   "story_method": "llm"
+  },
+  "new": {
+   "multi_article_stories": 0,
+   "title_only_sent": 0,
+   "t5_sent": 2,
+   "articles_sent": 20,
+   "shortfall": 0,
+   "refill_digests": 6,
+   "passes": 1,
+   "story_checks": 1,
+   "post_selection_same_story": 0,
+   "title_only_dropped": 8,
+   "blocked_after_selection": 0,
+   "final_story_check_clean": true,
+   "confirmation_check_method": "llm"
+  },
+  "mask": {
+   "hits": 28,
+   "regenerated": 13,
+   "replaced_by_code": 20,
+   "fallback_digests": 0,
+   "fallback_texts": 0,
+   "publisher_mentions": 5,
+   "digests_generated": 20,
+   "digests_cached": 0,
+   "rewrites_generated": 3,
+   "rewrites_cached": 0,
+   "payload_leaks": []
+  },
+  "eligible": 35,
+  "candidates": 47
+ },
+ "payload": {
+  "country": {
+   "iso2": "US",
+   "name": "United States"
+  },
+  "as_of": "2026-11-08",
+  "window": "articles published in the 30 days before as_of",
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "United States",
+   "regime": "own currency, floating",
+   "region": "North America",
+   "sovereignty": "full",
+   "tier": "DM"
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 5,
+    "order": 3,
+    "security": 5,
+    "information": 0,
+    "edge": 4,
+    "broad": 4
+   },
+   "selected_per_ledger": {
+    "friction": 3,
+    "order": 17,
+    "information": 0,
+    "edge": 0
+   },
+   "candidates_fetched": 50,
+   "passed_the_gate": 35,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "CBS News",
+    "published": "2026-11-08",
+    "title": "Michigan National Guard soldiers to support Customs and Border Protection at U.S-Mexico border - CBS News",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Around 125 soldiers from the Michigan Army National Guard are deploying to the U.S.-Mexico border to support Customs and Border Protection security operations. This deployment is the seventh by Michigan National Guard personnel to the southwest border since 2020.",
+     "institutions": [
+      "Michigan Army National Guard",
+      "Customs and Border Protection",
+      "Michigan Department of Military and Veterans Affairs"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "125 soldiers deploying",
+      "up to a year deployment",
+      "seventh deployment since 2020"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "U.S. News & World Report",
+    "published": "2026-11-04",
+    "title": "Scientist Who Brought Frog Embryos to Boston for Cancer Research Is Cleared of Smuggling Charges - U.S. News & World Report",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "U.S. prosecutors have dropped all criminal charges against Russian scientist Kseniia Petrova, who was detained for four months after arriving in Boston with frog embryos for her cancer research. The charges were dismissed following a federal judge's ruling that a customs officer improperly canceled her visa and concerns about the prosecution's validity.",
+     "institutions": [
+      "U.S. Attorney's Office",
+      "Department of Homeland Security",
+      "U.S. District Court"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Bloomberg",
+    "published": "2026-11-08",
+    "title": "Trump’s $1.5 Trillion Defense Budget to Be Blocked by Democrats - Bloomberg",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Democrats are signaling they will block President Donald Trump's $1.5 trillion defense budget request, which represents a 44% increase from the previous fiscal year. This comes after Republicans' midterm defeat and amid an unpopular war in the Middle East.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "$1.5 trillion defense budget",
+      "44% increase from the previous fiscal year"
+     ]
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "CBC",
+    "published": "2026-11-06",
+    "title": "U.S. sanctions Canadian money-exchange businesses allegedly connected to Iranian regime, Ryan Wedding - CBC",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The U.S. government has imposed sanctions on several Canadian currency-exchange businesses for allegedly aiding the Iranian regime and laundering drug money. The sanctions cut these firms off from the U.S. financial system and are part of a broader effort to undermine the Iranian regime's economic support.",
+     "institutions": [
+      "U.S. Department of the Treasury"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "eight Canadian businesses sanctioned",
+      "millions of dollars worth of digital funds sent abroad"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "Al Jazeera",
+    "published": "2026-11-08",
+    "title": "US task force to cut off Iran’s transport of advanced weapons: What we know - Al Jazeera",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The US has announced the formation of Task Force Iron Gate to disrupt Iran's military supply networks, particularly targeting land routes and the Caspian Sea. This initiative aims to prevent Iran from transporting advanced weapons and materials, amidst concerns of escalating tensions and potential conflict.",
+     "institutions": [
+      "United States Central Command (CENTCOM)",
+      "Islamic Revolutionary Guard Corps (IRGC)"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "11% contribution of the Caspian Sea to Iran's economy"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "ABC News - Breaking News, Latest News and Videos",
+    "published": "2026-11-06",
+    "title": "Carney unveils budget to strengthen Canada's economy as Trump's trade war continues - ABC News - Breaking News, Latest News and Videos",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Canadian Prime Minister Mark Carney’s government unveiled a budget aimed at reducing Canada's dependence on the United States amid ongoing trade tensions. The budget includes $142.1 billion Canadian in multiyear spending and tax breaks, with projections of $603 billion Canadian in spending and a $62.3 billion Canadian deficit for 2026-27.",
+     "institutions": [
+      "Canadian government",
+      "International Monetary Fund (IMF)"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "$142.1 billion Canadian multiyear spending and tax breaks",
+      "$603 billion Canadian spending",
+      "$62.3 billion Canadian deficit for 2026-27",
+      "2.5% of economy combined deficits",
+      "8.5% of economy combined deficits in the United States",
+      "1% growth forecast in 2026",
+      "1.7% growth forecast in 2027",
+      "$36 billion Canadian cost of tax incentive over five years",
+      "$25 billion Canadian national sovereign wealth fund",
+      "$7.7 billion Canadian to strengthen defense industry"
+     ]
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "IraqiNews",
+    "published": "2026-11-08",
+    "title": "Iraq restricts airspace as United States calls for Iran border closures - IraqiNews",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Iraq has imposed temporary airspace restrictions from November 7 to 11 due to military operations, affecting flights across the country. This decision follows a demand from the United States for Iraq to close all but two border crossings with Iran, amid rising regional tensions and concerns over Iraq's sovereignty.",
+     "institutions": [
+      "Iraq",
+      "United States"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "airspace restrictions from November 7 to 11",
+      "limitations daily between 05:00 and 11:00 UTC"
+     ]
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "The Hill",
+    "published": "2026-11-07",
+    "title": "US military targets Iranian defense system in latest round of limited strikes - The Hill",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The U.S. launched new defensive strikes against Iran's air defense systems, which President Trump described as 'minor.' This follows previous strikes on Qeshm Island, and comes after the midterm elections where the Iran war was a significant issue for voters.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "33 percent of Americans approved of the Iran war",
+      "62 percent disapproved of the Iran war",
+      "highest-ever Election Day average gas price recorded"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "Toronto Star",
+    "published": "2026-11-07",
+    "title": "From high-flying AI stocks to tariff-hit alcohol companies, the midterms shook up Wall Street - Toronto Star",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Democrats' victory in the midterm elections caused significant fluctuations in various stock sectors, with AI stocks declining due to concerns over potential regulatory impacts, while hospital shares rose on hopes for increased funding. Defense and oil companies fell on expectations of reduced profits from an end to the U.S.-Iran war, while renewable energy companies may benefit from a more favorable Congress. Overall, the market reacted variably across different industries following the election results.",
+     "institutions": [],
+     "direction": "mixed",
+     "numbers": [
+      "5% decline in SpaceX shares",
+      "10.1% decline in Tesla shares",
+      "33% loss in Trump Media's market value",
+      "6.9% increase in HCA Healthcare shares",
+      "6.2% increase in Tenet Healthcare shares",
+      "10.4% increase in Universal Health Services shares",
+      "4.9% increase in D.R. Horton shares",
+      "4.4% increase in PulteGroup shares",
+      "2.9% increase in Home Depot shares",
+      "3.4% increase in Costco Wholesale shares",
+      "2.1% increase in Procter & Gamble shares",
+      "2.5% increase in Dollar General shares"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "The Straits Times",
+    "published": "2026-11-07",
+    "title": "IMF chief says any slowdown in AI-driven growth would be factor for central banks - The Straits Times",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "IMF chief Kristalina Georgieva stated that central banks need to consider any slowdown in AI-driven growth as they address inflation. She highlighted that the AI investment boom is contributing to inflationary pressures and financial stability risks, particularly in light of recent market volatility and political changes in the US.",
+     "institutions": [
+      "International Monetary Fund (IMF)"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "1.1% drop in global GDP by 2028",
+      "1.8% drop in US output"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "ABC7 Chicago",
+    "published": "2026-11-07",
+    "title": "Assessing the Threat: 2026 midterm Election Day interference attempts from outside, within US - ABC7 Chicago",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "States prepared for potential election interference during the midterm elections, with concerns raised about threats from within the U.S. government. Despite these preparations, there were no reports of election disruption this year. A former DHS intelligence chief warned of future threats and criticized the use of federal resources for political purposes.",
+     "institutions": [
+      "U.S. Department of Homeland Security",
+      "Illinois Statewide Terrorism and Intelligence Center",
+      "U.S. Department of Justice"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "Firstpost",
+    "published": "2026-11-07",
+    "title": "Cornell University faculty vote no-confidence in leadership over alleged gang rape handling - Firstpost",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Cornell University faculty voted to pass a no-confidence resolution against the university's leadership due to their handling of an alleged gang rape incident involving a female student and seven male students. The resolution, which is not binding, reflects faculty concerns about the administration's ability to address sexual assault on campus.",
+     "institutions": [
+      "Cornell University",
+      "Cornell's Board of Trustees"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "vote 75-50 with five abstentions",
+      "two students expelled",
+      "fraternity parties suspended for the remaining academic year"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "www.nationpathindia.com",
+    "published": "2026-11-06",
+    "title": "US Designates 6,576 Opportunity Zones to Attract Investment in Underserved Communities - www.nationpathindia.com",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The United States has designated 6,576 census tracts as Qualified Opportunity Zones (QOZs) to encourage private investment in economically distressed communities. These designations will take effect on January 1, 2027, and will remain in place for ten years, with enhanced incentives for eligible rural investments.",
+     "institutions": [
+      "US Department of the Treasury",
+      "Internal Revenue Service (IRS)"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "6,576 census tracts designated as Qualified Opportunity Zones",
+      "2,594 designated census tracts classified as rural",
+      "more than $110 billion in private-sector investment since 2017"
+     ]
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "www.tmgm.com",
+    "published": "2026-11-06",
+    "title": "United States UoM 1-year Consumer Inflation Expectations registered at 4.3% above expectations (0%) in November - www.tmgm.com",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "United States UoM 1-year Consumer Inflation Expectations registered at 4.3% above expectations (0%) in November.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "4.3% inflation expectations in November",
+      "0% expectations in November"
+     ]
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "Centers for Disease Control and Prevention | CDC (.gov)",
+    "published": "2026-11-06",
+    "title": "Measles Cases and Outbreaks - Centers for Disease Control and Prevention | CDC (.gov)",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "As of November 5, 2026, there have been 5,182 confirmed measles cases reported in the United States for the year, with 43 new outbreaks identified. The number of confirmed cases has significantly increased compared to 2,289 cases reported in 2025.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "5,182 confirmed measles cases in 2026",
+      "2,289 confirmed measles cases in 2025",
+      "43 new outbreaks reported in 2026",
+      "96% of confirmed cases outbreak-associated in 2026",
+      "90% of confirmed cases outbreak-associated in 2025"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "PBS",
+    "published": "2026-11-05",
+    "title": "Trump administration held talks with Iran on deporting Iranians during the war, court documents show - PBS",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Trump administration held secret talks with Iran regarding the deportation of Iranians during the ongoing war, as revealed by unsealed court documents. The administration planned to deport Iranians through a third country, although the timeline for these deportations was unclear.",
+     "institutions": [
+      "Trump administration",
+      "Department of Homeland Security",
+      "Immigration and Customs Enforcement",
+      "Justice Department"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "more than 100 Iranians deported on three immigration flights in September and December 2025 and January 2026",
+      "two dozen migrants deported to the Central African Republic in June"
+     ]
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "LSE Blogs",
+    "published": "2026-11-05",
+    "title": "Following the 2026 midterms, America’s governors will now better reflect America’s diversity - LSE Blogs",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The 2026 midterm elections resulted in significant victories for Democratic candidates, particularly women and ethnic minorities, reshaping representation at both national and state levels. Notable wins included the election of the first female Black governor in Georgia, the first female Native American governor in New Mexico, and the first Hispanic governor in Texas, among others. These outcomes reflect a growing diversity in US politics and may lead to substantive changes in policymaking.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "first female Black governor of Georgia",
+      "first female Native American governor of any state",
+      "first Hispanic governor of Texas",
+      "first Black governor of Florida",
+      "first Black governor of Nevada",
+      "first Black governor of Wisconsin",
+      "first Hispanic governor of California",
+      "first female governor of Ohio",
+      "first female governor of Tennessee",
+      "15 states governed by Democratic women",
+      "17 by Republican men",
+      "15 by Democratic men",
+      "3 by Republican women",
+      "number of Black governors increases by 400 percent"
+     ]
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "American Society of International Law",
+    "published": "2026-11-04",
+    "title": "United States Imposes Sanctions on the International Criminal Court - American Society of International Law",
+    "themes": [
+     "order",
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "On October 9, 2026, the U.S. Department of State designated the International Criminal Court (ICC) as a sanctioned entity under Executive Order 14203. This designation freezes ICC assets in the U.S. and prohibits transactions involving blocked property by U.S. persons, while allowing certain ICC transactions to protect U.S. interests.",
+     "institutions": [
+      "U.S. Department of State",
+      "International Criminal Court",
+      "Treasury Department",
+      "Office of Foreign Assets Control"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "180 days for certain ICC operations",
+      "four general licenses issued"
+     ]
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "Citizens for Responsibility and Ethics in Washington",
+    "published": "2026-11-04",
+    "title": "An anti-corruption agenda for the new Congress - Citizens for Responsibility and Ethics in Washington",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses an anti-corruption agenda proposed for the new Congress, emphasizing the need to address corruption as a threat to democracy. It outlines six key steps Congress should take to combat corruption, including banning congressional stock trading, reversing Supreme Court decisions that weaken public corruption laws, and establishing a dedicated anti-corruption agency.",
+     "institutions": [
+      "CREW",
+      "Common Cause",
+      "National Association of Social Workers",
+      "End Citizens United",
+      "People For the American Way"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "87% of Republicans support a congressional stock trading ban",
+      "88% of Democrats support a congressional stock trading ban",
+      "81% of independents support a congressional stock trading ban",
+      "over $2 billion earned by President Trump in 2025",
+      "$1.776 billion payout to January 6th insurrectionists",
+      "$25 million dollar antifraud fund"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "Deloitte",
+    "published": "2026-11-02",
+    "title": "What’s happening this week in economics? - Deloitte",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses the substantial inflow of capital into the US equity market, driven by enthusiasm for AI and geopolitical uncertainties. It highlights the impact of rising oil prices on the US dollar's value and the Federal Reserve's monetary policy decisions amid inflation concerns. Additionally, it notes the strong GDP growth in the US, fueled by technology investments, while also addressing potential risks associated with AI investments.",
+     "institutions": [
+      "Federal Reserve",
+      "Bank for International Settlements"
+     ],
+     "direction": "mixed",
+     "numbers": [
+      "inflation 3.6% in September",
+      "real GDP growth 3.4% in the third quarter",
+      "real consumer spending growth 3.8%",
+      "nonresidential fixed investment growth 12.7%",
+      "real imports growth 26.4%",
+      "real nondefense federal government spending growth 22.2%",
+      "personal consumption expenditure deflator up 3.6% from a year earlier",
+      "core PCE-deflator up 3.1% from a year earlier",
+      "85.3% probability of Fed rate hike in December",
+      "56% probability of at least three more rate hikes before end of 2027",
+      "average annual capital expenditures on AI estimated at 3.6% of GDP from 2025 to 2032"
+     ]
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Michigan National Guard soldiers to support Customs and Border Protection at U.S-Mexico border - CBS News",
+    "publisher": "CBS News",
+    "body_status": "full",
+    "chars_read": 1092,
+    "chars_original": 1092,
+    "text": "Michigan National Guard soldiers to support Customs and Border Protection at U.S-Mexico border\nAround 125 soldiers from the Michigan Army National Guard are set to deploy to the southwest U.S.-Mexico border to support Customs and Border Protection security operations, military officials said Friday.\nThe 1432nd Engineer Company, based out of the Upper Peninsula communities of Kingsford and Gladstone, will provide \"mission-enhancing support\" that will \"enable federal agents to carry out their law enforcement responsibilities,\" according to officials.\nThe soldiers, who are anticipated to be deployed for up to a year, gathered with their families for a departure ceremony at Escanaba High School in Escanaba, Michigan, last month.\n\"Our Soldiers stand ready to answer the call to serve wherever they are needed,\" U.S. Army Maj. Gen. Paul D. Rogers, adjutant general and director of the Michigan Department of Military and Veterans Affairs, said in a written statement Friday.\nThe mission marks the seventh deployment by Michigan National Guard personnel to the southwest border since 2020."
+   },
+   {
+    "id": "a2",
+    "title": "Scientist Who Brought Frog Embryos to Boston for Cancer Research Is Cleared of Smuggling Charges - U.S. News & World Report",
+    "publisher": "U.S. News & World Report",
+    "body_status": "full",
+    "chars_read": 3331,
+    "chars_original": 3331,
+    "text": "BOSTON (AP) — U.S. prosecutors have dropped all criminal charges against a Russian scientist who was tossed into an immigration jail last year after she landed at a Boston airport with frog embryos intended for her cancer research at Harvard Medical School.\nKseniia Petrova, 31, spent four months in detention following her arrest in early 2025 as she returned from a vacation in France, where she had stopped at a lab specializing in splicing superfine sections of frog embryos and obtained a package of samples for research.\nShe was questioned about the samples while passing through a customs checkpoint at Logan International Airport, then later charged with smuggling.\nA federal judge on Wednesday granted a request by prosecutors to dismiss those charges as well as counts alleging that she'd concealed facts and made false statements to government officials.\nPetrova told The Associated Press in an interview that she did not realize the items needed to be declared and was not trying to sneak anything into the country.\nThe case began to fall apart in April, after a federal judge ruled a customs officer improperly canceled Petrova's visa over the incident. Petrova had feared being deported to Russia and imprisoned there.\nHer lawyers had also argued that the criminal prosecution was vindictive, saying the government only filed criminal charges after it looked like she would win her immigration case. They also argued that it was rare for anyone to be charged criminally for what Petrova did.\nOn Tuesday night, U.S. Attorney Leah Foley filed a motion to dismiss the charges “based on developments in this case and an assessment of the office’s priorities and resources.”\n“At this stage, the resource costs of continuing this prosecution outweigh the public interest in its resolution,” she wrote, adding that the “defendant’s claims of vindictive and selective prosecution are meritless.”\nU.S. District Judge Leo Sorokin, who was nominated by former President Barack Obama, dismissed the charges Wednesday without a hearing.\n“The DOJ never should have brought this highly unusual “smuggling” prosecution against Kseniia Petrova, a talented scientist at Harvard,” one of Petrova's attorneys, Daniel Marx, said in a statement. “Ms. Petrova only sought to advance medical research into aging that could benefit everyone, and her handling of scientific samples — inert, non-living, non-toxic, frog embryos — never posed any danger to anyone.”\nEarlier this year, the Department of Homeland Security defended Petrova's detention, saying she had lied to federal officers about the frog embryos.\nIn a court filing asking the judge to dismiss the case, Foley cited an April court ruling that would have allowed Petrova's lawyers to get broad access to government documents as part of her defense that she was being prosecuted selectively.\n“The government must supply the defendant with information pertaining to any number of passenger encounters involving undeclared items that could be considered comparable, without regard for the manner in which those items were carried, the presence or absence of planning, or the strength of the evidence of a passenger’s fraudulent intent,” Foley wrote.\nCopyright 2026 The Associated Press. All rights reserved. This material may not be published, broadcast, rewritten or redistributed."
+   },
+   {
+    "id": "a3",
+    "title": "Trump’s $1.5 Trillion Defense Budget to Be Blocked by Democrats - Bloomberg",
+    "publisher": "Bloomberg",
+    "body_status": "full",
+    "chars_read": 521,
+    "chars_original": 521,
+    "text": "Trump’s $1.5 Trillion Defense Budget to Be Blocked by Democrats\nTakeaways by Bloomberg AI\nRepublicans’ midterm defeat is crushing any remaining hopes that Congress would approve President Donald Trump’s unprecedented $1.5 trillion defense budget request amid an unpopular war in the Middle East.\nDemocrats, who won solid majorities of both chambers of Congress on Tuesday, were already largely opposed to the 44% increase from the previous fiscal year and are now signaling they will block any efforts to push it forward."
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.575,
+    "indicator_resolution": 1.0,
+    "freshness": 0.8824
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

@@ -1,0 +1,1009 @@
+{
+ "iso2": "PT",
+ "country": "Portugal",
+ "mode": "named",
+ "run_date": "2026-11-08",
+ "payload_fingerprint": "3e05b2ce1994f655075d289648142ccafab77d32c6a19f44255768c65101d448",
+ "payload_sha256": "e4b7ba4bcbcfad0189e75db3854ac358016a76e7156ba1a5717b6b19a94b386b",
+ "payload_tokens": 5322,
+ "versions": {
+  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
+  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
+  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "scorer_input": "masked",
+  "schema_violations": 0,
+  "payload_tokens": 5101
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://safeabroad.com/advisories/university-students-will-march-from-largo-do-carmo-in-lisbon-portugal-at-230-pm-on-november-18/",
+   "title": "University students will march from Largo do Carmo in Lisbon, Portugal, at 2:30 PM on November 18. - SafeAbroad",
+   "masked_title": "University students will march from a location in the capital at 2:30 PM on November 18.",
+   "publisher": "SafeAbroad",
+   "published": "2026-11-08",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "University students in Portugal will march to protest rising housing costs and cuts to education funding, coinciding with a parliamentary vote on the 2027 budget.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.essential-business.pt/2026/11/06/portugals-golden-visa-funds-emerge-as-a-driver-for-business-investment/",
+   "title": "Portugal’s golden visa funds emerge as a driver for business investment - Essential Business",
+   "masked_title": "Residency-by-investment funds emerge as a driver for business investment",
+   "publisher": "Essential Business",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Fund managers at the Wealth and Migration Summit in Lisbon discussed how Portugal's golden visa programme is channeling international capital into various sectors, while also warning about regulatory uncertainty.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://atoday.org/news-briefs-from-la-sierra-portugal-ecuador-ghana-and-the-philippines/",
+   "title": "News Briefs from La Sierra, Portugal, Ecuador, Ghana, and the Philippines - Adventist Today",
+   "masked_title": "News Briefs from La Sierra, a country, Ecuador, Ghana, and a country",
+   "publisher": "Adventist Today",
+   "published": "2026-11-05",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Seventh-day Adventists in Portugal launched a national campaign for greater inclusion of people with disabilities in churches and society.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://source.benchmarkminerals.com/article/why-is-ev-adoption-in-portugal-so-much-greater-than-in-spain-",
+   "title": "Why is EV adoption in Portugal so much greater than in Spain? - Benchmark Mineral Intelligence",
+   "masked_title": "Why is EV adoption in the country so much greater than in a neighbouring country?",
+   "publisher": "Benchmark Mineral Intelligence",
+   "published": "2026-11-03",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Portugal achieved an electric vehicle penetration rate of over 50% in September 2026, surpassing Spain's rate of 30%.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://taxfoundation.org/international-tax-index/country/portugal/",
+   "title": "Portugal Tax Rankings | 2026 International Tax Index - Tax Foundation",
+   "masked_title": "Tax Rankings | 2026 International Tax Index - Tax Foundation",
+   "publisher": "Tax Foundation",
+   "published": "2026-10-19",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Tax Foundation released the 2026 International Tax Index, ranking Portugal 33rd overall in tax performance, with notable changes in its corporate and personal tax regimes.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://ca.news.yahoo.com/portugal-housing-protesters-return-lisbon-101936915.html",
+   "title": "Portugal: Housing protesters return to Lisbon square after court ruling - Yahoo News Canada",
+   "masked_title": "Housing protesters return to historic square after court ruling",
+   "publisher": "Yahoo News Canada",
+   "published": "2026-11-04",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Housing protesters returned to Lisbon's Rossio Square following a court ruling that allowed them to camp overnight, demanding action on Portugal's housing crisis.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://www.theportugalnews.com/news/2026-11-03/italys-exit-tax-affect-wealthy-residents-considering-portugal/1110786",
+   "title": "Italy’s exit tax affect wealthy residents considering Portugal - The Portugal News",
+   "masked_title": "Proposed exit tax in neighbouring country could impact wealthy residents considering relocation",
+   "publisher": "The Portugal News",
+   "published": "2026-11-03",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Italy's government proposed an exit tax that could affect wealthy residents considering moving to Portugal.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://usafacts.org/answers/what-is-the-average-us-tariff-rate-overall/countries/portugal/",
+   "title": "What is the average US tariff rate for Portugal? - USAFacts",
+   "masked_title": "What is the average US tariff rate for a trading partner?",
+   "publisher": "USAFacts",
+   "published": "2026-10-16",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The average effective tariff rate on goods from Portugal was reported to be 9.4% in August 2026.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://www.essential-business.pt/2026/10/22/portugal-sets-sights-on-world-leadership-in-digital-government/",
+   "title": "Portugal sets sights on world leadership in digital government - Essential Business",
+   "masked_title": "The country sets sights on world leadership in digital government",
+   "publisher": "Essential Business",
+   "published": "2026-10-22",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Portugal's Secretary of State for Digitalisation announced plans to improve digital government services and competitiveness at the Portugal Digital Summit.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://www.chinadaily.com.cn/a/202610/22/WS6ad948f4e4b06d4aa0564125.html",
+   "title": "Unrest in Portugal mirrors protests sweeping Europe - China Daily",
+   "masked_title": "Unrest in the country mirrors protests sweeping Europe",
+   "publisher": "China Daily",
+   "published": "2026-10-21",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Thousands of protesters in Portugal are campaigning against the housing crisis, mirroring similar protests across Europe.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.nato.int/en/news-and-events/articles/news/2026/10/21/the-chair-of-the-nato-military-committee-visits-portugal",
+   "title": "The Chair of the NATO Military Committee visits Portugal - North Atlantic Treaty Organization | NATO",
+   "masked_title": "The Chair of the NATO Military Committee visits the capital",
+   "publisher": "North Atlantic Treaty Organization | NATO",
+   "published": "2026-10-21",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Chair of the NATO Military Committee visited Portugal, meeting military leadership and discussing NATO missions and support for Ukraine.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://www.frontex.europa.eu/media-centre/news/news-release/frontex-opens-new-contingent-to-strengthen-border-coordination-in-portugal-and-spain-LLoNVb?etrans=el",
+   "title": "Frontex Opens New Contingent to Strengthen Border Coordination in Portugal and Spain - Frontex",
+   "masked_title": "Frontex Opens New Contingent to Strengthen Border Coordination in the Country and a Neighbouring Country - Frontex",
+   "publisher": "Frontex",
+   "published": "2026-10-16",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Frontex opened a new Contingent Command in Lisbon to enhance border coordination between Portugal and Spain.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 3
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 7
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 6,
+    "resolved": 6
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 1
+   }
+  },
+  "dropped": [],
+  "as_of_schemes": {
+   "first-seen": 8,
+   "publication-lag-estimate": 7,
+   "source-published": 2
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 20,
+  "stories": 20,
+  "multi": 0,
+  "dropped": 0,
+  "same_story_as": {},
+  "post_selection": [
+   {
+    "url": "https://www.pbs.org/newshour/world/from-france-to-albania-how-social-unrest-is-fueling-protests-across-europe",
+    "same_story_as": "https://www.chinadaily.com.cn/a/202610/22/WS6ad948f4e4b06d4aa0564125.html",
+    "pass": "post_selection",
+    "round": 1,
+    "method": "llm"
+   },
+   {
+    "url": "https://www.aljazeera.com/news/2026/10/17/cost-of-living-protests-hit-belgium-italy-portugal-and-france",
+    "same_story_as": "https://www.chinadaily.com.cn/a/202610/22/WS6ad948f4e4b06d4aa0564125.html",
+    "pass": "post_selection",
+    "round": 1,
+    "method": "llm"
+   },
+   {
+    "url": "https://www.amnesty.org/en/latest/news/2026/10/investigate-police-violence-against-housing-protesters-in-portugal/",
+    "same_story_as": "https://www.chinadaily.com.cn/a/202610/22/WS6ad948f4e4b06d4aa0564125.html",
+    "pass": "post_selection",
+    "round": 2,
+    "method": "llm"
+   }
+  ]
+ },
+ "selection": {
+  "passes": 3,
+  "story_checks": 3,
+  "final_story_check_clean": true,
+  "t5_selected": 2,
+  "title_only_dropped": 5,
+  "title_only_dropped_articles": [
+   {
+    "url": "https://www.gistreel.com/portugal-introduces-2-year-residence-permits-for-1-category-of-foreigners-outlines-employment-conditions/",
+    "title": "Portugal Introduces 2-Year Residence Permits for 1 Category of Foreigners, Outlines Employment Conditions - GistReel",
+    "pass": 1
+   },
+   {
+    "url": "https://www.hjnews.com/world/portugal-housing-protest/image_7cde93eb-3392-59a7-bc7a-f2db4718b06f.html",
+    "title": "Portugal Housing Protest - The Herald Journal",
+    "pass": 1
+   },
+   {
+    "url": "https://www.euronews.com/2026/11/03/portugal-housing-protesters-hail-court-win-but-ruling-limits-tents-to-one-activist",
+    "title": "Lisbon housing activists hail win despite court cap on tent occupancy - Euronews.com",
+    "pass": 1
+   },
+   {
+    "url": "https://www.reuters.com/world/europe/thousands-rally-outside-portugals-parliament-over-housing-crisis-police-2026-10-27/",
+    "title": "Thousands rally outside Portugal's parliament over housing crisis, police operations - Reuters",
+    "pass": 1
+   },
+   {
+    "url": "https://www.lemonde.fr/en/international/article/2026/10/20/italy-spain-belgium-portugal-social-unrest-spreads-across-europe-amid-soaring-energy-prices-and-a-housing-crisis_6759435_4.html",
+    "title": "Italy, Spain, Belgium, Portugal: Social unrest spreads across Europe amid soaring energy prices and a housing crisis - Le Monde.fr",
+    "pass": 1
+   }
+  ],
+  "post_selection_same_story": 3,
+  "blocked_after_selection": 0,
+  "refill_digests": 0,
+  "shortfall": 8,
+  "selected": 12
+ },
+ "mask": {
+  "hits": 14,
+  "regenerated": 5,
+  "replaced_by_code": 4,
+  "fallback_digests": 0,
+  "fallback_texts": 0,
+  "publisher_mentions": 3,
+  "digests_generated": 12,
+  "digests_cached": 0,
+  "rewrites_generated": 3,
+  "rewrites_cached": 0,
+  "payload_leaks": []
+ },
+ "mask_terms": [
+  {
+   "where": "digest:https://safeabroad.com/advisories/university-students-will-march-from-largo-do-carmo-in-lisbon-portugal-at-230-pm-on-november-18/",
+   "term": "Assembleia da República",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.essential-business.pt/2026/11/06/portugals-golden-visa-funds-emerge-as-a-driver-for-business-investment/",
+   "term": "Portugal",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.essential-business.pt/2026/11/06/portugals-golden-visa-funds-emerge-as-a-driver-for-business-investment/",
+   "term": "€",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://atoday.org/news-briefs-from-la-sierra-portugal-ecuador-ghana-and-the-philippines/",
+   "term": "the Philippines",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://atoday.org/news-briefs-from-la-sierra-portugal-ecuador-ghana-and-the-philippines/",
+   "term": "Philippines",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://ca.news.yahoo.com/portugal-housing-protesters-return-lisbon-101936915.html",
+   "term": "Lisbon",
+   "kind": "capital"
+  },
+  {
+   "where": "digest:https://ca.news.yahoo.com/portugal-housing-protesters-return-lisbon-101936915.html",
+   "term": "Lisbon",
+   "kind": "city"
+  },
+  {
+   "where": "digest:https://ca.news.yahoo.com/portugal-housing-protesters-return-lisbon-101936915.html",
+   "term": "Lisboa",
+   "kind": "city"
+  },
+  {
+   "where": "digest:https://ca.news.yahoo.com/portugal-housing-protesters-return-lisbon-101936915.html",
+   "term": "Porto",
+   "kind": "city"
+  },
+  {
+   "where": "digest:https://www.theportugalnews.com/news/2026-11-03/italys-exit-tax-affect-wealthy-residents-considering-portugal/1110786",
+   "term": "Italy",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.theportugalnews.com/news/2026-11-03/italys-exit-tax-affect-wealthy-residents-considering-portugal/1110786",
+   "term": "€",
+   "kind": "symbol"
+  },
+  {
+   "where": "rewrite:https://www.essential-business.pt/2026/11/06/portugals-golden-visa-funds-emerge-as-a-driver-for-business-investment/",
+   "term": "€",
+   "kind": "symbol"
+  },
+  {
+   "where": "rewrite:https://atoday.org/news-briefs-from-la-sierra-portugal-ecuador-ghana-and-the-philippines/",
+   "term": "the Philippines",
+   "kind": "other_country"
+  },
+  {
+   "where": "rewrite:https://atoday.org/news-briefs-from-la-sierra-portugal-ecuador-ghana-and-the-philippines/",
+   "term": "Philippines",
+   "kind": "other_country"
+  }
+ ],
+ "data": {
+  "indicators": {
+   "FP.CPI.TOTL.ZG": {
+    "code": "FP.CPI.TOTL.ZG",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 2.336,
+    "scaled_input": 0.336,
+    "score": 0.0,
+    "clamped": true
+   },
+   "GC.XPN.INTP.RV.ZS": {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "period": 2024,
+    "value": 5.4069,
+    "scaled_input": 5.4069,
+    "score": 12.17,
+    "clamped": false
+   },
+   "GOV_WGI_RQ.EST": {
+    "code": "GOV_WGI_RQ.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 0.5608,
+    "scaled_input": 0.5608,
+    "score": 35.98,
+    "clamped": false
+   },
+   "GOV_WGI_CC.EST": {
+    "code": "GOV_WGI_CC.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 0.7725,
+    "scaled_input": 0.7725,
+    "score": 30.69,
+    "clamped": false
+   },
+   "GOV_WGI_PV.EST": {
+    "code": "GOV_WGI_PV.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": 0.5369,
+    "scaled_input": 0.5369,
+    "score": 24.08,
+    "clamped": false
+   },
+   "GOV_WGI_RL.EST": {
+    "code": "GOV_WGI_RL.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": 1.0722,
+    "scaled_input": 1.0722,
+    "score": 23.2,
+    "clamped": false
+   },
+   "GOV_WGI_GE.EST": {
+    "code": "GOV_WGI_GE.EST",
+    "ledger": "order",
+    "period": 2025,
+    "value": 1.0219,
+    "scaled_input": 1.0219,
+    "score": 24.45,
+    "clamped": false
+   },
+   "IQ.SPI.OVRL": {
+    "code": "IQ.SPI.OVRL",
+    "ledger": "information",
+    "period": 2024,
+    "value": 90.7079,
+    "scaled_input": 90.7079,
+    "score": 0.0,
+    "clamped": true
+   },
+   "RSF.PRESS.SCORE": {
+    "code": "RSF.PRESS.SCORE",
+    "ledger": "information",
+    "period": 2025,
+    "value": 83.71,
+    "scaled_input": 83.71,
+    "score": 2.15,
+    "clamped": false
+   },
+   "GOV_WGI_VA.EST": {
+    "code": "GOV_WGI_VA.EST",
+    "ledger": "information",
+    "period": 2025,
+    "value": 1.2716,
+    "scaled_input": 1.2716,
+    "score": 6.53,
+    "clamped": false
+   },
+   "BX.KLT.DINV.WD.GD.ZS": {
+    "code": "BX.KLT.DINV.WD.GD.ZS",
+    "ledger": "edge",
+    "period": 2024,
+    "value": 4.2997,
+    "scaled_input": 4.2997,
+    "score": 14.01,
+    "clamped": false
+   },
+   "SE.XPD.TOTL.GD.ZS": {
+    "code": "SE.XPD.TOTL.GD.ZS",
+    "ledger": "edge",
+    "period": 2022,
+    "value": 4.5516,
+    "scaled_input": 4.5516,
+    "score": 36.21,
+    "clamped": false
+   },
+   "OECD.PISA.MEAN": {
+    "code": "OECD.PISA.MEAN",
+    "ledger": "edge",
+    "period": 2022,
+    "value": 477.62,
+    "scaled_input": 477.62,
+    "score": 37.9,
+    "clamped": false
+   }
+  },
+  "data_scores": {
+   "friction": 19.71,
+   "order": 23.91,
+   "information": 2.89,
+   "edge": 29.37
+  },
+  "n_by_ledger": {
+   "friction": 4,
+   "order": 3,
+   "information": 3,
+   "edge": 3
+  },
+  "unscored": [
+   "SI.POV.GINI",
+   "OWID.VDEM.CORRUPTION",
+   "SL.UEM.TOTL.ZS",
+   "NY.GDP.PCAP.KD.ZG"
+  ]
+ },
+ "check": {
+  "old": {
+   "multi_article_stories": 2,
+   "same_story_dropped_if_checked": 6,
+   "title_only_sent": 5,
+   "t5_sent": 2,
+   "articles_sent": 20,
+   "story_method": "llm"
+  },
+  "new": {
+   "multi_article_stories": 0,
+   "title_only_sent": 0,
+   "t5_sent": 2,
+   "articles_sent": 12,
+   "shortfall": 8,
+   "refill_digests": 0,
+   "passes": 3,
+   "story_checks": 3,
+   "post_selection_same_story": 3,
+   "title_only_dropped": 5,
+   "blocked_after_selection": 0,
+   "final_story_check_clean": true,
+   "confirmation_check_method": "llm"
+  },
+  "mask": {
+   "hits": 14,
+   "regenerated": 5,
+   "replaced_by_code": 4,
+   "fallback_digests": 0,
+   "fallback_texts": 0,
+   "publisher_mentions": 3,
+   "digests_generated": 12,
+   "digests_cached": 0,
+   "rewrites_generated": 3,
+   "rewrites_cached": 0,
+   "payload_leaks": []
+  },
+  "eligible": 20,
+  "candidates": 34
+ },
+ "payload": {
+  "country": {
+   "iso2": "PT",
+   "name": "Portugal"
+  },
+  "as_of": "2026-11-08",
+  "window": "articles published in the 30 days before as_of",
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "Portugal",
+   "regime": "shared currency (euro area)",
+   "region": "Europe & Central Asia",
+   "sovereignty": "none",
+   "tier": "DM"
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 4,
+    "order": 2,
+    "security": 3,
+    "information": 1,
+    "edge": 3,
+    "broad": 0
+   },
+   "selected_per_ledger": {
+    "friction": 6,
+    "order": 6,
+    "information": 0,
+    "edge": 0
+   },
+   "candidates_fetched": 36,
+   "passed_the_gate": 20,
+   "selected": 12,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "SafeAbroad",
+    "published": "2026-11-08",
+    "title": "University students will march from Largo do Carmo in Lisbon, Portugal, at 2:30 PM on November 18. - SafeAbroad",
+    "themes": [
+     "order",
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "A protest is planned in Portugal to address rising housing costs and cuts to education funding. Participants will march from Largo do Carmo to the Assembleia da República, where lawmakers will be voting on the 2027 budget.",
+     "institutions": [
+      "Assembleia da República"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "several thousand participants",
+      "2:30 PM march start time"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "Essential Business",
+    "published": "2026-11-06",
+    "title": "Portugal’s golden visa funds emerge as a driver for business investment - Essential Business",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Portugal's golden visa programme is increasingly channeling international capital into businesses rather than residential property investments, with over €7 billion attracted since its inception. Fund managers at the Wealth and Migration Summit 2026 highlighted the need for regulatory stability to maintain investor confidence and support long-term economic growth.",
+     "institutions": [
+      "AIMA",
+      "C2 Capital Partners",
+      "Blue Crow",
+      "Capital Green",
+      "Banco Atlântico"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "€7Bn attracted to Portugal since November 2012",
+      "€700 million in subscriptions last year"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Adventist Today",
+    "published": "2026-11-05",
+    "title": "News Briefs from La Sierra, Portugal, Ecuador, Ghana, and the Philippines - Adventist Today",
+    "themes": [
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "La Sierra University has launched an initiative called HOME@LASIERRA to support former foster youth with debt-free college education and comprehensive support. In Portugal, Seventh-day Adventists have initiated a campaign for greater inclusion of people with disabilities. In Ecuador, over 1,700 children participated in a leadership event, while in Ghana, the SDA Church organized a community clean-up for National Sanitation Day. In the Philippines, a visually impaired pastor is leading training on digital accessibility for educators and church leaders.",
+     "institutions": [
+      "La Sierra University",
+      "Seventh-day Adventists",
+      "South Ecuador Mission",
+      "Seventh-day Adventist Church’s Upper West Administrative Field",
+      "Adventist Possibility Ministries"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "$550,000 raised toward $2 million endowment goal",
+      "1,700 participants from 56 Adventurer clubs",
+      "48 baptisms",
+      "more than 25 participants in training"
+     ]
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "Benchmark Mineral Intelligence",
+    "published": "2026-11-03",
+    "title": "Why is EV adoption in Portugal so much greater than in Spain? - Benchmark Mineral Intelligence",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal’s electric vehicle (EV) penetration rate surpassed 50% for the first time in September 2026, with 58% of new passenger cars and light duty vehicles registered being electric. In contrast, Spain's EV penetration rate reached 30% in the same month, but Portugal has consistently led in EV adoption due to its tax incentives.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "58% of new passenger cars and light duty vehicles registered were electric in September 2026",
+      "30% EV penetration rate in Spain in September 2026"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "Tax Foundation",
+    "published": "2026-10-19",
+    "title": "Portugal Tax Rankings | 2026 International Tax Index - Tax Foundation",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal's overall rank remains unchanged at 33rd with a score of 59.6 out of 100. The country has made improvements to its tax regimes, including a reduction in the tax rate on long-term capital gains and a gradual decrease in the top corporate tax rate.",
+     "institutions": [],
+     "direction": "mixed",
+     "numbers": [
+      "overall rank 33rd",
+      "score 59.6 / 100",
+      "corporate tax rate 29.5% in 2026",
+      "long-term capital gains tax rate 19.6%",
+      "top corporate tax rate 31.5% in 2024 to 30.5% in 2025",
+      "top corporate tax rate 29.5% in 2026"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "Yahoo News Canada",
+    "published": "2026-11-04",
+    "title": "Portugal: Housing protesters return to Lisbon square after court ruling - Yahoo News Canada",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Housing protesters have returned to Lisbon's Rossio Square, setting up around 100 tents following a court ruling that allowed one activist to protest overnight. The demonstration reflects growing pressure on the Portuguese government regarding the housing crisis, with protesters demanding action. Prime Minister Luís Montenegro addressed the situation, inviting opposition leaders to propose housing solutions.",
+     "institutions": [
+      "Lisbon court",
+      "Acampada de Lisboa",
+      "Prime Minister Luís Montenegro",
+      "President António José Seguro"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "100 tents in Rossio Square",
+      "80 tents at daybreak in Rossio",
+      "20 tents in Porto's Praça D. João I"
+     ]
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "The Portugal News",
+    "published": "2026-11-03",
+    "title": "Italy’s exit tax affect wealthy residents considering Portugal - The Portugal News",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Italy's government is proposing an \"exit tax\" of 26% on certain investment holdings over €800,000 for wealthy residents who move abroad, as part of the draft 2027 budget. This policy could impact wealthy expatriates, particularly British nationals, who have relocated to Italy in recent years. The proposal was not announced in advance and follows previous tax changes that have attracted wealthy individuals to Italy.",
+     "institutions": [
+      "Italian government",
+      "Chamber of Deputies"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "26% capital gains levy",
+      "€800,000 investment holdings",
+      "3,600 millionaires moved to Italy in 2025",
+      "€100,000 flat tax on foreign income in 2017",
+      "€300,000 annual charge"
+     ]
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "USAFacts",
+    "published": "2026-10-16",
+    "title": "What is the average US tariff rate for Portugal? - USAFacts",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The average effective tariff rate on goods from Portugal was 9.4% in August 2026, an increase from 6.9% in 2025. The effective tariff rate is based on estimated customs duties and can vary due to factors like trade agreements and product types.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "average effective tariff rate 9.4% in August 2026",
+      "average effective tariff rate 6.9% in 2025"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "Essential Business",
+    "published": "2026-10-22",
+    "title": "Portugal sets sights on world leadership in digital government - Essential Business",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Portugal aims to become the world leader in digital government, currently ranking third in the OECD’s digital government index. Secretary of State for Digitalisation Bernardo Correia outlined plans for improved public services and increased AI adoption in the private sector, addressing current weaknesses in productivity and digital skills.",
+     "institutions": [
+      "OECD",
+      "Portugal Digital Summit",
+      "Parliament",
+      "National Health Service",
+      "GNR police"
+     ],
+     "direction": "mixed",
+     "numbers": [
+      "3rd in OECD digital government ranking",
+      "19th in EU for SME digital intensity",
+      "21st of 27 EU member states for SME adoption of AI",
+      "59% of population had basic digital skills in 2025",
+      "2.8 million people need training over next three to four years",
+      "100,000 additional highly skilled digital professionals needed",
+      "more than 90% of Tax Authority services are already digital",
+      "AI cut invoice processing time from 41 days to 24 hours",
+      "AI reduced physiotherapy waiting times from two years to ten days",
+      "185,000 clinical triage assessments supported by AI in 2026"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "China Daily",
+    "published": "2026-10-21",
+    "title": "Unrest in Portugal mirrors protests sweeping Europe - China Daily",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Thousands of protesters gathered in Lisbon and Porto to continue their campaign against Portugal's housing crisis after police cleared tent camps and arrested 55 people. The protests are part of a broader wave of unrest across Europe related to economic pressures such as rising living costs and inadequate public services.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "55 people arrested",
+      "200 tents in Lisbon's Rossio Square",
+      "10 days of occupation in Porto's Dom Joao I Square"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "North Atlantic Treaty Organization | NATO",
+    "published": "2026-10-21",
+    "title": "The Chair of the NATO Military Committee visits Portugal - North Atlantic Treaty Organization | NATO",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Admiral Giuseppe Cavo Dragone, Chair of the NATO Military Committee, visited Lisbon from 19 to 21 October, where he met with Portugal's military leadership and participated in various events, including a remembrance ceremony and a conference on European security. He praised Portugal's contributions to NATO missions and emphasized the need for resilience and readiness among Allies.",
+     "institutions": [
+      "NATO Military Committee",
+      "Portugal’s Armed Forces",
+      "STRIKFORNATO",
+      "CNN Portugal",
+      "Military University Institute (IUM)"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "Frontex",
+    "published": "2026-10-16",
+    "title": "Frontex Opens New Contingent to Strengthen Border Coordination in Portugal and Spain - Frontex",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Frontex, the European Border and Coast Guard Agency, opened a new Contingent Command in Lisbon, Portugal, to enhance coordination and leadership at one of Europe's key external borders. This new structure will oversee operations in Portugal and Spain, focusing on their significant migratory routes and busy international airports.",
+     "institutions": [
+      "Frontex",
+      "European Union Drugs Agency (EUDA)",
+      "Maritime Analysis and Operations Centre Narcotics (MAOC-N)"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "3,800 Frontex officers work at Europe's borders"
+     ]
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "University students will march from Largo do Carmo in Lisbon, Portugal, at 2:30 PM on November 18. - SafeAbroad",
+    "publisher": "SafeAbroad",
+    "body_status": "full",
+    "chars_read": 613,
+    "chars_original": 613,
+    "text": "Incident Details\nThe march will protest rising housing costs and cuts to education funding. Participants will gather at Largo do Carmo at 2:30 PM before marching to Assembleia da República, Portugal’s parliament, where lawmakers are scheduled to be voting on the 2027 budget. The protest turnout is expected to be several thousand, with students being transported from other regions of Portugal. An increased police presence is expected along the march route and at the parliament building.\nTraveler Safety\nSafeAbroad travelers are advised to avoid the protest and expect travel disruptions along the march route."
+   },
+   {
+    "id": "a2",
+    "title": "Portugal’s golden visa funds emerge as a driver for business investment - Essential Business",
+    "publisher": "Essential Business",
+    "body_status": "full",
+    "chars_read": 7632,
+    "chars_original": 7632,
+    "text": "Portugal’s golden visa funds emerge as a driver for business investment\nFund managers at Lisbon’s Wealth and Migration Summit 2026 argued that Portugal’s residency-by-investment programme is helping channel international capital into companies, healthcare, energy and industry, while warning that regulatory uncertainty could undermine its appeal.\nText and Photo: Chris Graeme\nFrom property to productive investment\nPortugal’s golden visa programme is increasingly becoming a source of financing for the country’s businesses rather than a vehicle for residential property investment, according to fund managers speaking at the Wealth and Migration Summit from Global Citizen Solutions in Lisbon.\nThe discussion, entitled “Portuguese Funds are Driving Economic Growth”, brought together Nuno Serafim of C2 Capital Partners, Duarte Calheiros Menezes of Blue Crow, and representatives of private credit and banking.\nThe programme had attracted more than €7Bn to Portugal over its lifetime (Since November, 2012) and that golden visa funds had secured more than €700 million in subscriptions last year.\nResidential property ceased to qualify as an eligible golden visa investment in 2023, shifting attention towards regulated investment funds.\nFor the speakers, the central question was not simply how much foreign money Portugal could attract, but whether it could be deployed to strengthen companies and support long-term growth.\nA maturing asset management industry\nSerafim said Portugal’s fund management sector had been transformed over the past two decades, moving from a small market dominated by bank-owned managers to an industry with more than 100 asset managers.\n“Right now, we have more than 100 asset managers. And now we are not more a sector, we are an industry,” he told delegates.\nHe attributed this expansion partly to the golden visa programme and other investment incentives, but also to the international marketing efforts of independent managers. He said his business had conducted more than 1,000 investor pitches in 2025, illustrating the work required to raise capital overseas.\nThe wider economic benefit, he argued, was a diversification of funding sources in a country historically reliant on bank lending. Portugal’s experience during the financial and sovereign debt crises had demonstrated the vulnerability of businesses when banks could not extend credit.\n“(We are) diversifying the funding sources of the Portuguese economy, and that, I think, is extremely important,” Serafim said.\nPrivate equity, private debt and other funds could make the economy more resilient, although he suggested the growing industry might eventually undergo consolidation.\nGolden visa investors accelerate scale\nMenezes described golden visa investors as an accelerator for Blue Crow’s growth rather than the foundation of its business model.\nThe firm had developed its investment capabilities before the programme became a major source of fund subscriptions.\nHe said investors seeking international mobility now represented almost 40% of its asset management base, alongside Portuguese individuals, institutional investors, foreign investors and family offices.\n“Golden visa is an accelerator of scale for the management entities that exist in Portugal,” he said.\nHowever, Menezes stressed that funds should not be designed artificially around immigration rules. Investors were looking for capital preservation, transparent governance and assets with a different risk profile from conventional public markets.\nBlue Crow’s investment approach had consequently expanded towards industrial modernisation, the energy transition and agricultural development, sectors where Portugal needed capital and already possessed operational expertise.\n“What we do is we look for what are the demands of global investors, and we try to adapt the funds in terms of risk, in terms of liquidity,” he explained.\nBacking Portugal’s family businesses\nThe discussion also highlighted opportunities in Portugal’s predominantly small and medium-sized business sector. Menezes pointed to fragmented ownership, succession challenges and limited capital as obstacles to expansion.\nHe argued that investment managers should act as partners in consolidation and professionalisation, rather than simply acquiring businesses for short-term gain.\n“You should never be a predator. You should be always a consolidation partner,” he said.\nPortugal’s strongest exporters, he added, competed internationally through quality and technical expertise rather than low wages.\nMany also financed growth through operating earnings instead of heavy borrowing, making them potentially attractive to private equity investors.\nHealthcare, energy and private credit\nSerafim identified healthcare as a long-term investment opportunity, driven by ageing populations, longer life expectancy and pressure on public health systems. He also pointed to energy, technology and defence as sectors requiring substantial investment over the coming decade.\nPrivate credit was another emerging theme. A representative of Capital Green, Raquel Vasconcelos explained that its funds lent directly to Portuguese companies, offering an alternative to traditional bank financing.\nShe said its loans were secured by first-ranking mortgages and that the firm emphasised risk assessment and environmental, social and governance considerations.\nBernardo Silveira Godinho, a representative of Banco Atlântico, argued that banks and investment funds should be viewed as complementary.\nEquity investment could improve companies’ capitalisation, governance and reporting, potentially making them more creditworthy and better placed to access capital markets.\n“We are partners, we are not competitors. We are part of the same ecosystem,” he said.\nThe banker also noted that golden visa investment could be the beginning of a broader relationship with Portugal, leading some investors to establish businesses, relocate families or make further investments.\nCalls for stability and a housing solution\nDespite their optimism, the panellists warned that uncertainty surrounding residency and nationality rules could discourage investors.\nThey called for predictable procedures, faster decisions and better coordination of appointments with Portugal’s immigration agency, AIMA.\nMenezes summed up the priorities as “efficiency and stability”, while Serafim argued that the programme should evolve to address the country’s economic needs without returning to the previous emphasis on residential property.\nHe floated the possibility of adding donations to a public housing fund as an eligible route, with proceeds directed towards increasing housing supply. It was a proposal rather than an announced government policy.\nSerafim said removing residential property from the programme had been the right decision, but argued that Portugal still needed to confront the shortage of affordable homes.\nGolden Visa – a contribution to investment, modernisation and diversified financing\nThe central message from the Wealth and Migration Summit 2026 in Lisbon was that the golden visa programme’s economic significance now extends beyond attracting wealthy foreign residents.\nBy helping fund managers mobilise capital for Portuguese companies, it may contribute to investment, modernisation and more diversified financing.\nYet the industry’s ambitions depend on investor confidence, credible fund governance and stable immigration rules. For the speakers, Portugal’s challenge is to convert international interest into lasting productive investment while ensuring that the programme serves broader national priorities."
+   },
+   {
+    "id": "a3",
+    "title": "News Briefs from La Sierra, Portugal, Ecuador, Ghana, and the Philippines - Adventist Today",
+    "publisher": "Adventist Today",
+    "body_status": "full",
+    "chars_read": 3783,
+    "chars_original": 3783,
+    "text": "News Briefs from La Sierra, Portugal, Ecuador, Ghana, and the Philippines\nLa Sierra Welcomes First Former Foster Youth Under New Endowment\nLa Sierra University has welcomed its first cohort of four former foster youth under HOME@LASIERRA, an endowment initiative providing debt-free college education, housing, and comprehensive support for students who have aged out of the foster care system. Launched as a pilot in 2025, the program provides tuition, room and board, wellness services, spiritual care, and individualized assistance through university resources and community partners. The university aims to enroll five to 10 students annually and has raised $550,000 toward its $2 million endowment goal. Read the full story here.\nAdventists Push for Disability Inclusion in Portugal\nSeventh-day Adventists in Portugal have launched a national campaign to promote greater inclusion of people with disabilities in churches and wider society, drawing about 500 participants. The “All in Step” campaign included public inclusion relays in four cities, photography and art activities, a new Pathfinder specialty, and awareness training on hearing and visual impairments, neurodiversity, and reduced mobility. Organized in collaboration with several Adventist ministries, the initiative marked the conclusion of celebrations for 120 years of Adventism in Portugal and called on churches to move beyond awareness toward removing barriers to participation. Read the full story here.\nChildren Develop Leadership and Service Skills During Meeting in Ecuador\nMore than 1,700 participants from 56 Adventurer clubs gathered in southern Ecuador for Aventurí, a three-day event organized by the South Ecuador Mission that gave children responsibility for leading the entire program. Participants took turns leading worship, preaching, performing music, and presenting Bible stories, while other activities encouraged teamwork, fellowship, and spiritual growth. The gathering, held for the first time in eight years, also included the investiture of 31 leaders and recorded 48 baptisms, including children who were baptized alongside family members. Read the full story here.\nSDA Church Observes National Sanitation Day in Ghana\nThe Seventh-day Adventist Church’s Upper West Administrative Field in Ghana marked National Sanitation Day with a community clean-up exercise at the Wa Municipal Hospital. Members of the Wa Central and Kpaguri Estate churches, together with pastors and elders, participated in the activity as part of efforts to promote environmental cleanliness and help prevent sanitation-related diseases. Field director Whaley Asonre Aboungo said the church had directed congregations across the region to conduct regular clean-up activities, with the administrative unit adopting the first Sunday of each month to complement the government’s National Sanitation Day observance. Read the full story here.\nVisually Impaired Pastor Leads Digital Accessibility Training in the Philippines\nAn Adventist pastor in Bohol, Philippines, is using his experience with vision loss to help educators, church leaders, and volunteers develop skills in digital accessibility. Albert Taraya led the first session of a three-part training program on Nov. 2 at Morning Star Christian Learning Center in Inabanga, where more than 25 participants learned to use NonVisual Desktop Access (NVDA), a free screen-reading program that enables people with visual impairments to navigate computers through keyboard commands and spoken feedback. Organized under Adventist Possibility Ministries, the initiative will continue on Nov. 30 and Dec. 6, with the goal of equipping participants to help people who are blind or have low vision access digital resources more independently. Read the full story here."
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 0.6,
+    "body_depth": 0.625,
+    "indicator_resolution": 1.0,
+    "freshness": 0.8235
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

@@ -1,0 +1,1507 @@
+{
+ "iso2": "RU",
+ "country": "Russia",
+ "mode": "named",
+ "run_date": "2026-11-08",
+ "payload_fingerprint": "5fa2eacca6afad969ca29b5572921a224f187e3a5f3ae4c1319184baf9e29766",
+ "payload_sha256": "12dc09cb5880e6875caed759d125dd6d047b4d86f434bf756c4d76f039dfb1bb",
+ "payload_tokens": 8873,
+ "versions": {
+  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
+  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
+  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "scorer_input": "masked",
+  "schema_violations": 0,
+  "payload_tokens": 8445
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://247wallst.com/investing/cryptocurrency/2026/11/08/russia-is-opening-bitcoin-and-ethereum-to-retail-investors-this-month-can-a-300000-ruble-cap-move-the-btc-and-eth-price/",
+   "title": "Russia Is Opening Bitcoin and Ethereum to Retail Investors This Month. Can a 300,000-Ruble Cap Move the BTC and ETH Price? - 24/7 Wall St.",
+   "masked_title": "Central Bank Opens Bitcoin and Ethereum to Retail Investors This Month. Can a 300,000 Local Currency Cap Move the BTC and ETH Price?",
+   "publisher": "24/7 Wall St.",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Russia's central bank opened the crypto market to retail investors, allowing purchases of Bitcoin and Ethereum with a cap of 300,000 rubles per year.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.latintimes.com/russian-strikes-kyiv-energy-infrastructure-dnipro-bridge-601033",
+   "title": "Kyiv faces power, heat and water outages after Russia launches 36 missiles and 172 drones - Latin Times",
+   "masked_title": "Major city faces power, heat and water outages after forces launch 36 missiles and 172 drones",
+   "publisher": "Latin Times",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russian forces launched 36 ballistic missiles and 172 drones at Kyiv and surrounding areas, causing significant power, heat, and water outages.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.theguardian.com/world/2026/nov/04/small-norwegian-news-outlet-russia-wanted-list-barents-observer",
+   "title": "‘We are a threat to Putin’: the small Norwegian news outlet with half its staff on Russia’s wanted list - The Guardian",
+   "masked_title": "‘We are a threat to the leader’: the small European news outlet with half its staff on the wanted list",
+   "publisher": "The Guardian",
+   "published": "2026-11-04",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "information",
+   "high_impact_event": false,
+   "what_happened": "A Norwegian news outlet, the Barents Observer, is recognized by a Russian government newspaper despite being declared an 'undesirable organisation' by Russia, with half its staff on Russia's wanted list.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a4",
+   "url": "https://africa.businessinsider.com/local/markets/russia-pitches-africa-a-new-cross-border-payment-system-as-moscow-expands-trade-ties/b58350p",
+   "title": "Russia pitches Africa a new cross-border payment system as Moscow expands trade ties. - Business Insider Africa",
+   "masked_title": "Fintech firm pitches Africa a new cross-border payment system as trade ties expand.",
+   "publisher": "Business Insider Africa",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Russia's President Vladimir Putin announced a new cross-border payment system developed by Russian fintech A7 to facilitate trade with African countries, despite US sanctions.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.themoscowtimes.com/2026/11/08/russia-says-hit-power-substations-in-ukraine-and-3-ships-in-black-sea-a94203",
+   "title": "Russia Says Hit Power Substations in Ukraine and 3 Ships in Black Sea - The Moscow Times",
+   "masked_title": "One Country Says Hit Power Substations in Neighbouring Country and 3 Ships in Black Sea",
+   "publisher": "The Moscow Times",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russia's Defense Ministry reported that its forces struck three cargo vessels and two power substations in Ukraine, claiming they were supplying military goods and power to the Ukrainian defense industry.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.cbr.ru/eng/currency_base/daily/",
+   "title": "Official exchange rates on selected date | Bank of Russia - Центральный Банк России",
+   "masked_title": "Official exchange rates on selected date | Central Bank",
+   "publisher": "Центральный Банк России",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Central Bank of Russia set the official exchange rates for various foreign currencies against the ruble as of November 7, 2026.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://unn.ua/en/news/russia-is-intensifying-attacks-on-ukraines-economy-ahead-of-the-talks-what-tactics-has-the-kremlin-chosen",
+   "title": "Russia is intensifying attacks on Ukraine’s economy ahead of the talks: what tactics has the Kremlin chosen? - Українські Національні Новини (УНН)",
+   "masked_title": "The country is intensifying attacks on a neighbouring country’s economy ahead of the talks: what tactics has the government chosen?",
+   "publisher": "Українські Національні Новини (УНН)",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russia is intensifying missile and drone attacks on Ukraine's economy, targeting energy infrastructure and logistics ahead of peace talks.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://www.dw.com/en/germany-hopes-to-host-world-ice-hockey-championship-without-russia/a-79879536",
+   "title": "World Ice Hockey Championship host Germany is demanding that Russia be excluded — will that happen? - DW.com",
+   "masked_title": "World Ice Hockey Championship host is demanding that a certain country be excluded — will that happen?",
+   "publisher": "DW.com",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Germany's government is discussing the exclusion of Russia from the World Ice Hockey Championship due to boycotts from other nations and sponsors.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://cepa.org/article/europes-sanctions-on-russia-riddled-with-loopholes/",
+   "title": "Europe’s Sanctions on Russia: Riddled With Loopholes - Center for European Policy Analysis (CEPA)",
+   "masked_title": "Europe’s Sanctions on a Major Power: Riddled With Loopholes",
+   "publisher": "Center for European Policy Analysis (CEPA)",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The EU added over 800 Russian companies and executives to its sanctions list, aimed at the military-industrial sector, while facing challenges in enforcing these sanctions uniformly across member states.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://kyivindependent.com/transparency-and-expertise-are-needed-to-defrost-russias-billions-for-ukraine-2/",
+   "title": "Transparency and expertise are needed to defrost Russia's billions for Ukraine - The Kyiv Independent",
+   "masked_title": "Transparency and expertise are needed to unlock billions for [the country]",
+   "publisher": "The Kyiv Independent",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The Russian central bank is suing Euroclear to access immobilized international reserves to help finance Ukraine's needs.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.aljazeera.com/features/2026/11/6/uk-jailing-of-indian-sailor-over-russia-sanctions-sets-off-perfect-storm",
+   "title": "UK jailing of Indian sailor over Russia sanctions sets off ‘perfect storm’ - Al Jazeera",
+   "masked_title": "UK jailing of foreign sailor over sanctions sets off ‘perfect storm’",
+   "publisher": "Al Jazeera",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The UK jailed Indian sailor Ajay Pant for allegedly violating sanctions against Russia by operating a tanker linked to Russia's shadow fleet.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://tvpworld.com/96347575/zelenskyy-russia-plans-new-strikes-against-key-targets-in-ukraine",
+   "title": "Russia plans new strikes on key Ukrainian infrastructure, says Zelenskyy - TVP World",
+   "masked_title": "Leader plans new strikes on key infrastructure, says official",
+   "publisher": "TVP World",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Ukrainian President Zelenskyy announced that intelligence indicates Russia is planning new strikes on key Ukrainian infrastructure, prompting calls for more missile supplies from allies.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://havanatimes.org/news/what-the-us-election-results-could-mean-for-ukraine-russia/",
+   "title": "What the US Election Results Could Mean for Ukraine & Russia - Havana Times",
+   "masked_title": "What the US Election Results Could Mean for a Major Power & a Neighbouring Country",
+   "publisher": "Havana Times",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The US midterm elections resulted in a Democratic majority in Congress, which is perceived as bad news for Moscow due to the Democrats' aggressive stance toward Russia.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://www.rferl.org/a/serbia-s-new-government-will-face-old-economic-dilemmas-as-deadlines-loom/33891691.html",
+   "title": "Serbia's New Government Will Face Old Economic Dilemmas With Russia And China - Radio Free Europe/Radio Liberty",
+   "masked_title": "New Government Will Face Old Economic Dilemmas With Major Powers",
+   "publisher": "Radio Free Europe/Radio Liberty",
+   "published": "2026-11-05",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Serbia's new government faces economic dilemmas due to its ties with Russia and China, particularly regarding sanctions on its oil industry and access to EU funding.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://www.militarytimes.com/industry/techwatch/2026/11/06/russia-using-own-version-of-starlink-for-military-comms-over-ukraine-kyiv-says/",
+   "title": "Russia using own version of Starlink for military comms over Ukraine, Kyiv says - Military Times",
+   "masked_title": "New satellite network used for military communications, officials say",
+   "publisher": "Military Times",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Ukraine's military intelligence reports that Russia is using its Rassvet satellite network for military communications over Ukraine.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://www.aljazeera.com/video/newsfeed/2026/11/7/7-11-sv-latvia-farmers-protest-russian-grain-transit",
+   "title": "Latvian farmers protest over ‘blood grain’ trade with Russia - Al Jazeera",
+   "masked_title": "Farmers protest over ‘blood grain’ trade with a neighbouring country",
+   "publisher": "Al Jazeera",
+   "published": "2026-11-07",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Latvian farmers are protesting against the transit of Russian grain, claiming it funds Moscow's war in Ukraine.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://meduza.io/en/feature/2026/11/06/russia-s-economy-is-suffering-under-the-weight-of-war-and-sanctions-so-why-is-the-ruble-still-one-of-the-world-s-strongest-currencies",
+   "title": "Russia’s economy is suffering under the weight of war and sanctions. So why is the ruble still one of the world’s strongest currencies? - Meduza",
+   "masked_title": "The economy is suffering under the weight of war and sanctions. So why is the national currency still one of the world’s strongest currencies?",
+   "publisher": "Meduza",
+   "published": "2026-11-06",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russia's economy is suffering due to war and sanctions, yet the ruble remains one of the world's strongest currencies despite a significant budget deficit and damage from Ukrainian strikes.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://mainichi.jp/english/articles/20261106/p2g/00m/0in/041000c",
+   "title": "Russia says detained Japanese journalist's fate hinges on probe - 毎日新聞",
+   "masked_title": "Country says detained Japanese journalist's fate hinges on probe",
+   "publisher": "毎日新聞",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Russia's Foreign Ministry stated that the fate of a detained Japanese journalist depends on an ongoing investigation, amidst deteriorating Japan-Russia relations and Japan's demand for the journalist's release.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://www.tasnimnews.ir/en/news/2026/11/06/3741461/source-rezaei-presented-no-new-initiative-during-russia-visit",
+   "title": "Source: Rezaei Presented No New Initiative During Russia Visit - تسنیم",
+   "masked_title": "Official Presented No New Initiative During Visit",
+   "publisher": "تسنیم",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "An Iranian source claims that Mohsen Rezaei's meeting with Putin in Moscow did not result in any new political initiative regarding the war, emphasizing Iran's seven conditions for negotiations with the US.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.atlanticcouncil.org/blogs/ukrainealert/putin-suffers-balkan-setbacks-as-russia-struggles-to-retain-influence/",
+   "title": "Putin suffers Balkan setbacks as Russia struggles to retain influence - Atlantic Council",
+   "masked_title": "Major power suffers Balkan setbacks as it struggles to retain influence",
+   "publisher": "Atlantic Council",
+   "published": "2026-11-05",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Serbian protest movement won an election against pro-Russian President Vucic, marking a setback for Putin's influence in the Balkans, while Romania's parliament formed a new pro-EU government after shooting down Russian drones.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 2
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 7
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 6,
+    "resolved": 6
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 0
+   }
+  },
+  "dropped": [
+   {
+    "code": "OECD.PISA.MEAN",
+    "ledger": "edge",
+    "source": "OECD PISA",
+    "label": "PISA mean score (maths/reading/science)",
+    "reason": "no row"
+   }
+  ],
+  "as_of_schemes": {
+   "first-seen": 9,
+   "publication-lag-estimate": 6,
+   "source-published": 1
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 45,
+  "stories": 38,
+  "multi": 4,
+  "dropped": 7,
+  "same_story_as": {
+   "https://www.cnn.com/2026/11/08/europe/ukraine-russia-attacks-energy-infrastructure-economy-intl": "https://unn.ua/en/news/russia-is-intensifying-attacks-on-ukraines-economy-ahead-of-the-talks-what-tactics-has-the-kremlin-chosen",
+   "https://understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-november-4-2026/": "https://understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-november-6-2026/",
+   "https://understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-november-3-2026/": "https://understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-november-6-2026/",
+   "https://www3.nhk.or.jp/nhkworld/news/20261016de60769/": "https://mainichi.jp/english/articles/20261106/p2g/00m/0in/041000c",
+   "https://apnews.com/article/japan-russia-arrest-spying-journalist-protest-5b4ae97e83d638c191d8b32c3e119713": "https://mainichi.jp/english/articles/20261106/p2g/00m/0in/041000c",
+   "https://www.theguardian.com/world/2026/oct/14/russia-detains-japanese-journalist-suspicion-spying": "https://mainichi.jp/english/articles/20261106/p2g/00m/0in/041000c",
+   "https://timesofindia.indiatimes.com/business/international-business/russias-oil-and-gas-tax-revenue-rises-9-3-in-october-amid-iran-war-driven-price-surge/articleshow/135569889.cms": "https://www.energyintel.com/000001a1-abf5-df2f-a3bd-ffff07bb0000"
+  },
+  "post_selection": []
+ },
+ "selection": {
+  "passes": 1,
+  "story_checks": 1,
+  "final_story_check_clean": true,
+  "t5_selected": 2,
+  "title_only_dropped": 7,
+  "title_only_dropped_articles": [
+   {
+    "url": "https://www.bloomberg.com/news/articles/2026-11-08/hacked-records-show-400-000-russians-killed-in-war-on-ukraine",
+    "title": "Hacked Records Show 400,000 Russians Killed in War on Ukraine - Bloomberg",
+    "pass": 1
+   },
+   {
+    "url": "https://apnews.com/article/russia-putin-trump-midterms-ukraine-war-8f0cee7ab3dea277232b00a87648eaca",
+    "title": "The Kremlin hopes the US election shake-up won’t shift Trump’s negotiations on Ukraine - AP News",
+    "pass": 1
+   },
+   {
+    "url": "https://www.forbes.com/sites/marktemnycky/2026/11/07/how-russias-war-veterans-are-entering-civilian-life-and-politics/",
+    "title": "How Russia’s War Veterans Are Entering Civilian Life And Politics - Forbes",
+    "pass": 1
+   },
+   {
+    "url": "https://www.reuters.com/world/europe/russian-aide-military-intelligence-chief-attend-talks-with-us-ukraine-kremlin-2026-11-07/",
+    "title": "Russian diplomats and military officials to join talks with US and Ukraine, Kremlin says - Reuters",
+    "pass": 1
+   },
+   {
+    "url": "https://understandingwar.org/research/russia-ukraine/russian-offensive-campaign-assessment-november-6-2026/",
+    "title": "Russian Offensive Campaign Assessment, November 6, 2026 - Institute for the Study of War",
+    "pass": 1
+   },
+   {
+    "url": "https://www.bloomberg.com/news/articles/2026-11-06/japan-protests-russia-s-seizure-of-japan-tobacco-assets",
+    "title": "Japan Protests Russia’s Seizure of Japan Tobacco Assets - Bloomberg.com",
+    "pass": 1
+   },
+   {
+    "url": "https://www.daily-sun.com/diplomacy/907919/bangladesh-russia-sign-pact-to-boost-trade-and-investment",
+    "title": "Bangladesh, Russia sign pact to boost trade and investment - Daily Sun",
+    "pass": 1
+   }
+  ],
+  "post_selection_same_story": 0,
+  "blocked_after_selection": 0,
+  "refill_digests": 7,
+  "shortfall": 0,
+  "selected": 20
+ },
+ "mask": {
+  "hits": 37,
+  "regenerated": 15,
+  "replaced_by_code": 29,
+  "fallback_digests": 0,
+  "fallback_texts": 0,
+  "publisher_mentions": 2,
+  "digests_generated": 20,
+  "digests_cached": 0,
+  "rewrites_generated": 3,
+  "rewrites_cached": 0,
+  "payload_leaks": []
+ },
+ "mask_terms": [
+  {
+   "where": "digest:https://247wallst.com/investing/cryptocurrency/2026/11/08/russia-is-opening-bitcoin-and-ethereum-to-retail-investors-this-month-can-a-300000-ruble-cap-move-the-btc-and-eth-price/",
+   "term": "Sberbank",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://247wallst.com/investing/cryptocurrency/2026/11/08/russia-is-opening-bitcoin-and-ethereum-to-retail-investors-this-month-can-a-300000-ruble-cap-move-the-btc-and-eth-price/",
+   "term": "Moscow",
+   "kind": "capital"
+  },
+  {
+   "where": "digest:https://247wallst.com/investing/cryptocurrency/2026/11/08/russia-is-opening-bitcoin-and-ethereum-to-retail-investors-this-month-can-a-300000-ruble-cap-move-the-btc-and-eth-price/",
+   "term": "Moscow",
+   "kind": "city"
+  },
+  {
+   "where": "digest:https://www.theguardian.com/world/2026/nov/04/small-norwegian-news-outlet-russia-wanted-list-barents-observer",
+   "term": "Russia",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.theguardian.com/world/2026/nov/04/small-norwegian-news-outlet-russia-wanted-list-barents-observer",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://www.themoscowtimes.com/2026/11/08/russia-says-hit-power-substations-in-ukraine-and-3-ships-in-black-sea-a94203",
+   "term": "Ukrainian",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.themoscowtimes.com/2026/11/08/russia-says-hit-power-substations-in-ukraine-and-3-ships-in-black-sea-a94203",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://www.themoscowtimes.com/2026/11/08/russia-says-hit-power-substations-in-ukraine-and-3-ships-in-black-sea-a94203",
+   "term": "Ukraine",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.cbr.ru/eng/currency_base/daily/",
+   "term": "ruble",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://www.cbr.ru/eng/currency_base/daily/",
+   "term": "Hong Kong",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.cbr.ru/eng/currency_base/daily/",
+   "term": "New Zealand",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.cbr.ru/eng/currency_base/daily/",
+   "term": "Saudi",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.cbr.ru/eng/currency_base/daily/",
+   "term": "Singapore",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://unn.ua/en/news/russia-is-intensifying-attacks-on-ukraines-economy-ahead-of-the-talks-what-tactics-has-the-kremlin-chosen",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://unn.ua/en/news/russia-is-intensifying-attacks-on-ukraines-economy-ahead-of-the-talks-what-tactics-has-the-kremlin-chosen",
+   "term": "Ukrainian",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.dw.com/en/germany-hopes-to-host-world-ice-hockey-championship-without-russia/a-79879536",
+   "term": "Germany",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.dw.com/en/germany-hopes-to-host-world-ice-hockey-championship-without-russia/a-79879536",
+   "term": "Russia",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://cepa.org/article/europes-sanctions-on-russia-riddled-with-loopholes/",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://cepa.org/article/europes-sanctions-on-russia-riddled-with-loopholes/",
+   "term": "Hungary",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://cepa.org/article/europes-sanctions-on-russia-riddled-with-loopholes/",
+   "term": "France",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://kyivindependent.com/transparency-and-expertise-are-needed-to-defrost-russias-billions-for-ukraine-2/",
+   "term": "Ukraine",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://kyivindependent.com/transparency-and-expertise-are-needed-to-defrost-russias-billions-for-ukraine-2/",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://havanatimes.org/news/what-the-us-election-results-could-mean-for-ukraine-russia/",
+   "term": "Ukraine",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.rferl.org/a/serbia-s-new-government-will-face-old-economic-dilemmas-as-deadlines-loom/33891691.html",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://www.rferl.org/a/serbia-s-new-government-will-face-old-economic-dilemmas-as-deadlines-loom/33891691.html",
+   "term": "Russia",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.rferl.org/a/serbia-s-new-government-will-face-old-economic-dilemmas-as-deadlines-loom/33891691.html",
+   "term": "China",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.militarytimes.com/industry/techwatch/2026/11/06/russia-using-own-version-of-starlink-for-military-comms-over-ukraine-kyiv-says/",
+   "term": "Ukraine",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.militarytimes.com/industry/techwatch/2026/11/06/russia-using-own-version-of-starlink-for-military-comms-over-ukraine-kyiv-says/",
+   "term": "Russia",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.militarytimes.com/industry/techwatch/2026/11/06/russia-using-own-version-of-starlink-for-military-comms-over-ukraine-kyiv-says/",
+   "term": "Kyiv",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://meduza.io/en/feature/2026/11/06/russia-s-economy-is-suffering-under-the-weight-of-war-and-sanctions-so-why-is-the-ruble-still-one-of-the-world-s-strongest-currencies",
+   "term": "rubles",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://mainichi.jp/english/articles/20261106/p2g/00m/0in/041000c",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://www.tasnimnews.ir/en/news/2026/11/06/3741461/source-rezaei-presented-no-new-initiative-during-russia-visit",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://www.atlanticcouncil.org/blogs/ukrainealert/putin-suffers-balkan-setbacks-as-russia-struggles-to-retain-influence/",
+   "term": "Russian",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://www.atlanticcouncil.org/blogs/ukrainealert/putin-suffers-balkan-setbacks-as-russia-struggles-to-retain-influence/",
+   "term": "Russia",
+   "kind": "name"
+  },
+  {
+   "where": "rewrite:https://www.latintimes.com/russian-strikes-kyiv-energy-infrastructure-dnipro-bridge-601033",
+   "term": "United States",
+   "kind": "other_country"
+  },
+  {
+   "where": "rewrite:https://www.theguardian.com/world/2026/nov/04/small-norwegian-news-outlet-russia-wanted-list-barents-observer",
+   "term": "Australia",
+   "kind": "other_country"
+  },
+  {
+   "where": "rewrite:https://www.theguardian.com/world/2026/nov/04/small-norwegian-news-outlet-russia-wanted-list-barents-observer",
+   "term": "France",
+   "kind": "other_country"
+  }
+ ],
+ "data": {
+  "indicators": {
+   "FP.CPI.TOTL.ZG": {
+    "code": "FP.CPI.TOTL.ZG",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 8.7199,
+    "scaled_input": 6.7199,
+    "score": 23.83,
+    "clamped": false
+   },
+   "GC.XPN.INTP.RV.ZS": {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "period": 2020,
+    "value": 2.3613,
+    "scaled_input": 2.3613,
+    "score": 1.29,
+    "clamped": false
+   },
+   "GOV_WGI_RQ.EST": {
+    "code": "GOV_WGI_RQ.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": -1.1954,
+    "scaled_input": -1.1954,
+    "score": 79.89,
+    "clamped": false
+   },
+   "GOV_WGI_CC.EST": {
+    "code": "GOV_WGI_CC.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": -0.983,
+    "scaled_input": -0.983,
+    "score": 74.58,
+    "clamped": false
+   },
+   "GOV_WGI_PV.EST": {
+    "code": "GOV_WGI_PV.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": -0.9033,
+    "scaled_input": -0.9033,
+    "score": 60.08,
+    "clamped": false
+   },
+   "GOV_WGI_RL.EST": {
+    "code": "GOV_WGI_RL.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": -1.1565,
+    "scaled_input": -1.1565,
+    "score": 78.91,
+    "clamped": false
+   },
+   "GOV_WGI_GE.EST": {
+    "code": "GOV_WGI_GE.EST",
+    "ledger": "order",
+    "period": 2025,
+    "value": -0.5007,
+    "scaled_input": -0.5007,
+    "score": 62.52,
+    "clamped": false
+   },
+   "IQ.SPI.OVRL": {
+    "code": "IQ.SPI.OVRL",
+    "ledger": "information",
+    "period": 2024,
+    "value": 81.5008,
+    "scaled_input": 81.5008,
+    "score": 17.0,
+    "clamped": false
+   },
+   "RSF.PRESS.SCORE": {
+    "code": "RSF.PRESS.SCORE",
+    "ledger": "information",
+    "period": 2025,
+    "value": 23.15,
+    "scaled_input": 23.15,
+    "score": 100.0,
+    "clamped": true
+   },
+   "GOV_WGI_VA.EST": {
+    "code": "GOV_WGI_VA.EST",
+    "ledger": "information",
+    "period": 2025,
+    "value": -1.4402,
+    "scaled_input": -1.4402,
+    "score": 84.01,
+    "clamped": false
+   },
+   "BX.KLT.DINV.WD.GD.ZS": {
+    "code": "BX.KLT.DINV.WD.GD.ZS",
+    "ledger": "edge",
+    "period": 2025,
+    "value": 0.8953,
+    "scaled_input": 0.8953,
+    "score": 82.09,
+    "clamped": false
+   },
+   "SE.XPD.TOTL.GD.ZS": {
+    "code": "SE.XPD.TOTL.GD.ZS",
+    "ledger": "edge",
+    "period": 2023,
+    "value": 4.1645,
+    "scaled_input": 4.1645,
+    "score": 45.89,
+    "clamped": false
+   }
+  },
+  "data_scores": {
+   "friction": 44.9,
+   "order": 67.17,
+   "information": 67.0,
+   "edge": 63.99
+  },
+  "n_by_ledger": {
+   "friction": 4,
+   "order": 3,
+   "information": 3,
+   "edge": 2
+  },
+  "unscored": [
+   "SI.POV.GINI",
+   "OWID.VDEM.CORRUPTION",
+   "SL.UEM.TOTL.ZS",
+   "NY.GDP.PCAP.KD.ZG"
+  ]
+ },
+ "check": {
+  "old": {
+   "multi_article_stories": 1,
+   "same_story_dropped_if_checked": 1,
+   "title_only_sent": 7,
+   "t5_sent": 2,
+   "articles_sent": 20,
+   "story_method": "llm"
+  },
+  "new": {
+   "multi_article_stories": 0,
+   "title_only_sent": 0,
+   "t5_sent": 2,
+   "articles_sent": 20,
+   "shortfall": 0,
+   "refill_digests": 7,
+   "passes": 1,
+   "story_checks": 1,
+   "post_selection_same_story": 0,
+   "title_only_dropped": 7,
+   "blocked_after_selection": 0,
+   "final_story_check_clean": true,
+   "confirmation_check_method": "llm"
+  },
+  "mask": {
+   "hits": 37,
+   "regenerated": 15,
+   "replaced_by_code": 29,
+   "fallback_digests": 0,
+   "fallback_texts": 0,
+   "publisher_mentions": 2,
+   "digests_generated": 20,
+   "digests_cached": 0,
+   "rewrites_generated": 3,
+   "rewrites_cached": 0,
+   "payload_leaks": []
+  },
+  "eligible": 45,
+  "candidates": 50
+ },
+ "payload": {
+  "country": {
+   "iso2": "RU",
+   "name": "Russia"
+  },
+  "as_of": "2026-11-08",
+  "window": "articles published in the 30 days before as_of",
+  "structural_facts": {
+   "classification_source": "World Bank country classification",
+   "income_group": "High income",
+   "name": "Russia",
+   "regime": "own currency, floating",
+   "region": "Europe & Central Asia",
+   "sovereignty": "full",
+   "tier": "Special"
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 3,
+    "order": 5,
+    "security": 6,
+    "information": 3,
+    "edge": 0,
+    "broad": 4
+   },
+   "selected_per_ledger": {
+    "friction": 9,
+    "order": 10,
+    "information": 1,
+    "edge": 0
+   },
+   "candidates_fetched": 51,
+   "passed_the_gate": 45,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "24/7 Wall St.",
+    "published": "2026-11-08",
+    "title": "Russia Is Opening Bitcoin and Ethereum to Retail Investors This Month. Can a 300,000-Ruble Cap Move the BTC and ETH Price? - 24/7 Wall St.",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Russia's central bank has opened the crypto market to retail investors, allowing them to buy Bitcoin, Ethereum, and Tether starting November 17, with a cap of 300,000 rubles per intermediary per year. However, the actual impact on cryptocurrency prices is uncertain due to various factors, including sanctions and broker limitations.",
+     "institutions": [
+      "Bank of Russia",
+      "Sberbank",
+      "Moscow Exchange"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "300,000 rubles cap per intermediary",
+      "$3,662 at the November 8 exchange rate",
+      "Bitcoin trades at $75,662",
+      "Ethereum at $2,226",
+      "Coinbase's third-quarter revenue of $1.22 billion",
+      "US spot Bitcoin ETFs saw $1.28 billion in net outflows"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "Latin Times",
+    "published": "2026-11-08",
+    "title": "Kyiv faces power, heat and water outages after Russia launches 36 missiles and 172 drones - Latin Times",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Russian forces launched a significant attack on Kyiv and surrounding regions on November 7, firing 36 ballistic missiles and 172 drones, resulting in severe damage to energy infrastructure and leaving the city without power, heat, or water. The assault occurred just days before U.S.-brokered peace talks, which President Zelenskyy described as an act of intimidation.",
+     "institutions": [
+      "Ministry of Energy"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "36 ballistic missiles launched",
+      "172 drones launched",
+      "2 dead",
+      "700 ballistic missiles stockpile as of October 2026",
+      "65 Iskander-M units per month"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "The Guardian",
+    "published": "2026-11-04",
+    "title": "‘We are a threat to Putin’: the small Norwegian news outlet with half its staff on Russia’s wanted list - The Guardian",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "information"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The Barents Observer, a small news outlet critical of the Russian government, was unexpectedly recognized in an article by Rossiyskaya Gazeta, which listed it among leading global media following Russia's missile test. Despite being labeled an 'undesirable organization' by Russian authorities, the Barents Observer continues to operate from Norway, where it has become a refuge for exiled Russian journalists facing persecution. The situation for press freedom in Russia is deteriorating, as evidenced by the closure of Novaya Gazeta and the sentencing of its journalists.",
+     "institutions": [
+      "Rossiyskaya Gazeta",
+      "Norwegian government",
+      "Russian prosecutor general's office"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "six years in penal colony for Olesia Krivtsova",
+      "eight years in prison for Farida Kurbangaleeva"
+     ]
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "Business Insider Africa",
+    "published": "2026-11-08",
+    "title": "Russia pitches Africa a new cross-border payment system as Moscow expands trade ties. - Business Insider Africa",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russian fintech firm A7 has launched a platform for faster international payments and currency conversions, targeting African businesses trading with Russia, China, and India. The platform was presented at the Russia–Africa Summit, where it was highlighted for its low transaction fees and ability to facilitate payments despite Western sanctions.",
+     "institutions": [
+      "A7",
+      "US Treasury",
+      "PSB Bank"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "trade $27 billion in 2025",
+      "10 trillion rubles (about $110 billion) in cross-border payments in 2025",
+      "50% increase in trade since 2023",
+      "0.3% transaction fee"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "The Moscow Times",
+    "published": "2026-11-08",
+    "title": "Russia Says Hit Power Substations in Ukraine and 3 Ships in Black Sea - The Moscow Times",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russia reported that its forces conducted overnight strikes on three cargo vessels carrying military goods for Ukraine and two electricity substations supplying power to the Ukrainian defense industry. The strikes included a container ship in Odesa and another in Chornomorsk, as well as power substations in Dnipropetrovsk and Zhytomyr regions, leaving over 600,000 people without electricity.",
+     "institutions": [
+      "Russian Defense Ministry",
+      "Ukrainian power company DTEK"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "more than 600,000 people without electricity",
+      "two power substations in Dnipropetrovsk and Zhytomyr regions"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "Центральный Банк России",
+    "published": "2026-11-08",
+    "title": "Official exchange rates on selected date | Bank of Russia - Центральный Банк России",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Central Bank of the Russian Federation has set new exchange rates for various foreign currencies against the ruble effective from November 7, 2026.",
+     "institutions": [
+      "Central Bank of the Russian Federation"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "AUD 56.6756",
+      "AZN 48.3168",
+      "DZD 60.3482",
+      "AMD 22.7947",
+      "THB 24.5168",
+      "BHD 218.4065",
+      "BYN 27.4518",
+      "BOB 69.0821",
+      "BRL 15.0387",
+      "KRW 61.2061",
+      "HKD 10.4782",
+      "UAH 18.0750",
+      "DKK 12.3339",
+      "AED 22.3659",
+      "USD 82.1386",
+      "VND 32.0666",
+      "EUR 92.1924",
+      "EGP 15.2271",
+      "PLN 20.8892",
+      "JPY 52.0887",
+      "INR 87.2514",
+      "IRR 43.6455",
+      "CAD 58.7166",
+      "QAR 22.5655",
+      "CUP 34.2244",
+      "MMK 39.1136",
+      "GEL 31.6465",
+      "MDL 45.8363",
+      "NGN 60.9002",
+      "NZD 45.9648",
+      "TMT 23.4682",
+      "NOK 88.3363",
+      "OMR 213.6244",
+      "RON 17.1856",
+      "IDR 45.3955",
+      "ZAR 49.7689",
+      "SAR 21.9036",
+      "XDR 111.4095",
+      "RSD 78.2214",
+      "SGD 64.1608",
+      "KGS 93.9287",
+      "TJS 89.1967",
+      "BDT 65.9087",
+      "KZT 18.1775",
+      "MNT 22.8135",
+      "TRY 16.4264",
+      "UZS 68.6004",
+      "HUF 25.2145",
+      "GBP 110.6900",
+      "CZK 37.9463",
+      "SEK 83.9295",
+      "CHF 100.3526",
+      "ETB 51.0185",
+      "CNY 12.2651"
+     ]
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "Українські Національні Новини (УНН)",
+    "published": "2026-11-08",
+    "title": "Russia is intensifying attacks on Ukraine’s economy ahead of the talks: what tactics has the Kremlin chosen? - Українські Національні Новини (УНН)",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russia is intensifying its missile and drone attacks on Ukraine's economy, particularly targeting energy infrastructure, industry, ports, and logistics ahead of peace talks. Experts warn that the situation could worsen significantly during the winter due to the cumulative effects of these attacks.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "3,650 Russian strikes in January",
+      "5,532 Russian strikes in October",
+      "more than 2,700 Ukrainian civilians killed by Russian strikes during 2026",
+      "60,000 consumers in Dnipro without power on November 7",
+      "more than 600,000 residents without electricity on November 8"
+     ]
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "DW.com",
+    "published": "2026-11-06",
+    "title": "World Ice Hockey Championship host Germany is demanding that Russia be excluded — will that happen? - DW.com",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Germany is facing challenges in hosting the Men's World Ice Championship due to the Court of Arbitration for Sport ruling that allows Russia to return to international play. Several countries and sponsors have indicated they will boycott tournaments involving Russia, making it \"practically impossible\" for Germany to host the championship as planned.",
+     "institutions": [
+      "German Ice Hockey Federation (DEB)",
+      "International Ice Hockey Federation (IIHF)",
+      "Court of Arbitration for Sport (CAS)",
+      "Germany's government",
+      "Foreign Ministry"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "Men's World Ice Championship in May",
+      "World Juniors opens in Canada in late December"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "Center for European Policy Analysis (CEPA)",
+    "published": "2026-11-06",
+    "title": "Europe’s Sanctions on Russia: Riddled With Loopholes - Center for European Policy Analysis (CEPA)",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The EU has added over 800 Russian companies and their executives to its sanctions list, targeting the production chain of ballistic missiles used against Ukraine. However, no new sector-wide trade bans on oil or gas were implemented, and existing sanctions are enforced unevenly among member states.",
+     "institutions": [
+      "European Union",
+      "Council",
+      "Commission"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "826 Russian companies",
+      "743 chief executives",
+      "€229m for Druzhba crude in September",
+      "€161m for pipeline gas in September",
+      "120 shadow tankers a year earlier",
+      "48 shadow tankers under false flags at the end of September"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "The Kyiv Independent",
+    "published": "2026-11-06",
+    "title": "Transparency and expertise are needed to defrost Russia's billions for Ukraine - The Kyiv Independent",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses the challenges and political obstacles in leveraging immobilized Russian assets to support Ukraine's financial needs, particularly in light of a significant financing gap projected for 2027. It emphasizes the need for transparency and expertise in the decision-making process to ensure effective use of these assets.",
+     "institutions": [
+      "Russian central bank",
+      "Euroclear financial group",
+      "European Council",
+      "European Commission"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "70 billion euros financing gap in 2027",
+      "78.6 billion dollars financing gap in 2027"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "Al Jazeera",
+    "published": "2026-11-06",
+    "title": "UK jailing of Indian sailor over Russia sanctions sets off ‘perfect storm’ - Al Jazeera",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Captain Ajay Pant was arrested by British forces while his ship, the MT Smyrtos, was in international waters, accused of violating UK sanctions against Russia. This case is unprecedented as it marks the first time a ship captain has been detained under such circumstances, raising concerns about the treatment of seafarers and the enforcement of sanctions.",
+     "institutions": [
+      "British armed forces",
+      "British Ministry of Defence",
+      "International Transport Workers’ Federation (ITF)",
+      "Human Rights At Sea",
+      "International Maritime Organization"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "up to 10 years in prison if convicted",
+      "at least 24 seafarers killed in the Strait of Hormuz",
+      "at least 40 sailors killed in the Black Sea",
+      "66 sailors killed in various conflicts this year",
+      "more than 120 commercial ships and tankers attacked in this period",
+      "137kg (302lb) of cocaine found on board a cargo ship"
+     ]
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "TVP World",
+    "published": "2026-11-06",
+    "title": "Russia plans new strikes on key Ukrainian infrastructure, says Zelenskyy - TVP World",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "President Zelenskyy stated that intelligence indicates Russian forces are planning new strikes against Ukraine, particularly targeting energy and civilian infrastructure. He has called for allies to expedite the delivery of missiles for the US-made Patriot system to enhance Ukraine's defense capabilities.",
+     "institutions": [
+      "US State Department"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "500 Patriot PAC-3 missiles",
+      "$2.1 billion",
+      "early 2030s"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "Havana Times",
+    "published": "2026-11-06",
+    "title": "What the US Election Results Could Mean for Ukraine & Russia - Havana Times",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Democrats gained control of Congress in the recent midterm elections, which may impact U.S. aid to Ukraine. Some Republicans who opposed aid to Ukraine were ousted, while Ukraine lost experienced allies in Congress. Ukrainian President Zelensky expressed hope for increased U.S. support under the new Democratic majority.",
+     "institutions": [
+      "Congress",
+      "House Foreign Affairs Committee"
+     ],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "Radio Free Europe/Radio Liberty",
+    "published": "2026-11-05",
+    "title": "Serbia's New Government Will Face Old Economic Dilemmas With Russia And China - Radio Free Europe/Radio Liberty",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Serbia's new parliamentary majority faces challenges due to its economic ties with Russia and China, particularly concerning the future of its Russian-owned oil industry and Chinese infrastructure projects. The expiration of a US sanctions waiver on the NIS Group, which operates Serbia's only oil refinery, is imminent, and the country is also seeking to unlock EU funding amidst stalled accession talks.",
+     "institutions": [
+      "NIS Group",
+      "Gazprom",
+      "Hungarian energy company MOL",
+      "European Commission"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "90 percent of Serbia’s gas needs covered by Russian imports",
+      "318 euros ($357) per 1,000 cubic liters for gas",
+      "6 billion euros available to candidate states in the Balkans over 2023-27",
+      "167.6 million euros released to Serbia so far"
+     ]
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "Military Times",
+    "published": "2026-11-06",
+    "title": "Russia using own version of Starlink for military comms over Ukraine, Kyiv says - Military Times",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russia is using its Rassvet satellite network for military communications over Ukraine, aiming to enhance the accuracy of its strike drones. The network currently consists of 32 satellites, which provide intermittent coverage of Ukrainian territory. Plans are in place for more launches to expand the network by the end of 2026.",
+     "institutions": [
+      "Main Intelligence Directorate of Ukraine’s Ministry of Defense (GUR)",
+      "Bureau 1440"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "32 Rassvet satellites launched",
+      "more than 10,000 satellites in the Starlink network",
+      "more than 900 satellites planned by Bureau 1440 by 2035"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "Al Jazeera",
+    "published": "2026-11-07",
+    "title": "Latvian farmers protest over ‘blood grain’ trade with Russia - Al Jazeera",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Latvian farmers are protesting against the transit of Russian grain, claiming it funds Moscow's war in Ukraine. They argue that Latvia cannot support Ukraine while continuing to facilitate trade with Russia.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "Meduza",
+    "published": "2026-11-06",
+    "title": "Russia’s economy is suffering under the weight of war and sanctions. So why is the ruble still one of the world’s strongest currencies? - Meduza",
+    "themes": [
+     "friction",
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Russia's economy is facing significant challenges due to war and sanctions, yet the ruble remains one of the strongest currencies globally. Despite a projected budget deficit and ongoing economic issues, the ruble has strengthened against the dollar and euro in recent months, influenced by factors such as tax payments and geopolitical negotiations.",
+     "institutions": [],
+     "direction": "mixed",
+     "numbers": [
+      "budget deficit roughly twice as large as expected",
+      "dollar fell below 80 rubles on October 29",
+      "official exchange rate for the U.S. dollar stood at 81.79 rubles on November 6",
+      "euro official exchange rate stood at 92.16 rubles on November 6",
+      "Alfa-Bank forecasts dollar will rise to 85-87 rubles by the end of 2026",
+      "Finance Ministry plans to buy 15.6 billion rubles worth of currency and gold per day starting December 4",
+      "ruble expected to weaken to 90-91 rubles per dollar over the next 12 months",
+      "Economic Development Ministry expects ruble to average 79.5 rubles in 2026, 87.4 in 2027, and 96 in 2029"
+     ]
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "毎日新聞",
+    "published": "2026-11-06",
+    "title": "Russia says detained Japanese journalist's fate hinges on probe - 毎日新聞",
+    "themes": [
+     "information"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A Japanese journalist detained in Russia on suspicion of spying will have their fate determined by the ongoing investigation, according to a Russian Foreign Ministry spokeswoman. The journalist, from the Hokkaido Shimbun newspaper, was detained on October 13 and is set to be held until December 12. Japanese Foreign Minister Toshimitsu Motegi has called for the journalist's immediate release during talks with his Russian counterpart.",
+     "institutions": [
+      "Russian Foreign Ministry",
+      "Federal Security Service",
+      "Hokkaido Shimbun",
+      "Japanese Foreign Ministry"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "detention period expires on Dec. 12",
+      "detained on Oct. 13"
+     ]
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "تسنیم",
+    "published": "2026-11-06",
+    "title": "Source: Rezaei Presented No New Initiative During Russia Visit - تسنیم",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Al Mayadeen reported that a high-ranking Iranian source claimed Western media outlets are inaccurately portraying Mohsen Rezaei's meeting with Putin, stating that reports of a new political initiative are fabricated. The source emphasized that the talks focused on ending the war and that Iran will not reopen the Strait of Hormuz until seven conditions are met, which must be implemented fully and simultaneously.",
+     "institutions": [
+      "Iranian officials",
+      "Parliament",
+      "Mohammad Baqer Qalibaf",
+      "Abbas Araqchi"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "seven conditions",
+      "lifting of sanctions",
+      "unfreezing of Iranian assets"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "Atlantic Council",
+    "published": "2026-11-05",
+    "title": "Putin suffers Balkan setbacks as Russia struggles to retain influence - Atlantic Council",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A student-led protest movement in Serbia achieved a significant election victory over President Aleksandar Vucic, marking a notable shift in the country's political landscape. This change is seen as a setback for Russian influence in the region, as Serbia has been a pro-Russian ally.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": []
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Russia Is Opening Bitcoin and Ethereum to Retail Investors This Month. Can a 300,000-Ruble Cap Move the BTC and ETH Price? - 24/7 Wall St.",
+    "publisher": "24/7 Wall St.",
+    "body_status": "full",
+    "chars_read": 5012,
+    "chars_original": 5012,
+    "text": "Russia Is Opening Bitcoin and Ethereum to Retail Investors This Month. Can a 300,000-Ruble Cap Move the BTC and ETH Price?\nRussia just handed ordinary citizens a legal path to Bitcoin and Ethereum, yet Coinbase and Strategy shrugged. Between sanctions, broker bottlenecks, and heavy ETF outflows in the US, one number may matter far less than headlines suggest.\nThis post may contain links from our sponsors and affiliates, and Flywheel Publishing may receive compensation for actions taken through them.\nRussia’s central bank opened the crypto market to retail investors. Under a new Bank of Russia regulation, investors who aren’t classified as professional buyers can start buying Bitcoin (CRYPTO:BTC), Ethereum (CRYPTO:ETH), and the Tether (CRYPTO:USDT) stablecoin from November 17. However, purchases through any one intermediary are capped at 300,000 rubles a year, roughly $3,662 at the November 8 exchange rate.\nUS-listed crypto stocks showed little reaction. Coinbase (NASDAQ:COIN | COIN Price Prediction) fell 1.5% to $134.76 on November 6, while Strategy Inc. (NASDAQ:MSTR) dipped 0.3% to $128.93. Bitcoin trades at $75,662 and Ethereum at $2,226 today. So can a cap this small move either coin’s price?\nRussia Set the Rules, but Brokers Decide How Much Money Flows In\nThe regulation has been officially released, naming the three cryptocurrencies eligible for purchase, the start date, and the cap for each intermediary. All buyers will also need to pass a knowledge test before investing. Qualified investors, on the other hand, face no purchase limits.\nWhile the rules are clear, how retail buyers will reach the market remains uncertain. In October, the Bank of Russia authorized Sberbank, the country’s largest bank, to provide crypto exchange services. On November 2, Moscow Exchange announced plans to start Bitcoin, Ethereum, and USDT trading on December 1, beginning with pilot trades. However, Russia hasn’t disclosed how many brokers it will license at launch, nor has it shared a demand forecast.\nSince the 300,000-ruble cap applies to each intermediary, a buyer with accounts at several brokers could buy more than the cap in a year. That makes the theoretical ceiling look large on paper. Even so, the knowledge test, a potentially long licensing process, and restrictions on moving coins to private wallets could significantly reduce actual demand.\nWhy Coinbase and Strategy Stock Showed Little Response\nCoinbase Can’t Serve Russian Buyers\nBecause of OFAC sanctions, Coinbase can’t serve Russian customers, so it won’t earn any direct revenue from the new regulation. Russian buying could only help Coinbase through higher crypto prices, which could in turn lift its trading and subscription income. Against Coinbase’s third-quarter revenue of $1.22 billion, any such increase would be minimal. Our Coinbase stock outlook looks at what moves the shares.\nStrategy’s Value Is Tied to Bitcoin, Not Russian Buyers\nStrategy holds about 848,517 BTC but has no retail customers. Executive Chairman Michael Saylor told analysts on February 5 that crypto is moving from an asset class few could buy to one where everyone is competing to offer access. Russia’s new rules support that view, but Strategy’s stock closely follows Bitcoin’s price. Given that the cap applies inside a sanctioned country, the rule is unlikely to meaningfully move Bitcoin’s market value.\nEarlier Access Milestones Didn’t Move Prices Much\nUS spot Bitcoin ETFs saw $1.28 billion in net outflows in the week to November 6. To offset that one week of outflows, about 350,000 Russian buyers would each need to buy the full annual cap.\nHistory points the same way. When El Salvador made Bitcoin legal tender on September 7, 2021, Bitcoin dropped that same day sharply. Similarly, the launch of Hong Kong’s spot Bitcoin and Ethereum ETFs in April 2024 didn’t lead to sustained price gains.\nRussia also plans to ban peer-to-peer crypto trading starting July 1, 2027. So some of the new regulated buying could come from existing Russian traders moving off informal channels ahead of that ban, rather than from new investors.\nWill the 300,000-Ruble Cap Move Bitcoin and Ethereum Prices?\nOn the current evidence, the 300,000-ruble cap seems unlikely to move Bitcoin’s price much, and Ethereum looks even less likely to benefit. Bitcoin trades below its 20-day average of $79,362 and has slipped below its 30-day low close of $75,775, suggesting selling by US fund holders is a far bigger factor than potential Russian buying.\nEthereum also trades below its 30-day low close of $2,236, and capped Russian buyers might prefer Bitcoin, the better-known coin. If Bitcoin fails to reclaim its $79,362 20-day average before Moscow Exchange’s December 1 launch, that would suggest the new rules had little effect on its price. For Ethereum, the key level is its $2,156 200-day average, about 3% below its price. Our look at Ethereum’s year-end outlook runs the longer numbers.\nContact [email protected] for any questions or corrections."
+   },
+   {
+    "id": "a2",
+    "title": "Kyiv faces power, heat and water outages after Russia launches 36 missiles and 172 drones - Latin Times",
+    "publisher": "Latin Times",
+    "body_status": "full",
+    "chars_read": 5499,
+    "chars_original": 5499,
+    "text": "The Briefing:\n- Russian forces launched 36 ballistic missiles and 172 drones at Kyiv and 12 other regions overnight on November 7 — only four missiles were intercepted, which President Zelenskyy blamed on critically depleted Patriot interceptor supplies.\n- Several missiles struck the Northern Bridge over the Dnipro River, forcing a full closure; transmission facilities carrying electricity from two nuclear plants were also knocked offline, leaving the capital without power, heat, or water.\n- The assault came three days before U.S.-brokered trilateral peace talks between Ukraine, Russia, and the United States scheduled for November 10–11 in Abu Dhabi — an act Zelenskyy described as deliberate intimidation ahead of negotiations.\nRussian forces launched a massive overnight assault on Kyiv and surrounding areas on November 7, targeting energy infrastructure and a key crossing over the Dnipro River as temperatures in the Ukrainian capital hovered near freezing. The strike left the city struggling with electricity, water, and heating outages just days before a new round of U.S.-mediated peace negotiations.\nThree Waves, Thirty-Six Missiles\nUkraine's Air Force reported that Russian forces deployed three successive waves of ballistic missiles alongside a large-scale drone barrage, striking Kyiv and 12 other regions simultaneously. All 36 ballistic missiles were directed at the capital and its surrounding area, President Volodymyr Zelenskyy said.\nOf those 36 projectiles, Ukrainian air defenses brought down only four — a failure rate Zelenskyy attributed directly to critically low Patriot interceptor reserves. Air defense units separately shot down 149 of the 172 drones deployed in the assault. Preliminary wreckage analysis at impact sites identified several of the missiles that penetrated Ukraine's defenses as North Korean-made KN-23 projectiles, a short-range ballistic weapon Pyongyang has been supplying to Moscow since late 2023.\nMayor Vitali Klitschko confirmed that several missiles struck and damaged the Northern Bridge — one of Kyiv's primary arteries over the Dnipro River — severing trolleybus connections, damaging road surfaces, and cutting power lines. The crossing was closed in both directions as engineers assessed the structural damage.\nEnergy Grid Crippled as Winter Sets In\nThe overnight strikes concentrated on energy facilities across at least three districts of the Kyiv region, with particular damage to the transmission infrastructure that channels electricity from two nuclear power plants into the capital and central Ukraine. The Ministry of Energy described the results as severe.\n\"The capital is facing serious difficulties with its electricity, water and heating supplies,\" Zelenskyy wrote on X, adding that substations in five other regions had also been knocked offline. With temperatures falling toward zero, municipal authorities warned residents to prepare for prolonged blackouts and disruptions to district heating networks. According to Ukraine's military intelligence directorate, Russia held a stockpile of up to 700 ballistic missiles as of October 2026, with domestic production running at roughly 65 Iskander-M units per month.\nAt Least Two Dead, Damage Across Multiple Cities\nAt least two people were killed and injuries were reported across Ukraine during the overnight strikes, according to Ukrainian authorities. Residential buildings, commercial properties, and non-residential structures sustained damage. In one Kyiv neighborhood, residents searched through rubble and helped unearth a vehicle buried beneath earth displaced by a nearby missile impact.\nA Calculated Message Three Days Before Abu Dhabi\nThe timing of the assault was widely read as a deliberate political statement. The attack landed just three days before a new round of trilateral negotiations in Abu Dhabi, where Ukrainian and Russian delegations — with the United States acting as mediator — are scheduled to meet on November 10–11, as part of a U.S.-backed peace push that has so far produced few concrete results.\nZelenskyy was unambiguous about Moscow's intent. \"Russia is preparing for trilateral talks by launching ballistic missiles at Ukraine's critical infrastructure,\" he said, framing the bombardment as calculated intimidation rather than a conventional military strike. Moscow's Defense Ministry offered a competing account, claiming its forces had struck targets within Ukraine's military-industrial sector alongside energy and transport infrastructure in and around the capital.\nUkraine Looks to a Newly Democratic Congress\nThe strikes also follow the November 3 U.S. midterm elections, in which Democrats swept to control of both chambers of Congress — a result that generated cautious optimism in Kyiv about the prospect of stronger legislative backing against Russia's campaign. Zelenskyy said Ukraine expected American lawmakers to sharpen their focus on the conflict given Russia's accelerating pace of attacks.\nRussia has significantly intensified its aerial campaign in recent months as its ground offensive across eastern Ukraine has largely stalled. Beyond targeting power grids, Moscow has in recent weeks systematically struck Kyiv's crossings over the Dnipro River, disrupting the daily movement of more than three million people and steadily dismantling the infrastructure on which urban life depends as the country heads into the depths of winter.\n© {{Year}} Latin Times. All rights reserved. Do not reproduce without permission."
+   },
+   {
+    "id": "a3",
+    "title": "‘We are a threat to Putin’: the small Norwegian news outlet with half its staff on Russia’s wanted list - The Guardian",
+    "publisher": "The Guardian",
+    "body_status": "full",
+    "chars_read": 6573,
+    "chars_original": 6573,
+    "text": "The official newspaper of the Russian government is an unlikely source of recognition for a European news outlet critical of Vladimir Putin and providing sanctuary to exiled Russian journalists. But in May, two days after Russia tested its new intercontinental ballistic missile system nicknamed “Satan II” by Nato, an article in Rossiyskaya Gazeta prompted celebrations in a remote newsroom in the Arctic.\nThe story about how “leading global media” reacted to the Sarmat missile test referred to just a handful of outlets including the BBC, Reuters, the Associated Press and France 24. But among them was the Barents Observer, a small, journalist-owned online newspaper publishing in English and Russian about northern Russia and the Euro-Arctic region from a modest office in the north-eastern Norwegian town of Kirkenes.\nIt was especially surprising given that the publication had been declared an “undesirable organisation” by the office of Russia’s prosecutor general, and half of its staff journalists are on Russia’s wanted list.\nIts editor, Thomas Nilsen, said: “We were listed among what the Russian government newspaper itself called ‘leading global media’. That was a very good day at the Barents Observer, because it means we had reached into the inner circle of the Kremlin.”\nLast week the Norwegian prime minister, Jonas Gahr Støre, and the Finnish president, Alexander Stubb, held a call with Putin, marking a rare moment of contact between the Russian president and European leaders. Afterwards, Støre said there were “big differences in views” with Putin.\nThis certainly applies when it comes to press freedom. A few days later, the Nobel prize-winning independent Russian newspaper Novaya Gazeta was forced to close, citing intolerable pressure from authorities.\nA short drive from the Norway-Russia border and the only remaining legal land border crossing from Russia into the European Schengen free travel area, Kirkenes is a place where rising tensions with Moscow are felt acutely. But since the full-scale invasion of Ukraine the town has also become a refuge for Russians who have found themselves targeted by Putin’s regime – some of whom are journalists who have been hired by the Barents Observer.\nRecently, the journalist Denis Zagore, originally from the Russian city of Murmansk, appeared in the Russian interior ministry’s database, accused of involvement with an “undesirable” organisation and failing to comply with the legal requirements for “foreign agents”. Officials in Murmansk have filed a motion to detain Zagore in absentia.\nHe is the third Barents Observer journalist living in exile in Kirkenes to be added to Russia’s wanted list. Despite this, like the rest of his colleagues he remains determined to continue his work unaffected.\n“I can’t say this came as a surprise, given that the actions of the Russian state are quite predictable and the initiation of criminal cases was only a matter of time,” he said in an interview. “I don’t intend to change anything in my life because of this. Besides, they could have found me without declaring me wanted.”\nZagore’s entry on to the Russian list of targets came after his colleague Olesia Krivtsova was sentenced in absentia in July to six years in a penal colony on charges of “justifying terrorism” and “discrediting” the Russian army.\nLast year, the paper’s news editor, Farida Kurbangaleeva, was sentenced in absentia to eight years in prison for “spreading false information” about the Russian army and “justifying terrorism”. She had previously been labelled a “foreign agent” and an unsuccessful extradition request was made to the Czech Republic where she was living at the time.\nAnother Barents Observer journalist, Georgii Chentemirov, has also been added to the “foreign agents” registry, criminally charged and fined.\nIn the newspaper’s office, staff try to make light of the threats and intimidation by making a “wanted” wall with pictures from their Russian wanted listings. While they have been living and working with pressure from across the border for years, Nilsen said there had been a “dramatic escalation” in the last few months.\n“We are living very close to the border, so we probably saw things earlier than the rest of Europe,” he said. But as a journalist, what concerns him most is the way the Russian president is trying to assert Russian media control beyond his own borders by targeting publications and exiled journalists in Europe.\nOften when people are targeted by Russian authorities, he said, they remove their names from public view and stop criticising the war in Ukraine on social media.\nAt the Barents Observer, they try to react by doing the opposite. “We maintain that Putin is not a threat to us, we are a threat to him. Free and independent journalism is a threat to any dictatorship,” Nilsen said.\nSince being labelled a criminal organisation, making it a crime for people in Russia to speak with its journalists, the newspaper has had to work even harder to get around the restrictions on its reporting. Its journalists do so using open sources, talking to people who are crossing the border, using satellite images, monitoring flight and shipping radars and speaking to exiled Russians. “I don’t want to say that this is easy. It’s getting harder and harder every day. But still possible,” Nilsen said.\nBut they now face legal action in the high court in London from the Russian billionaire Vitaly Orlov, which they fear could bankrupt the newspaper. The complaint centres on five news stories published between 2025 and 2026 about Norebo, a fishing company that Orlov co-founded and of which he is the majority owner.\nKrivtsova, 23, was a 19-year-old student when she escaped house arrest in Arkhangelsk, Russia, by cutting off her electronic ankle bracelet and fleeing via Belarus to Lithuania. A criminal case was opened against her after she reposted a message online about an explosion on the Crimean Bridge and was openly critical of the war.\nWhen she first spoke to the Guardian at the newspaper’s office in Kirkenes in 2023, she had recently been hired as a journalist there. She arrived suffering from post-traumatic stress disorder. “I was really afraid to be detained, captured, somehow sent to Russia,” she said.\nNow, despite her recent sentencing, she speaks with cool pragmatism. “It doesn’t matter actually for Russian special services where you are. It doesn’t matter if you are in Kirkenes, Australia or somewhere else,” she said. “If they want to kill you, if they want to poison you or capture you, they will find you.”"
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.575,
+    "indicator_resolution": 0.9167,
+    "freshness": 0.8125
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

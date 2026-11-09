@@ -1,0 +1,1462 @@
+{
+ "iso2": "TW",
+ "country": "Taiwan",
+ "mode": "masked",
+ "run_date": "2026-11-08",
+ "payload_fingerprint": "8b350c3f7d0ffcb9e6daf11bc11470afb38aaf1e39462f85877faf8ca94fb908",
+ "payload_sha256": "2f3721ed4b01213a029ec8b4b5fb701e7a97889de59f878e075a7fc2bc78dc32",
+ "payload_tokens": 7585,
+ "versions": {
+  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "scoring_model": "gpt-4o-2024-08-06",
+  "digest_model": "gpt-4o-mini-2024-07-18",
+  "gate_model": "gpt-4o-mini-2024-07-18",
+  "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+  "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+  "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+  "seed": 42,
+  "gate_input_mode": "body",
+  "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+  "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+  "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
+  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
+  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "scorer_input": "masked",
+  "schema_violations": 0,
+  "payload_tokens": 7585
+ },
+ "article_ids": [
+  "a1",
+  "a2",
+  "a3",
+  "a4",
+  "a5",
+  "a6",
+  "a7",
+  "a8",
+  "a9",
+  "a10",
+  "a11",
+  "a12",
+  "a13",
+  "a14",
+  "a15",
+  "a16",
+  "a17",
+  "a18",
+  "a19",
+  "a20"
+ ],
+ "articles_meta": [
+  {
+   "id": "a1",
+   "url": "https://simplywall.st/stocks/tw/food-beverage-tobacco/twse-1216/uni-president-enterprises-shares/news/uni-president-stock-and-taiwan-staples-that-could-hold-up-to",
+   "title": "Uni President Stock And Taiwan Staples That Could Hold Up To Inflation - Simply Wall St",
+   "masked_title": "Uni President Stock And Local Staples That Could Hold Up To Inflation - Simply Wall St",
+   "publisher": "Simply Wall St",
+   "published": "2026-11-08",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "The article discusses the impact of inflation on Taiwanese food and grocery retail stocks, particularly focusing on Uni-President Enterprises and its pricing power amidst rising costs.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a2",
+   "url": "https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "title": "Japan-China tensions persist a year after Taiwan remarks - upi",
+   "masked_title": "Tensions persist a year after remarks on regional conflict",
+   "publisher": "upi",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Japanese Prime Minister Sanae Takaichi's remarks about Japan's potential military response to a Chinese blockade of Taiwan have led to ongoing diplomatic tensions with China.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a3",
+   "url": "https://www.ledgerinsights.com/taiwan-thailand-and-nigeria-progress-stablecoin-regulation/",
+   "title": "Taiwan, Thailand and Nigeria progress stablecoin regulation - Ledger Insights",
+   "masked_title": "A country, a country and a country progress stablecoin regulation",
+   "publisher": "Ledger Insights",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Taiwan published draft regulations on stablecoins as part of its regulatory framework.",
+   "body_quality": "partial",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a4",
+   "url": "https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
+   "title": "US cites China in PNG closure of Taiwan site - Taipei Times",
+   "masked_title": "US cites pressure in PNG closure of [the country] site",
+   "publisher": "Taipei Times",
+   "published": "2026-11-08",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The US government expressed concern over the closure of Taiwan's representative office in Papua New Guinea due to pressure from the PNG government, citing it as an example of Beijing's intimidation of Taiwan.",
+   "body_quality": "full",
+   "body_status": "full"
+  },
+  {
+   "id": "a5",
+   "url": "https://www.bloomberg.com/news/articles/2026-11-05/micron-pauses-work-on-4-5-billion-taiwan-plant-after-labor-spat",
+   "title": "Micron Pauses Work on $4.5 Billion Taiwan Plant After Labor Spat - Bloomberg",
+   "masked_title": "Micron Pauses Work on $4.5 Billion Plant After Labor Dispute",
+   "publisher": "Bloomberg",
+   "published": "2026-11-05",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Micron Technology Inc. has suspended plans for a memory chip plant in Taiwan due to a labor dispute, affecting its production base for AI components.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a6",
+   "url": "https://www.scmp.com/opinion/china-opinion/article/3373516/taiwan-doth-complain-too-much-about-beijing",
+   "title": "My Take | Taiwan doth complain too much about Beijing - South China Morning Post",
+   "masked_title": "My Take | The region doth complain too much about a major power",
+   "publisher": "South China Morning Post",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's foreign minister Lin Chia-lung stated that Taiwan will protest against Beijing for breaching diplomatic protocol regarding its invitation to the Apec leaders' summit.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
+   "url": "https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
+   "title": "Democrats Take Congress, Eye Reversal of Trump Tariffs; Taiwan's Economy Minister Says Two-Thirds Threshold Hard to Clear - BigGo Finance",
+   "masked_title": "Democrats Take Congress, Eye Reversal of Previous Tariffs; Economic Minister Says Two-Thirds Threshold Hard to Clear",
+   "publisher": "BigGo Finance",
+   "published": "2026-11-05",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Economy Minister Kung Ming-hsin discussed the implications of the US midterm elections on tariff policies affecting Taiwan's economy.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a8",
+   "url": "https://focustaiwan.tw/society/202611080009",
+   "title": "2026 ELECTIONS Election-related fraud causes NT$20.15 million in losses: CIB - Focus Taiwan",
+   "masked_title": "2026 ELECTIONS Election-related fraud causes local currency 20.15 million in losses: CIB",
+   "publisher": "Focus Taiwan",
+   "published": "2026-11-08",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Criminal Investigation Bureau reported NT$20.15 million in financial losses due to election-related fraud cases over the past two months.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
+   "url": "https://abcnews.com/International/wireStory/taiwan-detains-communist-party-leader-alleged-chinese-sponsorship-137951046",
+   "title": "Taiwan detains a Communist Party leader over alleged Chinese sponsorship in election - ABC News - Breaking News, Latest News and Videos",
+   "masked_title": "Authorities detain Communist Party leader over alleged foreign sponsorship in election",
+   "publisher": "ABC News - Breaking News, Latest News and Videos",
+   "published": "2026-11-08",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan authorities detained the leader of the Taiwan People’s Communist Party over allegations of running under the direction and sponsorship of China's Communist Party in the upcoming local elections.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a10",
+   "url": "https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
+   "title": "Taiwan detects 4 Chinese military aircraft, 8 ships around island in 24 hours - The Times of India",
+   "masked_title": "Island detects 4 military aircraft, 8 ships around territory in 24 hours",
+   "publisher": "The Times of India",
+   "published": "2026-11-08",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Ministry of National Defence reported detecting four Chinese military aircraft and eight ships around the island, with two aircraft crossing the median line of the Taiwan Strait.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a11",
+   "url": "https://www.taiwannews.com.tw/en/news/6473259",
+   "title": "Taiwan conflict could hit global economy harder than COVID - Taiwan News",
+   "masked_title": "Strait conflict could hit global economy harder than COVID - News",
+   "publisher": "Taiwan News",
+   "published": "2026-11-07",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Dutch lawmaker Jan Paternotte warned that rising tensions in the Taiwan Strait could lead to an economic crisis worse than COVID-19, emphasizing the strait's importance in global trade and Taiwan's role in advanced computer chip production.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a12",
+   "url": "https://www.tmgm.com/en-in/analysis/market-news/article/taiwan-dollar-cbc-intervention-and-inflation-risks-commerzbank-202611062058",
+   "title": "Taiwan Dollar: What Do CBC Intervention and Inflation Risks Mean? – Commerzbank - www.tmgm.com",
+   "masked_title": "National Currency: What Do Central Bank Intervention and Inflation Risks Mean? – Commerzbank",
+   "publisher": "www.tmgm.com",
+   "published": "2026-11-07",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Central Bank of the Republic of China intervened in the currency market to support the Taiwan Dollar amid heavy foreign equity outflows and declining foreign exchange reserves.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
+   "url": "https://asia.nikkei.com/politics/taiwan-s-kmt-old-guard-fights-for-power-base-in-tight-taipei-mayoral-races",
+   "title": "Taiwan's KMT old guard fights for power base in tight Taipei mayoral races - Nikkei Asia",
+   "masked_title": "The opposition's old guard fights for power base in tight mayoral races",
+   "publisher": "Nikkei Asia",
+   "published": "2026-11-07",
+   "test": "T3",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taipei Mayor Chiang Wan-an and KMT candidate Lee Shu-chuan are experiencing a decline in their poll leads ahead of local elections, causing concern within the Kuomintang party.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
+   "url": "https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+   "title": "China & Taiwan Update, November 6, 2026 - Institute for the Study of War",
+   "masked_title": "Major Military Exercise Simulating Isolation of [the country] Reported",
+   "publisher": "Institute for the Study of War",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The People's Republic of China is conducting a major military exercise simulating the isolation of Taiwan, involving numerous naval vessels and air sorties around Taiwan.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a15",
+   "url": "https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
+   "title": "Taiwan to close representative office in Papua New Guinea, blames China - Al Jazeera",
+   "masked_title": "Country to close representative office in neighbouring country, blames major power",
+   "publisher": "Al Jazeera",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan is closing its representative office in Papua New Guinea and stopping LNG purchases, blaming Chinese political pressure.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a16",
+   "url": "https://think.ing.com/articles/asia-week-ahead-061126/",
+   "title": "Asia week ahead: Philippine GDP and key data on China, Taiwan, and Japan - ING Think",
+   "masked_title": "Asia week ahead: Philippine GDP and key data on neighbouring countries - ING Think",
+   "publisher": "ING Think",
+   "published": "2026-11-06",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "ING Think discusses upcoming economic data releases for Taiwan, including trade figures, in the context of broader regional economic trends.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a17",
+   "url": "https://smallwarsjournal.com/2026/11/06/expanding-taiwans-resistance-area-complex-by-way-of-japan-and-the-philippines/",
+   "title": "Expanding Taiwan’s Resistance Area Complex by way of Japan and the Philippines - Small Wars Journal",
+   "masked_title": "Expanding the Resistance Area Complex by way of a Neighbouring Country and a Major Trading Partner",
+   "publisher": "Small Wars Journal",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The article discusses Taiwan's strategic military planning and resistance architecture in the event of a Chinese invasion.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://www.news.com.au/world/asia/looming-taiwan-conflict-could-spark-catastrophic-us-recession-and-nuclear-race/news-story/67d98a1b8390033c6ed385a176877ec4",
+   "title": "‘Catastrophic’ fallout of looming war - News.com.au",
+   "masked_title": "‘Catastrophic’ fallout of looming war",
+   "publisher": "News.com.au",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Kevin Rudd warns that a looming conflict over Taiwan could trigger a US recession and escalate nuclear tensions in Asia.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://www.chinadaily.com.cn/a/202611/06/WS6aed2f7be4b03ebf8519aba7.html",
+   "title": "Inflation in Taiwan exceeds warning threshold for 6th straight month - China Daily",
+   "masked_title": "Inflation exceeds warning threshold for 6th straight month",
+   "publisher": "China Daily",
+   "published": "2026-11-06",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's consumer prices rose 2.33 percent in October, remaining above the inflation warning threshold for the sixth consecutive month, driven by higher food, fuel, and travel costs.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://www.scmp.com/news/china/politics/article/3373517/democratic-congress-guard-us-taiwan-policy-and-press-trump-arms-sales",
+   "title": "Democratic Congress to guard US’ Taiwan policy and press Trump on arms sales - South China Morning Post",
+   "masked_title": "Democratic Congress to guard US policy and press on arms sales",
+   "publisher": "South China Morning Post",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "The Democratic-controlled US Congress may push for expedited arms sales to Taiwan, while Beijing is expected to respond strongly if US policy crosses a 'red line'.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  }
+ ],
+ "economics_resolution": {
+  "expected_by_ledger": {
+   "friction": 6,
+   "order": 5,
+   "information": 3,
+   "edge": 3
+  },
+  "resolved_by_ledger": {
+   "friction": 3,
+   "order": 3,
+   "information": 2,
+   "edge": 1
+  },
+  "empty_ledgers": [],
+  "by_source": {
+   "World Bank WDI": {
+    "expected": 7,
+    "resolved": 0
+   },
+   "V-Dem via OWID": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "World Bank WGI": {
+    "expected": 6,
+    "resolved": 6
+   },
+   "World Bank SPI": {
+    "expected": 1,
+    "resolved": 0
+   },
+   "RSF World Press Freedom Index": {
+    "expected": 1,
+    "resolved": 1
+   },
+   "OECD PISA": {
+    "expected": 1,
+    "resolved": 1
+   }
+  },
+  "dropped": [
+   {
+    "code": "FP.CPI.TOTL.ZG",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Inflation (% y/y)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "SI.POV.GINI",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Income inequality (Gini)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "GC.XPN.INTP.RV.ZS",
+    "ledger": "friction",
+    "source": "World Bank WDI",
+    "label": "Interest payments (% revenue)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "SL.UEM.TOTL.ZS",
+    "ledger": "order",
+    "source": "World Bank WDI",
+    "label": "Unemployment (% labour force)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "NY.GDP.PCAP.KD.ZG",
+    "ledger": "order",
+    "source": "World Bank WDI",
+    "label": "GDP per-capita growth (% y/y)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "IQ.SPI.OVRL",
+    "ledger": "information",
+    "source": "World Bank SPI",
+    "label": "Statistical performance (0-100)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "BX.KLT.DINV.WD.GD.ZS",
+    "ledger": "edge",
+    "source": "World Bank WDI",
+    "label": "FDI inflow (% GDP)",
+    "reason": "unmapped"
+   },
+   {
+    "code": "SE.XPD.TOTL.GD.ZS",
+    "ledger": "edge",
+    "source": "World Bank WDI",
+    "label": "Education spending (% GDP)",
+    "reason": "unmapped"
+   }
+  ],
+  "as_of_schemes": {
+   "publication-lag-estimate": 3,
+   "first-seen": 4,
+   "source-published": 2
+  }
+ },
+ "dedup": {
+  "method": "llm",
+  "problem": null,
+  "eligible": 39,
+  "stories": 35,
+  "multi": 4,
+  "dropped": 4,
+  "same_story_as": {
+   "https://www.dailyrecordnews.com/ap_news/international/taiwan-china-election/image_f560134b-2628-5651-9641-d9e6b0da30ad.html": "https://abcnews.com/International/wireStory/taiwan-detains-communist-party-leader-alleged-chinese-sponsorship-137951046",
+   "https://www.bloomberg.com/news/articles/2026-11-06/taiwan-s-currency-weakens-past-33-per-us-dollar-on-ai-jitters": "https://www.tmgm.com/en-in/analysis/market-news/article/taiwan-dollar-cbc-intervention-and-inflation-risks-commerzbank-202611062058",
+   "https://coingeek.com/taiwan-bhutan-france-split-on-crypto-regulation/": "https://www.ledgerinsights.com/taiwan-thailand-and-nigeria-progress-stablecoin-regulation/",
+   "https://www.taipeitimes.com/News/biz/archives/2026/10/29/2003866788": "https://www.chinadaily.com.cn/a/202611/06/WS6aed2f7be4b03ebf8519aba7.html"
+  },
+  "post_selection": [
+   {
+    "url": "https://www.japantimes.co.jp/news/2026/11/06/japan/politics/takaichi-taiwan-remarks-anniversary/",
+    "same_story_as": "https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+    "pass": "post_selection",
+    "round": 1,
+    "method": "llm"
+   },
+   {
+    "url": "https://restofworld.org/2026/taiwan-labor-strike-ai-profits/",
+    "same_story_as": "https://www.bloomberg.com/news/articles/2026-11-05/micron-pauses-work-on-4-5-billion-taiwan-plant-after-labor-spat",
+    "pass": "post_selection",
+    "round": 2,
+    "method": "llm"
+   }
+  ]
+ },
+ "selection": {
+  "passes": 3,
+  "story_checks": 3,
+  "final_story_check_clean": true,
+  "t5_selected": 1,
+  "title_only_dropped": 2,
+  "title_only_dropped_articles": [
+   {
+    "url": "https://www.reuters.com/world/china/taipei-mayor-election-is-victory-democracy-over-china-whoever-wins-says-2026-11-06/",
+    "title": "Taipei mayor election is a victory for democracy over China whoever wins, says candidate - Reuters",
+    "pass": 1
+   },
+   {
+    "url": "https://www.axios.com/2026/11/03/taiwan-usarpac-davidson-window-technet",
+    "title": "2027 timeline for Taiwan conflict still valid, says U.S. general - Axios",
+    "pass": 3
+   }
+  ],
+  "post_selection_same_story": 2,
+  "blocked_after_selection": 0,
+  "refill_digests": 1,
+  "shortfall": 0,
+  "selected": 20
+ },
+ "mask": {
+  "hits": 46,
+  "regenerated": 17,
+  "replaced_by_code": 32,
+  "fallback_digests": 0,
+  "fallback_texts": 0,
+  "publisher_mentions": 8,
+  "digests_generated": 20,
+  "digests_cached": 0,
+  "rewrites_generated": 3,
+  "rewrites_cached": 0,
+  "payload_leaks": []
+ },
+ "mask_terms": [
+  {
+   "where": "digest:https://simplywall.st/stocks/tw/food-beverage-tobacco/twse-1216/uni-president-enterprises-shares/news/uni-president-stock-and-taiwan-staples-that-could-hold-up-to",
+   "term": "NT$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://simplywall.st/stocks/tw/food-beverage-tobacco/twse-1216/uni-president-enterprises-shares/news/uni-president-stock-and-taiwan-staples-that-could-hold-up-to",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "Taiwan Strait",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "Japan",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "Chinese",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "South Korea",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "Korea",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.ledgerinsights.com/taiwan-thailand-and-nigeria-progress-stablecoin-regulation/",
+   "term": "dollar",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
+   "term": "China",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
+   "term": "NT$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://www.scmp.com/opinion/china-opinion/article/3373516/taiwan-doth-complain-too-much-about-beijing",
+   "term": "Taiwanese",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
+   "term": "dollars",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://focustaiwan.tw/society/202611080009",
+   "term": "NT$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://abcnews.com/International/wireStory/taiwan-detains-communist-party-leader-alleged-chinese-sponsorship-137951046",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://abcnews.com/International/wireStory/taiwan-detains-communist-party-leader-alleged-chinese-sponsorship-137951046",
+   "term": "dollar",
+   "kind": "currency"
+  },
+  {
+   "where": "digest:https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
+   "term": "Chinese",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
+   "term": "People's Liberation Army",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.taiwannews.com.tw/en/news/6473259",
+   "term": "China",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.taiwannews.com.tw/en/news/6473259",
+   "term": "CNA",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.taiwannews.com.tw/en/news/6473259",
+   "term": "NT$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://www.tmgm.com/en-in/analysis/market-news/article/taiwan-dollar-cbc-intervention-and-inflation-risks-commerzbank-202611062058",
+   "term": "Republic of China",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.tmgm.com/en-in/analysis/market-news/article/taiwan-dollar-cbc-intervention-and-inflation-risks-commerzbank-202611062058",
+   "term": "China",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://asia.nikkei.com/politics/taiwan-s-kmt-old-guard-fights-for-power-base-in-tight-taipei-mayoral-races",
+   "term": "Kuomintang",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://asia.nikkei.com/politics/taiwan-s-kmt-old-guard-fights-for-power-base-in-tight-taipei-mayoral-races",
+   "term": "KMT",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+   "term": "People's Republic of China",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+   "term": "Republic of China",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+   "term": "Taiwanese",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+   "term": "China",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+   "term": "PLA",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
+   "term": "Chinese",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
+   "term": "Taiwanese",
+   "kind": "demonym"
+  },
+  {
+   "where": "digest:https://smallwarsjournal.com/2026/11/06/expanding-taiwans-resistance-area-complex-by-way-of-japan-and-the-philippines/",
+   "term": "the Philippines",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://smallwarsjournal.com/2026/11/06/expanding-taiwans-resistance-area-complex-by-way-of-japan-and-the-philippines/",
+   "term": "Philippines",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://smallwarsjournal.com/2026/11/06/expanding-taiwans-resistance-area-complex-by-way-of-japan-and-the-philippines/",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://smallwarsjournal.com/2026/11/06/expanding-taiwans-resistance-area-complex-by-way-of-japan-and-the-philippines/",
+   "term": "Japan",
+   "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.news.com.au/world/asia/looming-taiwan-conflict-could-spark-catastrophic-us-recession-and-nuclear-race/news-story/67d98a1b8390033c6ed385a176877ec4",
+   "term": "Beijing",
+   "kind": "extra"
+  },
+  {
+   "where": "digest:https://www.news.com.au/world/asia/looming-taiwan-conflict-could-spark-catastrophic-us-recession-and-nuclear-race/news-story/67d98a1b8390033c6ed385a176877ec4",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.scmp.com/news/china/politics/article/3373517/democratic-congress-guard-us-taiwan-policy-and-press-trump-arms-sales",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://www.scmp.com/news/china/politics/article/3373517/democratic-congress-guard-us-taiwan-policy-and-press-trump-arms-sales",
+   "term": "Hong Kong",
+   "kind": "other_country"
+  },
+  {
+   "where": "rewrite:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "cross-strait",
+   "kind": "extra"
+  },
+  {
+   "where": "rewrite:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "term": "Beijing",
+   "kind": "extra"
+  },
+  {
+   "where": "rewrite:https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
+   "term": "China",
+   "kind": "other_country"
+  }
+ ],
+ "data": {
+  "indicators": {
+   "GOV_WGI_RQ.EST": {
+    "code": "GOV_WGI_RQ.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 1.1955,
+    "scaled_input": 1.1955,
+    "score": 20.11,
+    "clamped": false
+   },
+   "GOV_WGI_CC.EST": {
+    "code": "GOV_WGI_CC.EST",
+    "ledger": "friction",
+    "period": 2025,
+    "value": 1.1826,
+    "scaled_input": 1.1826,
+    "score": 20.43,
+    "clamped": false
+   },
+   "GOV_WGI_PV.EST": {
+    "code": "GOV_WGI_PV.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": 0.9167,
+    "scaled_input": 0.9167,
+    "score": 14.58,
+    "clamped": false
+   },
+   "GOV_WGI_RL.EST": {
+    "code": "GOV_WGI_RL.EST",
+    "ledger": "order",
+    "period": 2024,
+    "value": 1.2881,
+    "scaled_input": 1.2881,
+    "score": 17.8,
+    "clamped": false
+   },
+   "GOV_WGI_GE.EST": {
+    "code": "GOV_WGI_GE.EST",
+    "ledger": "order",
+    "period": 2025,
+    "value": 1.5112,
+    "scaled_input": 1.5112,
+    "score": 12.22,
+    "clamped": false
+   },
+   "RSF.PRESS.SCORE": {
+    "code": "RSF.PRESS.SCORE",
+    "ledger": "information",
+    "period": 2025,
+    "value": 75.44,
+    "scaled_input": 75.44,
+    "score": 15.93,
+    "clamped": false
+   },
+   "GOV_WGI_VA.EST": {
+    "code": "GOV_WGI_VA.EST",
+    "ledger": "information",
+    "period": 2025,
+    "value": 1.047,
+    "scaled_input": 1.047,
+    "score": 12.94,
+    "clamped": false
+   },
+   "OECD.PISA.MEAN": {
+    "code": "OECD.PISA.MEAN",
+    "ledger": "edge",
+    "period": 2022,
+    "value": 533.21,
+    "scaled_input": 533.21,
+    "score": 0.0,
+    "clamped": true
+   }
+  },
+  "data_scores": {
+   "friction": 20.27,
+   "order": 14.87,
+   "information": 14.43,
+   "edge": 0.0
+  },
+  "n_by_ledger": {
+   "friction": 2,
+   "order": 3,
+   "information": 2,
+   "edge": 1
+  },
+  "unscored": [
+   "OWID.VDEM.CORRUPTION"
+  ]
+ },
+ "check": {
+  "old": {
+   "multi_article_stories": 1,
+   "same_story_dropped_if_checked": 1,
+   "title_only_sent": 1,
+   "t5_sent": 1,
+   "articles_sent": 20,
+   "story_method": "llm"
+  },
+  "new": {
+   "multi_article_stories": 0,
+   "title_only_sent": 0,
+   "t5_sent": 1,
+   "articles_sent": 20,
+   "shortfall": 0,
+   "refill_digests": 1,
+   "passes": 3,
+   "story_checks": 3,
+   "post_selection_same_story": 2,
+   "title_only_dropped": 2,
+   "blocked_after_selection": 0,
+   "final_story_check_clean": true,
+   "confirmation_check_method": "llm"
+  },
+  "mask": {
+   "hits": 46,
+   "regenerated": 17,
+   "replaced_by_code": 32,
+   "fallback_digests": 0,
+   "fallback_texts": 0,
+   "publisher_mentions": 8,
+   "digests_generated": 20,
+   "digests_cached": 0,
+   "rewrites_generated": 3,
+   "rewrites_cached": 0,
+   "payload_leaks": []
+  },
+  "eligible": 39,
+  "candidates": 45
+ },
+ "payload": {
+  "as_of": "2026-11-08",
+  "window": "articles published in the 30 days before as_of",
+  "structural_facts": {
+   "classification_source": "not a World Bank member; region and income group assigned here to match the World Bank's own categories for comparable economies",
+   "income_group": "High income",
+   "regime": "own currency, floating",
+   "region": "East Asia & Pacific",
+   "sovereignty": "full",
+   "tier": "EM"
+  },
+  "article_coverage": {
+   "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
+   "selected_per_theme": {
+    "friction": 5,
+    "order": 4,
+    "security": 6,
+    "information": 0,
+    "edge": 1,
+    "broad": 6
+   },
+   "selected_per_ledger": {
+    "friction": 4,
+    "order": 16,
+    "information": 0,
+    "edge": 0
+   },
+   "candidates_fetched": 51,
+   "passed_the_gate": 39,
+   "selected": 20,
+   "budget": 20
+  },
+  "articles": [
+   {
+    "id": "a1",
+    "publisher": "Simply Wall St",
+    "published": "2026-11-08",
+    "title": "Uni President Stock And Local Staples That Could Hold Up To Inflation - Simply Wall St",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "Inflation is significantly impacting costs in the country, affecting both consumers and businesses. The article discusses three companies in the food and grocery retail and cold-chain logistics sectors that may benefit from their pricing power amid rising costs.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": [
+      "Market Cap: local currency 436.4 billion",
+      "Market Cap: local currency 30.7 billion",
+      "Market Cap: local currency 218.8 billion",
+      "Revenue from convenience stores: local currency 226.5 billion",
+      "Revenue from distribution: local currency 115.3 billion",
+      "Revenue from logistics: local currency 23.9 billion",
+      "Revenue from feed: local currency 13.8 billion",
+      "Revenue from meat processing: local currency 7.4 billion",
+      "Revenue from food processing: local currency 6.2 billion",
+      "Local revenue: local currency 29.7 billion"
+     ]
+    }
+   },
+   {
+    "id": "a2",
+    "publisher": "upi",
+    "published": "2026-11-08",
+    "title": "Tensions persist a year after remarks on regional conflict",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "A year has passed since a major political figure stated that their country could exercise collective self-defense in the event of an armed conflict involving a regional rival, but tensions with that rival remain high. The government has postponed the expulsion of a [the country] diplomat to avoid escalating diplomatic issues, while also diversifying its rare earth supply sources in response to export restrictions from [another country].",
+     "institutions": [
+      "the Japanese government",
+      "the [the country] government",
+      "the Ministry of Economy, Trade and Industry",
+      "the [another country] Organization for Metals and Energy Security",
+      "the South Korean Ministry of Trade, Industry and Resources"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "Nov. 7, 2025 remarks by Takaichi",
+      "February comprehensive rare earth supply chain strategy"
+     ]
+    }
+   },
+   {
+    "id": "a3",
+    "publisher": "Ledger Insights",
+    "published": "2026-11-06",
+    "title": "A country, a country and a country progress stablecoin regulation",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "On October 19, a consultation on potential stablecoin regulations was announced, with draft regulations published this week. The regulations aim to control the local usage of foreign currency stablecoins and are influenced by practices in a major financial hub.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a4",
+    "publisher": "Taipei Times",
+    "published": "2026-11-08",
+    "title": "US cites pressure in PNG closure of [the country] site",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "full",
+    "digest": {
+     "what_happened": "The US government expressed concern over the closure of a representative office in a neighbouring country, stating it reflects [the country]'s intimidation of [the country]. The closure was ordered by the PNG government, which cited adherence to the 'one [another country]' policy, prompting [the country] to withdraw personnel and reassess bilateral ties.",
+     "institutions": [
+      "US Department of State",
+      "Ministry of Foreign Affairs (MOFA)"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "[local currency]500 billion National Stabilization Fund",
+      "US$15.26 billion National Stabilization Fund"
+     ]
+    }
+   },
+   {
+    "id": "a5",
+    "publisher": "Bloomberg",
+    "published": "2026-11-05",
+    "title": "Micron Pauses Work on $4.5 Billion Plant After Labor Dispute",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Micron Technology Inc. has suspended plans for a memory chip plant due to a labor dispute, raising concerns about the future of a significant production base for AI components. Construction in the northern city has been halted as executives worry about uncertainties, including the potential overturning of an agreement with a local labor union.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "$4.5 billion plant"
+     ]
+    }
+   },
+   {
+    "id": "a6",
+    "publisher": "South China Morning Post",
+    "published": "2026-11-08",
+    "title": "My Take | The region doth complain too much about a major power",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The government has been invited to join an Apec leaders’ summit but is complaining about the invitation not being polite enough and breaching diplomatic protocol. The foreign minister stated that they will protest any breaches of established rules or conventions.",
+     "institutions": [
+      "Apec",
+      "the foreign ministry"
+     ],
+     "direction": "deteriorating",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a7",
+    "publisher": "BigGo Finance",
+    "published": "2026-11-05",
+    "title": "Democrats Take Congress, Eye Reversal of Previous Tariffs; Economic Minister Says Two-Thirds Threshold Hard to Clear",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Democratic Party has gained a significant number of seats in both chambers of Congress, raising questions about potential changes to tariff policies established during the previous administration. [the country]'s Minister of Economic Affairs stated that overturning these tariffs would require a two-thirds vote in Congress, which is unlikely under current conditions, and emphasized the importance of protecting existing trade agreements.",
+     "institutions": [
+      "Ministry of Economic Affairs"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "two-thirds vote threshold",
+      "1543rd business meeting",
+      "hundreds of billions of [local currency] in investment commitments"
+     ]
+    }
+   },
+   {
+    "id": "a8",
+    "publisher": "Focus Taiwan",
+    "published": "2026-11-08",
+    "title": "2026 ELECTIONS Election-related fraud causes local currency 20.15 million in losses: CIB",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Fraud cases related to upcoming local elections have resulted in financial losses totaling 20.15 million local currency over the past two months, according to the Criminal Investigation Bureau (CIB). In October alone, there were 87 recorded cases of election-related fraud, leading to losses of 19.11 million local currency.",
+     "institutions": [
+      "Criminal Investigation Bureau (CIB)"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "20.15 million local currency in losses",
+      "19.11 million local currency in losses in October",
+      "[local currency]1.39 million loss from one case",
+      "more than [local currency]920,000 loss from another case"
+     ]
+    }
+   },
+   {
+    "id": "a9",
+    "publisher": "ABC News - Breaking News, Latest News and Videos",
+    "published": "2026-11-08",
+    "title": "Authorities detain Communist Party leader over alleged foreign sponsorship in election",
+    "themes": [
+     "order"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Authorities detained the leader of a local Communist Party, accusing him of running for borough chief under the direction and sponsorship of a foreign Communist Party. The investigation revealed allegations of vote buying and foreign interference in upcoming elections.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "50,000 local currency bail"
+     ]
+    }
+   },
+   {
+    "id": "a10",
+    "publisher": "The Times of India",
+    "published": "2026-11-08",
+    "title": "Island detects 4 military aircraft, 8 ships around territory in 24 hours",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Ministry of National Defence reported detecting four military aircraft sorties and six naval vessels from a regional rival around the island within a 24-hour period. Two of the aircraft crossed a median line and entered the island's Air Defence Identification Zone. The Coast Guard Administration has also been monitoring increased maritime activity and has accused the regional rival of harassing vessels and asserting illegitimate jurisdiction over surrounding waters.",
+     "institutions": [
+      "Ministry of National Defence",
+      "Coast Guard Administration"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "four sorties of military aircraft",
+      "six vessels",
+      "two official ships",
+      "13 times driven away from Pratas waters this year"
+     ]
+    }
+   },
+   {
+    "id": "a11",
+    "publisher": "Taiwan News",
+    "published": "2026-11-07",
+    "title": "Strait conflict could hit global economy harder than COVID - News",
+    "themes": [
+     "security",
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A Dutch lawmaker warned that rising tensions in the strait could lead to an economic crisis worse than the COVID-19 pandemic. Lawmakers at a summit discussed the importance of maintaining peace in the region and the potential global economic impacts of conflict. A study indicated that a US-[another country] war over the region could result in significant economic losses.",
+     "institutions": [
+      "Inter-Parliamentary Alliance on [another country]",
+      "[the country]",
+      "CTS News"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "[local currency]332.55 trillion first-year losses",
+      "US$10.6 trillion first-year losses",
+      "9.6% of global GDP"
+     ]
+    }
+   },
+   {
+    "id": "a12",
+    "publisher": "www.tmgm.com",
+    "published": "2026-11-07",
+    "title": "National Currency: What Do Central Bank Intervention and Inflation Risks Mean? – Commerzbank",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Heavy foreign equity outflows led the central bank to intervene in support of the national currency, while foreign exchange reserves decreased. The consumer price index for October moderated to 2.33% year-on-year, remaining above the central bank's alert threshold, while the producer price index surged 19.7%, raising concerns about future consumer price pressures.",
+     "institutions": [
+      "Central Bank of the [the country]"
+     ],
+     "direction": "mixed",
+     "numbers": [
+      "CPI 2.33% year-on-year in October",
+      "PPI 19.7% year-on-year in October",
+      "foreign exchange reserves USD596.4 billion",
+      "decline in reserves USD4.3 billion",
+      "net foreign outflow approximately USD28 billion"
+     ]
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "Nikkei Asia",
+    "published": "2026-11-07",
+    "title": "The opposition's old guard fights for power base in tight mayoral races",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The mayor of a major city was expected to easily win reelection, but recent polling shows his lead diminishing, causing concern within the main opposition party. This situation has prompted efforts to address the declining support ahead of the local elections.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "not stated"
+     ]
+    }
+   },
+   {
+    "id": "a14",
+    "publisher": "Institute for the Study of War",
+    "published": "2026-11-06",
+    "title": "Major Military Exercise Simulating Isolation of [the country] Reported",
+    "themes": [
+     "security",
+     "edge"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A major military exercise simulating the isolation of [the country] may be underway, involving over 100 vessels from the [the country] Navy and [another country] Coast Guard. This exercise aims to demonstrate the ability to cut off [the country] from air and sea, potentially undermining confidence in its defense capabilities. Additionally, [the country] authorities are investigating cases of foreign interference in local elections, while a [the country] drone developer has signed a cooperation agreement with a Ukrainian company to enhance defense technology.",
+     "institutions": [
+      "[the country]'s National Security Council",
+      "[the country]'s Ministry of National Defense",
+      "[the country]'s National Police Agency",
+      "[the country]'s National Security Bureau",
+      "PRC [the country] Affairs Office"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "over 100 vessels",
+      "49 air sorties on November 2",
+      "2.63 million cyberattacks a day in 2025",
+      "four task forces from three different [the country] theater commands",
+      "36 sorties south of [the country]",
+      "two of its three carriers",
+      "at least four of its ten guided-missile cruisers"
+     ]
+    }
+   },
+   {
+    "id": "a15",
+    "publisher": "Al Jazeera",
+    "published": "2026-11-06",
+    "title": "Country to close representative office in neighbouring country, blames major power",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "[the country] is closing its representative office in a neighbouring country and will cease purchasing liquefied natural gas from there, citing political pressure from a major power. The neighbouring country had demanded the closure of the office and the departure of its staff.",
+     "institutions": [
+      "[the country]’s Ministry of Foreign Affairs"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "one-third of Papua New Guinea’s exports from [the country] LNG purchases",
+      "about 8 percent of natural gas imported from Port Moresby last year"
+     ]
+    }
+   },
+   {
+    "id": "a16",
+    "publisher": "ING Think",
+    "published": "2026-11-06",
+    "title": "Asia week ahead: Philippine GDP and key data on neighbouring countries - ING Think",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses upcoming economic data releases for several countries in Asia, including trade figures for the country. It notes that export growth is expected to moderate but remain strong, supported by technology demand, while import growth is anticipated to accelerate. The trade surplus is forecasted to widen, indicating continued strength in the country's technology export cycle.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "export growth 51.3% YoY",
+      "import growth 69.2% YoY",
+      "trade surplus $25.6bn",
+      "trade surplus $23.6bn in September"
+     ]
+    }
+   },
+   {
+    "id": "a17",
+    "publisher": "Small Wars Journal",
+    "published": "2026-11-06",
+    "title": "Expanding the Resistance Area Complex by way of a Neighbouring Country and a Major Trading Partner",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The article discusses the strategic challenges faced by [the country] in the event of an invasion, particularly the lack of a land border for retreat and the need for a resistance area complex. It suggests that [another country] and [another country] could serve as critical locations for supporting [the country]'s resistance efforts by providing logistical and operational support.",
+     "institutions": [],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a18",
+    "publisher": "News.com.au",
+    "published": "2026-11-06",
+    "title": "‘Catastrophic’ fallout of looming war",
+    "themes": [
+     "security"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "A former leader from a neighbouring country warned that a potential conflict over [the country] could lead to a severe recession in the US and escalate nuclear tensions in Asia. He noted a shift in rhetoric from a regional rival regarding its ambitions towards [the country], suggesting that the situation could worsen significantly if [the country] were to fall under its control.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "90 per cent of the world’s semiconductor chips produced by [the country]",
+      "$US14 billion arms package destined for [the country]"
+     ]
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "China Daily",
+    "published": "2026-11-06",
+    "title": "Inflation exceeds warning threshold for 6th straight month",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Consumer prices in the region rose 2.33 percent in October from a year earlier, remaining above the inflation warning threshold for the sixth consecutive month. The increase was attributed to higher food, fuel, and travel costs, with significant rises in egg prices and edible oils.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": [
+      "2.33 percent increase in consumer prices in October",
+      "0.06 percent increase in consumer price index from September",
+      "2.23 percent increase in core CPI year on year",
+      "11.45 percent increase in egg prices year on year",
+      "5.34 percent increase in edible oils",
+      "PPI jumped nearly one-fifth in October from a year earlier",
+      "11.12 percent average increase in PPI in the first 10 months of the year"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "South China Morning Post",
+    "published": "2026-11-06",
+    "title": "Democratic Congress to guard US policy and press on arms sales",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Democratic-controlled US Congress may advocate for quicker arms sales to [the country] following recent election victories, but no major changes in US policy towards the island are expected. Analysts indicate that if the next House speaker pressures the administration on this issue, it could provoke strong reactions from a regional rival.",
+     "institutions": [
+      "US Congress",
+      "Institute for [the country], [another country] and Macau Studies",
+      "Centre for American Studies at the Shanghai Institutes for International Studies"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "US$14 billion arms sale",
+      "US$14 billion package"
+     ]
+    }
+   }
+  ],
+  "full_texts": [
+   {
+    "id": "a1",
+    "title": "Uni President Stock And Local Staples That Could Hold Up To Inflation - Simply Wall St",
+    "publisher": "Simply Wall St",
+    "body_status": "full",
+    "chars_read": 4647,
+    "chars_original": 4647,
+    "text": "Inflation in the country is no longer a background statistic. With CPI and PPI both running hot, costs are pressing into every aisle of the supermarket and every refrigerated truck on the highway, which can either squeeze profits or reward businesses that handle pricing power well. This article walks through three food and grocery retail and cold-chain logistics beneficiaries stocks exposed to these trends, and why their stories may belong on your watchlist today.\nThe three food and grocery retail and cold-chain logistics beneficiaries stocks below are only a starting sample, and the full idea screen surfaced 0 more companies with equally compelling narratives that are not covered in this article.\nOverview: A large food and beverage group supplying instant noodles, drinks, and packaged foods across Asian grocery channels.\nMarket Cap: local currency 436.4b\nThe large food and beverage group fits into the screener theme as a scale player that helps stock shelves with branded noodles, drinks, and frozen foods, while also running its own logistics and distribution services. That reach gives the group meaningful room to adjust prices as CPI and PPI remain elevated. However, grocery investors may still monitor what happens if one unseen pressure on input costs and pricing power changes.\nIf you want to see how that pressure shows up in the numbers, go straight to the analysis report for the large food and beverage group to see the pricing power and cost risks clearly presented.\nOverview: A company that produces animal feed, breeds poultry and livestock, and processes meat and food products for the supply chain.\nOperations: The group generates roughly local currency 13.8b from feed, local currency 7.4b from meat processing, local currency 6.2b from food processing, primarily across the country.\nMarket Cap: local currency 30.7b\nThe company sits closer to the farm and factory than the checkout line. It feeds supermarkets through local currency 29.7b in local revenue while PPI and food costs keep rising. Investors watching its P/E discount and high dividend may focus less on that headline yield and more on what happens if one unseen pressure on cash generation persists.\nOverview: A company that runs the 7-Eleven and related grocery, supermarket, and logistics formats, linking everyday staples to nationwide convenience spending.\nOperations: The company earns most revenue from convenience stores of about local currency 226.5b, plus local currency 115.3b from distribution and local currency 23.9b from logistics.\nMarket Cap: local currency 218.8b\nThe company gives you direct exposure to the inflation resilient 7-Eleven ecosystem. Essential groceries, convenience services, and logistics infrastructure combine with steady foot traffic and pricing power. Recent CPI and PPI data suggest that small shifts in how far customers absorb higher shelf and energy costs could matter a lot if one unseen pressure on spending habits changes.\nIf those spending shifts are what interest you, go straight to the 3 key rewards and 1 important warning sign to see whether the company’s resilience is masking something bigger.\nSeeking Fresh Alternatives Before They Fly\nSome opportunities only look obvious once the breakout is already underway. Explore these fresh, curated stock ideas while the data is still relevant and the momentum remains under the radar for now.\nFocus on income potential with a curated pool of companies that appear built for resilience in tougher markets through the 228 dividend fortresses.\nIdentify early movers in machine learning infrastructure by scanning the curated 53 AI infrastructure stocks before the crowd identifies the next wave of demand.\nNew: Manage All Your Stock Portfolios in One Place\nWe've created the ultimate portfolio companion for stock investors, and it's free.\n• Connect an unlimited number of Portfolios and see your total in one currency • Be alerted to new Warning Signs or Risks via email or mobile • Track the Fair Value of your stocks\nBailey is an Equity Analyst at Simply Wall St with 4 years of experience as an Associate Adviser at a financial group, where he helped with client portfolio management, investment strategy and research. He completed a Bachelor of Commerce majoring in Finance from a university. As an equity analyst, Bailey provides the team with valuable insights, helping guide the creation of article content and new features like Narratives.\nOperates and manages convenience stores, restaurants, drugstores, department stores, supermarkets, and online shopping stores in the country and internationally."
+   },
+   {
+    "id": "a2",
+    "title": "Tensions persist a year after remarks on regional conflict",
+    "publisher": "upi",
+    "body_status": "full",
+    "chars_read": 5370,
+    "chars_original": 5370,
+    "text": "Nov. 8 (Asia Today) -- A year has passed since the head of government said the country could exercise its right to collective self-defense in the event of an armed conflict in the Strait, but diplomatic tensions with a neighbouring country show little sign of easing.\n[the country] continues to demand that the head of government retract her parliamentary remarks, while the capital has maintained its position and sought opportunities for dialogue.\nThe country has postponed the possible expulsion of a consul general from the neighbouring country to prevent further diplomatic escalation. At the same time, companies and government agencies in the country are diversifying their rare earth supplies in response to export restrictions from the neighbouring country.\nThe dispute also has implications for a major trading partner, given the importance of stability in the Strait and the availability of critical minerals used in electric vehicles and other advanced manufacturing industries.\nDiplomatic dispute enters second year\nThe controversy began on Nov. 7, 2025, when the head of government told a budget committee of the country's House of Representatives that a naval blockade of the country involving military force could constitute a situation threatening the country's survival.\nSuch a designation is one of the legal conditions under which the country can exercise its right to collective self-defense.\nPrevious governments had generally avoided specifying circumstances in which the country might use military force in response to a contingency involving the neighbouring country.\nThe neighbouring country interpreted the head of government's statement as suggesting that the country could intervene militarily in the issue.\nThe head of government subsequently said any decision would depend on the circumstances of a particular situation but refused to withdraw her remarks.\nAccording to a local newspaper, the consul general from the neighbouring country posted threatening remarks on social media targeting the head of government, including language referring to beheading her.\nThe government considered expelling him.\nWhen the country's Foreign Ministry communicated that possibility to [the country], officials from the neighbouring country responded that they would expel two consuls general from the country if the capital expelled one diplomat from the neighbouring country.\nThe head of government postponed the expulsion over concerns that reciprocal diplomatic expulsions would further damage relations.\nA year later, prospects for a summit between the two countries remain uncertain.\nThe head of government said Friday that the country would continue pursuing dialogue with the neighbouring country, but [the country] reiterated its demand that she retract her remarks.\nA local news agency reported that a meeting between the head of government and the president of the neighbouring country on the sidelines of this month's Asia-Pacific Economic Cooperation summit appeared increasingly unlikely.\nThe country diversifies rare earth supplies\nA local newspaper reported that companies and government agencies in the country have been diversifying procurement sources in response to restrictions on rare earth and rare metal exports from the neighbouring country.\nThe country's Economy, Trade and Industry Minister described the neighbouring country's measures Friday as economic coercion.\nHe said the country would pursue alternative materials, expand recycling and diversify its supply sources.\nThe organization for metals and energy security is also revising its programs to support rare earth mine development and secure interests in refining operations.\nThe tourism industry in the country, meanwhile, is exploring ways to attract more visitors from other countries to offset a decline in tourists from the neighbouring country.\nThe neighbouring country's rare earth restrictions also pose risks for manufacturers in a major trading partner.\nPermanent magnets made from rare earth elements such as neodymium are critical components in electric vehicle motors and industrial robots.\nEven when companies diversify the countries supplying raw materials, vulnerabilities remain if the separation, refining and magnet manufacturing stages are concentrated in a particular country.\nThe major trading partner's Ministry of Trade, Industry and Resources announced a comprehensive rare earth supply chain strategy in February.\nIn July, the ministry consulted with the anti-corruption authority on financial support for overseas resource development, domestic processing capacity and recycling projects to recover materials used in permanent magnets from discarded products.\nStability in the Strait also affects the major trading partner\nThe major trading partner's official position emphasizes the importance of peace and stability in the Strait.\nA joint fact sheet released following a summit between the major trading partner and a major power in November 2025 said both countries stressed the importance of peace and stability in the Strait and the peaceful resolution of [the country] differences.\nThe head of government's remarks a year ago concerned the conditions under which the country might exercise collective self-defense in a contingency involving the neighbouring country.\nThe major trading partner's document, by contrast, established diplomatic principles intended to prevent conflict.\nThe country's experience over the past year illustrates how prolonged diplomatic tensions over the issue can have implications for the major trading partner.\nFor the major trading partner, peace and stability in the Strait are closely linked to energy security, economic security and the stability of critical industrial supply chains."
+   },
+   {
+    "id": "a4",
+    "title": "US cites pressure in PNG closure of [the country] site",
+    "publisher": "Taipei Times",
+    "body_status": "full",
+    "chars_read": 5845,
+    "chars_original": 5845,
+    "text": "The US government has expressed concern over the closure of the representative office in a neighbouring country under pressure from that country's government, saying that the incident is another example of intimidation by a major power.\n\"We are deeply concerned by reports that the government of the neighbouring country has unilaterally ordered the closure of the Economic Office in its capital,\" an unnamed US Department of State spokesman said on Saturday.\n\"The country is a reliable, like-minded and democratic partner, and its relationships around the world provide significant benefits to the citizens of those countries, including the neighbouring country,\" the spokesman said.\nPhoto: Reuters\n\"This is yet another example of the major power's intimidation campaign against the country and its supporters around the world, which undermines the sovereign decisions of countries choosing to partner with the country and threatens international peace and prosperity,\" the spokesman added.\nThe US Department of State made the remarks in response to a request for comment on the country's decision on Friday to close its representative office in the neighbouring country, which was established in 1990 despite the absence of official diplomatic ties.\nThe decision came after the neighbouring country renewed its unilateral demands that personnel of the Economic Office in its capital leave the country and that the office be shut down, the Ministry of Foreign Affairs (MOFA) said.\n\"In consideration of national dignity, diplomatic autonomy and overall national interests, and following a comprehensive assessment, the government has made the decision to close the office, withdraw all stationed personnel, and conduct a full review and adjustment of bilateral ties,\" the ministry said in a statement issued on Friday.\nThe dispute began after the neighbouring country's Minister of Foreign Affairs announced on July 16 that his government had ordered the immediate closure of the country's representative office in the country, citing adherence to the \"one [another country]\" policy.\nThe country promptly lodged a formal protest with the neighbouring country, but maintained that its representative office remained operational despite the unilateral announcement.\nThe country also suspended spot purchases of liquefied natural gas from the neighbouring country in July in response to that country's plans to close the country's representative office.\nThe major power has long used political coercion, economic incentives and diplomatic pressure to force other countries to accept its political claims, while seeking to limit the country's international presence, MOFA said.\nThe neighbouring government's decision is another example of the major power using political and economic leverage to interfere in other countries' diplomatic decisions, undermining international trust and fairness, it said, urging the international community to recognize the major power's efforts to isolate the country on the global stage.\nAdditional reporting by Fang Wei-li\nRESTRICTING THE COUNTRY: The major power is using coercion and economic incentives to force other countries to accept its claims on the country, the MOFA said. The Ministry of Foreign Affairs (MOFA) said yesterday it would close its representative office in the neighbouring country and stop buying liquefied natural gas (LNG) from that country, citing pressure from the major power. The neighbouring country's minister of foreign affairs in July said the government had decided to close the country's representative office in the country immediately, winning praise from the major power, although the office had remained open in the interim. The country has decided to shut the office and withdraw all personnel on the basis of national dignity, diplomatic autonomy and the country's overall interests, the MOFA said, adding that the government will reassess and adjust.\n\nThe country and a major power might sign a wide-ranging trade agreement by the end of this year, which could help break a deadlock in the country's trade diplomacy if completed, a regional news outlet reported yesterday. The major power is negotiating with the administration of the head of government to reach a comprehensive economic agreement modeled after the Enhanced Trade Partnership Arrangement finalized by another country and the country in 2023, it said, citing two sources familiar with the matter. \"The Enhanced Trade Partnership between the other country and the country sets a precedent for the major power to follow,\" one of the sources told the media outlet. The framework leaves room for future agreements.\n\nA national from a major power, who was at an international airport after arriving on a connecting flight from another country on Monday and sought asylum in the country, was deported to that country early yesterday, the National Immigration Agency (NIA) said. In a video circulating on social media, the individual identified himself as a former host at a major state broadcaster and said he was seeking temporary humanitarian protection in the country. He said he was sentenced to six years in prison after he was recorded and reported to authorities in 2019 for criticizing \"a ruler who loses his country.\" After his release, he was forced to go.\n\nPLUMMETING: The stock index plunged 3,737.67 points in early session yesterday, the largest intraday drop in history, and closed down 1,873.08 points due to AI data center concerns. The government yesterday authorized the activation of its local currency 500 billion (US$15.26 billion) National Stabilization Fund (NSF) to support local shares, as the stock market experienced significant fluctuations while uncertainties in the international political and economic situation continue. The NSF’s steering committee may use the fund to intervene in the market to prop up local shares, the Ministry of Finance said in a statement. Once the fund is activated next week, it would be the 10th time the NSF has intervened in the market. Separately, the Financial Supervisory Commission (FSC) yesterday announced temporary curbs on short selling shares and other measures to help."
+   }
+  ],
+  "evidence_coverage_components": {
+   "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
+   "components": {
+    "article_volume": 1.0,
+    "body_depth": 0.575,
+    "indicator_resolution": 0.525,
+    "freshness": 0.8889
+   },
+   "weights": {
+    "article_volume": 0.3,
+    "body_depth": 0.2,
+    "indicator_resolution": 0.35,
+    "freshness": 0.15
+   }
+  }
+ }
+}

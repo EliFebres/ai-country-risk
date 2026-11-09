@@ -1,0 +1,247 @@
+{
+ "run_date": "2026-11-08",
+ "countries": {
+  "US": {
+   "old": {
+    "multi_article_stories": 1,
+    "same_story_dropped_if_checked": 1,
+    "title_only_sent": 7,
+    "t5_sent": 3,
+    "articles_sent": 20,
+    "story_method": "llm"
+   },
+   "new": {
+    "multi_article_stories": 0,
+    "title_only_sent": 0,
+    "t5_sent": 2,
+    "articles_sent": 20,
+    "shortfall": 0,
+    "refill_digests": 6,
+    "passes": 1,
+    "story_checks": 1,
+    "post_selection_same_story": 0,
+    "title_only_dropped": 8,
+    "blocked_after_selection": 0,
+    "final_story_check_clean": true,
+    "confirmation_check_method": "llm"
+   },
+   "mask": {
+    "hits": 28,
+    "regenerated": 13,
+    "replaced_by_code": 20,
+    "fallback_digests": 0,
+    "fallback_texts": 0,
+    "publisher_mentions": 5,
+    "digests_generated": 20,
+    "digests_cached": 0,
+    "rewrites_generated": 3,
+    "rewrites_cached": 0,
+    "payload_leaks": []
+   },
+   "eligible": 35,
+   "candidates": 47
+  },
+  "PT": {
+   "old": {
+    "multi_article_stories": 2,
+    "same_story_dropped_if_checked": 6,
+    "title_only_sent": 5,
+    "t5_sent": 2,
+    "articles_sent": 20,
+    "story_method": "llm"
+   },
+   "new": {
+    "multi_article_stories": 0,
+    "title_only_sent": 0,
+    "t5_sent": 2,
+    "articles_sent": 12,
+    "shortfall": 8,
+    "refill_digests": 0,
+    "passes": 3,
+    "story_checks": 3,
+    "post_selection_same_story": 3,
+    "title_only_dropped": 5,
+    "blocked_after_selection": 0,
+    "final_story_check_clean": true,
+    "confirmation_check_method": "llm"
+   },
+   "mask": {
+    "hits": 14,
+    "regenerated": 5,
+    "replaced_by_code": 4,
+    "fallback_digests": 0,
+    "fallback_texts": 0,
+    "publisher_mentions": 3,
+    "digests_generated": 12,
+    "digests_cached": 0,
+    "rewrites_generated": 3,
+    "rewrites_cached": 0,
+    "payload_leaks": []
+   },
+   "eligible": 20,
+   "candidates": 34
+  },
+  "KW": {
+   "old": {
+    "multi_article_stories": 0,
+    "same_story_dropped_if_checked": 0,
+    "title_only_sent": 3,
+    "t5_sent": 6,
+    "articles_sent": 20,
+    "story_method": "llm"
+   },
+   "new": {
+    "multi_article_stories": 0,
+    "title_only_sent": 0,
+    "t5_sent": 2,
+    "articles_sent": 16,
+    "shortfall": 4,
+    "refill_digests": 0,
+    "passes": 1,
+    "story_checks": 1,
+    "post_selection_same_story": 0,
+    "title_only_dropped": 2,
+    "blocked_after_selection": 0,
+    "final_story_check_clean": true,
+    "confirmation_check_method": "llm"
+   },
+   "mask": {
+    "hits": 28,
+    "regenerated": 10,
+    "replaced_by_code": 10,
+    "fallback_digests": 0,
+    "fallback_texts": 0,
+    "publisher_mentions": 12,
+    "digests_generated": 16,
+    "digests_cached": 0,
+    "rewrites_generated": 3,
+    "rewrites_cached": 0,
+    "payload_leaks": []
+   },
+   "eligible": 28,
+   "candidates": 39
+  },
+  "HK": {
+   "old": {
+    "multi_article_stories": 2,
+    "same_story_dropped_if_checked": 2,
+    "title_only_sent": 3,
+    "t5_sent": 1,
+    "articles_sent": 20,
+    "story_method": "llm"
+   },
+   "new": {
+    "multi_article_stories": 0,
+    "title_only_sent": 0,
+    "t5_sent": 1,
+    "articles_sent": 15,
+    "shortfall": 5,
+    "refill_digests": 0,
+    "passes": 2,
+    "story_checks": 2,
+    "post_selection_same_story": 3,
+    "title_only_dropped": 3,
+    "blocked_after_selection": 0,
+    "final_story_check_clean": true,
+    "confirmation_check_method": "llm"
+   },
+   "mask": {
+    "hits": 36,
+    "regenerated": 10,
+    "replaced_by_code": 20,
+    "fallback_digests": 0,
+    "fallback_texts": 0,
+    "publisher_mentions": 7,
+    "digests_generated": 15,
+    "digests_cached": 0,
+    "rewrites_generated": 3,
+    "rewrites_cached": 0,
+    "payload_leaks": []
+   },
+   "eligible": 36,
+   "candidates": 48
+  },
+  "TW": {
+   "old": {
+    "multi_article_stories": 1,
+    "same_story_dropped_if_checked": 1,
+    "title_only_sent": 1,
+    "t5_sent": 1,
+    "articles_sent": 20,
+    "story_method": "llm"
+   },
+   "new": {
+    "multi_article_stories": 0,
+    "title_only_sent": 0,
+    "t5_sent": 1,
+    "articles_sent": 20,
+    "shortfall": 0,
+    "refill_digests": 1,
+    "passes": 3,
+    "story_checks": 3,
+    "post_selection_same_story": 2,
+    "title_only_dropped": 2,
+    "blocked_after_selection": 0,
+    "final_story_check_clean": true,
+    "confirmation_check_method": "llm"
+   },
+   "mask": {
+    "hits": 46,
+    "regenerated": 17,
+    "replaced_by_code": 32,
+    "fallback_digests": 0,
+    "fallback_texts": 0,
+    "publisher_mentions": 8,
+    "digests_generated": 20,
+    "digests_cached": 0,
+    "rewrites_generated": 3,
+    "rewrites_cached": 0,
+    "payload_leaks": []
+   },
+   "eligible": 39,
+   "candidates": 45
+  },
+  "RU": {
+   "old": {
+    "multi_article_stories": 1,
+    "same_story_dropped_if_checked": 1,
+    "title_only_sent": 7,
+    "t5_sent": 2,
+    "articles_sent": 20,
+    "story_method": "llm"
+   },
+   "new": {
+    "multi_article_stories": 0,
+    "title_only_sent": 0,
+    "t5_sent": 2,
+    "articles_sent": 20,
+    "shortfall": 0,
+    "refill_digests": 7,
+    "passes": 1,
+    "story_checks": 1,
+    "post_selection_same_story": 0,
+    "title_only_dropped": 7,
+    "blocked_after_selection": 0,
+    "final_story_check_clean": true,
+    "confirmation_check_method": "llm"
+   },
+   "mask": {
+    "hits": 37,
+    "regenerated": 15,
+    "replaced_by_code": 29,
+    "fallback_digests": 0,
+    "fallback_texts": 0,
+    "publisher_mentions": 2,
+    "digests_generated": 20,
+    "digests_cached": 0,
+    "rewrites_generated": 3,
+    "rewrites_cached": 0,
+    "payload_leaks": []
+   },
+   "eligible": 45,
+   "candidates": 50
+  }
+ },
+ "spend_usd": 0.1898,
+ "meter": "[cost] actual $0.1898 — gpt-4o-mini-2024-07-18: 434 calls, 1009717+63977 tok, $0.1898"
+}
