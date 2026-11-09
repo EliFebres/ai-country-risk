@@ -1,0 +1,503 @@
+{
+ "run_date": "2026-11-09",
+ "rows": [
+  {
+   "iso2": "KW",
+   "score_12m": 40,
+   "score_3m": 40,
+   "ledgers": {
+    "friction": [
+     29,
+     27.99,
+     30.16
+    ],
+    "order": [
+     38,
+     39.33,
+     36.94
+    ],
+    "information": [
+     66,
+     65.55,
+     65.55
+    ],
+    "edge": [
+     24,
+     47.37,
+     0.0
+    ]
+   },
+   "answered": 4,
+   "carried": 2,
+   "k": 5,
+   "extended": true,
+   "tied": [],
+   "quote_nulled": 0,
+   "title_only_nulled": 0,
+   "no_evidence": 0,
+   "t5": 2,
+   "selected": 16,
+   "shortfall": 4,
+   "title_only_dropped": 2,
+   "post_same_story": 0,
+   "passes": 1,
+   "mask": {
+    "hits": 26,
+    "regenerated": 10,
+    "replaced_by_code": 20,
+    "publisher_mentions": 12,
+    "payload_leaks": 0,
+    "fallback_digests": 0,
+    "fallback_texts": 0
+   },
+   "events": [],
+   "usd": 0.1365,
+   "payload_tokens": 5228,
+   "git_sha": "3451310",
+   "prompt_version": "77c7868787e3",
+   "data_only": 39.99,
+   "carry": {
+    "ran": true,
+    "carried": 2,
+    "usable_rows": 1,
+    "history_rows": 2
+   },
+   "carry_log": [
+    {
+     "from": "2026-11-07",
+     "level": 1,
+     "question": "F4"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 2,
+     "question": "F5"
+    }
+   ]
+  },
+  {
+   "iso2": "US",
+   "score_12m": 28,
+   "score_3m": 25,
+   "ledgers": {
+    "friction": [
+     30,
+     29.63,
+     29.94
+    ],
+    "order": [
+     31,
+     28.69,
+     33.33
+    ],
+    "information": [
+     21,
+     20.58,
+     20.58
+    ],
+    "edge": [
+     19,
+     38.98,
+     0.0
+    ]
+   },
+   "answered": 7,
+   "carried": 5,
+   "k": 5,
+   "extended": true,
+   "tied": [],
+   "quote_nulled": 0,
+   "title_only_nulled": 0,
+   "no_evidence": 0,
+   "t5": 2,
+   "selected": 20,
+   "shortfall": 0,
+   "title_only_dropped": 11,
+   "post_same_story": 0,
+   "passes": 1,
+   "mask": {
+    "hits": 34,
+    "regenerated": 13,
+    "replaced_by_code": 26,
+    "publisher_mentions": 3,
+    "payload_leaks": 0,
+    "fallback_digests": 0,
+    "fallback_texts": 0
+   },
+   "events": [
+    [
+     "a11",
+     "2027-01-01",
+     "Opportunity Zones designations take effect",
+     "down"
+    ]
+   ],
+   "usd": 0.1724,
+   "payload_tokens": 6950,
+   "git_sha": "3451310",
+   "prompt_version": "77c7868787e3",
+   "data_only": 28.436,
+   "carry": {
+    "ran": true,
+    "carried": 5,
+    "usable_rows": 1,
+    "history_rows": 2
+   },
+   "carry_log": [
+    {
+     "from": "2026-11-07",
+     "level": 1,
+     "question": "F4"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 1,
+     "question": "O3"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 1,
+     "question": "O4"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 1,
+     "question": "O6"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 0,
+     "question": "E1"
+    }
+   ]
+  },
+  {
+   "iso2": "HK",
+   "score_12m": 25,
+   "score_3m": 25,
+   "ledgers": {
+    "friction": [
+     9,
+     6.22,
+     11.44
+    ],
+    "order": [
+     21,
+     20.07,
+     22.53
+    ],
+    "information": [
+     67,
+     66.82,
+     66.82
+    ],
+    "edge": [
+     10,
+     19.58,
+     0.0
+    ]
+   },
+   "answered": 4,
+   "carried": 3,
+   "k": 3,
+   "extended": false,
+   "tied": [],
+   "quote_nulled": 0,
+   "title_only_nulled": 0,
+   "no_evidence": 0,
+   "t5": 1,
+   "selected": 17,
+   "shortfall": 3,
+   "title_only_dropped": 4,
+   "post_same_story": 4,
+   "passes": 3,
+   "mask": {
+    "hits": 12,
+    "regenerated": 3,
+    "replaced_by_code": 6,
+    "publisher_mentions": 9,
+    "payload_leaks": 0,
+    "fallback_digests": 0,
+    "fallback_texts": 0
+   },
+   "events": [],
+   "usd": 0.0887,
+   "payload_tokens": 5792,
+   "git_sha": "3451310",
+   "prompt_version": "77c7868787e3",
+   "data_only": 25.416,
+   "carry": {
+    "ran": true,
+    "carried": 3,
+    "usable_rows": 1,
+    "history_rows": 2
+   },
+   "carry_log": [
+    {
+     "from": "2026-11-07",
+     "level": 0,
+     "question": "F3"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 0,
+     "question": "O1"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 2,
+     "question": "O3"
+    }
+   ]
+  },
+  {
+   "iso2": "PT",
+   "score_12m": 21,
+   "score_3m": 24,
+   "ledgers": {
+    "friction": [
+     25,
+     19.71,
+     30.69
+    ],
+    "order": [
+     26,
+     23.91,
+     28.44
+    ],
+    "information": [
+     3,
+     2.89,
+     2.89
+    ],
+    "edge": [
+     15,
+     29.37,
+     0.0
+    ]
+   },
+   "answered": 5,
+   "carried": 1,
+   "k": 5,
+   "extended": true,
+   "tied": [],
+   "quote_nulled": 0,
+   "title_only_nulled": 0,
+   "no_evidence": 0,
+   "t5": 2,
+   "selected": 12,
+   "shortfall": 8,
+   "title_only_dropped": 2,
+   "post_same_story": 0,
+   "passes": 1,
+   "mask": {
+    "hits": 13,
+    "regenerated": 6,
+    "replaced_by_code": 3,
+    "publisher_mentions": 1,
+    "payload_leaks": 0,
+    "fallback_digests": 0,
+    "fallback_texts": 0
+   },
+   "events": [
+    [
+     "a1",
+     "2026-11-18",
+     "University students will march to protest rising h",
+     "up"
+    ]
+   ],
+   "usd": 0.1344,
+   "payload_tokens": 5105,
+   "git_sha": "3451310",
+   "prompt_version": "77c7868787e3",
+   "data_only": 21.13,
+   "carry": {
+    "ran": true,
+    "carried": 1,
+    "usable_rows": 1,
+    "history_rows": 2
+   },
+   "carry_log": [
+    {
+     "from": "2026-11-07",
+     "level": 0,
+     "question": "O5"
+    }
+   ]
+  },
+  {
+   "iso2": "TW",
+   "score_12m": 21,
+   "score_3m": 21,
+   "ledgers": {
+    "friction": [
+     24,
+     20.27,
+     28.38
+    ],
+    "order": [
+     22,
+     14.87,
+     28.27
+    ],
+    "information": [
+     14,
+     14.43,
+     14.43
+    ],
+    "edge": [
+     0,
+     0.0,
+     0.0
+    ]
+   },
+   "answered": 4,
+   "carried": 5,
+   "k": 3,
+   "extended": false,
+   "tied": [],
+   "quote_nulled": 3,
+   "title_only_nulled": 0,
+   "no_evidence": 0,
+   "t5": 1,
+   "selected": 20,
+   "shortfall": 0,
+   "title_only_dropped": 4,
+   "post_same_story": 2,
+   "passes": 2,
+   "mask": {
+    "hits": 0,
+    "regenerated": 0,
+    "replaced_by_code": 0,
+    "publisher_mentions": 12,
+    "payload_leaks": 0,
+    "fallback_digests": 0,
+    "fallback_texts": 0
+   },
+   "events": [],
+   "usd": 0.0892,
+   "payload_tokens": 6581,
+   "git_sha": "3451310",
+   "prompt_version": "77c7868787e3",
+   "data_only": 21.242,
+   "carry": {
+    "ran": true,
+    "carried": 5,
+    "usable_rows": 1,
+    "history_rows": 2
+   },
+   "carry_log": [
+    {
+     "from": "2026-11-07",
+     "level": 0,
+     "question": "F1"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 0,
+     "question": "F4"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 1,
+     "question": "O4"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 2,
+     "question": "O5"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 0,
+     "question": "E1"
+    }
+   ]
+  }
+ ],
+ "ledger": [
+  [
+   "etl",
+   "HK",
+   "ok",
+   67086,
+   4617,
+   0.088736,
+   {
+    "seconds": 142.5
+   }
+  ],
+  [
+   "etl",
+   "KW",
+   "ok",
+   84276,
+   8715,
+   0.136548,
+   {
+    "seconds": 166.9
+   }
+  ],
+  [
+   "etl",
+   "PT",
+   "ok",
+   74871,
+   8067,
+   0.134365,
+   {
+    "seconds": 172.7
+   }
+  ],
+  [
+   "etl",
+   "TW",
+   "ok",
+   35012,
+   2856,
+   0.089239,
+   {
+    "seconds": 99.0
+   }
+  ],
+  [
+   "etl",
+   "US",
+   "ok",
+   130259,
+   11878,
+   0.17242,
+   {
+    "seconds": 271.5
+   }
+  ],
+  [
+   "report",
+   "",
+   "ok",
+   0,
+   0,
+   0.0,
+   {
+    "flags": [
+     "US: 2 schema violation(s) in the scorer's answer",
+     "TW: 6 schema violation(s) in the scorer's answer"
+    ],
+    "countries_scored": 5
+   }
+  ],
+  [
+   "run",
+   "",
+   "ok",
+   391504,
+   36133,
+   0.621307,
+   {
+    "failed": [],
+    "countries": 5
+   }
+  ]
+ ]
+}

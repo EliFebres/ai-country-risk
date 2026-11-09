@@ -1,0 +1,2041 @@
+{
+ "country_iso2": "KW",
+ "run_date": "2026-11-09",
+ "score_12m": 40,
+ "score_3m": 40,
+ "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+ "git_sha": "345131028f9c05d474313c54410e66575c6c715b",
+ "payload_tokens": 5228,
+ "manifest": {
+  "census": {
+   "mask": {
+    "hits": 26,
+    "regenerated": 10,
+    "payload_leaks": 0,
+    "digests_cached": 0,
+    "fallback_texts": 0,
+    "rewrites_cached": 0,
+    "fallback_digests": 0,
+    "replaced_by_code": 20,
+    "digests_generated": 16,
+    "publisher_mentions": 12,
+    "rewrites_generated": 3
+   },
+   "as_of": "2026-11-09",
+   "articles": {
+    "budget": 20,
+    "fetched": 40,
+    "rejected": [
+     {
+      "url": "https://kuwaittimes.com/article/53020/business/trumps-trouncing-underscores-political-poison-of-inflation/",
+      "label": "irrelevant",
+      "title": "Trump’s trouncing underscores political poison of inflation - Kuwait Times",
+      "reason": "The article is primarily about US politics and inflation, with no direct relevance to Kuwait's investable risk.",
+      "themes": [
+       "friction"
+      ],
+      "publisher": "Kuwait Times"
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53246/world/for-zoomers-blue-wave-in-us-election-evokes-optimism/",
+      "label": "irrelevant",
+      "title": "For Zoomers, blue wave in US election evokes ‘optimism’ - Kuwait Times",
+      "reason": "The article focuses on cultural and social trends related to US elections, with no relevance to Kuwait's investable risk.",
+      "themes": [
+       "order"
+      ],
+      "publisher": "Kuwait Times"
+     },
+     {
+      "url": "https://timeskuwait.com/court-jails-gulf-woman-for-10-years-over-maids-death/",
+      "label": "irrelevant",
+      "title": "Court jails Gulf woman for 10 years over maid’s death - Times Kuwait",
+      "reason": "\"death of her domestic worker\" and \"manslaughter\": ordinary crime involving a private individual.",
+      "themes": [
+       "order"
+      ],
+      "publisher": "Times Kuwait"
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53221/world/impeached-paraguay-leader-charged-over-shock-collapse-of-bank/",
+      "label": "irrelevant",
+      "title": "Impeached Paraguay leader charged over shock collapse of bank - Kuwait Times",
+      "reason": "The article discusses events in Paraguay, with no direct relevance to Kuwait's investable risk.",
+      "themes": [
+       "order"
+      ],
+      "publisher": "Kuwait Times"
+     },
+     {
+      "url": "https://www.arabtimesonline.com/news/kuwait-court-sentences-bangladeshi-man-to-death-for-stabbing-friend-over-wifes-photos-on-facebook/",
+      "label": "irrelevant",
+      "title": "Kuwait Court Sentences Bangladeshi Man to Death for Stabbing Friend over Wife's Photos on Facebook - Arab Times Kuwait News",
+      "reason": "\"murdering his friend over a dispute regarding private photographs\": ordinary crime involving private individuals.",
+      "themes": [
+       "order"
+      ],
+      "publisher": "Arab Times Kuwait News"
+     },
+     {
+      "url": "https://timeskuwait.com/israeli-president-tasks-gadi-eisenkot-with-forming-new-government/",
+      "label": "irrelevant",
+      "title": "Israeli president tasks Gadi Eisenkot with forming new government - Times Kuwait",
+      "reason": "Kuwait is only mentioned as the source of the article, and the events discussed pertain to Israel's political situation.",
+      "themes": [
+       "order"
+      ],
+      "publisher": "Times Kuwait"
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53183/world/cuban-journalist-says-wont-shut-up-after-arrest/",
+      "label": "irrelevant",
+      "title": "Cuban journalist says won’t ‘shut up’ after arrest - Kuwait Times",
+      "reason": "The article focuses on events in Cuba and the actions of Cuban authorities, with no direct implications for Kuwait.",
+      "themes": [
+       "information"
+      ],
+      "publisher": "Kuwait Times"
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53034/opinion/meet-five-kuwaiti-women-breaking-barriers-in-stem/",
+      "label": "irrelevant",
+      "title": "Meet five Kuwaiti women breaking barriers in STEM - Kuwait Times",
+      "reason": "The article focuses on individual achievements in STEM and does not address any public matters or actions by the state.",
+      "themes": [
+       "edge"
+      ],
+      "publisher": "Kuwait Times"
+     },
+     {
+      "url": "https://www.britannica.com/place/Kuwait/Demographic-trends",
+      "label": "irrelevant",
+      "title": "Kuwait - Population, Migration, Urbanization - Britannica",
+      "reason": "\"Population, Migration, Urbanization\": an academic article that does not involve any new developments or decisions by Kuwait's government.",
+      "themes": [
+       "broad"
+      ],
+      "publisher": "Britannica"
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53236/lifestyle/eurovision-brings-pop-and-politics-to-asia/",
+      "label": "irrelevant",
+      "title": "Eurovision brings pop and politics to Asia - Kuwait Times",
+      "reason": "\"Eurovision staged its first Asia edition\" and \"the world’s biggest televised live music event\": the article is about a cultural event, not relevant to Kuwait's investable risk.",
+      "themes": [
+       "broad"
+      ],
+      "publisher": "Kuwait Times"
+     },
+     {
+      "url": "https://kuwaittimes.com/article/52981/world/new-zealand-votes-with-economy-cost-of-living-in-focus/",
+      "label": "irrelevant",
+      "title": "New Zealand votes with economy, cost of living in focus - Kuwait Times",
+      "reason": "New Zealand is only mentioned as the location of the election, and the consequences fall on New Zealand, not Kuwait.",
+      "themes": [
+       "broad"
+      ],
+      "publisher": "Kuwait Times"
+     }
+    ],
+    "selected": 16,
+    "selection": {
+     "passes": 1,
+     "selected": 16,
+     "shortfall": 4,
+     "t5_selected": 2,
+     "story_checks": 1,
+     "refill_digests": 0,
+     "title_only_dropped": 2,
+     "blocked_after_selection": 0,
+     "final_story_check_clean": true,
+     "post_selection_same_story": 0,
+     "title_only_dropped_articles": [
+      {
+       "url": "https://tvoneusa.com/tag/federal-cabinet-approves-kp-governor-powers-transfer-kuwait-defense-deal-2026/",
+       "pass": 1,
+       "title": "federal-cabinet-approves-kp-governor-powers-transfer-kuwait-defense-deal-2026 Archives - TV ONE USA"
+      },
+      {
+       "url": "https://globalinvestigationsreview.com/article/kuwait-pension-fund-victim-of-breathtaking-corruption",
+       "pass": 1,
+       "title": "Kuwait pension fund victim of “breathtaking” corruption - Global Investigations Review"
+      }
+     ]
+    },
+    "query_name": "Kuwait",
+    "body_status": {
+     "full": 3,
+     "digest-only": 13
+    },
+    "gate_labels": [
+     {
+      "url": "https://globalinvestigationsreview.com/article/kuwait-pension-fund-victim-of-breathtaking-corruption",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "'victim of 'breathtaking' corruption': Kuwait's own state is implicated in corruption affecting its pension fund.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "snippet",
+      "what_happened": "Kuwait's pension fund has been identified as a victim of significant corruption, described as 'breathtaking'.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://usafacts.org/answers/what-is-the-average-us-tariff-rate-overall/countries/kuwait/",
+      "test": "T5",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"average effective tariff rate on goods from Kuwait was 0.19%\": news about tariffs affecting trade with Kuwait.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The article discusses the average effective tariff rate on goods from Kuwait, which was 0.19% in August 2026, as reported by USAFacts.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53020/business/trumps-trouncing-underscores-political-poison-of-inflation/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "The article is primarily about US politics and inflation, with no direct relevance to Kuwait's investable risk.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The article discusses the political consequences of inflation in the United States, particularly focusing on the midterm elections and the defeat of Donald Trump's Republican Party.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kpmg.com/kw/en/insights/2026/10/kuwait-approves-cbc-mcaa.html",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"Kuwait published Decree-Law No. 116 of 2026\": Kuwait's own state acted officially regarding tax reporting regulations.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Kuwait published Decree-Law No. 116 of 2026, approving the Multilateral Competent Authority Agreement on the Exchange of Country-by-Country Reports.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+      "test": "T2",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"annual inflation across the Gulf Cooperation Council rose to 2.2 percent\" indicates a measurement of Kuwait's economy.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The GCC Statistical Center reported that annual inflation across the Gulf Cooperation Council, including Kuwait, rose to 2.2 percent in July from 2.1 percent in June.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/52930/business/from-grains-to-chicken-and-milk-india-faces-lingering-food-inflation/",
+      "test": "T5",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"rising food prices could further weaken discretionary consumption across the economy\": news about India's economy, a main trade partner of Kuwait.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Farmers in India face water shortages and rising food prices due to a weak monsoon, which could impact food inflation and consumption.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53057/business/fuel-prices-drive-highest-philippine-inflation-in-years/",
+      "test": "T5",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"Soaring fuel prices driven by the Middle East conflict\" indicates that the situation in the Middle East, including Kuwait's oil exports, is impacting the Philippine economy.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Soaring fuel prices driven by the Middle East conflict have pushed inflation in the Philippines to a 44-month high of 7.8 percent.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://abbtakk.tv/cabinet-approves-pakistan-kuwait-defence-pact-new-currency-designs/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"defence cooperation agreement\" and \"military collaboration\": Kuwait's own state acts officially regarding military matters.",
+      "themes": [
+       "friction"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The federal cabinet of Pakistan ratified a defence cooperation agreement with Kuwait, focusing on military collaboration.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53246/world/for-zoomers-blue-wave-in-us-election-evokes-optimism/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "The article focuses on cultural and social trends related to US elections, with no relevance to Kuwait's investable risk.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [],
+      "exclusion": "E1",
+      "input_mode": "body",
+      "what_happened": "The article discusses the impact of the recent US elections on young voters and their political sentiments.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kw.usembassy.gov/travel-advisory-kuwait-october-2026/",
+      "test": "T4",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"increased Iranian-supported Houthi regional aggression\" and \"potential armed attacks\" indicate external threats to Kuwait.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The U.S. Embassy updated its travel advisory for Kuwait due to increased threats from Iranian-supported Houthis and potential armed attacks.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://thediplomaticinsight.com/cabinet-ratifies-defense-cooperation-agreement-kuwait/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"ratified a defense cooperation agreement with Kuwait\": Kuwait's own government is formalizing military collaboration.",
+      "themes": [
+       "order",
+       "edge"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Pakistan's federal cabinet ratified a defense cooperation agreement with Kuwait, formalizing military collaboration between the two countries.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://tvoneusa.com/tag/federal-cabinet-approves-kp-governor-powers-transfer-kuwait-defense-deal-2026/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"federal cabinet approves the transfer of powers to the governor in relation to a defense deal\": Kuwait's own state acting on public matters.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "snippet",
+      "what_happened": "Kuwait's federal cabinet approved the transfer of powers to the governor in relation to a defense deal.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://timeskuwait.com/court-jails-gulf-woman-for-10-years-over-maids-death/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "\"death of her domestic worker\" and \"manslaughter\": ordinary crime involving a private individual.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [],
+      "exclusion": "E5",
+      "input_mode": "body",
+      "what_happened": "A Gulf woman was sentenced to 10 years in prison for the manslaughter of her domestic worker after the charge was reduced from premeditated murder.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://tribune.com.pk/story/2638734/cabinet-ratifies-defence-pact-with-kuwait",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"ratified the Pakistan-Kuwait Defence Cooperation Agreement\": Kuwait's government is officially acting on a public matter related to defence.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The Pakistani cabinet ratified a defence cooperation agreement with Kuwait to enhance bilateral defence coordination.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://ina.iq/en/international/53516-pakistani-cabinet-ratifies-defense-cooperation-agreement-with-kuwait.html",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"ratified a defense cooperation agreement with Kuwait\": Kuwait's own government is acting officially to strengthen military ties.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The Pakistani Cabinet ratified a defense cooperation agreement with Kuwait to strengthen military cooperation between the two nations.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53221/world/impeached-paraguay-leader-charged-over-shock-collapse-of-bank/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "The article discusses events in Paraguay, with no direct relevance to Kuwait's investable risk.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Paraguayan prosecutors charged former president Santiago Pena over a banking crisis that led to his impeachment and major protests.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.arabtimesonline.com/news/kuwait-court-sentences-bangladeshi-man-to-death-for-stabbing-friend-over-wifes-photos-on-facebook/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "\"murdering his friend over a dispute regarding private photographs\": ordinary crime involving private individuals.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [],
+      "exclusion": "E5",
+      "input_mode": "body",
+      "what_happened": "A Bangladeshi man was sentenced to death by a Kuwaiti court for murdering his friend over a dispute regarding private photographs posted on Facebook.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://timeskuwait.com/israeli-president-tasks-gadi-eisenkot-with-forming-new-government/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "Kuwait is only mentioned as the source of the article, and the events discussed pertain to Israel's political situation.",
+      "themes": [
+       "order"
+      ],
+      "ledgers": [],
+      "exclusion": "E7",
+      "input_mode": "body",
+      "what_happened": "Israeli President Isaac Herzog tasked former military chief Gadi Eisenkot with forming a new government following recent parliamentary elections.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://africa.businessinsider.com/local/markets/africas-most-powerful-military-joins-bahrain-kuwait-and-syria-in-fierce-backlash-over/2ee22cn",
+      "test": "T4",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"Kuwait condemned recent Houthi missile and drone attacks on Saudi Arabia\": Kuwait's government is acting on a public matter related to regional security.",
+      "themes": [
+       "security"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Kuwait condemned recent Houthi missile and drone attacks on Saudi Arabia's Aramco, joining Egypt and Bahrain in expressing solidarity with Saudi Arabia.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://thearabweekly.com/basra-tensions-expose-growing-security-risks-iraq-and-kuwait",
+      "test": "T5",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"growing security risks for Iraq and Kuwait\": the article addresses security concerns affecting Kuwait.",
+      "themes": [
+       "security"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "snippet",
+      "what_happened": "The article discusses growing security risks for Iraq and Kuwait due to tensions in Basra.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53083/business/us-slaps-sanctions-on-indian-turkish-companies-and-people-for-aiding-iran/",
+      "test": "T5",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"sanctions on Indian and Turkish companies and individuals for aiding Iran\": the sanctions affect Kuwait's trade partners and its oil export dynamics.",
+      "themes": [
+       "security"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The US Treasury imposed sanctions on Indian and Turkish companies and individuals for aiding Iran, impacting their ability to sell oil.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.rediff.com/news/report/pakistan-ratifies-defence-cooperation-pact-with-kuwait/20261104.htm",
+      "test": "T4",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"defence cooperation agreement\" and \"strengthen military ties\": an outside state acts on Kuwait regarding military cooperation.",
+      "themes": [
+       "security"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Pakistan ratified a defence cooperation agreement with Kuwait to strengthen military ties.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"defence cooperation agreement\" and \"strengthening their bilateral military cooperation\": Kuwait's government is officially acting on a military agreement.",
+      "themes": [
+       "security"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Pakistan and Kuwait have officially approved a comprehensive defence cooperation agreement to strengthen military ties between the two countries.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://timeskuwait.com/kuwait-army-wraps-up-desert-flash-1-military-exercise/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "Kuwait Army's military exercise under the patronage of the Chief of the General Staff indicates state action regarding military readiness.",
+      "themes": [
+       "security"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The Kuwait Army concluded the 'Desert Flash 1' military exercise focused on operational preparedness and emergency communications.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.arabtimesonline.com/news/kuwait-steps-up-military-readiness-food-supplies-and-medical-stockpiles-amid-regional-developments/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"Kuwait’s commitment to maintaining the highest levels of preparedness to safeguard national security\": Kuwait's own state acting on public matters regarding security.",
+      "themes": [
+       "security"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Kuwait's First Deputy Prime Minister and Minister of Interior Sheikh Fahad Al-Yousef reaffirmed the country's commitment to maintaining military readiness and public safety amid regional developments.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53183/world/cuban-journalist-says-wont-shut-up-after-arrest/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "The article focuses on events in Cuba and the actions of Cuban authorities, with no direct implications for Kuwait.",
+      "themes": [
+       "information"
+      ],
+      "ledgers": [],
+      "exclusion": "E8",
+      "input_mode": "body",
+      "what_happened": "Cuban journalist Yoani Sanchez was arrested by authorities in Havana and later released, denouncing police threats against her.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.law.com/international-edition/2026/11/06/baker-mckenzie-scores-win-for-kuwait-wealth-fund-in-london-case-involving-sovereign-immunity/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"secured a victory for its longstanding client, the Kuwait Investment Authority\": Kuwait's own state acting in a legal matter.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Baker McKenzie won a case for the Kuwait Investment Authority against its former London chief regarding claims of unfair dismissal and whistleblowing.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.zawya.com/en/press-release/companies-news/markaz-wins-best-investment-bank-in-kuwait-at-meed-mena-banking-excellence-awards-2026-2126428",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "none",
+      "reason": "''Best Investment Bank in Kuwait' at the MEED MENA Banking Excellence Awards': Kuwait's own financial institution recognized for its performance.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Kuwait Financial Centre 'Markaz' was awarded 'Best Investment Bank in Kuwait' at the MEED MENA Banking Excellence Awards 2026.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53258/kuwait/kisr-develops-polymer-fibers-to-improve-reinforced-concrete/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"KISR announced the completion of a research project\": Kuwait's own state institution is acting on a public matter related to construction and industry.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The Kuwait Institute for Scientific Research (KISR) announced the completion of a project to develop synthetic polymer fibers to improve reinforced concrete properties.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.solicitorsjournal.com/sjarticle/al-ateeqi-v-kuwait-investment-authority-eat-upholds-state-immunity-in-sovereign-wealth-fund-whistleblowing-claim?category=none",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"upholds state immunity in sovereign wealth fund whistleblowing claim\": Kuwait's own state acting on a legal matter involving its sovereign wealth fund.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The Employment Appeal Tribunal upheld the Kuwait Investment Authority's immunity from whistleblowing claims made by its former London CEO.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.arabtimesonline.com/news/kuwait-economic-zones-67-pct-complete/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"Kuwait is expected to see a significant increase in foreign investment\" indicates official government action on economic development.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Kuwait's government is advancing the construction of economic zones to attract foreign investment and diversify its economy.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://timeskuwait.com/kuwait-moves-to-turn-seven-historic-landmarks-into-investment-hotel-destinations/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"Kuwait is preparing to turn seven historic buildings and sites into commercial, hotel and cultural destinations\": this involves government action on public matters related to economic development.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Kuwait is preparing to turn seven historic buildings and sites into commercial, hotel and cultural destinations as part of a broader economic initiative.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53034/opinion/meet-five-kuwaiti-women-breaking-barriers-in-stem/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "The article focuses on individual achievements in STEM and does not address any public matters or actions by the state.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The article highlights the achievements of five Kuwaiti women in STEM fields, showcasing their contributions to Kuwait's oil industry and technology.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.zawya.com/en/business/gcc/direct-investment-inflows-into-kuwait-reach-3.04bln-kdipa-2044673",
+      "test": "T2",
+      "label": "relevant",
+      "ledger": "order_security",
+      "reason": "\"Direct investment inflows into the State of Kuwait rose to KD 948 million\": a measurement of Kuwait's economy and investment climate.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [
+       "order"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The Kuwait Direct Investment Promotion Authority reported that direct investment inflows into Kuwait rose to KD 948 million during the fiscal year 2025/2026, reflecting the country's growing attractiveness to international capital.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53225/kuwait/private-universities-council-approves-new-auk-masters-programs/",
+      "test": "T1",
+      "label": "relevant",
+      "ledger": "none",
+      "reason": "\"approved the launch of two master’s programs\" and \"discussed efforts to raise the quality of academic programs\": Kuwait's own state acting on public matters.",
+      "themes": [
+       "edge"
+      ],
+      "ledgers": [],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "The Private Universities Council in Kuwait approved new master's programs at the American University of Kuwait and discussed efforts to improve academic quality.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://www.britannica.com/place/Kuwait/Demographic-trends",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "\"Population, Migration, Urbanization\": an academic article that does not involve any new developments or decisions by Kuwait's government.",
+      "themes": [
+       "broad"
+      ],
+      "ledgers": [],
+      "exclusion": "E2",
+      "input_mode": "snippet",
+      "what_happened": "Britannica published an article discussing Kuwait's population, migration, and urbanization.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53236/lifestyle/eurovision-brings-pop-and-politics-to-asia/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "\"Eurovision staged its first Asia edition\" and \"the world’s biggest televised live music event\": the article is about a cultural event, not relevant to Kuwait's investable risk.",
+      "themes": [
+       "broad"
+      ],
+      "ledgers": [],
+      "exclusion": "E1",
+      "input_mode": "body",
+      "what_happened": "Eurovision staged its first Asia edition in Bangkok, featuring various countries competing in the song contest.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/53082/business/indonesia-economy-picks-up-pace-in-third-quarter/",
+      "test": "T5",
+      "label": "relevant",
+      "ledger": "friction",
+      "reason": "\"Indonesia's economic growth picked up pace\" and \"strong household spending and investment\": news about one of Kuwait's main trade partners' economies.",
+      "themes": [
+       "broad"
+      ],
+      "ledgers": [
+       "friction"
+      ],
+      "exclusion": "none",
+      "input_mode": "body",
+      "what_happened": "Indonesia's economy showed growth in the third quarter, driven by household spending and investment, which could impact Kuwait's trade relations.",
+      "high_impact_event": false
+     },
+     {
+      "url": "https://kuwaittimes.com/article/52981/world/new-zealand-votes-with-economy-cost-of-living-in-focus/",
+      "test": "none",
+      "label": "irrelevant",
+      "ledger": "none",
+      "reason": "New Zealand is only mentioned as the location of the election, and the consequences fall on New Zealand, not Kuwait.",
+      "themes": [
+       "broad"
+      ],
+      "ledgers": [],
+      "exclusion": "E7",
+      "input_mode": "body",
+      "what_happened": "New Zealanders are voting in an election focused on the economy and cost of living, with key issues including inflation and rising unemployment.",
+      "high_impact_event": false
+     }
+    ],
+    "passed_gate": 28,
+    "after_dedupe": 39,
+    "body_quality": {
+     "full": 16
+    },
+    "digests_cached": 18,
+    "digests_failed": 0,
+    "digests_clipped": 0,
+    "duplicate_slots": 0,
+    "digests_generated": 0,
+    "per_theme_fetched": {
+     "edge": 10,
+     "broad": 4,
+     "order": 10,
+     "friction": 8,
+     "security": 7,
+     "information": 1
+    },
+    "rejected_by_label": {
+     "irrelevant": 11
+    },
+    "per_theme_selected": {
+     "edge": 7,
+     "order": 1,
+     "friction": 3,
+     "security": 5
+    },
+    "per_ledger_selected": {
+     "edge": 0,
+     "order": 8,
+     "friction": 6,
+     "information": 0
+    },
+    "stale_republications": 0,
+    "digests_truncated_retry": 0
+   },
+   "versions": {
+    "seed": 42,
+    "git_sha": "345131028f9c05d474313c54410e66575c6c715b",
+    "gate_model": "gpt-4o-mini-2024-07-18",
+    "digest_model": "gpt-4o-mini-2024-07-18",
+    "scorer_input": "masked",
+    "scoring_calls": 5,
+    "scoring_model": "gpt-4o-2024-08-06",
+    "merge_extended": true,
+    "payload_tokens": 5228,
+    "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+    "gate_input_mode": "body",
+    "gazetteer_version": "58588569283f1d6cc1e3a1150686bf20a5073ccaf9cf2b7ec67a988dbe6328db",
+    "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+    "schema_violations": 0,
+    "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
+    "digest_prompt_version": "c54e4046d2613330d830ce98d98738385f81ae9b9854068d7b54afbb43f213fd",
+    "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
+    "rewrite_prompt_version": "146eb6b73913458a374ded9c000d1df2d7a877de86eb4fdb05dc805b2d17fbae",
+    "relevance_prompt_version": "acd3855cf823ac2aa2fd1a11ff2b451221251de558398b1e2c46cad26a7de7d3",
+    "masked_digest_prompt_version": "41e2b4abe2d92e7478c9e60806cdaa1d47119e82704197363b0ee68410a87268"
+   },
+   "indicators": {
+    "dropped": [
+     {
+      "code": "SI.POV.GINI",
+      "label": "Income inequality (Gini)",
+      "ledger": "friction",
+      "reason": "unmapped",
+      "source": "World Bank WDI"
+     },
+     {
+      "code": "GC.XPN.INTP.RV.ZS",
+      "label": "Interest payments (% revenue)",
+      "ledger": "friction",
+      "reason": "unmapped",
+      "source": "World Bank WDI"
+     },
+     {
+      "code": "OECD.PISA.MEAN",
+      "label": "PISA mean score (maths/reading/science)",
+      "ledger": "edge",
+      "reason": "no row",
+      "source": "OECD PISA"
+     }
+    ],
+    "by_source": {
+     "OECD PISA": {
+      "expected": 1,
+      "resolved": 0
+     },
+     "V-Dem via OWID": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank SPI": {
+      "expected": 1,
+      "resolved": 1
+     },
+     "World Bank WDI": {
+      "expected": 7,
+      "resolved": 5
+     },
+     "World Bank WGI": {
+      "expected": 6,
+      "resolved": 6
+     },
+     "RSF World Press Freedom Index": {
+      "expected": 1,
+      "resolved": 1
+     }
+    },
+    "as_of_schemes": {
+     "first-seen": 9,
+     "source-published": 1,
+     "publication-lag-estimate": 4
+    },
+    "empty_ledgers": [],
+    "expected_by_ledger": {
+     "edge": 3,
+     "order": 5,
+     "friction": 6,
+     "information": 3
+    },
+    "resolved_by_ledger": {
+     "edge": 2,
+     "order": 5,
+     "friction": 4,
+     "information": 3
+    }
+   },
+   "country_iso2": "KW",
+   "evidence_coverage": 80,
+   "coverage_components": {
+    "weights": {
+     "freshness": 0.15,
+     "body_depth": 0.2,
+     "article_volume": 0.3,
+     "indicator_resolution": 0.35
+    },
+    "components": {
+     "freshness": 1.0,
+     "body_depth": 0.5938,
+     "article_volume": 0.8,
+     "indicator_resolution": 0.8333
+    }
+   },
+   "payload_fingerprint": "5f20e6969f48f45275cd2b3bf3ac768987a2e39b025f323f782a6e86207484ff"
+  },
+  "scoring": {
+   "carry": {
+    "ran": true,
+    "carried": 2,
+    "usable_rows": 1,
+    "history_rows": 2
+   },
+   "merge": {
+    "k": 5,
+    "tied": [],
+    "votes": {
+     "E1": [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     "F1": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "F2": [
+      1,
+      1,
+      1,
+      1,
+      1
+     ],
+     "F3": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "F4": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "F5": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "F6": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "I1": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "I2": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "I3": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "O1": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "O2": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "O3": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "O4": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ],
+     "O5": [
+      1,
+      1,
+      2,
+      1,
+      2
+     ],
+     "O6": [
+      null,
+      null,
+      null,
+      null,
+      null
+     ]
+    },
+    "extended": true,
+    "unanimous": false
+   },
+   "events": {
+    "sum": 0,
+    "delta": 0,
+    "valid": [],
+    "score_3m": 40,
+    "per_event": []
+   },
+   "ledgers": {
+    "edge": {
+     "data": 47.37,
+     "mode": "both",
+     "news": 0.0,
+     "score": 23.68
+    },
+    "order": {
+     "data": 39.33,
+     "mode": "both",
+     "news": 36.94,
+     "score": 38.13
+    },
+    "friction": {
+     "data": 27.99,
+     "mode": "both",
+     "news": 30.16,
+     "score": 29.07
+    },
+    "information": {
+     "data": 65.55,
+     "mode": "both",
+     "news": 65.55,
+     "score": 65.55
+    }
+   },
+   "score_3m": 40,
+   "carry_log": [
+    {
+     "from": "2026-11-07",
+     "level": 1,
+     "question": "F4"
+    },
+    {
+     "from": "2026-11-07",
+     "level": 2,
+     "question": "F5"
+    }
+   ],
+   "composite": {
+    "raw": 39.99,
+    "score_12m": 40,
+    "renormalised": false,
+    "weights_used": {
+     "order": 0.4,
+     "friction": 0.4,
+     "information": 0.2
+    },
+    "missing_ledgers": []
+   },
+   "constants": {
+    "event_cap": 9,
+    "level_max": 4,
+    "null_item": "data_score",
+    "event_step": 3,
+    "news_scale": 25,
+    "ledger_weights": {
+     "data": 0.5,
+     "news": 0.5
+    },
+    "composite_weights": {
+     "edge": 0.0,
+     "order": 0.4,
+     "friction": 0.4,
+     "information": 0.2
+    },
+    "carry_forward_runs": 8,
+    "event_horizon_days": 90,
+    "carry_forward_max_days": 70
+   },
+   "questions": {
+    "E1": {
+     "note": "Business formation and investment are strong and rising with increased direct investment inflows.",
+     "level": 0,
+     "quote": "Direct investment inflows into the country rose to local currency 948 million during the fiscal year 2025/2026.",
+     "carried": false,
+     "evidence": [
+      "a1",
+      "a15",
+      "a16",
+      "a2",
+      "a3",
+      "a5",
+      "a6"
+     ],
+     "carried_from": null
+    },
+    "F1": {
+     "note": "Routine fiscal policy change with the publication of a decree-law for tax reporting.",
+     "level": 1,
+     "quote": "a decree-law was published approving an agreement for the automatic exchange of Country-by-Country Reports.",
+     "carried": false,
+     "evidence": [
+      "a7"
+     ],
+     "carried_from": null
+    },
+    "F2": {
+     "note": "Inflation is moderately above target at 2.2%, indicating minor stress.",
+     "level": 1,
+     "quote": "Annual inflation across the Gulf Cooperation Council rose to 2.2 percent in July from 2.1 percent in June.",
+     "carried": false,
+     "evidence": [
+      "a14"
+     ],
+     "carried_from": null
+    },
+    "F3": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "F4": {
+     "note": "Kuwait is working to enhance transparency and good governance in procurement, indicating routine regulatory updates.",
+     "level": 1,
+     "quote": "",
+     "carried": true,
+     "evidence": [
+      "2026-11-07:a15"
+     ],
+     "carried_from": "2026-11-07"
+    },
+    "F5": {
+     "note": "A corruption scandal involving the Kuwait pension fund was reported, indicating a significant issue.",
+     "level": 2,
+     "quote": "",
+     "carried": true,
+     "evidence": [
+      "2026-11-07:a3"
+     ],
+     "carried_from": "2026-11-07"
+    },
+    "F6": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "I1": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "I2": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "I3": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "O1": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "O2": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "O3": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "O4": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    },
+    "O5": {
+     "note": "There is diplomatic tension and regional aggression, indicating minor stress.",
+     "level": 1,
+     "quote": "The Travel Advisory for the country was updated to reflect the threat of increased regional aggression.",
+     "carried": false,
+     "evidence": [
+      "a10",
+      "a4"
+     ],
+     "carried_from": null
+    },
+    "O6": {
+     "note": "",
+     "level": null,
+     "quote": "",
+     "carried": false,
+     "evidence": [],
+     "carried_from": null
+    }
+   },
+   "score_12m": 40,
+   "indicators": {
+    "IQ.SPI.OVRL": {
+     "code": "IQ.SPI.OVRL",
+     "score": 53.25,
+     "value": 63.3754,
+     "ledger": "information",
+     "period": 2024,
+     "clamped": false,
+     "scaled_input": 63.3754
+    },
+    "FP.CPI.TOTL.ZG": {
+     "code": "FP.CPI.TOTL.ZG",
+     "score": 0.0,
+     "value": 2.362,
+     "ledger": "friction",
+     "period": 2025,
+     "clamped": true,
+     "scaled_input": 0.362
+    },
+    "GOV_WGI_CC.EST": {
+     "code": "GOV_WGI_CC.EST",
+     "score": 42.92,
+     "value": 0.2831,
+     "ledger": "friction",
+     "period": 2025,
+     "clamped": false,
+     "scaled_input": 0.2831
+    },
+    "GOV_WGI_GE.EST": {
+     "code": "GOV_WGI_GE.EST",
+     "score": 43.6,
+     "value": 0.2561,
+     "ledger": "order",
+     "period": 2025,
+     "clamped": false,
+     "scaled_input": 0.2561
+    },
+    "GOV_WGI_PV.EST": {
+     "code": "GOV_WGI_PV.EST",
+     "score": 30.15,
+     "value": 0.2939,
+     "ledger": "order",
+     "period": 2024,
+     "clamped": false,
+     "scaled_input": 0.2939
+    },
+    "GOV_WGI_RL.EST": {
+     "code": "GOV_WGI_RL.EST",
+     "score": 44.23,
+     "value": 0.2308,
+     "ledger": "order",
+     "period": 2024,
+     "clamped": false,
+     "scaled_input": 0.2308
+    },
+    "GOV_WGI_RQ.EST": {
+     "code": "GOV_WGI_RQ.EST",
+     "score": 41.05,
+     "value": 0.3581,
+     "ledger": "friction",
+     "period": 2025,
+     "clamped": false,
+     "scaled_input": 0.3581
+    },
+    "GOV_WGI_VA.EST": {
+     "code": "GOV_WGI_VA.EST",
+     "score": 69.12,
+     "value": -0.9191,
+     "ledger": "information",
+     "period": 2025,
+     "clamped": false,
+     "scaled_input": -0.9191
+    },
+    "RSF.PRESS.SCORE": {
+     "code": "RSF.PRESS.SCORE",
+     "score": 74.27,
+     "value": 40.44,
+     "ledger": "information",
+     "period": 2025,
+     "clamped": false,
+     "scaled_input": 40.44
+    },
+    "SE.XPD.TOTL.GD.ZS": {
+     "code": "SE.XPD.TOTL.GD.ZS",
+     "score": 0.0,
+     "value": 6.4359,
+     "ledger": "edge",
+     "period": 2024,
+     "clamped": true,
+     "scaled_input": 6.4359
+    },
+    "BX.KLT.DINV.WD.GD.ZS": {
+     "code": "BX.KLT.DINV.WD.GD.ZS",
+     "score": 94.74,
+     "value": 0.2628,
+     "ledger": "edge",
+     "period": 2025,
+     "clamped": false,
+     "scaled_input": 0.2628
+    }
+   },
+   "validation": {
+    "counts": {
+     "events_dropped": 0,
+     "evidence_dropped": 0,
+     "levels_out_of_range": 0,
+     "levels_nulled_title_only": 0,
+     "levels_nulled_no_evidence": 0,
+     "evidence_dropped_non_article": 0,
+     "levels_nulled_quote_not_found": 0,
+     "events_dropped_routine_deadline": 0,
+     "events_dropped_date_not_in_article": 0
+    },
+    "violations": []
+   },
+   "data_scores": {
+    "edge": 47.37,
+    "order": 39.33,
+    "friction": 27.99,
+    "information": 65.55
+   },
+   "ledger_ints": {
+    "edge": 24,
+    "order": 38,
+    "friction": 29,
+    "information": 66
+   },
+   "news_scores": {
+    "edge": {
+     "items": {
+      "E1": 0
+     },
+     "score": 0.0,
+     "levels": {
+      "E1": 0
+     },
+     "n_answered": 1,
+     "n_from_data": 0,
+     "n_questions": 1
+    },
+    "order": {
+     "items": {
+      "O1": 39.33,
+      "O2": 39.33,
+      "O3": 39.33,
+      "O4": 39.33,
+      "O5": 25,
+      "O6": 39.33
+     },
+     "score": 36.94,
+     "levels": {
+      "O1": null,
+      "O2": null,
+      "O3": null,
+      "O4": null,
+      "O5": 1,
+      "O6": null
+     },
+     "n_answered": 1,
+     "n_from_data": 5,
+     "n_questions": 6
+    },
+    "friction": {
+     "items": {
+      "F1": 25,
+      "F2": 25,
+      "F3": 27.99,
+      "F4": 25,
+      "F5": 50,
+      "F6": 27.99
+     },
+     "score": 30.16,
+     "levels": {
+      "F1": 1,
+      "F2": 1,
+      "F3": null,
+      "F4": 1,
+      "F5": 2,
+      "F6": null
+     },
+     "n_answered": 4,
+     "n_from_data": 2,
+     "n_questions": 6
+    },
+    "information": {
+     "items": {
+      "I1": 65.55,
+      "I2": 65.55,
+      "I3": 65.55
+     },
+     "score": 65.55,
+     "levels": {
+      "I1": null,
+      "I2": null,
+      "I3": null
+     },
+     "n_answered": 0,
+     "n_from_data": 3,
+     "n_questions": 3
+    }
+   },
+   "subscore_text": {
+    "edge": "edge 24 (both); data 47 from 2 indicator(s): BX.KLT.DINV.WD.GD.ZS 0.2628 -> 95, SE.XPD.TOTL.GD.ZS 6.4359 -> 0; news 0 from 1 answered of 1 (0 at the data level): E1=0.",
+    "order": "order 38 (both); data 39 from 3 indicator(s): GOV_WGI_PV.EST 0.2939 -> 30, GOV_WGI_RL.EST 0.2308 -> 44, GOV_WGI_GE.EST 0.2561 -> 44; news 37 from 1 answered of 6 (5 at the data level): O5=1.",
+    "friction": "friction 29 (both); data 28 from 3 indicator(s): FP.CPI.TOTL.ZG 2.362 -> 0, GOV_WGI_RQ.EST 0.3581 -> 41, GOV_WGI_CC.EST 0.2831 -> 43; news 30 from 4 answered of 6 (2 at the data level): F1=1, F2=1, F4=1, F5=2.",
+    "information": "information 66 (both); data 66 from 3 indicator(s): IQ.SPI.OVRL 63.3754 -> 53, RSF.PRESS.SCORE 40.44 -> 74, GOV_WGI_VA.EST -0.9191 -> 69; news 66 from 0 answered of 3 (3 at the data level): ."
+   },
+   "bullet_summary": "Minor fiscal policy changes and inflation slightly above target indicate minor stress. Regional aggression causes diplomatic tension. Business investment is strong and rising.",
+   "prompt_version": "77c7868787e3c842ad4e27a1b045476f37c3185d69946ff630eb855cda570307",
+   "article_weights": [
+    {
+     "id": "a1",
+     "weight": 0,
+     "questions": [
+      "E1"
+     ]
+    },
+    {
+     "id": "a2",
+     "weight": 0,
+     "questions": [
+      "E1"
+     ]
+    },
+    {
+     "id": "a3",
+     "weight": 0,
+     "questions": [
+      "E1"
+     ]
+    },
+    {
+     "id": "a4",
+     "weight": 1,
+     "questions": [
+      "O5"
+     ]
+    },
+    {
+     "id": "a5",
+     "weight": 0,
+     "questions": [
+      "E1"
+     ]
+    },
+    {
+     "id": "a6",
+     "weight": 0,
+     "questions": [
+      "E1"
+     ]
+    },
+    {
+     "id": "a7",
+     "weight": 1,
+     "questions": [
+      "F1"
+     ]
+    },
+    {
+     "id": "a8",
+     "weight": 0,
+     "questions": []
+    },
+    {
+     "id": "a9",
+     "weight": 0,
+     "questions": []
+    },
+    {
+     "id": "a10",
+     "weight": 1,
+     "questions": [
+      "O5"
+     ]
+    },
+    {
+     "id": "a11",
+     "weight": 0,
+     "questions": []
+    },
+    {
+     "id": "a12",
+     "weight": 0,
+     "questions": []
+    },
+    {
+     "id": "a13",
+     "weight": 0,
+     "questions": []
+    },
+    {
+     "id": "a14",
+     "weight": 1,
+     "questions": [
+      "F2"
+     ]
+    },
+    {
+     "id": "a15",
+     "weight": 0,
+     "questions": [
+      "E1"
+     ]
+    },
+    {
+     "id": "a16",
+     "weight": 0,
+     "questions": [
+      "E1"
+     ]
+    }
+   ],
+   "condition_flags": {
+    "capital_controls": false,
+    "sovereign_stress": false,
+    "official_data_in_doubt": false,
+    "armed_conflict_on_territory": false,
+    "press_freedom_deteriorating": false,
+    "election_or_transition_underway": false
+   },
+   "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
+   "unscored_indicators": [
+    "OWID.VDEM.CORRUPTION",
+    "SL.UEM.TOTL.ZS",
+    "NY.GDP.PCAP.KD.ZG"
+   ],
+   "n_indicators_by_ledger": {
+    "edge": 2,
+    "order": 3,
+    "friction": 3,
+    "information": 3
+   }
+  },
+  "rejected": [
+   {
+    "url": "https://kuwaittimes.com/article/53020/business/trumps-trouncing-underscores-political-poison-of-inflation/",
+    "label": "irrelevant",
+    "title": "Trump’s trouncing underscores political poison of inflation - Kuwait Times",
+    "reason": "The article is primarily about US politics and inflation, with no direct relevance to Kuwait's investable risk.",
+    "themes": [
+     "friction"
+    ],
+    "publisher": "Kuwait Times"
+   },
+   {
+    "url": "https://kuwaittimes.com/article/53246/world/for-zoomers-blue-wave-in-us-election-evokes-optimism/",
+    "label": "irrelevant",
+    "title": "For Zoomers, blue wave in US election evokes ‘optimism’ - Kuwait Times",
+    "reason": "The article focuses on cultural and social trends related to US elections, with no relevance to Kuwait's investable risk.",
+    "themes": [
+     "order"
+    ],
+    "publisher": "Kuwait Times"
+   },
+   {
+    "url": "https://timeskuwait.com/court-jails-gulf-woman-for-10-years-over-maids-death/",
+    "label": "irrelevant",
+    "title": "Court jails Gulf woman for 10 years over maid’s death - Times Kuwait",
+    "reason": "\"death of her domestic worker\" and \"manslaughter\": ordinary crime involving a private individual.",
+    "themes": [
+     "order"
+    ],
+    "publisher": "Times Kuwait"
+   },
+   {
+    "url": "https://kuwaittimes.com/article/53221/world/impeached-paraguay-leader-charged-over-shock-collapse-of-bank/",
+    "label": "irrelevant",
+    "title": "Impeached Paraguay leader charged over shock collapse of bank - Kuwait Times",
+    "reason": "The article discusses events in Paraguay, with no direct relevance to Kuwait's investable risk.",
+    "themes": [
+     "order"
+    ],
+    "publisher": "Kuwait Times"
+   },
+   {
+    "url": "https://www.arabtimesonline.com/news/kuwait-court-sentences-bangladeshi-man-to-death-for-stabbing-friend-over-wifes-photos-on-facebook/",
+    "label": "irrelevant",
+    "title": "Kuwait Court Sentences Bangladeshi Man to Death for Stabbing Friend over Wife's Photos on Facebook - Arab Times Kuwait News",
+    "reason": "\"murdering his friend over a dispute regarding private photographs\": ordinary crime involving private individuals.",
+    "themes": [
+     "order"
+    ],
+    "publisher": "Arab Times Kuwait News"
+   },
+   {
+    "url": "https://timeskuwait.com/israeli-president-tasks-gadi-eisenkot-with-forming-new-government/",
+    "label": "irrelevant",
+    "title": "Israeli president tasks Gadi Eisenkot with forming new government - Times Kuwait",
+    "reason": "Kuwait is only mentioned as the source of the article, and the events discussed pertain to Israel's political situation.",
+    "themes": [
+     "order"
+    ],
+    "publisher": "Times Kuwait"
+   },
+   {
+    "url": "https://kuwaittimes.com/article/53183/world/cuban-journalist-says-wont-shut-up-after-arrest/",
+    "label": "irrelevant",
+    "title": "Cuban journalist says won’t ‘shut up’ after arrest - Kuwait Times",
+    "reason": "The article focuses on events in Cuba and the actions of Cuban authorities, with no direct implications for Kuwait.",
+    "themes": [
+     "information"
+    ],
+    "publisher": "Kuwait Times"
+   },
+   {
+    "url": "https://kuwaittimes.com/article/53034/opinion/meet-five-kuwaiti-women-breaking-barriers-in-stem/",
+    "label": "irrelevant",
+    "title": "Meet five Kuwaiti women breaking barriers in STEM - Kuwait Times",
+    "reason": "The article focuses on individual achievements in STEM and does not address any public matters or actions by the state.",
+    "themes": [
+     "edge"
+    ],
+    "publisher": "Kuwait Times"
+   },
+   {
+    "url": "https://www.britannica.com/place/Kuwait/Demographic-trends",
+    "label": "irrelevant",
+    "title": "Kuwait - Population, Migration, Urbanization - Britannica",
+    "reason": "\"Population, Migration, Urbanization\": an academic article that does not involve any new developments or decisions by Kuwait's government.",
+    "themes": [
+     "broad"
+    ],
+    "publisher": "Britannica"
+   },
+   {
+    "url": "https://kuwaittimes.com/article/53236/lifestyle/eurovision-brings-pop-and-politics-to-asia/",
+    "label": "irrelevant",
+    "title": "Eurovision brings pop and politics to Asia - Kuwait Times",
+    "reason": "\"Eurovision staged its first Asia edition\" and \"the world’s biggest televised live music event\": the article is about a cultural event, not relevant to Kuwait's investable risk.",
+    "themes": [
+     "broad"
+    ],
+    "publisher": "Kuwait Times"
+   },
+   {
+    "url": "https://kuwaittimes.com/article/52981/world/new-zealand-votes-with-economy-cost-of-living-in-focus/",
+    "label": "irrelevant",
+    "title": "New Zealand votes with economy, cost of living in focus - Kuwait Times",
+    "reason": "New Zealand is only mentioned as the location of the election, and the consequences fall on New Zealand, not Kuwait.",
+    "themes": [
+     "broad"
+    ],
+    "publisher": "Kuwait Times"
+   }
+  ],
+  "selected": [
+   {
+    "id": "a1",
+    "url": "https://kuwaittimes.com/article/53258/kuwait/kisr-develops-polymer-fibers-to-improve-reinforced-concrete/",
+    "themes": [
+     "edge"
+    ],
+    "body_status": "full",
+    "body_quality": "full",
+    "content_sha256": "aaccb1ceba98c2c3294f34e4962106473d9ce3de767096f2a39013cc859ffb9d"
+   },
+   {
+    "id": "a2",
+    "url": "https://www.arabtimesonline.com/news/kuwait-economic-zones-67-pct-complete/",
+    "themes": [
+     "edge"
+    ],
+    "body_status": "full",
+    "body_quality": "full",
+    "content_sha256": "294b9c5181474ba9d72d40866e9c38c72df857f6a9b8894ba669cf95613f1207"
+   },
+   {
+    "id": "a3",
+    "url": "https://timeskuwait.com/kuwait-moves-to-turn-seven-historic-landmarks-into-investment-hotel-destinations/",
+    "themes": [
+     "edge"
+    ],
+    "body_status": "full",
+    "body_quality": "full",
+    "content_sha256": "34cc0caab69a844c8ca71862f2810681069fe9bc8ba24a1b56b3f7bc55c733bb"
+   },
+   {
+    "id": "a4",
+    "url": "https://africa.businessinsider.com/local/markets/africas-most-powerful-military-joins-bahrain-kuwait-and-syria-in-fierce-backlash-over/2ee22cn",
+    "themes": [
+     "security"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "f1344f1b124e0f2dc904994c51c04f4ad77911618115c26b1cc0a938e99a3b6e"
+   },
+   {
+    "id": "a5",
+    "url": "https://www.law.com/international-edition/2026/11/06/baker-mckenzie-scores-win-for-kuwait-wealth-fund-in-london-case-involving-sovereign-immunity/",
+    "themes": [
+     "edge"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "670922452fc04913c450b2b049e32426b78f3b0c97964cc990a47071f3c24fd5"
+   },
+   {
+    "id": "a6",
+    "url": "https://www.zawya.com/en/business/gcc/direct-investment-inflows-into-kuwait-reach-3.04bln-kdipa-2044673",
+    "themes": [
+     "edge"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "b5d1b957323be6da5fd232bb22cf72c0e7b70ff66e26ad5d4da6c6a758a729e4"
+   },
+   {
+    "id": "a7",
+    "url": "https://kpmg.com/kw/en/insights/2026/10/kuwait-approves-cbc-mcaa.html",
+    "themes": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "838d3f896ee0d4e8276e8d9dd0146e14d66dd51081f74e4f6728597eb4910d43"
+   },
+   {
+    "id": "a8",
+    "url": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html",
+    "themes": [
+     "security"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "46465971c774b1faae19d2a9261097704b1e71b5370ffe0db009f7d0d86b12bb"
+   },
+   {
+    "id": "a9",
+    "url": "https://usafacts.org/answers/what-is-the-average-us-tariff-rate-overall/countries/kuwait/",
+    "themes": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "a52e27ef90ef1c941634a1ea2dd611521fb1b37ae9cce0c2b4e999363b6e3ff2"
+   },
+   {
+    "id": "a10",
+    "url": "https://kw.usembassy.gov/travel-advisory-kuwait-october-2026/",
+    "themes": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "3080935dbfbb1a4cc6a8ac98ea9df6f931a5038e7798cba92dc4ee30539fc83b"
+   },
+   {
+    "id": "a11",
+    "url": "https://kuwaittimes.com/article/53083/business/us-slaps-sanctions-on-indian-turkish-companies-and-people-for-aiding-iran/",
+    "themes": [
+     "security"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "a338590181885aad39f1c3b8a5959b8a7cf6938d16de777794276b91f5606e3e"
+   },
+   {
+    "id": "a12",
+    "url": "https://timeskuwait.com/kuwait-army-wraps-up-desert-flash-1-military-exercise/",
+    "themes": [
+     "security"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "afa375ee6bcd2ff57b4c5f5d654d03c352d183ce805df153ce8635a0e4f73f4a"
+   },
+   {
+    "id": "a13",
+    "url": "https://www.arabtimesonline.com/news/kuwait-steps-up-military-readiness-food-supplies-and-medical-stockpiles-amid-regional-developments/",
+    "themes": [
+     "security"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "b8d8f4029bdd5d3867921c2d9b24dac036aa702df1f86115b55d66115aec7958"
+   },
+   {
+    "id": "a14",
+    "url": "https://kuwaittimes.com/article/53023/business/gcc-inflation-edges-up-to-22-in-july/",
+    "themes": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "d8e8e8e7e5817b190935ed02d561ed543d843f34e83da0df448e8d7177867bdf"
+   },
+   {
+    "id": "a15",
+    "url": "https://kuwaittimes.com/article/53225/kuwait/private-universities-council-approves-new-auk-masters-programs/",
+    "themes": [
+     "edge"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "9958d4c5d4145a5f52f79aa8741082d9d8e2f5815cc2be35ce8d7a6055cca656"
+   },
+   {
+    "id": "a16",
+    "url": "https://www.zawya.com/en/press-release/companies-news/markaz-wins-best-investment-bank-in-kuwait-at-meed-mena-banking-excellence-awards-2026-2126428",
+    "themes": [
+     "edge"
+    ],
+    "body_status": "digest-only",
+    "body_quality": "full",
+    "content_sha256": "0433c18211331990e2f2c5559180fa2b3164adb4f767ec772ea6fd7bdef8694b"
+   }
+  ],
+  "indicators": [
+   {
+    "code": "FP.CPI.TOTL.ZG",
+    "as_of": "2026-09-25",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "OWID.VDEM.CORRUPTION",
+    "as_of": "2026-09-25",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "GOV_WGI_RQ.EST",
+    "as_of": "2026-11-07",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "GOV_WGI_CC.EST",
+    "as_of": "2026-11-07",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "GOV_WGI_PV.EST",
+    "as_of": "2026-07-02",
+    "period": 2024,
+    "as_of_scheme": "publication-lag-estimate"
+   },
+   {
+    "code": "GOV_WGI_RL.EST",
+    "as_of": "2026-07-02",
+    "period": 2024,
+    "as_of_scheme": "publication-lag-estimate"
+   },
+   {
+    "code": "SL.UEM.TOTL.ZS",
+    "as_of": "2026-09-25",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "NY.GDP.PCAP.KD.ZG",
+    "as_of": "2026-09-25",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "GOV_WGI_GE.EST",
+    "as_of": "2026-11-07",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "IQ.SPI.OVRL",
+    "as_of": "2026-07-02",
+    "period": 2024,
+    "as_of_scheme": "publication-lag-estimate"
+   },
+   {
+    "code": "RSF.PRESS.SCORE",
+    "as_of": "2026-05-03",
+    "period": 2025,
+    "as_of_scheme": "source-published"
+   },
+   {
+    "code": "GOV_WGI_VA.EST",
+    "as_of": "2026-11-07",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "BX.KLT.DINV.WD.GD.ZS",
+    "as_of": "2026-09-25",
+    "period": 2025,
+    "as_of_scheme": "first-seen"
+   },
+   {
+    "code": "SE.XPD.TOTL.GD.ZS",
+    "as_of": "2026-07-02",
+    "period": 2024,
+    "as_of_scheme": "publication-lag-estimate"
+   }
+  ],
+  "same_story": {
+   "method": "llm",
+   "problem": null,
+   "articles": [
+    {
+     "url": "https://abbtakk.tv/cabinet-approves-pakistan-kuwait-defence-pact-new-currency-designs/",
+     "same_story_as": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html"
+    },
+    {
+     "url": "https://thediplomaticinsight.com/cabinet-ratifies-defense-cooperation-agreement-kuwait/",
+     "same_story_as": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html"
+    },
+    {
+     "url": "https://tribune.com.pk/story/2638734/cabinet-ratifies-defence-pact-with-kuwait",
+     "same_story_as": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html"
+    },
+    {
+     "url": "https://ina.iq/en/international/53516-pakistani-cabinet-ratifies-defense-cooperation-agreement-with-kuwait.html",
+     "same_story_as": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html"
+    },
+    {
+     "url": "https://www.rediff.com/news/report/pakistan-ratifies-defence-cooperation-pact-with-kuwait/20261104.htm",
+     "same_story_as": "https://www.news18.com/world/pakistan-gives-nod-to-landmark-5-year-defence-cooperation-deal-with-kuwait-to-broaden-military-ties-ws-l-10414775.html"
+    },
+    {
+     "url": "https://www.solicitorsjournal.com/sjarticle/al-ateeqi-v-kuwait-investment-authority-eat-upholds-state-immunity-in-sovereign-wealth-fund-whistleblowing-claim?category=none",
+     "same_story_as": "https://www.law.com/international-edition/2026/11/06/baker-mckenzie-scores-win-for-kuwait-wealth-fund-in-london-case-involving-sovereign-immunity/"
+    }
+   ]
+  },
+  "payload_tokens": 5228,
+  "per_ledger_articles": {
+   "edge": 0,
+   "order": 8,
+   "friction": 6,
+   "information": 0
+  }
+ }
+}

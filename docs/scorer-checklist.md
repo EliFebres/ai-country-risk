@@ -577,3 +577,404 @@ week, on Basra: the new wording reads a neighbouring country as "near".
 The scorer measurement is **closed**: M1, face validity and M4 passed on
 the pre-set lines, the production week wrote what the measurement said it
 would, and the remaining items are in `docs/deferred.md` §24.
+
+# Step 5e: eight scorer fixes, and the benchmark set re-frozen
+
+2026-11-08, branch `backend-update`. Seven defects read out of the first
+production week's Kuwait record and the frozen Kuwait payload, each an
+instruction the model ignored or a gap in selection, moved into code; one
+decision, that the scorer reads an anonymous payload; one measurement on six
+re-frozen payloads under `backend/measurements/step5e/`; and a second
+production week. Prompt version `77c7868787e3…` (was `982172f001dc…`),
+questions version `e018391fae57…` (unchanged, so carry-forward still works
+across this change). Session spend **$9.10** of an $18 cap (raised from $15
+with Eli, see §30).
+
+**The six masked payloads under `step5e/payload_<iso2>.json` and the first
+masked merge per country under `step5e/reference_<iso2>.json` are the
+reference set for step 6, the model benchmark.** A prompt change after step 6
+records its reference answers would force step 6 to be redone, which is why
+all eight went in now.
+
+## §28. The eight fixes
+
+Each fix is a rule the code enforces. The prompt keeps saying the same thing;
+the gate taught that an instruction the model does not follow becomes code.
+
+- **Fix 1, one story, one article, checked again after selection.** The
+  first story check works from the gate's `what_happened` sentences, which
+  can be wrong for a headline-only article (the live week's a2 read
+  "Kuwait's federal cabinet" when the story was Pakistan's). After the
+  twenty are chosen, `relevance.dedupe_selected` sends the selected
+  **titles and** sentences to the same story model with the same schema
+  and validation; one article per story survives by the existing keep rule
+  (`_keep_order`, now with every body's digest quality known), each freed
+  slot takes the next eligible article in ranking order
+  (`relevance.refill`), and the check runs again, at most three times.
+  Drops are recorded in the manifest's `same_story.articles` with `pass:
+  "post_selection"`.
+- **Fix 2, no headline-only article reaches the scorer.** After the digests
+  say what each body is, every selected article whose `body_status` is
+  `title-only` (no body, or a body the digest calls `not_article`) is
+  dropped and refilled, and the newcomers are digested, until the set is
+  stable or the ranking runs out. Nothing tops up from ineligible articles:
+  three of the six payloads are short of twenty (§29). The validator keeps a
+  tripwire, `levels_nulled_title_only`: a non-null level whose only evidence
+  is headline-only articles is nulled and counted. On the new payloads it
+  is 0 by construction; on the old frozen payloads it fires (KW's F3 = 1 on
+  a2's headline, in every call).
+- **Fix 3, each answer quotes its evidence.** Every question's answer has a
+  required `quote`: up to 25 words copied from one of the cited articles.
+  `validate.quote_found` normalises both sides (lower case, whitespace,
+  curly quotes and dashes, edge punctuation) and requires at least four
+  words and a substring match against the text the scorer was sent for at
+  least one cited article (`validate.article_texts`, so the masked text).
+  A miss nulls the level and counts `levels_nulled_quote_not_found`. The
+  pre-set fallback (90% of the words in order) is implemented as
+  `QUOTE_MATCH = "ordered_90"` and `step5e revalidate` can re-apply it to
+  stored raw answers without a call; §30 says whether it was needed.
+- **Fix 4, evidence before the level.** The schema's property order, and
+  its `required` order, is `evidence`, `quote`, `note`, `level`. Structured
+  outputs generate in schema order, so the model writes what it has before
+  it commits to a number.
+- **Fix 5, the model knows the date and the window.** The payload opens
+  with `as_of` and `window` ("articles published in the 30 days before
+  as_of"), `prompt_for(country, as_of)` writes "Today is {as_of}" into the
+  prompt, and the three prompt edits are the brief's, verbatim: the opening
+  paragraph (judge each condition as it stands today; an earlier event
+  counts only if it happened in the last 30 days or is said to be going
+  on), the "For every question, answer in this order" block (evidence,
+  quote, note, level; use 0 only when an article shows normal functioning,
+  never because nothing was reported), and the SCHEDULED EVENTS window
+  ("the 90 days after today"). `score_country` refuses to run without a
+  date rather than reading the clock.
+- **Fix 6, at most two spillover articles.** In `relevance.select` a T5
+  article sorts behind every T1–T4 article in its ledger bucket, and
+  `_fill` lets at most `T5_MAX_SELECTED = 2` into the selected set, refills
+  included; a high-impact event keeps its place at the front whatever its
+  test. `select` now ranks the whole eligible pool and returns it as
+  `ranked`, which is what `refill` draws from, so a drop after selection
+  never re-runs selection. The census records `t5_selected`.
+- **Fix 7, a split vote gets more calls, not the lower level.**
+  `scoring.run_scoring` is the one scoring loop, used by production and by
+  every measurement: three calls; if every question is unanimous (null
+  counts as a vote) the median of three stands; otherwise two more calls
+  and `combine.vote_merge` over five, a question non-null once three calls
+  answered it, its level the most common one; a tie gets one more call and
+  a recount, to seven at most, and a tie at seven takes the median of the
+  answered levels, upper middle on an even count. Scheduled events need
+  more than half the distinct calls (≥2/3, ≥3/5, ≥4/7); flags stay `true >
+  false`. `manifest.scoring.merge` carries `k`, the votes, `extended` and
+  the questions still tied before the final recount.
+- **Fix 8, the scorer reads an anonymous payload.** Only the scorer's
+  input is masked; retrieval, the gate, the story checks, selection, the
+  database and the frontend keep real names. For every selected article a
+  second digest is generated under `MASKED_DIGEST_PROMPT` (the digest
+  prompt plus the brief's masking block, verbatim, plus a `masked_title`),
+  cached in `llm_artifact` under `mode = 'masked'`, `country_iso2 = iso2`
+  and the masked prompt's version, keyed on the title and body together;
+  the up to three full texts are rewritten by gpt-4o-mini
+  (`REWRITE_PROMPT`: keep every sentence and number, change only names)
+  and cached as `kind = 'rewrite'`. The masked payload drops `country` and
+  the structural facts' `name`, sends `masked_title` as the title and the
+  masked digest, and keeps publishers. `prompt_for` substitutes "the
+  country". `backend/util/gazetteer.py` holds, for all 48 roster
+  countries, names, codes, demonyms, capital, largest cities, currency
+  names, symbols and ISO code, a few proper nouns that name the country
+  without its name (its parliament, its national companies and agencies,
+  the rival its news is about), and the other roster countries' names.
+  Whole-word, case-insensitive, codes case-sensitive, currency symbols
+  without a trailing boundary so `KD602m` and `€250m` match. A hit in a
+  freshly generated digest regenerates it once naming the leaked terms,
+  then replaces the term by code (`[the country]`, `[a city]`, `[local
+  currency]`, `[another country]`); a hit in a rewrite is replaced by
+  code; only clean text is cached, so a re-run reproduces the same bytes.
+  The leak check runs again on the whole serialized payload in
+  `assemble_country` and in `score_country`: a surviving term raises
+  `MaskLeak` and the country fails into `run_ledger`. Publishers and the
+  structural facts (region, regime) are skipped by the check and counted
+  as `publisher_mentions`. `bullet_summary` is stored as returned.
+
+  Two things the brief did not pre-decide. The named digest is still
+  generated (it carries `body_quality`, which Fix 2 needs before masking
+  can start, and it is already cached from past weeks), so each article
+  costs one extra gpt-4o-mini call. And the gazetteer's `extra` lists hold
+  a few office-holders (Putin, Trump, Powell, Lavrov) for the test-set
+  countries: not a person list, which the brief rules out, but the handful
+  whose surname alone is the country's name.
+
+Fix 2 also closed a gap the brief did not list: the denylist filter after
+selection used to rebind `items` while the payload was built from
+`gate["selected"]`, so a blocked article could still reach the scorer. The
+final list is now the one list, for the payload, the census and the manifest.
+
+## §29. Selection on fresh candidates, old rules against new
+
+`python -m backend.llm.step5e select-check`, 2026-11-08. Retrieval, gate and
+the first story check ran once per country; the old selection rules (kept
+only inside the script) and the new ones ran on the same candidates. 434
+gpt-4o-mini calls, $0.19, plus $0.03 to re-freeze HK and TW after a
+gazetteer correction (Beijing, Chinese and PLA were in Taiwan's own term
+list, so code replacement wrote `[the country]` where `[another country]`
+belonged; they now have a `rival` kind).
+
+| | multi-article stories | title-only sent | T5 sent | articles sent | refill digests |
+|---|---|---|---|---|---|
+| US | 1 → 0 | 7 → 0 | 3 → 2 | 20 → 20 | 6 |
+| PT | 2 → 0 | 5 → 0 | 2 → 2 | 20 → 12 (short 8) | 0 |
+| KW | 0 → 0 | 3 → 0 | 6 → 2 | 20 → 16 (short 4) | 0 |
+| HK | 1 → 0 | 3 → 0 | 1 → 1 | 20 → 16 (short 4) | 0 |
+| TW | 0 → 0 | 4 → 0 | 2 → 1 | 20 → 20 | 3 |
+| RU | 1 → 0 | 7 → 0 | 2 → 2 | 20 → 20 | 7 |
+
+(Old → new. "Multi-article stories" is what the post-selection story check
+finds in each final set; the new column is the confirming check on the final
+twenty.) Every pass line holds: zero multi-article stories, zero headline-only
+articles, at most two spillover articles, in all six. The shortfalls are the
+rule working: PT had 20 relevant articles, five of them headline-only and
+three of them second tellings the first story check had not caught (PBS, Al
+Jazeera and Amnesty on the housing protests); KW had 22 unique stories, four
+of them spillover beyond the cap. The hand check holds too: the Pakistan
+defence pact is one article (a8), five copies set aside before selection and
+the sixth, the headline-only tvoneusa copy whose gate sentence read "Kuwait's
+federal cabinet", dropped by Fix 2.
+
+Mask census (hits in freshly generated masked text, regenerated, replaced by
+code, publisher names carrying a term): US 28 / 13 / 20 / 5; PT 14 / 5 / 4 /
+3; KW 28 / 10 / 10 / 12; HK 36 / 10 / 28 / 7; TW 44 / 17 / 27 / 12; RU 37 /
+15 / 29 / 2. Zero gazetteer terms in any payload sent. The most common
+survivors of the first rewrite were the subject's name and demonym (Kuwait,
+Russian, Taiwan) and other countries' names in sanctions and trade stories;
+"US dollars" is exempt by design. The masked payloads are 5–8% smaller than
+the named twins (5.1k–8.4k tokens).
+
+## §30. Re-measurement: 280 calls, $8.22, every pre-set decision passes
+
+All calls in production mode (Fixes 3, 4, 5 and 7 active), through the same
+`scoring.run_scoring` the weekly run uses, under
+`backend/measurements/step5e/calls/` and `merges/`. Three arms: the six
+step 5 frozen payloads under the new instrument, named, with their own run
+date as `as_of` (**old payloads**); the six new payloads as production
+sends them (**masked**); and their named twins (**named**). The brief asked
+for 5 merges in every arm; at 3 to 7 calls a merge that projected $14–20
+against a $15 cap, so with Eli the cap moved to $18, the masked arm kept 5
+merges and the two comparison arms ran 3, with a stop line of $12 on the
+masked arm alone (it cost $3.58). A call is $0.029 (8.8k in, 720 out);
+61% of merges split at three and went to five, one to seven; a merge is
+4.2 calls on average.
+
+Pre-set decisions, one line each.
+
+- **Quote rule (Fix 3): 47 of 1,918 non-null levels nulled, 2.5%, keep the
+  rule as is.** Every failure is a near-miss: a quote that stitches two
+  `numbers` entries together ("[local currency]62.3 billion Canadian
+  deficit for 2026-27, 2.5% of economy", US F6 in 7 calls), or one word
+  changed ("detected" for "detecting", TW O5). The 90%-in-order fallback is
+  implemented and was not needed.
+- **No-evidence nulls (Fix 4): 5.6 per call before, 2.6 after**, on the same
+  six payloads (step 5d's 30 calls against this session's 80). KW 3.1 → 0,
+  HK 8.0 → 0, TW 11.7 → 0.3, RU 0 → 0; US 7.7 → 6.4 and PT 13.0 → 8.1 are
+  the two payloads where the model still writes 0 with nothing behind it,
+  now mostly for the information questions. On the new masked payloads it is
+  0.07 per call.
+- **Split votes (Fix 7): 40 of 66 merges extended** (old payloads 13/18,
+  masked 16/30, named 11/18); one masked US merge went to seven on an O3
+  tie. The lower middle never decided a question.
+- **3a, old payloads, new instrument against step 5d: no composite moved by
+  more than a point.** US 29 → 29, PT 19 → 19, KW 39 → 40, HK 25 → 25, TW
+  18 → 18, RU 58 → 58. The questions behind them did move: 17 modal levels
+  changed. KW's F3 = 1 on a2's headline is gone (the title-only tripwire,
+  every call), O1 0 → 2 and O3 1 → 0 on the court rulings, O5 3 → 2 (the
+  Iranian strike is read as near, not on). US O5 1 → null is the quote
+  rule (13 nulls: the quote was paraphrased). HK's F1, F3, F4 and E1 went
+  from 0 to null in every call: the model now leaves a question alone
+  rather than writing 0 because nothing was reported, which is the prompt
+  edit working. Rule A hands each of those to the data half, so the
+  composite stands.
+- **M1 (masked, 5 merges each): worst `score_12m` SD 0.71, pass.** US
+  27/28/28/28/29 (F6, O2 and O3 each flip once in five), TW 23/23/24/24/23
+  (O3 null or 1), RU 56/56/57/57/56 (F3 0 or 1); PT 20, KW 40 and HK 25 in
+  all five, unanimous at three calls every time.
+- **Face validity (masked medians): RU 56 > KW 40 > US 28 > HK 25 > TW 23 >
+  PT 20, pass.** RU highest, PT lowest.
+- **M4 (masked): 8 merges carry a 3-month gap, every one traces, pass.** US
+  −3 in all five merges on a13's Opportunity Zones designations taking
+  effect 2027-01-01 (down); PT +3 in three of five on a1's student march
+  on 2026-11-18 (up; the other two merges did not reach a majority for the
+  event). Dropped: 41 "date not in article" (nine distinct events, the model
+  giving Taiwan's local elections 11-30, 12-01 and 12-31 when a5 names no
+  date, and inventing the end of a US airspace restriction) and 6 "past";
+  no routine deadlines. Masking did not eat a date: none of the nine dates
+  is in the named text either.
+- **Selection: zero multi-article stories, zero headline-only articles, at
+  most two spillover articles, in all six payloads, pass** (§29).
+- **Masking cost (median masked − median named): US 0, PT −1, KW +1, HK 0,
+  TW −1, RU −1; every country within 5 points, masking is adopted.** The
+  composites agree; the questions underneath agree less. US differs on 9
+  of 16: masked, the model answered F1, F3, F5, F6, O3, O4 and O6 where
+  named it answered null, and four of those cite a6, a Canadian budget
+  story admitted under the spillover test whose masked digest opens "A
+  government unveiled a budget". Masked, a spillover article about another
+  country reads as the subject's own. TW differs on 4: named O5 = 2 and O6
+  = 2 (Chinese sorties, the detention of a party leader) went null masked,
+  and masked O1 = 2 and F5 = 2 (election fraud indictments) went null
+  named; KW O5 2 masked against 1 named on the same two articles; RU F3 0
+  against 1 on the crypto opening. See §32.
+- **Leaks: zero gazetteer terms in any payload sent**, checked in
+  `assemble_country` and again in `score_country` before every masked call.
+
+| | score_12m (masked) | SD | friction | order | information | edge | answered / 16 | k |
+|---|---|---:|---|---|---|---|---:|---|
+| RU | 56 | 0.55 | 41 | 64 | 68 | 64 | 4 | 5,5,5,5,5 |
+| KW | 40 | 0.00 | 27 | 40 | 66 | 24 | 4 | 3,3,3,3,3 |
+| US | 28 | 0.71 | 31 | 29 | 21 | 19 | 13 | 5,5,5,7,5 |
+| HK | 25 | 0.00 | 9 | 20 | 67 | 10 | 3 | 3,3,3,3,3 |
+| TW | 23 | 0.55 | 28 | 24 | 14 | 0 | 6 | 5,5,5,5,5 |
+| PT | 20 | 0.00 | 23 | 26 | 3 | 15 | 4 | 3,3,3,3,3 |
+
+(Medians over five merges; ledger medians.)
+
+**3c, identifiability (report only).** One gpt-4o-mini call per masked
+payload, asked which country it is. With the payload as sent: US identified
+(0.7: "National Guard and Customs and Border Protection"), KW identified
+(0.7: "articles published by Kuwait Times and Arab Times Kuwait News"), TW
+identified (0.6: the APEC summit and a protocol complaint), PT, HK and RU
+not enough to tell (PT 0.4 on "a shared currency (euro area)", HK 0.5 on
+"one country, two systems" and the SCMP as publisher, RU's top guess
+Ukraine at 0.4 on the strikes). A second run with the publisher names
+blanked, to measure what the outlets alone give away: only the US is still
+identified; KW, TW and HK fall to 0.4 and "not enough to tell", RU's top
+guess becomes Ukraine at 0.6. Events identifying a country is what the brief
+accepts. Publishers identifying one is the brief's own decision to keep
+them, and it is the single largest tell: whether "Kuwait Times" should
+travel to the scorer as "[publisher]" is Eli's call, not made here. The two
+agency names in the US payload are proper nouns the gazetteer does not hold;
+adding them is a one-line change left for after this session, so that the
+reference payloads and the production week share one gazetteer version.
+
+**The reference set.** `step5e/reference_<iso2>.json` is the first masked
+merge per country (US k=5 score 28, PT k=3 20, KW k=3 40, HK k=3 25, TW k=5
+23, RU k=5 56), with the payload's sha, the prompt and questions versions,
+the model, the seed and the merge rule. Step 6 compares every candidate
+model against these answers on `step5e/payload_<iso2>.json`.
+
+## §31. The second production week
+
+`python -m backend.main etl --test-set` against the dev database, after
+every Part 3 decision passed. Started 2026-11-08 23:52 UTC and crossed
+midnight, so every row is stamped `run_date = 2026-11-09`; 14.2 minutes
+wall-clock, 167 s median per country (US 272 s with four refill rounds).
+Written: 5 `risk_snapshot` rows, 7 `run_ledger` rows (5 `etl`, 1 `run`, 1
+`report`), 15 `news_alert` rows. KW's row, manifest and all, is
+`backend/measurements/step5e/week2_manifest_KW.json`; the five rows'
+headline fields are in `week2_table.json`. `git_sha` 3451310 is the commit
+every scoring change was in.
+
+| | score_12m | score_3m | friction | order | information | edge | answered / 16 | carried | k | quote-null | title-only | T5 | sent | cost |
+|---|---:|---:|---|---|---|---|---:|---:|---|---:|---:|---:|---:|---:|
+| KW | 40 | 40 | 29 (28 / 30) | 38 (39 / 37) | 66 (66 / 66) | 24 (47 / 0) | 4 | 2 | 5 | 0 | 0 | 2 | 16 | $0.137 |
+| US | 28 | 25 | 30 (30 / 30) | 31 (29 / 33) | 21 (21 / 21) | 19 (39 / 0) | 7 | 5 | 5 | 0 | 0 | 2 | 20 | $0.172 |
+| HK | 25 | 25 | 9 (6 / 11) | 21 (20 / 23) | 67 (67 / 67) | 10 (20 / 0) | 4 | 3 | 3 | 0 | 0 | 1 | 17 | $0.089 |
+| PT | 21 | 24 | 25 (20 / 31) | 26 (24 / 28) | 3 (3 / 3) | 15 (29 / 0) | 5 | 1 | 5 | 0 | 0 | 2 | 12 | $0.134 |
+| TW | 21 | 21 | 24 (20 / 28) | 22 (15 / 28) | 14 (14 / 14) | 0 (0 / 0) | 4 | 5 | 3 | 3 | 0 | 1 | 20 | $0.089 |
+
+(Ledger = score (data / news). "Answered" is this week's own non-null
+levels; "carried" the levels the carry-forward took from the 2026-11-07
+row, which it could because `QUESTIONS_VERSION` did not move. k is the
+number of scorer calls: three where the three were unanimous, five where
+they split.) Three of five votes split and extended (PT, US, KW), none
+tied. The quote rule nulled 3 levels, all TW's O5 ("detected" for
+"detecting" again, every call); the title-only tripwire 0, as it must now;
+no-evidence nulls 0 in 21 calls, against 27 in the first week's Kuwait row
+alone. Headline-only articles dropped and refilled: KW 2, US 11, HK 4, PT
+2, TW 4; second tellings set aside after selection: HK 4, TW 2; spillover
+sent: 1 or 2 everywhere; PT (12), KW (16) and HK (17) short of twenty. Two
+scheduled events kept (US a11, Opportunity Zones 2027-01-01, down; PT a1,
+the student march 2026-11-18, up), three dropped (two "date not in
+article", one "past"). Masking: 85 gazetteer hits across the five, 32
+regenerated, 55 replaced by code, 0 leaks in any payload sent, 0 fallbacks.
+The quality report counts the 8 remaining validation notes as "schema
+violations" and still needs to learn the new counters (deferred §24).
+
+**Cost.** $0.621 for five countries from the ledger, **$0.124 per
+country-week**, of which the scorer is $0.115 (21 calls, $0.575) and the
+gate, digests, masked digests, rewrites and story checks $0.009 (124
+gpt-4o-mini calls, $0.046; most digests were cache hits from this
+session's own freeze). On a fresh week the small-model half is about $0.06
+a country (the first week's $0.033 plus a masked digest per article and
+three rewrites), and the scorer at the measured 4.2 calls a merge is
+$0.116. **About $8.50 a week for 48 countries**, against $5.60 under the
+median of three; the extra $2.90 is Fix 7's price, and the ledger's own
+$5.96 this week understates it because the caches were warm.
+
+## §32. What the model still misreads
+
+- **A spillover article about another country, masked, becomes the
+  subject's own (E1, F1, F6).** US a6 is Canada's budget, admitted under
+  T5. Its masked digest opens "A government unveiled a budget aimed at
+  reducing dependence on a major trading partner", and masked US F6 = 0
+  and F1 = 1 cite it in most calls (the quote rule nulled F6 whenever the
+  quote stitched two numbers together, which it usually did). Named, the
+  same calls leave F1 and F6 null. The composite did not move, because
+  the levels it produced sat near the data half, but the mechanism is
+  wrong: the masking block tells the digest to write other countries by
+  their relation, and it does, but "a government" with no relation stated
+  reads as the country's. The fix is one sentence in the masking block
+  ("if the article is mainly about another country, say so in the first
+  words: 'A neighbouring country's government…'") and it moves the masked
+  digest prompt version, so it waits for a session that can re-freeze.
+- **O5 counts a near-strike as 2 and a quote as a paraphrase.** TW O5 = 2
+  on Chinese sorties around the island in every named call; masked, the
+  quote "detected four military aircraft sorties and eight vessels" failed
+  against "detecting four military aircraft sorties and eight vessels",
+  so the level was nulled in the masked arm and in production. The
+  ordered-90 fallback would have passed it (9 of 10 words) in the long
+  form and failed it in the short; the rate (2.5%) did not reach the band
+  that switches it on. KW O5 reads the Houthi strikes on a Gulf oil
+  facility as 2 masked and 1 named on the same two articles: "a
+  neighbouring country" is nearer than "Saudi Arabia".
+- **Scheduled events still get invented dates (O2, O4).** Nine distinct
+  events in the masked arm carried dates that appear in neither the masked
+  nor the named text: Taiwan's local elections as 11-30, 12-01 and 12-31
+  (a5 names no date), the end of a US airspace restriction as 11-11. The
+  validator dropped every one (41 of 124 calls listed one), so `score_3m`
+  moved only on the two events whose dates are written in their articles.
+- **F3 and O3 are the flipping questions.** RU F3 is 0 or 1 on the central
+  bank opening crypto to retail (the named twin says 1); US O3 is 1 or 2 on
+  sanctions and a university no-confidence vote; TW O3 null or 1. Each
+  flip costs a point of SD and no more.
+- **The information questions (I1–I3) are answered 0 with nothing behind
+  them on US and PT**, 6 and 8 times a call on the old payloads, down from
+  8 and 13; on the new payloads 0.07 a call. Rule A hands them to the data
+  half either way.
+
+## §33. Spend and files
+
+Session spend **$9.10** of the $18 cap: selection check and freezes $0.25
+(523 gpt-4o-mini calls, including one Kuwait trial run and the HK/TW
+re-freeze), the three scoring arms $8.22 (280 gpt-4o calls), two probes
+$0.01, the production week $0.62.
+
+- `backend/measurements/step5e/payload_<iso2>.json`: the six masked
+  payloads, the step 6 benchmark set, with `selection`, `mask`, `data` and
+  the check row; `payload_<iso2>_named.json` the same articles named.
+- `selection_check.json`: §29's table, old against new.
+- `calls/<arm>_<iso2>.jsonl`: every call (280) with its raw answer, the
+  validated answer, violations, counts and scoring; `merges/<arm>_<iso2>.jsonl`:
+  every merge (66) with k, votes, extended, the merged answer and its score.
+- `analysis.json`: every line of §30, with the per-question detail behind
+  3a and the masking cost; `probe.json`: both identifiability runs.
+- `reference_<iso2>.json`: the first masked merge per country, the
+  reference answers for step 6.
+- `week2_manifest_KW.json`, `week2_table.json`, `week2_etl.log`: the
+  production week.
+- `backend/llm/step5e.py`: the script (`select-check`, `score`,
+  `revalidate`, `probe`, `analyse`, `reference`). `scorer_measure.py` is
+  untouched, so step 5d stays reproducible.
+
+The eight fixes are in; the six masked payloads and their reference merges
+are frozen for step 6; masking is adopted on a cost of at most one point;
+and the second production week wrote what the measurement said it would.
+Open: the masking block's handling of articles about other countries, the
+two US agency names and the publisher question from §30's probe, and the
+quality report's counters (deferred §24).

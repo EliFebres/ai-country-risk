@@ -1,0 +1,186 @@
+[main] command      : etl
+[main] project root : D:\Coding\ai-country-risk
+[main] db target    : dev
+[main] database     : postgresql://neondb_owner@ep-round-brook-b5w0nzpy-pooler.c-7.us-east-2.aws.neon.tech/neondb
+[main] env file     : D:\Coding\ai-country-risk\backend\.env (found)
+[main] optional keys: CRAWLBASE_JS_TOKEN, CRAWLBASE_TOKEN
+[run] limited to ['HK', 'PT', 'US', 'KW', 'TW']
+=== AI Country Risk run started at 2026-11-09T00:43Z UTC ===
+[db] target=dev  host=ep-round-brook-b5w0nzpy-pooler.c-7.us-east-2.aws.neon.tech  database=neondb
+[run] stamping every row for this run as_of=2026-11-09
+[roster] seeded 48 countries, 48 readable
+All 5 countries already have parquet partitions in D:\Coding\ai-country-risk\backend\data\wb_panel_wide.
+[econ-calendar] AI-ranked 122/174 next-14d events
+[econ-calendar] upserted 192 events
+[imf-refresh] refreshed 4/5 countries
+[econ] HK: resolved {'friction': 4, 'order': 5, 'information': 2, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'first-seen': 8, 'publication-lag-estimate': 4, 'source-published': 2}
+[pool] HK as 'Hong Kong': friction=10 order=10 security=10 information=2 edge=10 broad=10 | fetched=52 stale=0 deduped=49 | top: South China Morning Post(9), Reuters(3), Britannica(2), Hong Kong Customs and Excise Department(2), The Malaysian Reserve(2)
+[gate] HK: 37 relevant in 25 stories, 12 set aside as the same story
+[gate] HK: 49 candidates -> 37 relevant -> 20 selected (budget 20, 2 spillover); rejected {'irrelevant': 12}
+[select] HK: pass 1 dropped 4 (4 headline-only, 0 blocked), 20 selected after refill
+[select] HK: post-selection story check 1 set aside 3 second telling(s) (llm), 18 selected after refill
+[select] HK: post-selection story check 2 set aside 1 second telling(s) (llm), 17 selected after refill
+[mask] HK: 3 masked digests generated, 14 cached, 0+3 full texts rewritten; 12 gazetteer hits, 3 regenerated, 6 replaced by code
+[gate] HK: per-ledger {'friction': 7, 'order': 9, 'information': 0, 'edge': 0} | per-theme {'friction': 5, 'security': 4, 'edge': 4, 'broad': 5} | final 17 after 3 pass(es)
+[digest] HK: 5 generated, 17 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 14} | quality {'full': 17}
+[census] HK 2026-11-09  coverage=80  fingerprint=fba0ad40b6e1
+[census]   indicators resolved {'friction': 4, 'order': 5, 'information': 2, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'first-seen': 8, 'publication-lag-estimate': 4, 'source-published': 2}
+[census]   articles fetched=52 deduped=49 passed=37 selected=17/20 rejected={'irrelevant': 12}
+[census]   bodies {'full': 3, 'digest-only': 14}  quality {'full': 17}  digests 5 new / 17 cached / 0 truncated-retry
+[census]   per-theme selected {'friction': 5, 'security': 4, 'edge': 4, 'broad': 5}  per-ledger {'friction': 7, 'order': 9, 'information': 0, 'edge': 0}
+[census]   dropped: SI.POV.GINI (unmapped), GC.XPN.INTP.RV.ZS (unmapped), IQ.SPI.OVRL (unmapped)
+[score] HK: 3 call(s), unanimous at 3
+[score] HK: carry-forward saw 2 snapshot(s), 1 usable, carried 3: [('F3', 0, '2026-11-07'), ('O1', 0, '2026-11-07'), ('O3', 2, '2026-11-07')]
+[HK] score_12m=25 score_3m=25 ledgers friction=9 order=21 information=67 edge=10 coverage=80
+[time] HK: 142.5s, $0.0887
+[econ] PT: resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'first-seen': 8, 'publication-lag-estimate': 7, 'source-published': 2}
+[pool] PT: friction=5 order=10 security=5 information=7 edge=6 broad=3 | fetched=36 stale=1 deduped=33 | top: Essential Business(2), World Soccer Talk(2), Adventist Today(1), Al Jazeera(1), Amnesty International(1)
+[gate] PT: 19 relevant in 14 stories, 5 set aside as the same story
+[gate] PT: 33 candidates -> 19 relevant -> 14 selected (budget 20, 2 spillover); rejected {'irrelevant': 14}
+[select] PT: pass 1 dropped 2 (2 headline-only, 0 blocked), 12 selected after refill
+[mask] PT: 12 masked digests generated, 0 cached, 3+0 full texts rewritten; 13 gazetteer hits, 6 regenerated, 3 replaced by code
+[gate] PT: per-ledger {'friction': 6, 'order': 6, 'information': 0, 'edge': 0} | per-theme {'order': 3, 'edge': 3, 'friction': 4, 'security': 2, 'information': 1} | final 12 after 1 pass(es)
+[digest] PT: 0 generated, 12 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 9} | quality {'full': 12}
+[census] PT 2026-11-09  coverage=78  fingerprint=21905d4fe394
+[census]   indicators resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'first-seen': 8, 'publication-lag-estimate': 7, 'source-published': 2}
+[census]   articles fetched=36 deduped=33 passed=19 selected=12/20 rejected={'irrelevant': 14}
+[census]   bodies {'full': 3, 'digest-only': 9}  quality {'full': 12}  digests 0 new / 12 cached / 0 truncated-retry
+[census]   per-theme selected {'order': 3, 'edge': 3, 'friction': 4, 'security': 2, 'information': 1}  per-ledger {'friction': 6, 'order': 6, 'information': 0, 'edge': 0}
+[score] PT: 5 call(s), split vote, extended
+[score] PT: carry-forward saw 2 snapshot(s), 1 usable, carried 1: [('O5', 0, '2026-11-07')]
+[PT] score_12m=21 score_3m=24 ledgers friction=25 order=26 information=3 edge=15 coverage=78
+[time] PT: 172.7s, $0.1344
+[econ] US: resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'publication-lag-estimate': 7, 'first-seen': 8, 'source-published': 2}
+[pool] US: friction=10 order=10 security=10 information=0 edge=10 broad=10 | fetched=50 stale=1 deduped=47 | top: Reuters(3), The New York Times(3), Centers for Disease Control and Prevention | CDC (.gov)(2), Department of Justice (.gov)(2), PBS(2)
+[gate] US: 34 relevant in 33 stories, 1 set aside as the same story
+[gate] US: 47 candidates -> 34 relevant -> 20 selected (budget 20, 2 spillover); rejected {'irrelevant': 13}
+[select] US: pass 1 dropped 7 (7 headline-only, 0 blocked), 20 selected after refill
+[select] US: pass 1 dropped 2 (2 headline-only, 0 blocked), 20 selected after refill
+[select] US: pass 1 dropped 1 (1 headline-only, 0 blocked), 20 selected after refill
+[select] US: pass 1 dropped 1 (1 headline-only, 0 blocked), 20 selected after refill
+[mask] US: 20 masked digests generated, 0 cached, 3+0 full texts rewritten; 34 gazetteer hits, 13 regenerated, 26 replaced by code
+[gate] US: per-ledger {'friction': 2, 'order': 18, 'information': 0, 'edge': 0} | per-theme {'broad': 5, 'friction': 5, 'security': 4, 'order': 3, 'edge': 4} | final 20 after 1 pass(es)
+[digest] US: 3 generated, 17 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 17} | quality {'full': 20}
+[census] US 2026-11-09  coverage=90  fingerprint=94738aa8fd11
+[census]   indicators resolved {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'publication-lag-estimate': 7, 'first-seen': 8, 'source-published': 2}
+[census]   articles fetched=50 deduped=47 passed=34 selected=20/20 rejected={'irrelevant': 13}
+[census]   bodies {'full': 3, 'digest-only': 17}  quality {'full': 20}  digests 3 new / 17 cached / 0 truncated-retry
+[census]   per-theme selected {'broad': 5, 'friction': 5, 'security': 4, 'order': 3, 'edge': 4}  per-ledger {'friction': 2, 'order': 18, 'information': 0, 'edge': 0}
+[score] US: 5 call(s), split vote, extended
+[score] US: 2 validation note(s): ['scheduled_events[0]:date not in article', 'scheduled_events[0]:date not in article']
+[score] US: carry-forward saw 2 snapshot(s), 1 usable, carried 5: [('F4', 1, '2026-11-07'), ('O3', 1, '2026-11-07'), ('O4', 1, '2026-11-07'), ('O6', 1, '2026-11-07'), ('E1', 0, '2026-11-07')]
+[US] score_12m=28 score_3m=25 ledgers friction=30 order=31 information=21 edge=19 coverage=90
+[time] US: 271.5s, $0.1724
+[econ] KW: resolved {'friction': 4, 'order': 5, 'information': 3, 'edge': 2} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'first-seen': 9, 'publication-lag-estimate': 4, 'source-published': 1}
+[pool] KW: friction=8 order=10 security=7 information=1 edge=10 broad=4 | fetched=40 stale=0 deduped=39 | top: Kuwait Times(14), Times Kuwait(4), Arab Times Kuwait News(3), Zawya(2), Abb Takk News(1)
+[gate] KW: 28 relevant in 22 stories, 6 set aside as the same story
+[gate] KW: 39 candidates -> 28 relevant -> 18 selected (budget 20, 2 spillover); rejected {'irrelevant': 11}
+[select] KW: pass 1 dropped 2 (2 headline-only, 0 blocked), 16 selected after refill
+[mask] KW: 16 masked digests generated, 0 cached, 3+0 full texts rewritten; 26 gazetteer hits, 10 regenerated, 20 replaced by code
+[gate] KW: per-ledger {'friction': 6, 'order': 8, 'information': 0, 'edge': 0} | per-theme {'edge': 7, 'security': 5, 'friction': 3, 'order': 1} | final 16 after 1 pass(es)
+[digest] KW: 0 generated, 18 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 13} | quality {'full': 16}
+[census] KW 2026-11-09  coverage=80  fingerprint=5f20e6969f48
+[census]   indicators resolved {'friction': 4, 'order': 5, 'information': 3, 'edge': 2} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'first-seen': 9, 'publication-lag-estimate': 4, 'source-published': 1}
+[census]   articles fetched=40 deduped=39 passed=28 selected=16/20 rejected={'irrelevant': 11}
+[census]   bodies {'full': 3, 'digest-only': 13}  quality {'full': 16}  digests 0 new / 18 cached / 0 truncated-retry
+[census]   per-theme selected {'edge': 7, 'security': 5, 'friction': 3, 'order': 1}  per-ledger {'friction': 6, 'order': 8, 'information': 0, 'edge': 0}
+[census]   dropped: SI.POV.GINI (unmapped), GC.XPN.INTP.RV.ZS (unmapped), OECD.PISA.MEAN (no row)
+[score] KW: 5 call(s), split vote, extended
+[score] KW: carry-forward saw 2 snapshot(s), 1 usable, carried 2: [('F4', 1, '2026-11-07'), ('F5', 2, '2026-11-07')]
+[KW] score_12m=40 score_3m=40 ledgers friction=29 order=38 information=66 edge=24 coverage=80
+[time] KW: 166.9s, $0.1365
+[econ] TW: resolved {'friction': 3, 'order': 3, 'information': 2, 'edge': 1} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3} | dates {'publication-lag-estimate': 3, 'first-seen': 4, 'source-published': 2}
+[pool] TW: friction=10 order=10 security=10 information=1 edge=10 broad=10 | fetched=51 stale=0 deduped=45 | top: Focus Taiwan(5), Taipei Times(5), ASU News(2), BigGo Finance(2), Bloomberg(2)
+[gate] TW: 38 relevant in 33 stories, 5 set aside as the same story
+[gate] TW: 45 candidates -> 38 relevant -> 20 selected (budget 20, 1 spillover); rejected {'irrelevant': 7}
+[select] TW: pass 1 dropped 2 (2 headline-only, 0 blocked), 20 selected after refill
+[select] TW: pass 1 dropped 2 (2 headline-only, 0 blocked), 20 selected after refill
+[select] TW: post-selection story check 1 set aside 2 second telling(s) (llm), 20 selected after refill
+[mask] TW: 2 masked digests generated, 18 cached, 0+3 full texts rewritten; 0 gazetteer hits, 0 regenerated, 0 replaced by code
+[gate] TW: per-ledger {'friction': 4, 'order': 16, 'information': 0, 'edge': 0} | per-theme {'friction': 5, 'order': 4, 'broad': 8, 'security': 4} | final 20 after 2 pass(es)
+[digest] TW: 1 generated, 21 cached, 0 truncated-retry, 0 failed, 0 without a body | bodies {'full': 3, 'digest-only': 17} | quality {'full': 19, 'partial': 1}
+[census] TW 2026-11-09  coverage=73  fingerprint=8ba0588196b5
+[census]   indicators resolved {'friction': 3, 'order': 3, 'information': 2, 'edge': 1} of {'friction': 6, 'order': 5, 'information': 3, 'edge': 3}  dates={'publication-lag-estimate': 3, 'first-seen': 4, 'source-published': 2}
+[census]   articles fetched=51 deduped=45 passed=38 selected=20/20 rejected={'irrelevant': 7}
+[census]   bodies {'full': 3, 'digest-only': 17}  quality {'full': 19, 'partial': 1}  digests 1 new / 21 cached / 0 truncated-retry
+[census]   per-theme selected {'friction': 5, 'order': 4, 'broad': 8, 'security': 4}  per-ledger {'friction': 4, 'order': 16, 'information': 0, 'edge': 0}
+[census]   dropped: FP.CPI.TOTL.ZG (unmapped), SI.POV.GINI (unmapped), GC.XPN.INTP.RV.ZS (unmapped), SL.UEM.TOTL.ZS (unmapped), NY.GDP.PCAP.KD.ZG (unmapped), IQ.SPI.OVRL (unmapped), BX.KLT.DINV.WD.GD.ZS (unmapped), SE.XPD.TOTL.GD.ZS (unmapped)
+[score] TW: 3 call(s), unanimous at 3
+[score] TW: 6 validation note(s): ['O5.quote:quote not found', 'scheduled_events[0]:past', 'O5.quote:quote not found', 'scheduled_events[0]:past', 'O5.quote:quote not found', 'scheduled_events[0]:past']
+[score] TW: carry-forward saw 2 snapshot(s), 1 usable, carried 5: [('F1', 0, '2026-11-07'), ('F4', 0, '2026-11-07'), ('O4', 1, '2026-11-07'), ('O5', 2, '2026-11-07'), ('E1', 0, '2026-11-07')]
+[TW] score_12m=21 score_3m=21 ledgers friction=24 order=22 information=14 edge=0 coverage=73
+[time] TW: 99.0s, $0.0892
+
+[run] 5/5 countries scored, 0 failed
+[run] wall-clock 14.2 min total, 166.9s median per country, 170.5s mean
+[run] spend $0.6212 total, $0.1242 per scored country
+[run] scorer calls 21 over 5 countries; 3 split vote(s) extended: PT k=5, US k=5, KW k=5
+[run] slowest: US 272s, PT 173s, KW 167s, HK 142s, TW 99s
+[alerts] ranked 15/15 pooled articles, stored 15
+[cost] actual $0.6213 — gpt-4o-2024-08-06: 21 calls, 173535+14159 tok, $0.5754; gpt-4o-mini-2024-07-18: 124 calls, 217969+21974 tok, $0.0459
+
+=== Weekly quality report — 2026-11-09 ===
+
+      pool  pass     sel     ind  cov  bodies                       ledgers with no articles
+AU       —     — not scored
+AT       —     — not scored
+BE       —     — not scored
+CA       —     — not scored
+DK       —     — not scored
+FI       —     — not scored
+FR       —     — not scored
+DE       —     — not scored
+HK      49  76%  17/20   14/17    80  digest-only:14, full:3       information, edge
+IE       —     — not scored
+IL       —     — not scored
+IT       —     — not scored
+JP       —     — not scored
+NL       —     — not scored
+NZ       —     — not scored
+NO       —     — not scored
+PT      33  58%  12/20   17/17    78  digest-only:9, full:3        information, edge
+SG       —     — not scored
+ES       —     — not scored
+SE       —     — not scored
+CH       —     — not scored
+GB       —     — not scored
+US      47  72%  20/20   17/17    90  digest-only:17, full:3       information, edge
+BR       —     — not scored
+CL       —     — not scored
+CN       —     — not scored
+CO       —     — not scored
+CZ       —     — not scored
+EG       —     — not scored
+GR       —     — not scored
+HU       —     — not scored
+IN       —     — not scored
+ID       —     — not scored
+KW      39  72%  16/20   14/17    80  digest-only:13, full:3       information, edge
+MY       —     — not scored
+MX       —     — not scored
+PE       —     — not scored
+PH       —     — not scored
+PL       —     — not scored
+QA       —     — not scored
+SA       —     — not scored
+ZA       —     — not scored
+KR       —     — not scored
+TW      45  84%  20/20    9/17    73  digest-only:17, full:3       information, edge
+TH       —     — not scored
+TR       —     — not scored
+AE       —     — not scored
+RU       —     — not scored
+
+[report] 5/48 countries scored
+[report] coverage: min 73, median 80, max 90
+[report] schema violations 8 | digest failures 0 | truncated retries 0
+[report] walls caught by the digest: 1 — {'TW': {'partial': 1}}
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! 2 FLAG(S) — a defect in an answer, or a change against a country's own history
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!! US: 2 schema violation(s) in the scorer's answer
+!! TW: 6 schema violation(s) in the scorer's answer
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+=== Run finished at 2026-11-09T00:58Z UTC ===
+exit 0
