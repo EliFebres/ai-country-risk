@@ -61,6 +61,10 @@ backend/data/wb_panel_wide
 # multi-megabyte dump of cached model output.
 backend/data/backups/
 
+# The forecast ledger's training export (`forecast-export`). Regenerable from
+# the database on demand, and large.
+backend/data/exports/
+
 # Allow the example env files
 !backend/.env.example
 !frontend/.env.example

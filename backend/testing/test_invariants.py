@@ -180,6 +180,8 @@ EXPECTED_COMMANDS = {
     "run": ("backend.util.supervisor", "run_supervisor"),
     "bootstrap": ("backend.data_upsert.store", "ensure_schema"),
     "report": ("backend.llm.quality_report", "run_report"),
+    "forecast-report": ("backend.llm.forecast_eval", "run_report"),
+    "forecast-export": ("backend.llm.forecast_eval", "run_export"),
 }
 
 

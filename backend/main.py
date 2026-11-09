@@ -4,6 +4,7 @@
     python -m backend.main prices           # the live-prices poll loop
     python -m backend.main prices --once    # a single tick, for verification
     python -m backend.main run              # the supervisor: both, one process
+    python -m backend.main forecast-report  # the forecast ledger (also: bootstrap, report, forecast-export)
 
 This file is argument parsing and dispatch. It holds no business logic: each
 command is a few lines that hand off to a function in the folder that owns the
@@ -60,12 +61,16 @@ COMMANDS: Dict[str, Command] = {
     ),
     "bootstrap": Command(
         "backend.data_upsert.store", "ensure_schema",
-        "build an empty database into the full ten-table schema",
+        "build an empty database into the full twelve-table schema",
     ),
     "report": Command(
         "backend.llm.quality_report", "run_report",
         "the weekly quality report: state per country, and what changed against its own history",
     ),
+    "forecast-report": Command("backend.llm.forecast_eval", "run_report",
+                               "the forecast ledger: grade matured outlooks, then hit rates, Brier, calibration, systematic errors"),
+    "forecast-export": Command("backend.llm.forecast_eval", "run_export",
+                               "the matured outlooks with payloads and grades, as JSONL under backend/data/exports/"),
 }
 
 
@@ -78,7 +83,7 @@ def _resolve(command: str) -> Callable:
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m backend.main",
-        description="AI Country Risk backend. One executable, three commands.",
+        description="AI Country Risk backend. One executable, seven commands.",
     )
     subparsers = parser.add_subparsers(dest="command", metavar="command", required=True)
     for name, spec in COMMANDS.items():

@@ -45,6 +45,7 @@ from backend.llm import quality_report
 from backend.llm import relevance
 from backend.llm import calendar_ranker
 from backend.llm import alerts_ranker
+from backend.llm import forecast_eval, outlook, watch
 from backend.data_upsert import data_push, store
 from backend.news_fetching import core
 from backend.data_fetching import fetch_metrics
@@ -957,6 +958,17 @@ def run_etl(
             except Exception as rank_err:
                 print(f"[econ-calendar] ranking ERROR: {rank_err}")
 
+            # The watch list confirms calendar releases before the upsert
+            # prunes the rows that have passed: the only moment an actual
+            # is visible. Guarded: a confirmation failure is not a calendar
+            # failure.
+            try:
+                confirmed = watch.confirm_calendar(run_as_of)
+                if confirmed:
+                    print(f"[watch] {confirmed} calendar item(s) confirmed by the feed")
+            except Exception as watch_err:
+                print(f"[watch] calendar confirmation ERROR: {watch_err}")
+
             data_push.upsert_economic_events(events)
             print(f"[econ-calendar] upserted {len(events)} events")
         else:
@@ -1200,6 +1212,40 @@ def run_etl(
                 f"coverage={census['evidence_coverage']}"
             )
 
+            # 8) The outlook, then the watch list, after the score is written.
+            #    An addition to the product, not the product: a failure here
+            #    is recorded in the ledger and the country still counts as
+            #    scored. The diagnostic prompt variant runs on the test set.
+            outlook_failed = None
+            outlook_cost = 0.0
+            try:
+                spend_at = run_meter.spend_usd
+                week = outlook.run_week(iso2, run_as_of, meter=run_meter,
+                                        arms=iso2 in constants.TEST_SET)
+                outlook_failed = week["outlook"].get("failed")
+                outlook_cost = run_meter.spend_usd - spend_at
+                outlook_detail = {
+                    "violations": len(week["outlook"].get("violations") or []),
+                    "payload_tokens": week["outlook"].get("payload_tokens"),
+                    "skipped": week["outlook"].get("skipped"),
+                    "arms": sorted(week["arms"]),
+                    "watch": week["watch"]["counts"],
+                }
+            except Exception as outlook_err:
+                outlook_failed = str(outlook_err)
+                outlook_detail = {}
+            if outlook_failed:
+                print(f"[outlook] {iso2} ERROR: {outlook_failed}")
+            try:
+                store.write_ledger(
+                    job_type="outlook", country_iso2=iso2, run_date=run_as_of,
+                    status="error" if outlook_failed else "ok", git_sha=run_git_sha,
+                    spend_usd=round(outlook_cost, 6), detail=outlook_detail,
+                    error=outlook_failed[:500] if outlook_failed else None,
+                )
+            except Exception as ledger_err:
+                print(f"[ledger] outlook {iso2} not recorded: {ledger_err}")
+
         except Exception as e:
             outcome = f"ERROR: {e}"
             print(f"[{iso2}] ERROR: {e}")
@@ -1292,6 +1338,16 @@ def run_etl(
         )
     except Exception as e:
         print(f"[ledger] run not recorded: {e}")
+
+    # 8b) The forecast ledger: grade every outlook whose horizon has matured,
+    #     then rewrite the calibration memo if the grades changed it. Reads the
+    #     record, like the quality report, so it is correct about weeks this
+    #     process never saw.
+    try:
+        forecast_eval.run(run_as_of)
+        forecast_eval.write_lessons(run_as_of)
+    except Exception as e:
+        print(f"[forecast-eval] ERROR: {e}")
 
     # 9) The weekly quality report, every run. A report you have to remember to
     #    run is a report that stops being run.
