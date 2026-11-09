@@ -33,6 +33,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from langchain_core.messages import SystemMessage
@@ -102,7 +103,8 @@ REWRITE_PROMPT = (
     "names the country it is about. Keep every sentence and every number; change only the "
     "names. Do not summarise, shorten, reorder or add anything.\n\n"
     + _SUBJECT_LINE + "\n" + MASK_BLOCK
-    + "\n\nReturn the rewritten article as `text`."
+    + "\n\nReturn only the rewritten article body as `text`: no HEADLINE or ARTICLE label, and "
+      "not the headline itself."
 )
 REWRITE_PROMPT_VERSION = content_hash(REWRITE_PROMPT + "\n" + gazetteer.GAZETTEER_VERSION)
 REWRITE_SCHEMA: Dict[str, Any] = {
@@ -290,6 +292,17 @@ def masked_digest_articles(
     return {"digests": digests, "counts": counts, "mask": mask}
 
 
+_ECHO = re.compile(r"\A\s*HEADLINE:\s*.*?\n\s*\n\s*ARTICLE:\s*\n?", re.DOTALL)
+
+
+def _strip_echo(text: str) -> str:
+    """The rewrite is asked for the body alone; a model that echoes the
+    HEADLINE/ARTICLE framing it was given loses it here."""
+    out = _ECHO.sub("", text, count=1)
+    out = re.sub(r"\A\s*ARTICLE:\s*\n?", "", out, count=1)
+    return out.strip()
+
+
 def rewrite_full_texts(
     articles: Sequence[Dict[str, Any]],
     *,
@@ -359,6 +372,7 @@ def rewrite_full_texts(
         if not text or digest_engine._finished_on_length(response):
             counts["failed"] += 1
             continue
+        text = _strip_echo(text)
         hits = gazetteer.scan(iso2, text)
         redacted: List[str] = []
         if hits:

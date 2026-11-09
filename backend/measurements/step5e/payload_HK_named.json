@@ -2,12 +2,12 @@
  "iso2": "HK",
  "country": "Hong Kong SAR, China",
  "mode": "named",
- "run_date": "2026-11-08",
- "payload_fingerprint": "0541fd8a8eda49bc1b0f09ac30bcf1a5a8877062df02b9b240f2b612e45eaeb8",
- "payload_sha256": "56553c1c554a83adc11423a7ba56e0b0782a872f8201221db0e13272ec1e4a45",
- "payload_tokens": 5998,
+ "run_date": "2026-11-09",
+ "payload_fingerprint": "0dc71e9b229b38a7da35d814b7b22068fe12b91775b75d9d9b5d79fa189dc4fc",
+ "payload_sha256": "6d65f6a79fa203850f903564f2dfde97267c703a2d23bad115b4b6cc7a83653d",
+ "payload_tokens": 6204,
  "versions": {
-  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "git_sha": "7d1a78759c533edece487572582798320a50baea",
   "scoring_model": "gpt-4o-2024-08-06",
   "digest_model": "gpt-4o-mini-2024-07-18",
   "gate_model": "gpt-4o-mini-2024-07-18",
@@ -19,12 +19,12 @@
   "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
   "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
   "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
-  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
-  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
-  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "masked_digest_prompt_version": "41e2b4abe2d92e7478c9e60806cdaa1d47119e82704197363b0ee68410a87268",
+  "rewrite_prompt_version": "146eb6b73913458a374ded9c000d1df2d7a877de86eb4fdb05dc805b2d17fbae",
+  "gazetteer_version": "58588569283f1d6cc1e3a1150686bf20a5073ccaf9cf2b7ec67a988dbe6328db",
   "scorer_input": "masked",
   "schema_violations": 0,
-  "payload_tokens": 5503
+  "payload_tokens": 5721
  },
  "article_ids": [
   "a1",
@@ -41,7 +41,8 @@
   "a12",
   "a13",
   "a14",
-  "a15"
+  "a15",
+  "a16"
  ],
  "articles_meta": [
   {
@@ -78,7 +79,7 @@
    "id": "a3",
    "url": "https://www.tokenpost.com/news/regulation/51251",
    "title": "Hong Kong Forms Team to Support Crypto-Asset Reporting Rules - TOKENPOST",
-   "masked_title": "Team Formed to Support Crypto-Asset Reporting Rules",
+   "masked_title": "Country Forms Team to Support Crypto-Asset Reporting Rules",
    "publisher": "TOKENPOST",
    "published": "2026-11-08",
    "test": "T1",
@@ -151,9 +152,24 @@
   },
   {
    "id": "a8",
+   "url": "https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
+   "title": "China Crackdown Pushes Wealthy to Gold, Lifting Hong Kong Jewelry Sales - Bloomberg.com",
+   "masked_title": "Crackdown Pushes Wealthy to Gold, Lifting Jewelry Sales",
+   "publisher": "Bloomberg.com",
+   "published": "2026-11-05",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Wealthy individuals are turning to gold and gemstones to preserve wealth amid China's tightening grip over offshore investments, leading to a surge in Hong Kong's jewelry and watch sales.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
    "url": "https://sg.finance.yahoo.com/news/dbs-earnings-malaysia-investment-hong-095948192.html",
    "title": "DBS Earnings, Malaysia Investment, and Hong Kong Corporate Moves Lead Asia News - Yahoo Finance Singapore",
-   "masked_title": "DBS Earnings, Neighbouring Country Investment, and Corporate Moves Lead Asia News",
+   "masked_title": "DBS Earnings, Major Investment, and Corporate Moves Lead Asia News",
    "publisher": "Yahoo Finance Singapore",
    "published": "2026-11-05",
    "test": "T2",
@@ -165,10 +181,10 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a9",
+   "id": "a10",
    "url": "https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
    "title": "Why wealth managers see opportunity in Hong Kong despite Beijing’s tax crackdown - South China Morning Post",
-   "masked_title": "Why wealth managers see opportunity in the city despite a major power’s tax crackdown",
+   "masked_title": "Why wealth managers see opportunity in the city despite major power’s tax crackdown",
    "publisher": "South China Morning Post",
    "published": "2026-11-07",
    "test": "T2",
@@ -176,21 +192,6 @@
    "ledger": "friction",
    "high_impact_event": false,
    "what_happened": "Global financial leaders discussed Hong Kong's wealth management industry and its appeal as a safe haven, while largely avoiding the topic of Beijing's tax crackdown on offshore assets.",
-   "body_quality": "full",
-   "body_status": "digest-only"
-  },
-  {
-   "id": "a10",
-   "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
-   "title": "Hong Kong makes further inroads in AI, aviation at mainland Chinese expo - South China Morning Post",
-   "masked_title": "City makes further inroads in AI, aviation at regional expo",
-   "publisher": "South China Morning Post",
-   "published": "2026-11-08",
-   "test": "T5",
-   "exclusion": "none",
-   "ledger": "friction",
-   "high_impact_event": false,
-   "what_happened": "Hong Kong is deepening its integration with mainland China in sectors like AI and aviation, as discussed by industry insiders at a global import expo.",
    "body_quality": "full",
    "body_status": "digest-only"
   },
@@ -211,6 +212,21 @@
   },
   {
    "id": "a12",
+   "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
+   "title": "Hong Kong makes further inroads in AI, aviation at mainland Chinese expo - South China Morning Post",
+   "masked_title": "City makes further inroads in AI, aviation at regional expo",
+   "publisher": "South China Morning Post",
+   "published": "2026-11-08",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong is deepening its integration with mainland China in sectors like AI and aviation, as discussed by industry insiders at a global import expo.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
    "url": "https://www.scmp.com/news/hong-kong/politics/article/3373677/hong-kong-must-build-reassuring-environment-amid-political-criticism-paul-lam",
    "title": "Hong Kong must build ‘reassuring’ environment amid political criticism: Paul Lam - South China Morning Post",
    "masked_title": "City must build ‘reassuring’ environment amid political criticism: Justice Minister",
@@ -225,7 +241,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a13",
+   "id": "a14",
    "url": "https://www.info.gov.hk/gia/general/202611/06/P2026110600321.htm",
    "title": "CE meets Mayor of Shanghai (with photos/video) - www.info.gov.hk",
    "masked_title": "Head of Government meets Mayor of Major City (with photos/video)",
@@ -240,7 +256,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a14",
+   "id": "a15",
    "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "title": "Hong Kong needs ‘forward-looking’ plans amid industrial chain shifts: John Lee - South China Morning Post",
    "masked_title": "City needs ‘forward-looking’ plans amid industrial chain shifts: Leader",
@@ -255,7 +271,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a15",
+   "id": "a16",
    "url": "https://www.dezeen.com/2026/11/01/new-huanggang-port-development-aedas-shenzhen-hong-kong/",
    "title": "Tiered immigration hub by Aedas opens at Shenzhen-Hong Kong border - Dezeen",
    "masked_title": "Tiered immigration hub by Aedas opens at border",
@@ -343,14 +359,12 @@
   "method": "llm",
   "problem": null,
   "eligible": 36,
-  "stories": 21,
+  "stories": 22,
   "multi": 5,
-  "dropped": 15,
+  "dropped": 14,
   "same_story_as": {
    "https://www.scmp.com/news/hong-kong/politics/article/3373638/hypocritical-hong-kong-hits-back-criticism-joshua-wongs-sentence": "https://www.scmp.com/news/hong-kong/politics/article/3373677/hong-kong-must-build-reassuring-environment-amid-political-criticism-paul-lam",
    "https://en.bloomingbit.io/feed/news/123806": "https://www.tokenpost.com/news/regulation/51251",
-   "https://biz.chosun.com/en/en-international/2026/11/06/MLZMHNJHGZDFPPMPN3AWEAENRY/": "https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
-   "https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold": "https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
    "https://www.hrw.org/news/2026/11/05/hong-kong-joshua-wong-gets-nearly-10-more-years-in-prison": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.bloomberg.com/news/articles/2026-11-05/hong-kong-sentences-activist-joshua-wong-to-10-years-in-prison": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.afp.com/en/hong-kong-activist-joshua-wong-given-10-more-years-collusion": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
@@ -361,6 +375,7 @@
    "https://www.nytimes.com/2026/11/04/world/asia/joshua-wong-hong-kong-sentenced.html": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.bbc.com/news/articles/cwp9g3rlp8jlo": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.cnn.com/2026/11/04/china/hong-kong-china-joshua-wong-sentence-hnk-intl": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
+   "https://biz.chosun.com/en/en-international/2026/11/06/MLZMHNJHGZDFPPMPN3AWEAENRY/": "https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
    "https://www.bloomberg.com/news/articles/2026-11-03/hong-kong-gdp-q3-economic-growth-exports-surge-electronics-ai": "https://news.brgbuildingsolutions.com/post/hong-kong-economy-grows-5-2-in-q3-2026-supported-by-strong-exports-and-domestic-demand"
   },
   "post_selection": [
@@ -413,17 +428,17 @@
   "post_selection_same_story": 3,
   "blocked_after_selection": 0,
   "refill_digests": 0,
-  "shortfall": 5,
-  "selected": 15
+  "shortfall": 4,
+  "selected": 16
  },
  "mask": {
   "hits": 36,
   "regenerated": 10,
-  "replaced_by_code": 20,
+  "replaced_by_code": 28,
   "fallback_digests": 0,
   "fallback_texts": 0,
   "publisher_mentions": 7,
-  "digests_generated": 15,
+  "digests_generated": 16,
   "digests_cached": 0,
   "rewrites_generated": 3,
   "rewrites_cached": 0,
@@ -433,27 +448,27 @@
   {
    "where": "digest:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
@@ -488,17 +503,17 @@
   {
    "where": "digest:https://www.straitstimes.com/multimedia/graphics/2026/11/insider-hong-kong/index.html",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.straitstimes.com/multimedia/graphics/2026/11/insider-hong-kong/index.html",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.straitstimes.com/multimedia/graphics/2026/11/insider-hong-kong/index.html",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
@@ -508,17 +523,27 @@
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
    "term": "China",
    "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
+   "term": "HK$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
+   "term": "HK",
+   "kind": "code"
   },
   {
    "where": "digest:https://sg.finance.yahoo.com/news/dbs-earnings-malaysia-investment-hong-095948192.html",
@@ -536,24 +561,14 @@
    "kind": "code"
   },
   {
-   "where": "digest:https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
-   "term": "Beijing",
-   "kind": "extra"
-  },
-  {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
    "term": "Mainland",
-   "kind": "extra"
-  },
-  {
-   "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
-   "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.info.gov.hk/gia/general/202611/06/P2026110600321.htm",
@@ -573,27 +588,27 @@
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
@@ -603,12 +618,12 @@
   {
    "where": "rewrite:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   }
  ],
  "data": {
@@ -733,8 +748,8 @@
  },
  "check": {
   "old": {
-   "multi_article_stories": 2,
-   "same_story_dropped_if_checked": 2,
+   "multi_article_stories": 1,
+   "same_story_dropped_if_checked": 1,
    "title_only_sent": 3,
    "t5_sent": 1,
    "articles_sent": 20,
@@ -744,8 +759,8 @@
    "multi_article_stories": 0,
    "title_only_sent": 0,
    "t5_sent": 1,
-   "articles_sent": 15,
-   "shortfall": 5,
+   "articles_sent": 16,
+   "shortfall": 4,
    "refill_digests": 0,
    "passes": 2,
    "story_checks": 2,
@@ -758,11 +773,11 @@
   "mask": {
    "hits": 36,
    "regenerated": 10,
-   "replaced_by_code": 20,
+   "replaced_by_code": 28,
    "fallback_digests": 0,
    "fallback_texts": 0,
    "publisher_mentions": 7,
-   "digests_generated": 15,
+   "digests_generated": 16,
    "digests_cached": 0,
    "rewrites_generated": 3,
    "rewrites_cached": 0,
@@ -776,7 +791,7 @@
    "iso2": "HK",
    "name": "Hong Kong SAR, China"
   },
-  "as_of": "2026-11-08",
+  "as_of": "2026-11-09",
   "window": "articles published in the 30 days before as_of",
   "structural_facts": {
    "classification_source": "World Bank country classification",
@@ -790,7 +805,7 @@
   "article_coverage": {
    "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
    "selected_per_theme": {
-    "friction": 4,
+    "friction": 5,
     "order": 0,
     "security": 5,
     "information": 0,
@@ -798,14 +813,14 @@
     "broad": 5
    },
    "selected_per_ledger": {
-    "friction": 6,
+    "friction": 7,
     "order": 8,
     "information": 0,
     "edge": 0
    },
    "candidates_fetched": 53,
    "passed_the_gate": 36,
-   "selected": 15,
+   "selected": 16,
    "budget": 20
   },
   "articles": [
@@ -1008,6 +1023,29 @@
    },
    {
     "id": "a8",
+    "publisher": "Bloomberg.com",
+    "published": "2026-11-05",
+    "title": "China Crackdown Pushes Wealthy to Gold, Lifting Hong Kong Jewelry Sales - Bloomberg.com",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Hong Kong's jewelry and watch sales have increased significantly, reaching their highest level since 2019, as wealthy individuals turn to gold and gemstones to safeguard their wealth amid China's tightening regulations on offshore investments. Sales rose 22% year-on-year to HK$45.8 billion ($5.8 billion) in the first nine months of the year.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "22% year-on-year increase",
+      "HK$45.8 billion ($5.8 billion) in sales",
+      "15% of Hong Kong’s total retail sales"
+     ]
+    }
+   },
+   {
+    "id": "a9",
     "publisher": "Yahoo Finance Singapore",
     "published": "2026-11-05",
     "title": "DBS Earnings, Malaysia Investment, and Hong Kong Corporate Moves Lead Asia News - Yahoo Finance Singapore",
@@ -1049,7 +1087,7 @@
     }
    },
    {
-    "id": "a9",
+    "id": "a10",
     "publisher": "South China Morning Post",
     "published": "2026-11-07",
     "title": "Why wealth managers see opportunity in Hong Kong despite Beijing’s tax crackdown - South China Morning Post",
@@ -1064,26 +1102,6 @@
      "what_happened": "Global financial leaders meeting in Hong Kong focused on the city's growing appeal as a safe haven for wealth management, while largely avoiding discussion of Beijing's crackdown on offshore trusts. This scrutiny of wealthy families' overseas assets remains a challenge for the wealth management industry in Hong Kong.",
      "institutions": [],
      "direction": "unclear",
-     "numbers": []
-    }
-   },
-   {
-    "id": "a10",
-    "publisher": "South China Morning Post",
-    "published": "2026-11-08",
-    "title": "Hong Kong makes further inroads in AI, aviation at mainland Chinese expo - South China Morning Post",
-    "themes": [
-     "security",
-     "broad"
-    ],
-    "ledgers": [
-     "friction"
-    ],
-    "body_status": "digest-only",
-    "digest": {
-     "what_happened": "Hong Kong is strengthening its connections with mainland China in areas such as artificial intelligence, aviation, and professional services, as discussed by industry insiders at a global import expo. Executives highlighted the benefits of Hong Kong's strategic position and the integration of operations across the border.",
-     "institutions": [],
-     "direction": "improving",
      "numbers": []
     }
    },
@@ -1119,6 +1137,26 @@
     "id": "a12",
     "publisher": "South China Morning Post",
     "published": "2026-11-08",
+    "title": "Hong Kong makes further inroads in AI, aviation at mainland Chinese expo - South China Morning Post",
+    "themes": [
+     "security",
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Hong Kong is strengthening its connections with mainland China in areas such as artificial intelligence, aviation, and professional services, as discussed by industry insiders at a global import expo. Executives highlighted the benefits of Hong Kong's strategic position and the integration of operations across the border.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "South China Morning Post",
+    "published": "2026-11-08",
     "title": "Hong Kong must build ‘reassuring’ environment amid political criticism: Paul Lam - South China Morning Post",
     "themes": [
      "broad"
@@ -1137,7 +1175,7 @@
     }
    },
    {
-    "id": "a13",
+    "id": "a14",
     "publisher": "www.info.gov.hk",
     "published": "2026-11-06",
     "title": "CE meets Mayor of Shanghai (with photos/video) - www.info.gov.hk",
@@ -1164,7 +1202,7 @@
     }
    },
    {
-    "id": "a14",
+    "id": "a15",
     "publisher": "South China Morning Post",
     "published": "2026-11-05",
     "title": "Hong Kong needs ‘forward-looking’ plans amid industrial chain shifts: John Lee - South China Morning Post",
@@ -1189,7 +1227,7 @@
     }
    },
    {
-    "id": "a15",
+    "id": "a16",
     "publisher": "Dezeen",
     "published": "2026-11-01",
     "title": "Tiered immigration hub by Aedas opens at Shenzhen-Hong Kong border - Dezeen",
@@ -1242,8 +1280,8 @@
   "evidence_coverage_components": {
    "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
    "components": {
-    "article_volume": 0.75,
-    "body_depth": 0.6,
+    "article_volume": 0.8,
+    "body_depth": 0.5938,
     "indicator_resolution": 0.8333,
     "freshness": 0.9286
    },

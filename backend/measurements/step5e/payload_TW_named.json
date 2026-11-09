@@ -2,12 +2,12 @@
  "iso2": "TW",
  "country": "Taiwan",
  "mode": "named",
- "run_date": "2026-11-08",
- "payload_fingerprint": "8b350c3f7d0ffcb9e6daf11bc11470afb38aaf1e39462f85877faf8ca94fb908",
- "payload_sha256": "ea7f52ce964e0d2ec843411f34ab84b9a889e4f4e9054e24ab9d52761efaa640",
- "payload_tokens": 7800,
+ "run_date": "2026-11-09",
+ "payload_fingerprint": "e42104ee3f77a12eb8e3d94de3c672e07b056544d251ea4ee0ceb1d42593fe1b",
+ "payload_sha256": "4277422e666d614fcc12f25898aac8fd5aa7d8d797888ad2bfb8bf4240e8dcfe",
+ "payload_tokens": 6890,
  "versions": {
-  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "git_sha": "7d1a78759c533edece487572582798320a50baea",
   "scoring_model": "gpt-4o-2024-08-06",
   "digest_model": "gpt-4o-mini-2024-07-18",
   "gate_model": "gpt-4o-mini-2024-07-18",
@@ -19,12 +19,12 @@
   "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
   "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
   "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
-  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
-  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
-  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "masked_digest_prompt_version": "41e2b4abe2d92e7478c9e60806cdaa1d47119e82704197363b0ee68410a87268",
+  "rewrite_prompt_version": "146eb6b73913458a374ded9c000d1df2d7a877de86eb4fdb05dc805b2d17fbae",
+  "gazetteer_version": "58588569283f1d6cc1e3a1150686bf20a5073ccaf9cf2b7ec67a988dbe6328db",
   "scorer_input": "masked",
   "schema_violations": 0,
-  "payload_tokens": 7585
+  "payload_tokens": 6647
  },
  "article_ids": [
   "a1",
@@ -53,7 +53,7 @@
    "id": "a1",
    "url": "https://simplywall.st/stocks/tw/food-beverage-tobacco/twse-1216/uni-president-enterprises-shares/news/uni-president-stock-and-taiwan-staples-that-could-hold-up-to",
    "title": "Uni President Stock And Taiwan Staples That Could Hold Up To Inflation - Simply Wall St",
-   "masked_title": "Uni President Stock And Local Staples That Could Hold Up To Inflation - Simply Wall St",
+   "masked_title": "Food And Grocery Retail Stocks That Could Hold Up To Inflation",
    "publisher": "Simply Wall St",
    "published": "2026-11-08",
    "test": "T2",
@@ -66,16 +66,16 @@
   },
   {
    "id": "a2",
-   "url": "https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "title": "Japan-China tensions persist a year after Taiwan remarks - upi",
-   "masked_title": "Tensions persist a year after remarks on regional conflict",
-   "publisher": "upi",
+   "url": "https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
+   "title": "US cites China in PNG closure of Taiwan site - Taipei Times",
+   "masked_title": "US cites regional rival in PNG closure of representative office",
+   "publisher": "Taipei Times",
    "published": "2026-11-08",
    "test": "T4",
    "exclusion": "none",
    "ledger": "order_security",
    "high_impact_event": false,
-   "what_happened": "Japanese Prime Minister Sanae Takaichi's remarks about Japan's potential military response to a Chinese blockade of Taiwan have led to ongoing diplomatic tensions with China.",
+   "what_happened": "The US government expressed concern over the closure of Taiwan's representative office in Papua New Guinea due to pressure from the PNG government, citing it as an example of Beijing's intimidation of Taiwan.",
    "body_quality": "full",
    "body_status": "full"
   },
@@ -83,7 +83,7 @@
    "id": "a3",
    "url": "https://www.ledgerinsights.com/taiwan-thailand-and-nigeria-progress-stablecoin-regulation/",
    "title": "Taiwan, Thailand and Nigeria progress stablecoin regulation - Ledger Insights",
-   "masked_title": "A country, a country and a country progress stablecoin regulation",
+   "masked_title": "A neighbouring country, another neighbouring country and a third country progress stablecoin regulation",
    "publisher": "Ledger Insights",
    "published": "2026-11-06",
    "test": "T1",
@@ -96,36 +96,6 @@
   },
   {
    "id": "a4",
-   "url": "https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
-   "title": "US cites China in PNG closure of Taiwan site - Taipei Times",
-   "masked_title": "US cites pressure in PNG closure of [the country] site",
-   "publisher": "Taipei Times",
-   "published": "2026-11-08",
-   "test": "T4",
-   "exclusion": "none",
-   "ledger": "order_security",
-   "high_impact_event": false,
-   "what_happened": "The US government expressed concern over the closure of Taiwan's representative office in Papua New Guinea due to pressure from the PNG government, citing it as an example of Beijing's intimidation of Taiwan.",
-   "body_quality": "full",
-   "body_status": "full"
-  },
-  {
-   "id": "a5",
-   "url": "https://www.bloomberg.com/news/articles/2026-11-05/micron-pauses-work-on-4-5-billion-taiwan-plant-after-labor-spat",
-   "title": "Micron Pauses Work on $4.5 Billion Taiwan Plant After Labor Spat - Bloomberg",
-   "masked_title": "Micron Pauses Work on $4.5 Billion Plant After Labor Dispute",
-   "publisher": "Bloomberg",
-   "published": "2026-11-05",
-   "test": "T1",
-   "exclusion": "none",
-   "ledger": "friction",
-   "high_impact_event": false,
-   "what_happened": "Micron Technology Inc. has suspended plans for a memory chip plant in Taiwan due to a labor dispute, affecting its production base for AI components.",
-   "body_quality": "full",
-   "body_status": "digest-only"
-  },
-  {
-   "id": "a6",
    "url": "https://www.scmp.com/opinion/china-opinion/article/3373516/taiwan-doth-complain-too-much-about-beijing",
    "title": "My Take | Taiwan doth complain too much about Beijing - South China Morning Post",
    "masked_title": "My Take | The region doth complain too much about a major power",
@@ -137,25 +107,10 @@
    "high_impact_event": false,
    "what_happened": "Taiwan's foreign minister Lin Chia-lung stated that Taiwan will protest against Beijing for breaching diplomatic protocol regarding its invitation to the Apec leaders' summit.",
    "body_quality": "full",
-   "body_status": "digest-only"
+   "body_status": "full"
   },
   {
-   "id": "a7",
-   "url": "https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
-   "title": "Democrats Take Congress, Eye Reversal of Trump Tariffs; Taiwan's Economy Minister Says Two-Thirds Threshold Hard to Clear - BigGo Finance",
-   "masked_title": "Democrats Take Congress, Eye Reversal of Previous Tariffs; Economic Minister Says Two-Thirds Threshold Hard to Clear",
-   "publisher": "BigGo Finance",
-   "published": "2026-11-05",
-   "test": "T5",
-   "exclusion": "none",
-   "ledger": "friction",
-   "high_impact_event": false,
-   "what_happened": "Taiwan's Economy Minister Kung Ming-hsin discussed the implications of the US midterm elections on tariff policies affecting Taiwan's economy.",
-   "body_quality": "full",
-   "body_status": "digest-only"
-  },
-  {
-   "id": "a8",
+   "id": "a5",
    "url": "https://focustaiwan.tw/society/202611080009",
    "title": "2026 ELECTIONS Election-related fraud causes NT$20.15 million in losses: CIB - Focus Taiwan",
    "masked_title": "2026 ELECTIONS Election-related fraud causes local currency 20.15 million in losses: CIB",
@@ -170,7 +125,22 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a9",
+   "id": "a6",
+   "url": "https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
+   "title": "Democrats Take Congress, Eye Reversal of Trump Tariffs; Taiwan's Economy Minister Says Two-Thirds Threshold Hard to Clear - BigGo Finance",
+   "masked_title": "Democrats Take Congress, Eye Reversal of Previous Tariffs; Economic Minister Says Two-Thirds Threshold Hard to Clear",
+   "publisher": "BigGo Finance",
+   "published": "2026-11-05",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Economy Minister Kung Ming-hsin discussed the implications of the US midterm elections on tariff policies affecting Taiwan's economy.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a7",
    "url": "https://abcnews.com/International/wireStory/taiwan-detains-communist-party-leader-alleged-chinese-sponsorship-137951046",
    "title": "Taiwan detains a Communist Party leader over alleged Chinese sponsorship in election - ABC News - Breaking News, Latest News and Videos",
    "masked_title": "Authorities detain Communist Party leader over alleged foreign sponsorship in election",
@@ -185,7 +155,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a10",
+   "id": "a8",
    "url": "https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
    "title": "Taiwan detects 4 Chinese military aircraft, 8 ships around island in 24 hours - The Times of India",
    "masked_title": "Island detects 4 military aircraft, 8 ships around territory in 24 hours",
@@ -200,7 +170,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a11",
+   "id": "a9",
    "url": "https://www.taiwannews.com.tw/en/news/6473259",
    "title": "Taiwan conflict could hit global economy harder than COVID - Taiwan News",
    "masked_title": "Strait conflict could hit global economy harder than COVID - News",
@@ -215,7 +185,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a12",
+   "id": "a10",
    "url": "https://www.tmgm.com/en-in/analysis/market-news/article/taiwan-dollar-cbc-intervention-and-inflation-risks-commerzbank-202611062058",
    "title": "Taiwan Dollar: What Do CBC Intervention and Inflation Risks Mean? – Commerzbank - www.tmgm.com",
    "masked_title": "National Currency: What Do Central Bank Intervention and Inflation Risks Mean? – Commerzbank",
@@ -230,10 +200,10 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a13",
+   "id": "a11",
    "url": "https://asia.nikkei.com/politics/taiwan-s-kmt-old-guard-fights-for-power-base-in-tight-taipei-mayoral-races",
    "title": "Taiwan's KMT old guard fights for power base in tight Taipei mayoral races - Nikkei Asia",
-   "masked_title": "The opposition's old guard fights for power base in tight mayoral races",
+   "masked_title": "Opposition party's veteran candidates face challenges in tight mayoral races",
    "publisher": "Nikkei Asia",
    "published": "2026-11-07",
    "test": "T3",
@@ -245,37 +215,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a14",
-   "url": "https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
-   "title": "China & Taiwan Update, November 6, 2026 - Institute for the Study of War",
-   "masked_title": "Major Military Exercise Simulating Isolation of [the country] Reported",
-   "publisher": "Institute for the Study of War",
-   "published": "2026-11-06",
-   "test": "T4",
-   "exclusion": "none",
-   "ledger": "order_security",
-   "high_impact_event": false,
-   "what_happened": "The People's Republic of China is conducting a major military exercise simulating the isolation of Taiwan, involving numerous naval vessels and air sorties around Taiwan.",
-   "body_quality": "full",
-   "body_status": "digest-only"
-  },
-  {
-   "id": "a15",
-   "url": "https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
-   "title": "Taiwan to close representative office in Papua New Guinea, blames China - Al Jazeera",
-   "masked_title": "Country to close representative office in neighbouring country, blames major power",
-   "publisher": "Al Jazeera",
-   "published": "2026-11-06",
-   "test": "T1",
-   "exclusion": "none",
-   "ledger": "order_security",
-   "high_impact_event": false,
-   "what_happened": "Taiwan is closing its representative office in Papua New Guinea and stopping LNG purchases, blaming Chinese political pressure.",
-   "body_quality": "full",
-   "body_status": "digest-only"
-  },
-  {
-   "id": "a16",
+   "id": "a12",
    "url": "https://think.ing.com/articles/asia-week-ahead-061126/",
    "title": "Asia week ahead: Philippine GDP and key data on China, Taiwan, and Japan - ING Think",
    "masked_title": "Asia week ahead: Philippine GDP and key data on neighbouring countries - ING Think",
@@ -290,7 +230,22 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a17",
+   "id": "a13",
+   "url": "https://www.japantimes.co.jp/news/2026/11/06/japan/politics/takaichi-taiwan-remarks-anniversary/",
+   "title": "Few signs of thaw in Japan-China relations one year after Takaichi’s Taiwan remarks - The Japan Times",
+   "masked_title": "Few signs of thaw in relations one year after remarks on military intervention in a crisis",
+   "publisher": "The Japan Times",
+   "published": "2026-11-06",
+   "test": "T4",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Japan's Prime Minister Sanae Takaichi made remarks about potential military intervention in Taiwan, leading to a diplomatic rift with China.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a14",
    "url": "https://smallwarsjournal.com/2026/11/06/expanding-taiwans-resistance-area-complex-by-way-of-japan-and-the-philippines/",
    "title": "Expanding Taiwan’s Resistance Area Complex by way of Japan and the Philippines - Small Wars Journal",
    "masked_title": "Expanding the Resistance Area Complex by way of a Neighbouring Country and a Major Trading Partner",
@@ -305,7 +260,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a18",
+   "id": "a15",
    "url": "https://www.news.com.au/world/asia/looming-taiwan-conflict-could-spark-catastrophic-us-recession-and-nuclear-race/news-story/67d98a1b8390033c6ed385a176877ec4",
    "title": "‘Catastrophic’ fallout of looming war - News.com.au",
    "masked_title": "‘Catastrophic’ fallout of looming war",
@@ -320,22 +275,22 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a19",
-   "url": "https://www.chinadaily.com.cn/a/202611/06/WS6aed2f7be4b03ebf8519aba7.html",
-   "title": "Inflation in Taiwan exceeds warning threshold for 6th straight month - China Daily",
-   "masked_title": "Inflation exceeds warning threshold for 6th straight month",
-   "publisher": "China Daily",
-   "published": "2026-11-06",
+   "id": "a16",
+   "url": "https://restofworld.org/2026/taiwan-labor-strike-ai-profits/",
+   "title": "A rare strike in Taiwan exposes labor unrest beneath the global AI rush - Rest of World",
+   "masked_title": "A rare strike in the semiconductor industry exposes labor unrest beneath the global AI rush",
+   "publisher": "Rest of World",
+   "published": "2026-11-05",
    "test": "T2",
    "exclusion": "none",
    "ledger": "order_security",
    "high_impact_event": false,
-   "what_happened": "Taiwan's consumer prices rose 2.33 percent in October, remaining above the inflation warning threshold for the sixth consecutive month, driven by higher food, fuel, and travel costs.",
+   "what_happened": "Workers at a Micron Technology plant in Taoyuan, Taiwan, went on strike due to salary and bonus disputes, reflecting labor unrest in the semiconductor industry.",
    "body_quality": "full",
    "body_status": "digest-only"
   },
   {
-   "id": "a20",
+   "id": "a17",
    "url": "https://www.scmp.com/news/china/politics/article/3373517/democratic-congress-guard-us-taiwan-policy-and-press-trump-arms-sales",
    "title": "Democratic Congress to guard US’ Taiwan policy and press Trump on arms sales - South China Morning Post",
    "masked_title": "Democratic Congress to guard US policy and press on arms sales",
@@ -346,6 +301,51 @@
    "ledger": "order_security",
    "high_impact_event": false,
    "what_happened": "The Democratic-controlled US Congress may push for expedited arms sales to Taiwan, while Beijing is expected to respond strongly if US policy crosses a 'red line'.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a18",
+   "url": "https://focustaiwan.tw/society/202611060019",
+   "title": "Lawmaker Kao Chin indicted on national security, corruption charges - Focus Taiwan",
+   "masked_title": "Lawmaker indicted on national security, corruption charges",
+   "publisher": "Focus Taiwan",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Lawmaker Kao Chin Su-mei and three others were indicted on national security and corruption charges for allegedly acting on Beijing's behalf with Chinese funding.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a19",
+   "url": "https://focustaiwan.tw/politics/202611060012",
+   "title": "Second batch of 3 F-16V Block 70 jets to arrive in Taiwan soon: Koo - Focus Taiwan",
+   "masked_title": "Second batch of 3 F-16V Block 70 jets to arrive soon: Minister",
+   "publisher": "Focus Taiwan",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Defense Minister announced that the second batch of three F-16V Block 70 fighter jets purchased from the United States is expected to arrive soon.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a20",
+   "url": "https://focustaiwan.tw/politics/202611060010",
+   "title": "Taiwan's ties with Paraguay unaffected by Peña's resignation: MOFA - Focus Taiwan",
+   "masked_title": "Diplomatic ties with Paraguay unaffected by Peña's resignation: MOFA",
+   "publisher": "Focus Taiwan",
+   "published": "2026-11-06",
+   "test": "T1",
+   "exclusion": "none",
+   "ledger": "order_security",
+   "high_impact_event": false,
+   "what_happened": "Taiwan's Ministry of Foreign Affairs stated that Paraguay's diplomatic ties and cooperation with Taiwan will remain unaffected by President Santiago Peña's resignation amid a financial crisis.",
    "body_quality": "full",
    "body_status": "digest-only"
   }
@@ -457,40 +457,44 @@
  "dedup": {
   "method": "llm",
   "problem": null,
-  "eligible": 39,
-  "stories": 35,
+  "eligible": 38,
+  "stories": 33,
   "multi": 4,
-  "dropped": 4,
+  "dropped": 5,
   "same_story_as": {
+   "https://www.chinadaily.com.cn/a/202611/06/WS6aed2f7be4b03ebf8519aba7.html": "https://simplywall.st/stocks/tw/food-beverage-tobacco/twse-1216/uni-president-enterprises-shares/news/uni-president-stock-and-taiwan-staples-that-could-hold-up-to",
+   "https://www.taipeitimes.com/News/biz/archives/2026/10/29/2003866788": "https://simplywall.st/stocks/tw/food-beverage-tobacco/twse-1216/uni-president-enterprises-shares/news/uni-president-stock-and-taiwan-staples-that-could-hold-up-to",
    "https://www.dailyrecordnews.com/ap_news/international/taiwan-china-election/image_f560134b-2628-5651-9641-d9e6b0da30ad.html": "https://abcnews.com/International/wireStory/taiwan-detains-communist-party-leader-alleged-chinese-sponsorship-137951046",
-   "https://www.bloomberg.com/news/articles/2026-11-06/taiwan-s-currency-weakens-past-33-per-us-dollar-on-ai-jitters": "https://www.tmgm.com/en-in/analysis/market-news/article/taiwan-dollar-cbc-intervention-and-inflation-risks-commerzbank-202611062058",
    "https://coingeek.com/taiwan-bhutan-france-split-on-crypto-regulation/": "https://www.ledgerinsights.com/taiwan-thailand-and-nigeria-progress-stablecoin-regulation/",
-   "https://www.taipeitimes.com/News/biz/archives/2026/10/29/2003866788": "https://www.chinadaily.com.cn/a/202611/06/WS6aed2f7be4b03ebf8519aba7.html"
+   "https://www.taipeitimes.com/News/taiwan/archives/2026/11/06/2003867279": "https://focustaiwan.tw/politics/202611060010"
   },
   "post_selection": [
    {
-    "url": "https://www.japantimes.co.jp/news/2026/11/06/japan/politics/takaichi-taiwan-remarks-anniversary/",
-    "same_story_as": "https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+    "url": "https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
+    "same_story_as": "https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
     "pass": "post_selection",
     "round": 1,
-    "method": "llm"
-   },
-   {
-    "url": "https://restofworld.org/2026/taiwan-labor-strike-ai-profits/",
-    "same_story_as": "https://www.bloomberg.com/news/articles/2026-11-05/micron-pauses-work-on-4-5-billion-taiwan-plant-after-labor-spat",
-    "pass": "post_selection",
-    "round": 2,
     "method": "llm"
    }
   ]
  },
  "selection": {
-  "passes": 3,
-  "story_checks": 3,
+  "passes": 2,
+  "story_checks": 2,
   "final_story_check_clean": true,
   "t5_selected": 1,
-  "title_only_dropped": 2,
+  "title_only_dropped": 6,
   "title_only_dropped_articles": [
+   {
+    "url": "https://www.bloomberg.com/news/articles/2026-11-05/micron-pauses-work-on-4-5-billion-taiwan-plant-after-labor-spat",
+    "title": "Micron Pauses Work on $4.5 Billion Taiwan Plant After Labor Spat - Bloomberg",
+    "pass": 1
+   },
+   {
+    "url": "https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
+    "title": "China & Taiwan Update, November 6, 2026 - Institute for the Study of War",
+    "pass": 1
+   },
    {
     "url": "https://www.reuters.com/world/china/taipei-mayor-election-is-victory-democracy-over-china-whoever-wins-says-2026-11-06/",
     "title": "Taipei mayor election is a victory for democracy over China whoever wins, says candidate - Reuters",
@@ -499,22 +503,32 @@
    {
     "url": "https://www.axios.com/2026/11/03/taiwan-usarpac-davidson-window-technet",
     "title": "2027 timeline for Taiwan conflict still valid, says U.S. general - Axios",
-    "pass": 3
+    "pass": 1
+   },
+   {
+    "url": "https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+    "title": "Japan-China tensions persist a year after Taiwan remarks - upi",
+    "pass": 1
+   },
+   {
+    "url": "https://www.bloomberg.com/news/articles/2026-11-06/taiwan-s-currency-weakens-past-33-per-us-dollar-on-ai-jitters",
+    "title": "Taiwan’s Currency Weakens Past 33 Per US Dollar on AI Jitters - Bloomberg",
+    "pass": 1
    }
   ],
-  "post_selection_same_story": 2,
+  "post_selection_same_story": 1,
   "blocked_after_selection": 0,
-  "refill_digests": 1,
+  "refill_digests": 3,
   "shortfall": 0,
   "selected": 20
  },
  "mask": {
-  "hits": 46,
+  "hits": 44,
   "regenerated": 17,
-  "replaced_by_code": 32,
+  "replaced_by_code": 27,
   "fallback_digests": 0,
   "fallback_texts": 0,
-  "publisher_mentions": 8,
+  "publisher_mentions": 12,
   "digests_generated": 20,
   "digests_cached": 0,
   "rewrites_generated": 3,
@@ -533,39 +547,14 @@
    "kind": "name"
   },
   {
-   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "term": "Taiwan Strait",
-   "kind": "extra"
+   "where": "digest:https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
+   "term": "Beijing",
+   "kind": "rival"
   },
   {
-   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
+   "where": "digest:https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
    "term": "Taiwan",
    "kind": "name"
-  },
-  {
-   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "term": "Japan",
-   "kind": "other_country"
-  },
-  {
-   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "term": "Chinese",
-   "kind": "extra"
-  },
-  {
-   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "term": "South Korea",
-   "kind": "other_country"
-  },
-  {
-   "where": "digest:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "term": "Korea",
-   "kind": "other_country"
-  },
-  {
-   "where": "digest:https://www.ledgerinsights.com/taiwan-thailand-and-nigeria-progress-stablecoin-regulation/",
-   "term": "dollar",
-   "kind": "currency"
   },
   {
    "where": "digest:https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
@@ -578,24 +567,24 @@
    "kind": "symbol"
   },
   {
+   "where": "digest:https://www.ledgerinsights.com/taiwan-thailand-and-nigeria-progress-stablecoin-regulation/",
+   "term": "dollar",
+   "kind": "currency"
+  },
+  {
    "where": "digest:https://www.scmp.com/opinion/china-opinion/article/3373516/taiwan-doth-complain-too-much-about-beijing",
    "term": "Taiwanese",
    "kind": "demonym"
   },
   {
-   "where": "digest:https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
-   "term": "Taiwan",
-   "kind": "name"
-  },
-  {
-   "where": "digest:https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
-   "term": "dollars",
-   "kind": "currency"
-  },
-  {
    "where": "digest:https://focustaiwan.tw/society/202611080009",
    "term": "NT$",
    "kind": "symbol"
+  },
+  {
+   "where": "digest:https://finance.biggo.com/news/065e0031-1dcf-4a09-9c60-1d4c4375a86d",
+   "term": "Taiwan",
+   "kind": "name"
   },
   {
    "where": "digest:https://abcnews.com/International/wireStory/taiwan-detains-communist-party-leader-alleged-chinese-sponsorship-137951046",
@@ -610,12 +599,22 @@
   {
    "where": "digest:https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
+  },
+  {
+   "where": "digest:https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
+   "term": "Republic of China",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
+   "term": "China",
+   "kind": "other_country"
   },
   {
    "where": "digest:https://timesofindia.indiatimes.com/world/rest-of-world/taiwan-detects-4-chinese-military-aircraft-8-ships-around-island-in-24-hours/articleshow/135649926.cms",
    "term": "People's Liberation Army",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.taiwannews.com.tw/en/news/6473259",
@@ -643,59 +642,19 @@
    "kind": "other_country"
   },
   {
-   "where": "digest:https://asia.nikkei.com/politics/taiwan-s-kmt-old-guard-fights-for-power-base-in-tight-taipei-mayoral-races",
-   "term": "Kuomintang",
-   "kind": "extra"
-  },
-  {
-   "where": "digest:https://asia.nikkei.com/politics/taiwan-s-kmt-old-guard-fights-for-power-base-in-tight-taipei-mayoral-races",
-   "term": "KMT",
-   "kind": "extra"
-  },
-  {
-   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
-   "term": "People's Republic of China",
-   "kind": "other_country"
-  },
-  {
-   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
-   "term": "Republic of China",
-   "kind": "name"
-  },
-  {
-   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
-   "term": "Taiwanese",
-   "kind": "demonym"
-  },
-  {
-   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
-   "term": "Taiwan",
-   "kind": "name"
-  },
-  {
-   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
-   "term": "China",
-   "kind": "other_country"
-  },
-  {
-   "where": "digest:https://understandingwar.org/research/china-taiwan/china-taiwan-update-november-6-2026/",
-   "term": "PLA",
-   "kind": "extra"
-  },
-  {
-   "where": "digest:https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
+   "where": "digest:https://www.japantimes.co.jp/news/2026/11/06/japan/politics/takaichi-taiwan-remarks-anniversary/",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
-   "where": "digest:https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
+   "where": "digest:https://www.japantimes.co.jp/news/2026/11/06/japan/politics/takaichi-taiwan-remarks-anniversary/",
    "term": "Taiwan",
    "kind": "name"
   },
   {
-   "where": "digest:https://www.aljazeera.com/news/2026/11/6/taiwan-to-close-representative-office-in-papua-new-guinea-blames-china",
-   "term": "Taiwanese",
-   "kind": "demonym"
+   "where": "digest:https://www.japantimes.co.jp/news/2026/11/06/japan/politics/takaichi-taiwan-remarks-anniversary/",
+   "term": "Japan",
+   "kind": "other_country"
   },
   {
    "where": "digest:https://smallwarsjournal.com/2026/11/06/expanding-taiwans-resistance-area-complex-by-way-of-japan-and-the-philippines/",
@@ -719,11 +678,21 @@
   },
   {
    "where": "digest:https://www.news.com.au/world/asia/looming-taiwan-conflict-could-spark-catastrophic-us-recession-and-nuclear-race/news-story/67d98a1b8390033c6ed385a176877ec4",
-   "term": "Beijing",
-   "kind": "extra"
+   "term": "Taiwanese",
+   "kind": "demonym"
   },
   {
    "where": "digest:https://www.news.com.au/world/asia/looming-taiwan-conflict-could-spark-catastrophic-us-recession-and-nuclear-race/news-story/67d98a1b8390033c6ed385a176877ec4",
+   "term": "Beijing",
+   "kind": "rival"
+  },
+  {
+   "where": "digest:https://www.news.com.au/world/asia/looming-taiwan-conflict-could-spark-catastrophic-us-recession-and-nuclear-race/news-story/67d98a1b8390033c6ed385a176877ec4",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://restofworld.org/2026/taiwan-labor-strike-ai-profits/",
    "term": "Taiwan",
    "kind": "name"
   },
@@ -738,19 +707,54 @@
    "kind": "other_country"
   },
   {
-   "where": "rewrite:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "term": "cross-strait",
-   "kind": "extra"
+   "where": "digest:https://focustaiwan.tw/society/202611060019",
+   "term": "Beijing",
+   "kind": "rival"
   },
   {
-   "where": "rewrite:https://www.upi.com/Top_News/World-News/2026/11/08/japan-china-takaichi-sanae-rare-earths/8591794174301/",
-   "term": "Beijing",
-   "kind": "extra"
+   "where": "digest:https://focustaiwan.tw/society/202611060019",
+   "term": "Chinese",
+   "kind": "rival"
+  },
+  {
+   "where": "digest:https://focustaiwan.tw/society/202611060019",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "digest:https://focustaiwan.tw/society/202611060019",
+   "term": "Taipei",
+   "kind": "capital"
+  },
+  {
+   "where": "digest:https://focustaiwan.tw/society/202611060019",
+   "term": "Taipei",
+   "kind": "city"
+  },
+  {
+   "where": "digest:https://focustaiwan.tw/society/202611060019",
+   "term": "NT$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://focustaiwan.tw/politics/202611060010",
+   "term": "Taiwan",
+   "kind": "name"
+  },
+  {
+   "where": "rewrite:https://simplywall.st/stocks/tw/food-beverage-tobacco/twse-1216/uni-president-enterprises-shares/news/uni-president-stock-and-taiwan-staples-that-could-hold-up-to",
+   "term": "NT$",
+   "kind": "symbol"
   },
   {
    "where": "rewrite:https://www.taipeitimes.com/News/front/archives/2026/11/09/2003867398",
    "term": "China",
    "kind": "other_country"
+  },
+  {
+   "where": "rewrite:https://www.scmp.com/opinion/china-opinion/article/3373516/taiwan-doth-complain-too-much-about-beijing",
+   "term": "Democratic Progressive Party",
+   "kind": "extra"
   }
  ],
  "data": {
@@ -846,10 +850,10 @@
  },
  "check": {
   "old": {
-   "multi_article_stories": 1,
-   "same_story_dropped_if_checked": 1,
-   "title_only_sent": 1,
-   "t5_sent": 1,
+   "multi_article_stories": 0,
+   "same_story_dropped_if_checked": 0,
+   "title_only_sent": 4,
+   "t5_sent": 2,
    "articles_sent": 20,
    "story_method": "llm"
   },
@@ -859,29 +863,29 @@
    "t5_sent": 1,
    "articles_sent": 20,
    "shortfall": 0,
-   "refill_digests": 1,
-   "passes": 3,
-   "story_checks": 3,
-   "post_selection_same_story": 2,
-   "title_only_dropped": 2,
+   "refill_digests": 3,
+   "passes": 2,
+   "story_checks": 2,
+   "post_selection_same_story": 1,
+   "title_only_dropped": 6,
    "blocked_after_selection": 0,
    "final_story_check_clean": true,
    "confirmation_check_method": "llm"
   },
   "mask": {
-   "hits": 46,
+   "hits": 44,
    "regenerated": 17,
-   "replaced_by_code": 32,
+   "replaced_by_code": 27,
    "fallback_digests": 0,
    "fallback_texts": 0,
-   "publisher_mentions": 8,
+   "publisher_mentions": 12,
    "digests_generated": 20,
    "digests_cached": 0,
    "rewrites_generated": 3,
    "rewrites_cached": 0,
    "payload_leaks": []
   },
-  "eligible": 39,
+  "eligible": 38,
   "candidates": 45
  },
  "payload": {
@@ -889,7 +893,7 @@
    "iso2": "TW",
    "name": "Taiwan"
   },
-  "as_of": "2026-11-08",
+  "as_of": "2026-11-09",
   "window": "articles published in the 30 days before as_of",
   "structural_facts": {
    "classification_source": "not a World Bank member; region and income group assigned here to match the World Bank's own categories for comparable economies",
@@ -904,20 +908,20 @@
    "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
    "selected_per_theme": {
     "friction": 5,
-    "order": 4,
-    "security": 6,
+    "order": 5,
+    "security": 5,
     "information": 0,
-    "edge": 1,
-    "broad": 6
+    "edge": 0,
+    "broad": 7
    },
    "selected_per_ledger": {
-    "friction": 4,
-    "order": 16,
+    "friction": 3,
+    "order": 17,
     "information": 0,
     "edge": 0
    },
    "candidates_fetched": 51,
-   "passed_the_gate": 39,
+   "passed_the_gate": 38,
    "selected": 20,
    "budget": 20
   },
@@ -949,56 +953,6 @@
    },
    {
     "id": "a2",
-    "publisher": "upi",
-    "published": "2026-11-08",
-    "title": "Japan-China tensions persist a year after Taiwan remarks - upi",
-    "themes": [
-     "security"
-    ],
-    "ledgers": [
-     "order"
-    ],
-    "body_status": "full",
-    "digest": {
-     "what_happened": "A year after Japanese Prime Minister Sanae Takaichi's remarks about Japan's right to collective self-defense regarding Taiwan, diplomatic tensions with China remain high. Japan has postponed the expulsion of a Chinese consul general to avoid escalating tensions, while also diversifying its rare earth supplies in response to Chinese export restrictions.",
-     "institutions": [
-      "Japanese government",
-      "Japan's House of Representatives",
-      "Japan's Foreign Ministry",
-      "Chinese government",
-      "South Korea's Ministry of Trade, Industry and Resources",
-      "Japan Organization for Metals and Energy Security"
-     ],
-     "direction": "deteriorating",
-     "numbers": [
-      "Nov. 7, 2025 remarks by Takaichi",
-      "February comprehensive rare earth supply chain strategy by South Korea's Ministry of Trade, Industry and Resources"
-     ]
-    }
-   },
-   {
-    "id": "a3",
-    "publisher": "Ledger Insights",
-    "published": "2026-11-06",
-    "title": "Taiwan, Thailand and Nigeria progress stablecoin regulation - Ledger Insights",
-    "themes": [
-     "friction"
-    ],
-    "ledgers": [
-     "friction"
-    ],
-    "body_status": "digest-only",
-    "digest": {
-     "what_happened": "On October 19, Thailand announced a consultation on potential regulations for Thai Baht stablecoins, inspired by Hong Kong's approach. The regulations will limit the number of licensed companies and require stablecoin holders to undergo KYC, while also imposing restrictions on foreign currency stablecoins and offshore exchanges.",
-     "institutions": [
-      "Bank of Thailand"
-     ],
-     "direction": "unclear",
-     "numbers": []
-    }
-   },
-   {
-    "id": "a4",
     "publisher": "Taipei Times",
     "published": "2026-11-08",
     "title": "US cites China in PNG closure of Taiwan site - Taipei Times",
@@ -1025,28 +979,28 @@
     }
    },
    {
-    "id": "a5",
-    "publisher": "Bloomberg",
-    "published": "2026-11-05",
-    "title": "Micron Pauses Work on $4.5 Billion Taiwan Plant After Labor Spat - Bloomberg",
+    "id": "a3",
+    "publisher": "Ledger Insights",
+    "published": "2026-11-06",
+    "title": "Taiwan, Thailand and Nigeria progress stablecoin regulation - Ledger Insights",
     "themes": [
-     "broad"
+     "friction"
     ],
     "ledgers": [
      "friction"
     ],
     "body_status": "digest-only",
     "digest": {
-     "what_happened": "Micron Technology Inc. has suspended plans for a $4.5 billion memory chip plant in Taiwan due to a labor dispute, raising concerns about the future of this production base for AI components. The company has halted construction in Taoyuan and informed local officials and a supplier about its decision.",
-     "institutions": [],
-     "direction": "deteriorating",
-     "numbers": [
-      "$4.5 billion Taiwan plant"
-     ]
+     "what_happened": "On October 19, Thailand announced a consultation on potential regulations for Thai Baht stablecoins, inspired by Hong Kong's approach. The regulations will limit the number of licensed companies and require stablecoin holders to undergo KYC, while also imposing restrictions on foreign currency stablecoins and offshore exchanges.",
+     "institutions": [
+      "Bank of Thailand"
+     ],
+     "direction": "unclear",
+     "numbers": []
     }
    },
    {
-    "id": "a6",
+    "id": "a4",
     "publisher": "South China Morning Post",
     "published": "2026-11-08",
     "title": "My Take | Taiwan doth complain too much about Beijing - South China Morning Post",
@@ -1056,7 +1010,7 @@
     "ledgers": [
      "order"
     ],
-    "body_status": "digest-only",
+    "body_status": "full",
     "digest": {
      "what_happened": "Taiwan has been invited to join the Apec leaders’ summit in Shenzhen, but it is complaining that the invitation does not adhere to diplomatic protocol. Taiwanese officials, including foreign minister Lin Chia-lung, have stated they will protest any breaches of established rules or conventions by Beijing.",
      "institutions": [
@@ -1068,30 +1022,7 @@
     }
    },
    {
-    "id": "a7",
-    "publisher": "BigGo Finance",
-    "published": "2026-11-05",
-    "title": "Democrats Take Congress, Eye Reversal of Trump Tariffs; Taiwan's Economy Minister Says Two-Thirds Threshold Hard to Clear - BigGo Finance",
-    "themes": [
-     "broad"
-    ],
-    "ledgers": [
-     "friction"
-    ],
-    "body_status": "digest-only",
-    "digest": {
-     "what_happened": "The Democratic Party has gained a dominant share of seats in both the Senate and the House of Representatives following the US midterm elections. Taiwan's Minister of Economic Affairs, Kung Ming-hsin, stated that overturning Trump's tariffs would require a two-thirds vote in Congress, which is unlikely under current conditions. He emphasized that Taiwan will work to protect its trade negotiation gains and that the semiconductor supply chain remains a mutually beneficial foundation for both Taiwan and the US.",
-     "institutions": [
-      "Democratic Party",
-      "Taiwan's Ministry of Economic Affairs",
-      "Taiwan Semiconductor Manufacturing Company (TSMC)"
-     ],
-     "direction": "unclear",
-     "numbers": []
-    }
-   },
-   {
-    "id": "a8",
+    "id": "a5",
     "publisher": "Focus Taiwan",
     "published": "2026-11-08",
     "title": "2026 ELECTIONS Election-related fraud causes NT$20.15 million in losses: CIB - Focus Taiwan",
@@ -1117,7 +1048,30 @@
     }
    },
    {
-    "id": "a9",
+    "id": "a6",
+    "publisher": "BigGo Finance",
+    "published": "2026-11-05",
+    "title": "Democrats Take Congress, Eye Reversal of Trump Tariffs; Taiwan's Economy Minister Says Two-Thirds Threshold Hard to Clear - BigGo Finance",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The Democratic Party has gained a dominant share of seats in both the Senate and the House of Representatives following the US midterm elections. Taiwan's Minister of Economic Affairs, Kung Ming-hsin, stated that overturning Trump's tariffs would require a two-thirds vote in Congress, which is unlikely under current conditions. He emphasized that Taiwan will work to protect its trade negotiation gains and that the semiconductor supply chain remains a mutually beneficial foundation for both Taiwan and the US.",
+     "institutions": [
+      "Democratic Party",
+      "Taiwan's Ministry of Economic Affairs",
+      "Taiwan Semiconductor Manufacturing Company (TSMC)"
+     ],
+     "direction": "unclear",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a7",
     "publisher": "ABC News - Breaking News, Latest News and Videos",
     "published": "2026-11-08",
     "title": "Taiwan detains a Communist Party leader over alleged Chinese sponsorship in election - ABC News - Breaking News, Latest News and Videos",
@@ -1142,7 +1096,7 @@
     }
    },
    {
-    "id": "a10",
+    "id": "a8",
     "publisher": "The Times of India",
     "published": "2026-11-08",
     "title": "Taiwan detects 4 Chinese military aircraft, 8 ships around island in 24 hours - The Times of India",
@@ -1171,7 +1125,7 @@
     }
    },
    {
-    "id": "a11",
+    "id": "a9",
     "publisher": "Taiwan News",
     "published": "2026-11-07",
     "title": "Taiwan conflict could hit global economy harder than COVID - Taiwan News",
@@ -1198,7 +1152,7 @@
     }
    },
    {
-    "id": "a12",
+    "id": "a10",
     "publisher": "www.tmgm.com",
     "published": "2026-11-07",
     "title": "Taiwan Dollar: What Do CBC Intervention and Inflation Risks Mean? – Commerzbank - www.tmgm.com",
@@ -1225,7 +1179,7 @@
     }
    },
    {
-    "id": "a13",
+    "id": "a11",
     "publisher": "Nikkei Asia",
     "published": "2026-11-07",
     "title": "Taiwan's KMT old guard fights for power base in tight Taipei mayoral races - Nikkei Asia",
@@ -1246,65 +1200,7 @@
     }
    },
    {
-    "id": "a14",
-    "publisher": "Institute for the Study of War",
-    "published": "2026-11-06",
-    "title": "China & Taiwan Update, November 6, 2026 - Institute for the Study of War",
-    "themes": [
-     "security",
-     "edge"
-    ],
-    "ledgers": [
-     "order"
-    ],
-    "body_status": "digest-only",
-    "digest": {
-     "what_happened": "The People's Republic of China (PRC) may be conducting a major, unannounced military exercise simulating the isolation of Taiwan, involving over 100 naval vessels and significant air sorties. This exercise aims to demonstrate the PRC's capability to cut off Taiwan from air and sea support, potentially eroding Taiwanese confidence in its defense capabilities.",
-     "institutions": [
-      "People's Republic of China (PRC)",
-      "Taiwan's National Security Council (NSC)",
-      "Taiwan's Ministry of National Defense (MND)",
-      "Taiwan's National Police Agency",
-      "PRC Taiwan Affairs Office (TAO)",
-      "Central Military Commission (CMC)"
-     ],
-     "direction": "deteriorating",
-     "numbers": [
-      "over 100 vessels",
-      "49 air sorties on November 2",
-      "2.63 million cyberattacks a day in 2025",
-      "four task forces from three different PLA theater commands",
-      "two of its three carriers",
-      "at least four of its ten guided-missile cruisers"
-     ]
-    }
-   },
-   {
-    "id": "a15",
-    "publisher": "Al Jazeera",
-    "published": "2026-11-06",
-    "title": "Taiwan to close representative office in Papua New Guinea, blames China - Al Jazeera",
-    "themes": [
-     "broad"
-    ],
-    "ledgers": [
-     "order"
-    ],
-    "body_status": "digest-only",
-    "digest": {
-     "what_happened": "Taiwan is closing its representative office in Papua New Guinea and will stop purchasing liquefied natural gas from the country, citing Chinese political pressure. The Papua New Guinea government had demanded that Taiwan's staff leave its office in Port Moresby, leading to this decision.",
-     "institutions": [
-      "Taiwan's Ministry of Foreign Affairs"
-     ],
-     "direction": "deteriorating",
-     "numbers": [
-      "one-third of Papua New Guinea’s exports accounted for by Taiwanese LNG purchases",
-      "about 8 percent of Taiwan's natural gas imported from Port Moresby"
-     ]
-    }
-   },
-   {
-    "id": "a16",
+    "id": "a12",
     "publisher": "ING Think",
     "published": "2026-11-06",
     "title": "Asia week ahead: Philippine GDP and key data on China, Taiwan, and Japan - ING Think",
@@ -1336,7 +1232,26 @@
     }
    },
    {
-    "id": "a17",
+    "id": "a13",
+    "publisher": "The Japan Times",
+    "published": "2026-11-06",
+    "title": "Few signs of thaw in Japan-China relations one year after Takaichi’s Taiwan remarks - The Japan Times",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Tokyo is marking one year since Prime Minister Sanae Takaichi's remarks about the possibility of Japanese military intervention in a Taiwan crisis, which led to a diplomatic rift with Beijing. The dispute began after Takaichi stated that Japan's Self-Defense Forces could be deployed in response to a Chinese naval blockade of Taiwan, a comment that angered China.",
+     "institutions": [],
+     "direction": "deteriorating",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a14",
     "publisher": "Small Wars Journal",
     "published": "2026-11-06",
     "title": "Expanding Taiwan’s Resistance Area Complex by way of Japan and the Philippines - Small Wars Journal",
@@ -1355,7 +1270,7 @@
     }
    },
    {
-    "id": "a18",
+    "id": "a15",
     "publisher": "News.com.au",
     "published": "2026-11-06",
     "title": "‘Catastrophic’ fallout of looming war - News.com.au",
@@ -1377,34 +1292,35 @@
     }
    },
    {
-    "id": "a19",
-    "publisher": "China Daily",
-    "published": "2026-11-06",
-    "title": "Inflation in Taiwan exceeds warning threshold for 6th straight month - China Daily",
+    "id": "a16",
+    "publisher": "Rest of World",
+    "published": "2026-11-05",
+    "title": "A rare strike in Taiwan exposes labor unrest beneath the global AI rush - Rest of World",
     "themes": [
-     "friction"
+     "order",
+     "security"
     ],
     "ledgers": [
      "order"
     ],
     "body_status": "digest-only",
     "digest": {
-     "what_happened": "Consumer prices in the Taiwan region rose 2.33 percent in October from a year earlier, remaining above the inflation warning threshold for the sixth consecutive month. The increase was attributed to higher food, fuel, and travel costs, with the producer price index also showing significant inflationary pressures.",
-     "institutions": [],
-     "direction": "deteriorating",
+     "what_happened": "Workers at a Micron Technology plant in Taoyuan, Taiwan, went on strike for the first time in the semiconductor industry due to disagreements over salaries and bonuses. The strike reflects growing discontent among laborers in the AI sector regarding profit distribution. Although Micron reached an agreement with the Taichung union, many Taoyuan union members rejected it, leading to ongoing negotiations and potential for further strikes.",
+     "institutions": [
+      "Micron Technology",
+      "Taiwan Semiconductor Manufacturing Co.",
+      "Taiwan's Ministry of Labor"
+     ],
+     "direction": "unclear",
      "numbers": [
-      "2.33 percent rise in consumer prices in October",
-      "0.06 percent increase in CPI from September",
-      "2.23 percent increase in core CPI year on year",
-      "11.45 percent rise in egg prices year on year",
-      "5.34 percent rise in edible oils",
-      "PPI jumped nearly one-fifth in October from a year earlier",
-      "11.12 percent average rise in PPI in the first 10 months of the year"
+      "15,000 workers employed by Micron in Taiwan",
+      "60% of Micron's dynamic random access memory chips produced in Taiwan",
+      "union membership surged from around 440 to more than 13,000"
      ]
     }
    },
    {
-    "id": "a20",
+    "id": "a17",
     "publisher": "South China Morning Post",
     "published": "2026-11-06",
     "title": "Democratic Congress to guard US’ Taiwan policy and press Trump on arms sales - South China Morning Post",
@@ -1427,6 +1343,80 @@
       "US$14 billion arms sale to Taiwan"
      ]
     }
+   },
+   {
+    "id": "a18",
+    "publisher": "Focus Taiwan",
+    "published": "2026-11-06",
+    "title": "Lawmaker Kao Chin indicted on national security, corruption charges - Focus Taiwan",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Independent lawmaker Kao Chin Su-mei and three others were indicted on national security and corruption charges for allegedly carrying out activities on behalf of Beijing with Chinese funding. Prosecutors claim they violated the National Security Act and accepted bribes, with Kao Chin accused of influencing legislative proceedings based on Beijing's instructions.",
+     "institutions": [
+      "Taiwan High Prosecutors Office"
+     ],
+     "direction": "deteriorating",
+     "numbers": [
+      "NT$170 million (US$5.17 million) in Chinese funding",
+      "14-year prison sentence sought for Kao Chin",
+      "15-year prison sentence sought for Chang"
+     ]
+    }
+   },
+   {
+    "id": "a19",
+    "publisher": "Focus Taiwan",
+    "published": "2026-11-06",
+    "title": "Second batch of 3 F-16V Block 70 jets to arrive in Taiwan soon: Koo - Focus Taiwan",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Taiwan's Defense Minister Wellington Koo announced that the second batch of three F-16V Block 70 fighter jets purchased from the United States is expected to arrive soon. The jets were recently seen taking off from Lockheed Martin's factory in South Carolina and will follow a delivery route similar to the first batch delivered on October 2.",
+     "institutions": [
+      "Taiwan Ministry of National Defense",
+      "Lockheed Martin"
+     ],
+     "direction": "improving",
+     "numbers": [
+      "66 F-16Vs approved for sale",
+      "US$8 billion for procurement",
+      "first batch of two jets delivered on Oct. 2"
+     ]
+    }
+   },
+   {
+    "id": "a20",
+    "publisher": "Focus Taiwan",
+    "published": "2026-11-06",
+    "title": "Taiwan's ties with Paraguay unaffected by Peña's resignation: MOFA - Focus Taiwan",
+    "themes": [
+     "broad"
+    ],
+    "ledgers": [
+     "order"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Paraguayan President Santiago Peña resigned amid a financial crisis triggered by the collapse of Ueno Bank, which left about 3 million customers unable to access their accounts. The Ministry of Foreign Affairs of Taiwan stated that this resignation would not affect diplomatic ties or cooperation between Taiwan and Paraguay.",
+     "institutions": [
+      "Ministry of Foreign Affairs (MOFA)"
+     ],
+     "direction": "unclear",
+     "numbers": [
+      "3 million customers unable to access their accounts"
+     ]
+    }
    }
   ],
   "full_texts": [
@@ -1441,21 +1431,21 @@
    },
    {
     "id": "a2",
-    "title": "Japan-China tensions persist a year after Taiwan remarks - upi",
-    "publisher": "upi",
-    "body_status": "full",
-    "chars_read": 5370,
-    "chars_original": 5370,
-    "text": "Nov. 8 (Asia Today) -- A year has passed since Japanese Prime Minister Sanae Takaichi said Japan could exercise its right to collective self-defense in the event of an armed conflict in the Taiwan Strait, but diplomatic tensions with China show little sign of easing.\nBeijing continues to demand that Takaichi retract her parliamentary remarks, while Tokyo has maintained its position and sought opportunities for dialogue.\nJapan has postponed the possible expulsion of a Chinese consul general to prevent further diplomatic escalation. At the same time, Japanese companies and government agencies are diversifying their rare earth supplies in response to Chinese export restrictions.\nThe dispute also has implications for South Korea, given the importance of stability in the Taiwan Strait and the availability of critical minerals used in electric vehicles and other advanced manufacturing industries.\nDiplomatic dispute enters second year\nThe controversy began on Nov. 7, 2025, when Takaichi told a budget committee of Japan's House of Representatives that a Chinese naval blockade of Taiwan involving military force could constitute a situation threatening Japan's survival.\nSuch a designation is one of the legal conditions under which Japan can exercise its right to collective self-defense.\nPrevious Japanese governments had generally avoided specifying circumstances in which Japan might use military force in response to a Taiwan contingency.\nChina interpreted Takaichi's statement as suggesting that Japan could intervene militarily in the Taiwan issue.\nTakaichi subsequently said any decision would depend on the circumstances of a particular situation but refused to withdraw her remarks.\nAccording to Japan's Yomiuri Shimbun newspaper, Chinese Consul General Xue Jian in Osaka posted threatening remarks on social media targeting Takaichi, including language referring to beheading her.\nThe Japanese government considered expelling him.\nWhen Japan's Foreign Ministry communicated that possibility to Beijing, Chinese officials responded that they would expel two Japanese consuls general if Tokyo expelled one Chinese diplomat.\nTakaichi postponed the expulsion over concerns that reciprocal diplomatic expulsions would further damage relations.\nA year later, prospects for a summit between the two countries remain uncertain.\nTakaichi said Friday that Japan would continue pursuing dialogue with China, but Beijing reiterated its demand that she retract her Taiwan remarks.\nKyodo News reported that a meeting between Takaichi and Chinese President Xi Jinping on the sidelines of this month's Asia-Pacific Economic Cooperation summit in China appeared increasingly unlikely.\nJapan diversifies rare earth supplies\nJapan's Sankei Shimbun reported that Japanese companies and government agencies have been diversifying procurement sources in response to China's restrictions on rare earth and rare metal exports.\nJapanese Economy, Trade and Industry Minister Ryosei Akazawa described the Chinese measures Friday as economic coercion.\nHe said Japan would pursue alternative materials, expand recycling and diversify its supply sources.\nThe Japan Organization for Metals and Energy Security is also revising its programs to support rare earth mine development and secure interests in refining operations.\nJapan's tourism industry, meanwhile, is exploring ways to attract more visitors from other countries to offset a decline in Chinese tourists.\nChina's rare earth restrictions also pose risks for South Korean manufacturers.\nPermanent magnets made from rare earth elements such as neodymium are critical components in electric vehicle motors and industrial robots.\nEven when companies diversify the countries supplying raw materials, vulnerabilities remain if the separation, refining and magnet manufacturing stages are concentrated in a particular country.\nSouth Korea's Ministry of Trade, Industry and Resources announced a comprehensive rare earth supply chain strategy in February.\nIn July, the ministry consulted with the Financial Services Commission on financial support for overseas resource development, domestic processing capacity and recycling projects to recover materials used in permanent magnets from discarded products.\nTaiwan Strait stability also affects South Korea\nSouth Korea's official position emphasizes the importance of peace and stability in the Taiwan Strait.\nA joint fact sheet released following a South Korea-U.S. summit in November 2025 said both countries stressed the importance of peace and stability in the Taiwan Strait and the peaceful resolution of cross-strait differences.\nTakaichi's remarks a year ago concerned the conditions under which Japan might exercise collective self-defense in a Taiwan contingency.\nThe South Korea-U.S. document, by contrast, established diplomatic principles intended to prevent conflict.\nJapan's experience over the past year illustrates how prolonged diplomatic tensions over Taiwan can have implications for South Korea.\nFor Seoul, peace and stability in the Taiwan Strait are closely linked to energy security, economic security and the stability of critical industrial supply chains.\n-- Reported by Asia Today; translated by UPI\n© Asia Today. Unauthorized reproduction or redistribution prohibited.\nOriginal Korean report: https://www.asiatoday.co.kr/kn/view.php?key=20261108010002855"
-   },
-   {
-    "id": "a4",
     "title": "US cites China in PNG closure of Taiwan site - Taipei Times",
     "publisher": "Taipei Times",
     "body_status": "full",
     "chars_read": 5845,
     "chars_original": 5845,
     "text": "The US government has expressed concern over the closure of Taiwan’s representative office in Papua New Guinea (PNG) under pressure from the PNG government, saying that the incident is another example of Beijing’s intimidation of Taiwan.\n“We are deeply concerned by reports that the government of Papua New Guinea has unilaterally ordered the closure of the Taipei Economic Office in Port Moresby,” an unnamed US Department of State spokesman said on Saturday.\n“Taiwan is a reliable, like-minded and democratic partner, and its relationships around the world provide significant benefits to the citizens of those countries, including Papua New Guinea,” the spokesman said.\nPhoto: Reuters\n“This is yet another example of Beijing’s intimidation campaign against Taiwan and its supporters around the world, which undermines the sovereign decisions of countries choosing to partner with Taiwan and threatens international peace and prosperity,” the spokesman added.\nThe US Department of State made the remarks in response to a request for comment on Taiwan’s decision on Friday to close its representative office in PNG, which was established in 1990 despite the absence of official diplomatic ties.\nThe decision came after the PNG government renewed its unilateral demands that personnel of the Taipei Economic Office in Port Moresby leave the country and that the office be shut down, the Ministry of Foreign Affairs (MOFA) said.\n“In consideration of national dignity, diplomatic autonomy and overall national interests, and following a comprehensive assessment, the ROC [Taiwan] government has made the decision to close the office, withdraw all stationed personnel, and conduct a full review and adjustment of bilateral ties,” the ministry said in a statement issued on Friday.\nThe dispute began after PNG Minister of Foreign Affairs Justin Tkatchenko announced on July 16 that his government had ordered the immediate closure of Taiwan’s representative office in the country, citing PNG’s adherence to the “one China” policy.\nTaiwan promptly lodged a formal protest with the PNG government, but maintained that its representative office remained operational despite the unilateral announcement.\nTaiwan also suspended spot purchases of liquefied natural gas from PNG in July in response to the country’s plans to close Taiwan’s representative office.\nChina has long used political coercion, economic incentives and diplomatic pressure to force other countries to accept its political claims, while seeking to limit Taiwan’s international presence, MOFA said.\nThe PNG government’s decision is another example of Beijing using political and economic leverage to interfere in other countries’ diplomatic decisions, undermining international trust and fairness, it said, urging the international community to recognize China’s efforts to isolate Taiwan on the global stage.\nAdditional reporting by Fang Wei-li\nRESTRICTING TAIWAN: Beijing is using coercion and economic incentives to force other countries to accept its claims on Taiwan, the MOFA said The Ministry of Foreign Affairs (MOFA) said yesterday it would close its representative office in Papua New Guinea and stop buying liquefied natural gas (LNG) from the country, citing Chinese pressure. Papua New Guinea’s minister of foreign affairs in July said the government had decided to close Taiwan’s representative office in the country immediately, winning praise from China, although the office had remained open in the interim. Taiwan has decided to shut the office and withdraw all personnel on the basis of national dignity, diplomatic autonomy and the country’s overall interests, the MOFA said, adding that the government will reassess and adjust\nTaiwan and Japan might sign a wide-ranging trade agreement by the end of this year, which could help break a deadlock in Taiwan’s trade diplomacy if completed, Nikkei Asia reported yesterday. Japan is negotiating with the administration of President William Lai (賴清德) to reach a comprehensive economic agreement modeled after the Enhanced Trade Partnership Arrangement finalized by the UK and Taiwan in 2023, it said, citing two sources familiar with the matter. “The Enhanced Trade Partnership between the UK and Taiwan sets a precedent for Japan to follow,” one of the sources told the media outlet. The framework leaves room for future agreements\nChinese national Cheng Wanjun (程萬軍), who was at Taiwan Taoyuan International Airport after arriving on a connecting flight from Thailand on Monday and sought asylum in Taiwan, was deported to Thailand early yesterday, the National Immigration Agency (NIA) said. In a video circulating on X, Cheng identified himself as a former host at China Central Television (CCTV) and said he was seeking temporary humanitarian protection in Taiwan. Cheng said he was sentenced to six years in prison after he was recorded and reported to authorities in 2019 for criticizing “a ruler who loses his country.” After his release, he was forced to go\nPLUMMETING: The TAIEX plunged 3,737.67 points in early session yesterday, the largest intraday drop in history, and closed down 1,873.08 points due to AI data center concerns The government yesterday authorized the activation of its NT$500 billion (US$15.26 billion) National Stabilization Fund (NSF) to support local shares, as the stock market experienced significant fluctuations while uncertainties in the international political and economic situation continue. The NSF’s steering committee may use the fund to intervene in the market to prop up local shares, the Ministry of Finance said in a statement. Once the fund is activated next week, it would be the 10th time the NSF has intervened in the market. Separately, the Financial Supervisory Commission (FSC) yesterday announced temporary curbs on short selling shares and other measures to help"
+   },
+   {
+    "id": "a4",
+    "title": "My Take | Taiwan doth complain too much about Beijing - South China Morning Post",
+    "publisher": "South China Morning Post",
+    "body_status": "full",
+    "chars_read": 888,
+    "chars_original": 888,
+    "text": "Taiwan doth complain too much about Beijing\nDespite being invited to join the Apec leaders’ summit in Shenzhen, Taipei says the mainland has breached protocol\nGive Taiwanese president William Lai Ching-te and his Democratic Progressive Party-led government an inch and they’ll take a mile. For more than a year, they demanded to take part as an “equal” in the Apec leaders’ summit in Shenzhen later this month. Now they have been invited. Yet they complain that the invitation is not polite enough and breaches diplomatic protocol.\n“Whenever they breach the established rules or diplomatic conventions, we will certainly lodge a protest at the earliest opportunity,” Taiwanese foreign minister Lin Chia-lung told reporters.\nWhat protocol? The island is not a nation; it is part of China. How can Beijing break protocol in whatever way it sees fit to communicate with one of its provinces?"
    }
   ],
   "evidence_coverage_components": {

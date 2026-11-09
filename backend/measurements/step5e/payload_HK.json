@@ -2,12 +2,12 @@
  "iso2": "HK",
  "country": "Hong Kong SAR, China",
  "mode": "masked",
- "run_date": "2026-11-08",
- "payload_fingerprint": "0541fd8a8eda49bc1b0f09ac30bcf1a5a8877062df02b9b240f2b612e45eaeb8",
- "payload_sha256": "31a6b2a4916d6246e8a17f768e0c29592e1b1bbb726d0dde95fb5ea2564d0da4",
- "payload_tokens": 5503,
+ "run_date": "2026-11-09",
+ "payload_fingerprint": "0dc71e9b229b38a7da35d814b7b22068fe12b91775b75d9d9b5d79fa189dc4fc",
+ "payload_sha256": "a4514e97893c1b94356f15b9ea39308866177fc2f3ac13ea2bb58ccf6b05399b",
+ "payload_tokens": 5721,
  "versions": {
-  "git_sha": "b7bee25ea68856b1b212a2b220f93a6a627842b0",
+  "git_sha": "7d1a78759c533edece487572582798320a50baea",
   "scoring_model": "gpt-4o-2024-08-06",
   "digest_model": "gpt-4o-mini-2024-07-18",
   "gate_model": "gpt-4o-mini-2024-07-18",
@@ -19,12 +19,12 @@
   "exposure_cards_version": "b464281727c9c0700f72c79609d61b28ca77080d02b7c2e978548213b9e67cfa",
   "gate_cache_version": "bd05b6ad0ea85c18255abfbb705efdcba915c831fd969b5019fe7dadcba1e678",
   "questions_version": "e018391fae57014713468ca7fb761bf7e989c60760634c7ca480a49f06bcd127",
-  "masked_digest_prompt_version": "c9e8faf2213cf043aee3f21efe7fc875f809ce6e10055d049ebf6e206101cd2d",
-  "rewrite_prompt_version": "052860aaacbd979ece3bb98b7a5a235c9a444b1dd014b5f98b389dbef47d4ab8",
-  "gazetteer_version": "9428129c10aa7ec80f701cbb537c083843a74c51a8bc3d7cd4b86446195e6753",
+  "masked_digest_prompt_version": "41e2b4abe2d92e7478c9e60806cdaa1d47119e82704197363b0ee68410a87268",
+  "rewrite_prompt_version": "146eb6b73913458a374ded9c000d1df2d7a877de86eb4fdb05dc805b2d17fbae",
+  "gazetteer_version": "58588569283f1d6cc1e3a1150686bf20a5073ccaf9cf2b7ec67a988dbe6328db",
   "scorer_input": "masked",
   "schema_violations": 0,
-  "payload_tokens": 5503
+  "payload_tokens": 5721
  },
  "article_ids": [
   "a1",
@@ -41,7 +41,8 @@
   "a12",
   "a13",
   "a14",
-  "a15"
+  "a15",
+  "a16"
  ],
  "articles_meta": [
   {
@@ -78,7 +79,7 @@
    "id": "a3",
    "url": "https://www.tokenpost.com/news/regulation/51251",
    "title": "Hong Kong Forms Team to Support Crypto-Asset Reporting Rules - TOKENPOST",
-   "masked_title": "Team Formed to Support Crypto-Asset Reporting Rules",
+   "masked_title": "Country Forms Team to Support Crypto-Asset Reporting Rules",
    "publisher": "TOKENPOST",
    "published": "2026-11-08",
    "test": "T1",
@@ -151,9 +152,24 @@
   },
   {
    "id": "a8",
+   "url": "https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
+   "title": "China Crackdown Pushes Wealthy to Gold, Lifting Hong Kong Jewelry Sales - Bloomberg.com",
+   "masked_title": "Crackdown Pushes Wealthy to Gold, Lifting Jewelry Sales",
+   "publisher": "Bloomberg.com",
+   "published": "2026-11-05",
+   "test": "T2",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Wealthy individuals are turning to gold and gemstones to preserve wealth amid China's tightening grip over offshore investments, leading to a surge in Hong Kong's jewelry and watch sales.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a9",
    "url": "https://sg.finance.yahoo.com/news/dbs-earnings-malaysia-investment-hong-095948192.html",
    "title": "DBS Earnings, Malaysia Investment, and Hong Kong Corporate Moves Lead Asia News - Yahoo Finance Singapore",
-   "masked_title": "DBS Earnings, Neighbouring Country Investment, and Corporate Moves Lead Asia News",
+   "masked_title": "DBS Earnings, Major Investment, and Corporate Moves Lead Asia News",
    "publisher": "Yahoo Finance Singapore",
    "published": "2026-11-05",
    "test": "T2",
@@ -165,10 +181,10 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a9",
+   "id": "a10",
    "url": "https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
    "title": "Why wealth managers see opportunity in Hong Kong despite Beijing’s tax crackdown - South China Morning Post",
-   "masked_title": "Why wealth managers see opportunity in the city despite a major power’s tax crackdown",
+   "masked_title": "Why wealth managers see opportunity in the city despite major power’s tax crackdown",
    "publisher": "South China Morning Post",
    "published": "2026-11-07",
    "test": "T2",
@@ -176,21 +192,6 @@
    "ledger": "friction",
    "high_impact_event": false,
    "what_happened": "Global financial leaders discussed Hong Kong's wealth management industry and its appeal as a safe haven, while largely avoiding the topic of Beijing's tax crackdown on offshore assets.",
-   "body_quality": "full",
-   "body_status": "digest-only"
-  },
-  {
-   "id": "a10",
-   "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
-   "title": "Hong Kong makes further inroads in AI, aviation at mainland Chinese expo - South China Morning Post",
-   "masked_title": "City makes further inroads in AI, aviation at regional expo",
-   "publisher": "South China Morning Post",
-   "published": "2026-11-08",
-   "test": "T5",
-   "exclusion": "none",
-   "ledger": "friction",
-   "high_impact_event": false,
-   "what_happened": "Hong Kong is deepening its integration with mainland China in sectors like AI and aviation, as discussed by industry insiders at a global import expo.",
    "body_quality": "full",
    "body_status": "digest-only"
   },
@@ -211,6 +212,21 @@
   },
   {
    "id": "a12",
+   "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
+   "title": "Hong Kong makes further inroads in AI, aviation at mainland Chinese expo - South China Morning Post",
+   "masked_title": "City makes further inroads in AI, aviation at regional expo",
+   "publisher": "South China Morning Post",
+   "published": "2026-11-08",
+   "test": "T5",
+   "exclusion": "none",
+   "ledger": "friction",
+   "high_impact_event": false,
+   "what_happened": "Hong Kong is deepening its integration with mainland China in sectors like AI and aviation, as discussed by industry insiders at a global import expo.",
+   "body_quality": "full",
+   "body_status": "digest-only"
+  },
+  {
+   "id": "a13",
    "url": "https://www.scmp.com/news/hong-kong/politics/article/3373677/hong-kong-must-build-reassuring-environment-amid-political-criticism-paul-lam",
    "title": "Hong Kong must build ‘reassuring’ environment amid political criticism: Paul Lam - South China Morning Post",
    "masked_title": "City must build ‘reassuring’ environment amid political criticism: Justice Minister",
@@ -225,7 +241,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a13",
+   "id": "a14",
    "url": "https://www.info.gov.hk/gia/general/202611/06/P2026110600321.htm",
    "title": "CE meets Mayor of Shanghai (with photos/video) - www.info.gov.hk",
    "masked_title": "Head of Government meets Mayor of Major City (with photos/video)",
@@ -240,7 +256,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a14",
+   "id": "a15",
    "url": "https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "title": "Hong Kong needs ‘forward-looking’ plans amid industrial chain shifts: John Lee - South China Morning Post",
    "masked_title": "City needs ‘forward-looking’ plans amid industrial chain shifts: Leader",
@@ -255,7 +271,7 @@
    "body_status": "digest-only"
   },
   {
-   "id": "a15",
+   "id": "a16",
    "url": "https://www.dezeen.com/2026/11/01/new-huanggang-port-development-aedas-shenzhen-hong-kong/",
    "title": "Tiered immigration hub by Aedas opens at Shenzhen-Hong Kong border - Dezeen",
    "masked_title": "Tiered immigration hub by Aedas opens at border",
@@ -343,14 +359,12 @@
   "method": "llm",
   "problem": null,
   "eligible": 36,
-  "stories": 21,
+  "stories": 22,
   "multi": 5,
-  "dropped": 15,
+  "dropped": 14,
   "same_story_as": {
    "https://www.scmp.com/news/hong-kong/politics/article/3373638/hypocritical-hong-kong-hits-back-criticism-joshua-wongs-sentence": "https://www.scmp.com/news/hong-kong/politics/article/3373677/hong-kong-must-build-reassuring-environment-amid-political-criticism-paul-lam",
    "https://en.bloomingbit.io/feed/news/123806": "https://www.tokenpost.com/news/regulation/51251",
-   "https://biz.chosun.com/en/en-international/2026/11/06/MLZMHNJHGZDFPPMPN3AWEAENRY/": "https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
-   "https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold": "https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
    "https://www.hrw.org/news/2026/11/05/hong-kong-joshua-wong-gets-nearly-10-more-years-in-prison": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.bloomberg.com/news/articles/2026-11-05/hong-kong-sentences-activist-joshua-wong-to-10-years-in-prison": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.afp.com/en/hong-kong-activist-joshua-wong-given-10-more-years-collusion": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
@@ -361,6 +375,7 @@
    "https://www.nytimes.com/2026/11/04/world/asia/joshua-wong-hong-kong-sentenced.html": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.bbc.com/news/articles/cwp9g3rlp8jlo": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
    "https://www.cnn.com/2026/11/04/china/hong-kong-china-joshua-wong-sentence-hnk-intl": "https://www.voanews.com/a/us-condemns-hong-kong-courts-sentencing-of-pro-democracy-activist-joshua-wong-20261106/8219799.html",
+   "https://biz.chosun.com/en/en-international/2026/11/06/MLZMHNJHGZDFPPMPN3AWEAENRY/": "https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
    "https://www.bloomberg.com/news/articles/2026-11-03/hong-kong-gdp-q3-economic-growth-exports-surge-electronics-ai": "https://news.brgbuildingsolutions.com/post/hong-kong-economy-grows-5-2-in-q3-2026-supported-by-strong-exports-and-domestic-demand"
   },
   "post_selection": [
@@ -413,17 +428,17 @@
   "post_selection_same_story": 3,
   "blocked_after_selection": 0,
   "refill_digests": 0,
-  "shortfall": 5,
-  "selected": 15
+  "shortfall": 4,
+  "selected": 16
  },
  "mask": {
   "hits": 36,
   "regenerated": 10,
-  "replaced_by_code": 20,
+  "replaced_by_code": 28,
   "fallback_digests": 0,
   "fallback_texts": 0,
   "publisher_mentions": 7,
-  "digests_generated": 15,
+  "digests_generated": 16,
   "digests_cached": 0,
   "rewrites_generated": 3,
   "rewrites_cached": 0,
@@ -433,27 +448,27 @@
   {
    "where": "digest:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
@@ -488,17 +503,17 @@
   {
    "where": "digest:https://www.straitstimes.com/multimedia/graphics/2026/11/insider-hong-kong/index.html",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.straitstimes.com/multimedia/graphics/2026/11/insider-hong-kong/index.html",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.straitstimes.com/multimedia/graphics/2026/11/insider-hong-kong/index.html",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
@@ -508,17 +523,27 @@
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://asianbusinessreview.com/event-news/hong-kong-shoppers-spend-one-third-wallet-across-border-euromonitor",
    "term": "China",
    "kind": "other_country"
+  },
+  {
+   "where": "digest:https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
+   "term": "HK$",
+   "kind": "symbol"
+  },
+  {
+   "where": "digest:https://www.bloomberg.com/news/articles/2026-11-04/hk-jewelry-sales-soar-as-china-s-rich-seek-wealth-haven-in-gold",
+   "term": "HK",
+   "kind": "code"
   },
   {
    "where": "digest:https://sg.finance.yahoo.com/news/dbs-earnings-malaysia-investment-hong-095948192.html",
@@ -536,24 +561,14 @@
    "kind": "code"
   },
   {
-   "where": "digest:https://www.scmp.com/business/money/wealth/article/3373542/financial-leaders-tiptoe-around-beijings-asset-scrutiny-hail-hong-kongs-wealth-boom",
-   "term": "Beijing",
-   "kind": "extra"
-  },
-  {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
    "term": "Mainland",
-   "kind": "extra"
-  },
-  {
-   "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373664/hong-kong-makes-further-roads-ai-aviation-mainland-chinese-expo",
-   "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.info.gov.hk/gia/general/202611/06/P2026110600321.htm",
@@ -573,27 +588,27 @@
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "digest:https://www.scmp.com/news/hong-kong/hong-kong-economy/article/3373377/hong-kong-needs-forward-looking-plans-amid-changes-industrial-chains-john-lee",
    "term": "Chinese",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://www.scmp.com/opinion/comment/article/3373535/real-test-begins-hong-kongs-new-drug-regulator",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
@@ -603,12 +618,12 @@
   {
    "where": "rewrite:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "mainland",
-   "kind": "extra"
+   "kind": "rival"
   },
   {
    "where": "rewrite:https://finance.biggo.com/news/a2b3b7e7-1c52-4d5c-a7b1-5b067e09e3fa",
    "term": "Mainland",
-   "kind": "extra"
+   "kind": "rival"
   }
  ],
  "data": {
@@ -733,8 +748,8 @@
  },
  "check": {
   "old": {
-   "multi_article_stories": 2,
-   "same_story_dropped_if_checked": 2,
+   "multi_article_stories": 1,
+   "same_story_dropped_if_checked": 1,
    "title_only_sent": 3,
    "t5_sent": 1,
    "articles_sent": 20,
@@ -744,8 +759,8 @@
    "multi_article_stories": 0,
    "title_only_sent": 0,
    "t5_sent": 1,
-   "articles_sent": 15,
-   "shortfall": 5,
+   "articles_sent": 16,
+   "shortfall": 4,
    "refill_digests": 0,
    "passes": 2,
    "story_checks": 2,
@@ -758,11 +773,11 @@
   "mask": {
    "hits": 36,
    "regenerated": 10,
-   "replaced_by_code": 20,
+   "replaced_by_code": 28,
    "fallback_digests": 0,
    "fallback_texts": 0,
    "publisher_mentions": 7,
-   "digests_generated": 15,
+   "digests_generated": 16,
    "digests_cached": 0,
    "rewrites_generated": 3,
    "rewrites_cached": 0,
@@ -772,7 +787,7 @@
   "candidates": 48
  },
  "payload": {
-  "as_of": "2026-11-08",
+  "as_of": "2026-11-09",
   "window": "articles published in the 30 days before as_of",
   "structural_facts": {
    "classification_source": "World Bank country classification",
@@ -785,7 +800,7 @@
   "article_coverage": {
    "note": "Counts are of articles that passed the relevance gate. A zero means no relevant coverage was found for that theme this week — it does not mean nothing happened, and it is not a good sign.",
    "selected_per_theme": {
-    "friction": 4,
+    "friction": 5,
     "order": 0,
     "security": 5,
     "information": 0,
@@ -793,14 +808,14 @@
     "broad": 5
    },
    "selected_per_ledger": {
-    "friction": 6,
+    "friction": 7,
     "order": 8,
     "information": 0,
     "edge": 0
    },
    "candidates_fetched": 53,
    "passed_the_gate": 36,
-   "selected": 15,
+   "selected": 16,
    "budget": 20
   },
   "articles": [
@@ -817,11 +832,11 @@
     ],
     "body_status": "full",
     "digest": {
-     "what_happened": "The new drug regulator is tasked with quickly building expertise to connect local strengths with the pharmaceutical power of a neighbouring country. The new chief believes that the governing principle of 'one country, two systems' will be crucial for the authority's success, alongside the strong pharmaceutical industry from the neighbouring country.",
+     "what_happened": "The new chief of the Centre for Medical Products Regulation is tasked with quickly building expertise to enhance the local pharmaceutical regulatory framework by leveraging strengths from a major power's pharmaceutical industry. The chief believes that the governing principle of 'one country, two systems' will be crucial for the success of the new authority.",
      "institutions": [
       "Centre for Medical Products Regulation"
      ],
-     "direction": "unclear",
+     "direction": "improving",
      "numbers": []
     }
    },
@@ -838,7 +853,7 @@
     ],
     "body_status": "full",
     "digest": {
-     "what_happened": "The five-day fintech event concluded, showcasing how fintech companies from a neighbouring country are using the country as a springboard for global expansion. The event highlighted advancements in AI and cross-border payment solutions, with significant participation from various institutions and startups.",
+     "what_happened": "The five-day fintech event concluded, showcasing the global expansion of fintech companies using the country as a springboard. Key themes included AI deployment and cross-border payments, with significant participation from over 800 institutions and startups. The event highlighted the growing role of [another country] [another country] fintech firms in regional rule-making and their shift towards localized operations.",
      "institutions": [
       "Invest [the country]",
       "[the country] Monetary Authority",
@@ -857,11 +872,11 @@
       "45,000 attendees",
       "800 institutions and startups exhibiting",
       "2 million businesses served by WorldFirst",
-      "70% growth year on year in companies going global via [the country]",
+      "70% year-on-year growth in companies going global via [the country]",
+      "450 million individual customers served by WeBank",
       "1.47 billion financial transactions per day",
       "[local currency]2.4 billion in cross-border credit financing",
-      "100 million in signed contracts by WeBank Technology",
-      "12% compound annual growth rate in IT spending through 2030"
+      "100 million in signed contracts by WeBank Technology"
      ]
     }
    },
@@ -869,7 +884,7 @@
     "id": "a3",
     "publisher": "TOKENPOST",
     "published": "2026-11-08",
-    "title": "Team Formed to Support Crypto-Asset Reporting Rules",
+    "title": "Country Forms Team to Support Crypto-Asset Reporting Rules",
     "themes": [
      "friction"
     ],
@@ -878,11 +893,11 @@
     ],
     "body_status": "full",
     "digest": {
-     "what_happened": "A team has been formed to provide technical support and answer questions regarding crypto-asset reporting rules that will take effect in 2027. Providers with a reporting connection will need to register with the tax department and maintain due-diligence records under the new framework.",
+     "what_happened": "A team has been formed to provide technical support and answer questions regarding crypto-asset reporting rules that will take effect in 2027. Providers connected to the country will need to register with the tax department and maintain due-diligence records under the new framework.",
      "institutions": [],
      "direction": "improving",
      "numbers": [
-      "2027 start for reporting rules",
+      "2027 start for reporting requirements",
       "2028 access for foreign tax authorities"
      ]
     }
@@ -908,10 +923,10 @@
      "direction": "improving",
      "numbers": [
       "local currency 10 billion fund",
-      "local currency 30 billion private-market investments",
-      "local currency 1 billion AI subsidy scheme",
-      "5,000 petaflops current computing capacity",
-      "180,000 petaflops expected capacity by 2032",
+      "local currency 30 billion in private-market investments",
+      "local currency 1 billion into AI subsidy scheme",
+      "5,000 petaflops of computing capacity",
+      "180,000 petaflops by 2032",
       "36-fold increase from current capacity"
      ]
     }
@@ -929,14 +944,14 @@
     ],
     "body_status": "digest-only",
     "digest": {
-     "what_happened": "As the city emerges from social unrest and pandemic disruptions, its commercial landscape has transformed, with businesses catering more to [the country] [the country] residents. This shift has led to a reorientation of the economy and changes in the social fabric, as the influx of [the country] professionals and businesses becomes more prominent.",
+     "what_happened": "As the city emerged from social unrest and pandemic disruptions, its commercial landscape has transformed, with businesses catering more to [another country] [another country] residents. This shift has led to a reorientation of the economy and changes in the social fabric, as the influx of talent from [another country] has increased significantly.",
      "institutions": [],
      "direction": "mixed",
      "numbers": [
       "120,000 professionals moved in 2025",
       "9% year-on-year increase in corporate expansions in the first half of 2026",
-      "94% of the roughly 31,500 visas granted under the Top Talent Pass Scheme in 2025 went to mainlanders",
-      "over 53,000 visas granted to mainlanders by 2025"
+      "94% of Top Talent Pass applications in 2025 went to mainlanders",
+      "over 53,000 visas granted to mainlanders in 2025"
      ]
     }
    },
@@ -954,7 +969,7 @@
     ],
     "body_status": "digest-only",
     "digest": {
-     "what_happened": "The second Globevisa Global Citizen Conference was held, focusing on investment migration and regulatory developments in global mobility. The conference brought together various stakeholders to discuss changes in immigration policies and the alignment of investment resources with local development needs.",
+     "what_happened": "The second Globevisa Global Citizen Conference was held, focusing on investment migration and regulatory developments in global mobility. The conference brought together various stakeholders to discuss changes in immigration policies and the alignment of investment resources with host country needs.",
      "institutions": [],
      "direction": "unclear",
      "numbers": []
@@ -994,9 +1009,32 @@
    },
    {
     "id": "a8",
+    "publisher": "Bloomberg.com",
+    "published": "2026-11-05",
+    "title": "Crackdown Pushes Wealthy to Gold, Lifting Jewelry Sales",
+    "themes": [
+     "friction"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "Jewelry and watch sales have increased significantly, reaching their highest level since 2019, as wealthy individuals turn to gold and gemstones to protect their wealth amid government restrictions on offshore investments. Sales rose 22% year-on-year to local currency 45.8 billion in the first nine months, surpassing overall retail growth.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": [
+      "22% year-on-year increase in jewelry and watch sales",
+      "local currency 45.8 billion in the first nine months",
+      "15% of total retail sales"
+     ]
+    }
+   },
+   {
+    "id": "a9",
     "publisher": "Yahoo Finance Singapore",
     "published": "2026-11-05",
-    "title": "DBS Earnings, Neighbouring Country Investment, and Corporate Moves Lead Asia News",
+    "title": "DBS Earnings, Major Investment, and Corporate Moves Lead Asia News",
     "themes": [
      "edge"
     ],
@@ -1005,7 +1043,7 @@
     ],
     "body_status": "digest-only",
     "digest": {
-     "what_happened": "Asian stocks traded mixed to lower, with significant developments including DBS's profit decline, Google's planned investment in a neighbouring country, and corporate moves in the region. DBS reported a net profit of SG$2.81 billion for the third quarter, while Google announced a $15 billion investment to expand its operations in a neighbouring country. In the corporate sector, a drugmaker postponed its global offering due to market conditions, and another company decided to retain its business after a strategic review.",
+     "what_happened": "Asian stocks traded mixed to lower, with significant developments reported from a multinational banking firm, a major tech company, and a pharmaceutical company. The banking firm reported a decrease in net profit, while the tech company announced a substantial investment in a neighbouring country, and the pharmaceutical company postponed its global offering due to market conditions.",
      "institutions": [
       "DBS",
       "Google",
@@ -1017,56 +1055,36 @@
       "SG$2.81 billion net profit for DBS",
       "SG$3.71 billion net interest income",
       "SG$1.43 billion net fee and commission income",
-      "SG$0.81 total third-quarter dividend",
+      "SG$0.81 total third-quarter dividend per share",
       "$15 billion investment by Google",
-      "$1.1 billion contribution to economy",
+      "$1.1 billion contribution to [another country]'s economy",
       "37,000 local jobs supported annually",
       "9,000 jobs sustained once operational",
       "[local currency]1.04 billion sought in global offering",
-      "[local currency]18.90 maximum offer price",
+      "[local currency]18.90 maximum offer price per share",
       "[local currency]879.3 million expected net proceeds",
-      "$1.6 billion expected revenue by 2027",
+      "$1.6 billion expected revenue by ASMPT by 2027",
       "40% gross margin",
       "20% segment profit margin"
      ]
     }
    },
    {
-    "id": "a9",
-    "publisher": "South China Morning Post",
-    "published": "2026-11-07",
-    "title": "Why wealth managers see opportunity in the city despite a major power’s tax crackdown",
-    "themes": [
-     "friction"
-    ],
-    "ledgers": [
-     "friction"
-    ],
-    "body_status": "digest-only",
-    "digest": {
-     "what_happened": "Global financial leaders meeting in the city discussed its growing wealth management industry and appeal as a safe haven, while largely avoiding the topic of increased scrutiny on offshore assets by a major power. This scrutiny is seen as a challenge for cross-border wealth management but did not dominate discussions at key financial summits.",
-     "institutions": [],
-     "direction": "unclear",
-     "numbers": []
-    }
-   },
-   {
     "id": "a10",
     "publisher": "South China Morning Post",
-    "published": "2026-11-08",
-    "title": "City makes further inroads in AI, aviation at regional expo",
+    "published": "2026-11-07",
+    "title": "Why wealth managers see opportunity in the city despite major power’s tax crackdown",
     "themes": [
-     "security",
-     "broad"
+     "friction"
     ],
     "ledgers": [
      "friction"
     ],
     "body_status": "digest-only",
     "digest": {
-     "what_happened": "The city is strengthening its connections with the [the country] in areas such as artificial intelligence, aviation, and professional services, as reported by industry insiders at a global import expo. Executives highlighted the increasing integration and seamless operations across the border, facilitated by projects like the Northern Metropolis megaproject and new logistics links.",
+     "what_happened": "Global financial leaders meeting in the city discussed its growing appeal as a safe haven for wealth management, despite ongoing scrutiny from a major power regarding offshore assets. The discussions largely avoided the topic of the recent tax crackdown, focusing instead on the city's asset inflows and status as a cross-border wealth hub.",
      "institutions": [],
-     "direction": "improving",
+     "direction": "unclear",
      "numbers": []
     }
    },
@@ -1102,6 +1120,26 @@
     "id": "a12",
     "publisher": "South China Morning Post",
     "published": "2026-11-08",
+    "title": "City makes further inroads in AI, aviation at regional expo",
+    "themes": [
+     "security",
+     "broad"
+    ],
+    "ledgers": [
+     "friction"
+    ],
+    "body_status": "digest-only",
+    "digest": {
+     "what_happened": "The city is strengthening its connections with the [another country] in areas such as artificial intelligence, aviation, and professional services, as discussed by industry insiders at a global import expo. Executives highlighted the benefits of cross-border integration and the strategic initiatives being undertaken, including a new logistics link.",
+     "institutions": [],
+     "direction": "improving",
+     "numbers": []
+    }
+   },
+   {
+    "id": "a13",
+    "publisher": "South China Morning Post",
+    "published": "2026-11-08",
     "title": "City must build ‘reassuring’ environment amid political criticism: Justice Minister",
     "themes": [
      "broad"
@@ -1120,7 +1158,7 @@
     }
    },
    {
-    "id": "a13",
+    "id": "a14",
     "publisher": "www.info.gov.hk",
     "published": "2026-11-06",
     "title": "Head of Government meets Mayor of Major City (with photos/video)",
@@ -1132,17 +1170,17 @@
     ],
     "body_status": "digest-only",
     "digest": {
-     "what_happened": "The head of government met with the mayor of a major city to discuss ongoing cooperation between their regions. They highlighted successful exchanges in various sectors and the participation of over 400 enterprises from one region in a significant trade expo. The meeting aimed to deepen collaboration and support economic development.",
+     "what_happened": "The head of government met with the mayor of a major city to discuss ongoing cooperation between their regions. They highlighted successful exchanges in various sectors and the participation of over 400 enterprises from one region in a significant trade expo. The meeting aimed to deepen collaboration and support economic development initiatives.",
      "institutions": [],
      "direction": "improving",
      "numbers": [
-      "400 enterprises participated in the ninth [another country] International Import Expo",
-      "first quarter of next year for gold clearing system launch"
+      "400 [the country] enterprises took part in the ninth [another country] International Import Expo",
+      "Delivery Connect will be officially launched in the first quarter of next year"
      ]
     }
    },
    {
-    "id": "a14",
+    "id": "a15",
     "publisher": "South China Morning Post",
     "published": "2026-11-05",
     "title": "City needs ‘forward-looking’ plans amid industrial chain shifts: Leader",
@@ -1167,7 +1205,7 @@
     }
    },
    {
-    "id": "a15",
+    "id": "a16",
     "publisher": "Dezeen",
     "published": "2026-11-01",
     "title": "Tiered immigration hub by Aedas opens at border",
@@ -1182,7 +1220,9 @@
      "direction": "improving",
      "numbers": [
       "25,000 square metres of public space",
-      "200,000 passengers per day"
+      "200,000 passengers per day",
+      "nine-storey building",
+      "73 roof skylights"
      ]
     }
    }
@@ -1195,7 +1235,7 @@
     "body_status": "full",
     "chars_read": 950,
     "chars_original": 950,
-    "text": "The real test begins for the country’s new drug regulator\nUnder its new chief, the Centre for Medical Products Regulation must quickly assemble the expertise needed to bridge local strengths with the [the country]’s pharmaceutical power. A [the country]-born former senior official of the US Food and Drug Authority considers the country’s “one country, two systems” governing principle to be a key part of the winning prescription for the new pharmaceutical regulation authority. The other part of the prescription is the strong pharmaceutical industry on the [the country]. \n“The US regulatory body is strong because of its pharmaceutical industry, with both sides pushing each other forward,” he said, noting that the [the country] industry could have a similar symbiotic relationship with the country’s regulator. As a result, while other places in Asia such as a neighbouring country and a regional rival had established regulatory agencies long ago, the country has a distinct competitive edge."
+    "text": "The real test begins for the country’s new drug regulator\nUnder its new chief, the Centre for Medical Products Regulation must quickly assemble the expertise needed to bridge local strengths with the [another country]’s pharmaceutical power. A [another country]-born former senior official of the US Food and Drug Authority considers the country’s “one country, two systems” governing principle to be a key part of the winning prescription for the new pharmaceutical regulation authority. The other part of the prescription is the strong pharmaceutical industry on the [another country]. \n“The US regulatory body is strong because of its pharmaceutical industry, with both sides pushing each other forward,” he said, noting that the [another country] industry could have a similar symbiotic relationship with the country’s regulator. As a result, while other places in Asia such as a neighbouring country and a regional rival had established regulatory agencies long ago, the country has a distinct competitive edge."
    },
    {
     "id": "a2",
@@ -1204,23 +1244,23 @@
     "body_status": "full",
     "chars_read": 8060,
     "chars_original": 8060,
-    "text": "The five-day fintech week x StartmeupHK 2026 concluded on November 6. The event, themed \"Fintech Hub: Connecting the World, Building the Future Together,\" attracted participants from more than 120 economies and over 45,000 attendees, with more than 800 institutions and startups exhibiting. Unlike previous years, the most frequently heard keywords on this year's show floor were \"AI deployment\" and \"going global via the country\"—fintech companies are using the country as a dual springboard for product validation and global expansion.\n\nThe Director-General of Investment Promotion at the investment promotion agency of the country’s government said the event fostered meaningful connections, partnerships and business opportunities, and that the results will continue beyond the conclusion of the main forum.\n\nAI Agents and Cross-Border Payments Emerge as Two Main Themes\nAnt Digital Technologies presented its \"AI Agent Super Factory\" solution and announced an upgrade to its security brand, launching KYA (Know Your Agent), an identity trust governance solution for the agentic AI era. Ant Digital Technologies CEO said, \"AI to B is becoming Ant Digital Technologies' core focus.\" The solution currently covers industries including finance, energy, healthcare and consumer goods. According to an IDC report, Ant Digital Technologies ranks first among non-cloud vendors and fourth overall in the agent development platform private deployment market.\n\nThe Global General Manager of Ant International's WorldFirst said WorldFirst now serves more than 2 million businesses worldwide. Since joining the country's government's \"[the country] Enterprises Going Global Task Force\" professional service platform in June this year, the number of companies it serves in going global via the country has grown more than 70% year on year. Ant International also launched a global account service built on AI and blockchain technology, offering one-stop payment, account management, treasury and credit services for large enterprises and cross-border small and medium-sized enterprises based on multi-currency accounts and scenario-based financial solutions.\n\nA major tech company focused on progress in global payment network connectivity. During the event, its global payment service signed memoranda of cooperation with major payment networks, having previously reached a partnership with another major payment network. The cross-border remittance platform now cooperates with more than 60 banks and remittance institutions worldwide, supporting remittances to the country from more than 150 countries and regions. The tech company was also named to the central bank's newly established \"Agentic Finance Expert Group,\" where it will focus on interoperability standards. A Vice President of the tech company said unified standards and protocols can reduce redundant integration and lower interaction risks.\n\nSelf-Evolving Financial Large Model and Cross-Border Data Verification Deployed\nA financial technology company, together with a local university and a generative AI research and development center, jointly released a finance-enhanced large model. Built on RSI technology, the model achieves a 30% improvement in core financial scenarios such as customer acquisition, risk control and customer management, at only 10% of the cost of general-purpose models. The CEO of the financial technology company said the country is the group's international headquarters, and the three parties will jointly promote in-depth AI applications in finance. A Provost of the local university called it the industry's first self-evolving finance-enhanced large model and expressed hope that its deployment in the country will enhance the city's competitiveness as an international financial center.\n\nAnother financial institution focused on exporting digital financial infrastructure. As the country's first digital bank, it has served more than 450 million individual customers and more than 8.4 million corporate customers applying for loans. Its self-developed fully distributed core system handles a peak of more than 1.47 billion financial transactions per day, with product availability exceeding 99.999%, and has deployed more than 100 vertical AI applications and over 90 digital employees.\n\nThe cross-border data verification platform showcased by the financial institution now covers 24 institutions and 13 application scenarios, completing more than 50,000 verifications, facilitating local currency 2.4 billion (approximately $306.1 million) in cross-border credit financing, and providing cross-border medical imaging verification services to more than 10,000 residents. In September this year, the platform was included as a key initiative in the country's first Five-Year Development Plan and the [the country]'s 2026 Policy Address.\n\nGoing-Global Paths Gradually Take Shape\nThe country's value as a hub is particularly evident in the going-global chain. An AI-native digital bank empowered by a major tech company in a neighbouring country gained 1.2 million users and processed more than 25 million transactions within less than a year of launch. A financial technology company helped a consumer credit institution in a neighbouring country build and upgrade its intelligent credit system and renewed the contract for three years this year. By the first half of 2026, the financial technology company had cooperated with more than 35 enterprises in over ten countries and regions along a major development initiative, with signed contracts worth over $100 million.\n\nThe financial technology company also showcased its intelligent visual anti-fraud strategy platform, which, backed by a million-level Deepfake sample library, achieves end-to-end recognition accuracy exceeding 99%. It has been admitted to the central bank's regulatory sandbox and signed a related construction project with the local police force.\n\nEcosystem-level cooperation is also expanding in parallel. A major consulting firm and a local tech hub held the annual results day of the Asia-Pacific Fintech Innovation Lab, showcasing solutions from eight startups selected for the 2026 program. A financial index company and the local tech hub launched a one-stop index design solution under the \"Thematic Index Exploration Program,\" using generative AI to improve the efficiency of thematic index development. A fintech association led a delegation of 20 companies to exhibit in the country for the fourth consecutive year.\n\nMarket Impact\nJudging from the signals sent by this year's fintech week, the going-global path of fintech companies is shifting from single-product exports to a parallel approach of \"standards participation plus localized operations.\" The tech company's entry into the central bank's agentic finance expert group and the inclusion of the financial institution's cross-border data verification platform in the country's top-level design mean that companies' role in the country is no longer merely that of technology suppliers, but of participants in regional rule-making.\n\nFor investors, what is worth watching is the change in the revenue structure of such businesses: overseas contracts and localized service revenue at entities such as Ant Digital Technologies and the financial institution are reaching scale, while the country's validation costs as a \"sandbox\" remain relatively manageable. IT spending in the financial sectors of emerging markets such as Southeast Asia is expected to maintain a compound annual growth rate of more than 12% through 2030, offering predictable incremental space for companies going global via the country. However, regulatory coordination on cross-border data flows and differing compliance requirements across jurisdictions remain the main variables affecting the pace of deployment."
+    "text": "The five-day fintech week x StartmeupHK 2026 concluded on November 6. The event, themed \"Fintech Hub: Connecting the World, Building the Future Together,\" attracted participants from more than 120 economies and over 45,000 attendees, with more than 800 institutions and startups exhibiting. Unlike previous years, the most frequently heard keywords on this year's show floor were \"AI deployment\" and \"going global via the country\"—fintech companies are using the country as a dual springboard for product validation and global expansion.\n\nThe Director-General of Investment Promotion at the investment promotion authority said the event fostered meaningful connections, partnerships and business opportunities, and that the results will continue beyond the conclusion of the main forum.\n\nAI Agents and Cross-Border Payments Emerge as Two Main Themes\nAnt Digital Technologies presented its \"AI Agent Super Factory\" solution and announced an upgrade to its security brand, launching KYA (Know Your Agent), an identity trust governance solution for the agentic AI era. Ant Digital Technologies CEO said, \"AI to B is becoming Ant Digital Technologies' core focus.\" The solution currently covers industries including finance, energy, healthcare and consumer goods. According to an IDC report, Ant Digital Technologies ranks first among non-cloud vendors and fourth overall in the agent development platform private deployment market.\n\nThe Global General Manager of Ant International's WorldFirst said WorldFirst now serves more than 2 million businesses worldwide. Since joining the country's Government's \"[another country] Enterprises Going Global Task Force\" professional service platform in June this year, the number of companies it serves in going global via the country has grown more than 70% year on year. Ant International also launched a global account service built on AI and blockchain technology, offering one-stop payment, account management, treasury and credit services for large enterprises and cross-border small and medium-sized enterprises based on multi-currency accounts and scenario-based financial solutions.\n\nA major technology company focused on progress in global payment network connectivity. During the event, its global payment service signed memoranda of cooperation with major payment networks, having previously reached a partnership with another. The cross-border remittance platform now cooperates with more than 60 banks and remittance institutions worldwide, supporting remittances to the [another country] from more than 150 countries and regions. The major technology company was also named to the central bank's newly established \"Agentic Finance Expert Group,\" where it will focus on interoperability standards. A Vice President of the major technology company said unified standards and protocols can reduce redundant integration and lower interaction risks.\n\nSelf-Evolving Financial Large Model and Cross-Border Data Verification Deployed\nA financial technology company, together with a local university and a generative AI research and development center, jointly released a finance-enhanced large model. Built on RSI technology, the model achieves a 30% improvement in core financial scenarios such as customer acquisition, risk control and customer management, at only 10% of the cost of general-purpose models. The financial technology company CEO said the company is the group's international headquarters, and the three parties will jointly promote in-depth AI applications in finance. A Provost of the local university called it the industry's first self-evolving finance-enhanced large model and expressed hope that its deployment in the country will enhance the city's competitiveness as an international financial center.\n\nAnother financial technology company focused on exporting digital financial infrastructure. As the country's first digital bank, it has served more than 450 million individual customers and more than 8.4 million corporate customers applying for loans. Its self-developed fully distributed core system handles a peak of more than 1.47 billion financial transactions per day, with product availability exceeding 99.999%, and has deployed more than 100 vertical AI applications and over 90 digital employees.\n\nThe cross-border data verification platform showcased by the financial technology company now covers 24 institutions and 13 application scenarios, completing more than 50,000 verifications, facilitating local currency 2.4 billion (approximately $306.1 million) in cross-border credit financing, and providing cross-border medical imaging verification services to more than 10,000 residents. In September this year, the platform was included as a key initiative in the country's first Five-Year Development Plan and the [the country]'s 2026 Policy Address.\n\nGoing-Global Paths Gradually Take Shape\nThe country's value as a hub is particularly evident in the going-global chain. A digital bank empowered by Ant Digital Technologies in a neighbouring country gained 1.2 million users and processed more than 25 million transactions within less than a year of launch. A financial technology company helped a consumer credit institution in another neighbouring country build and upgrade its intelligent credit system and renewed the contract for three years this year. By the first half of 2026, the financial technology company had cooperated with more than 35 enterprises in over ten countries and regions along a major economic initiative, with signed contracts worth over $100 million.\n\nThe financial technology company also showcased its intelligent visual anti-fraud strategy platform, which, backed by a million-level Deepfake sample library, achieves end-to-end recognition accuracy exceeding 99%. It has been admitted to the central bank's regulatory sandbox and signed a related construction project with the local police force.\n\nEcosystem-level cooperation is also expanding in parallel. A major consulting firm and a local technology hub held the annual results day of the Asia-Pacific Fintech Innovation Lab, showcasing solutions from eight startups selected for the 2026 program. A financial index company and the local technology hub launched a one-stop index design solution under the \"Thematic Index Exploration Program,\" using generative AI to improve the efficiency of thematic index development. A fintech association led a delegation of 20 companies to exhibit in the country for the fourth consecutive year.\n\nMarket Impact\nJudging from the signals sent by this year's fintech week, the going-global path of fintech companies is shifting from single-product exports to a parallel approach of \"standards participation plus localized operations.\" The major technology company's entry into the central bank's agentic finance expert group and the inclusion of the financial technology company's cross-border data verification platform in the country's top-level design mean that these companies' role in the country is no longer merely that of technology suppliers, but of participants in regional rule-making.\n\nFor investors, what is worth watching is the change in the revenue structure of such businesses: overseas contracts and localized service revenue at entities such as Ant Digital Technologies and the financial technology company are reaching scale, while the country's validation costs as a \"sandbox\" remain relatively manageable. IT spending in the financial sectors of emerging markets such as Southeast Asia is expected to maintain a compound annual growth rate of more than 12% through 2030, offering predictable incremental space for companies going global via the country. However, regulatory coordination on cross-border data flows and differing compliance requirements across jurisdictions remain the main variables affecting the pace of deployment."
    },
    {
     "id": "a3",
-    "title": "Team Formed to Support Crypto-Asset Reporting Rules",
+    "title": "Country Forms Team to Support Crypto-Asset Reporting Rules",
     "publisher": "TOKENPOST",
     "body_status": "full",
     "chars_read": 973,
     "chars_original": 973,
-    "text": "The country formed a team to provide technical support and answer industry questions on crypto-asset reporting rules taking effect in 2027. Providers with a reporting connection to the country will have to register with the tax department and keep due-diligence records under the framework. These requirements are scheduled to start in 2027. Bitcoin (BTC), Ether (ETH) and Solana are generally understood to fall within the rules. The first list of partner jurisdictions will determine which foreign tax authorities can access transaction data from the country's platforms after 2028. The team is one of several arrangements planned to support the framework’s implementation. The development adds an update to the country’s crypto reporting law, which starts collection in 2027."
+    "text": "The country formed a team to provide technical support and answer industry questions on crypto-asset reporting rules taking effect in 2027. The team will provide technical support and answer industry questions as registration and recordkeeping requirements approach their 2027 start. Providers with a reporting connection to the country will have to register with the tax department and keep due-diligence records under the framework. These requirements are scheduled to start in 2027. Bitcoin (BTC), Ether (ETH) and Solana are generally understood to fall within the rules. The first list of partner jurisdictions will determine which foreign tax authorities can access transaction data from platforms in the country after 2028. The team is one of several arrangements planned to support the framework’s implementation. The development adds an update to the country’s crypto reporting law, which starts collection in 2027."
    }
   ],
   "evidence_coverage_components": {
    "note": "Computed from what you were sent. Do not return a coverage figure of your own.",
    "components": {
-    "article_volume": 0.75,
-    "body_depth": 0.6,
+    "article_volume": 0.8,
+    "body_depth": 0.5938,
     "indicator_resolution": 0.8333,
     "freshness": 0.9286
    },

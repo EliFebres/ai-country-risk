@@ -108,8 +108,10 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
                       "Victoria Harbour", "Tsim Sha Tsui"],
            "currency": ["Hong Kong dollar", "Hong Kong dollars", "dollar", "dollars"],
            "symbols": ["HK$", "HKD"],
-           "extra": ["Beijing", "Chinese", "HKMA", "Hang Seng", "LegCo", "Legislative Council",
-                     "Chief Executive", "mainland", "Mainland"]},
+           "extra": ["HKMA", "Hang Seng", "LegCo", "Legislative Council",
+                     "Chief Executive", "HKEX", "MTR", "Cathay Pacific", "SFC",
+                     "Jockey Club", "Exco", "ExCo", "Greater Bay Area", "national security law"],
+           "rival": ["Beijing", "Chinese", "mainland", "Mainland"]},
     "IE": {"names": ["Ireland", "Republic of Ireland", "Éire", "Eire"], "aliases": [],
            "codes": ["IRL"], "demonyms": ["Irish"], "capital": "Dublin",
            "cities": ["Dublin", "Cork", "Limerick", "Galway", "Waterford"],
@@ -119,7 +121,8 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
            "codes": ["ISR"], "demonyms": ["Israeli", "Israelis"], "capital": "Jerusalem",
            "cities": ["Jerusalem", "Tel Aviv", "Haifa", "Rishon LeZion", "Petah Tikva", "Beersheba"],
            "currency": ["shekel", "shekels", "new shekel"], "symbols": ["₪", "NIS", "ILS"],
-           "extra": ["Knesset", "Gaza", "West Bank", "Hamas", "Hezbollah", "IDF", "Likud", "Mossad"]},
+           "extra": ["Knesset", "IDF", "Likud", "Mossad"],
+           "rival": ["Gaza", "West Bank", "Hamas", "Hezbollah"]},
     "IT": {"names": ["Italy", "Italian Republic", "Italia"], "aliases": [],
            "codes": ["ITA"], "demonyms": ["Italian", "Italians"], "capital": "Rome",
            "cities": ["Rome", "Milan", "Milano", "Naples", "Napoli", "Turin", "Torino", "Palermo", "Genoa"],
@@ -148,7 +151,9 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
            "codes": ["PRT"], "demonyms": ["Portuguese"], "capital": "Lisbon",
            "cities": ["Lisbon", "Lisboa", "Porto", "Oporto", "Braga", "Coimbra", "Funchal", "Amadora"],
            **_EURO, "extra": ["Assembleia da República", "Banco de Portugal", "Madeira", "Azores",
-                              "Açores", "Chega", "PSD", "Algarve", "Tagus", "Tejo"]},
+                              "Açores", "Chega", "PSD", "Algarve", "Tagus", "Tejo", "CGD", "Caixa Geral",
+                              "Galp", "EDP", "Novo Banco", "Millennium bcp", "TAP Air", "PSI 20", "PSI-20",
+                              "Lusophone", "Belém", "Belem", "São Bento"]},
     "SG": {"names": ["Singapore", "Republic of Singapore"], "aliases": [],
            "codes": ["SG", "SGP"], "demonyms": ["Singaporean", "Singaporeans"], "capital": "Singapore",
            "cities": ["Changi", "Jurong", "Marina Bay", "Sentosa", "Orchard Road"],
@@ -186,7 +191,9 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
            "symbols": ["$", "US$", "USD"],
            "extra": ["Federal Reserve", "Fed", "White House", "Wall Street", "Pentagon", "Capitol Hill",
                      "Treasuries", "Republican", "Republicans", "Democrat", "Democrats", "GOP", "Medicare",
-                     "Medicaid", "Supreme Court of the United States", "S&P 500", "Dow Jones", "Nasdaq"]},
+                     "Medicaid", "Supreme Court of the United States", "S&P 500", "Dow Jones", "Nasdaq",
+                     "FOMC", "SEC", "DOJ", "FBI", "IRS", "Fannie Mae", "Freddie Mac", "Senate", "House of "
+                     "Representatives", "Trump", "Biden", "Powell", "Bessent", "Vance", "Rubio", "SCOTUS"]},
     "BR": {"names": ["Brazil", "Brasil", "Federative Republic of Brazil"], "aliases": [],
            "codes": ["BRA"], "demonyms": ["Brazilian", "Brazilians"], "capital": "Brasília",
            "cities": ["Brasília", "Brasilia", "São Paulo", "Sao Paulo", "Rio de Janeiro", "Rio", "Salvador",
@@ -247,7 +254,8 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
                       "Farwaniya", "Sabah Al Salem", "Mubarak Al-Kabeer"],
            "currency": ["dinar", "dinars", "Kuwaiti dinar", "Kuwaiti dinars"], "symbols": ["KD", "KWD"],
            "extra": ["KIA", "KPC", "KFH", "Burgan", "Boubyan", "Shuwaikh", "Mina Al Ahmadi", "Al Zour",
-                     "Failaka", "Bubiyan", "Boursa Kuwait", "Al Sabah", "Al-Sabah"]},
+                     "Failaka", "Bubiyan", "Boursa Kuwait", "Al Sabah", "Al-Sabah", "KUNA", "KISR", "KDIPA",
+                     "KOC", "KNPC", "KIPIC", "NBK", "CBK", "Zain", "Agility", "Markaz", "Wafra"]},
     "MY": {"names": ["Malaysia"], "aliases": [],
            "codes": ["MYS"], "demonyms": ["Malaysian", "Malaysians", "Malay", "Malays"], "capital": "Kuala Lumpur",
            "cities": ["Kuala Lumpur", "Putrajaya", "George Town", "Johor Bahru", "Ipoh", "Shah Alam", "Penang",
@@ -290,8 +298,8 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
            "cities": ["Riyadh", "Jeddah", "Jiddah", "Mecca", "Makkah", "Medina", "Madinah", "Dammam", "Khobar",
                       "Neom", "NEOM"],
            "currency": ["riyal", "riyals", "Saudi riyal", "Saudi riyals"], "symbols": ["SR", "SAR"],
-           "extra": ["Aramco", "PIF", "Vision 2030", "Tadawul", "SAMA", "Al Saud", "Al-Saud", "Hajj",
-                     "Houthi", "Houthis"]},
+           "extra": ["Aramco", "PIF", "Vision 2030", "Tadawul", "SAMA", "Al Saud", "Al-Saud", "Hajj"],
+           "rival": ["Houthi", "Houthis"]},
     "ZA": {"names": ["South Africa", "Republic of South Africa"], "aliases": [],
            "codes": ["ZAF", "RSA"], "demonyms": ["South African", "South Africans"], "capital": "Pretoria",
            "cities": ["Pretoria", "Tshwane", "Cape Town", "Johannesburg", "Durban", "Port Elizabeth", "Gqeberha",
@@ -304,8 +312,8 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
            "capital": "Seoul",
            "cities": ["Seoul", "Busan", "Incheon", "Daegu", "Daejeon", "Gwangju", "Ulsan", "Sejong"],
            "currency": ["Korean won", "South Korean won"], "symbols": ["₩", "KRW"],
-           "extra": ["Samsung", "Hyundai", "SK Hynix", "Kospi", "KOSPI", "Pyongyang", "North Korea",
-                     "North Korean", "DPRK", "Yoon", "Chaebol", "chaebol", "chaebols"]},
+           "extra": ["Samsung", "Hyundai", "SK Hynix", "Kospi", "KOSPI", "Yoon", "Chaebol", "chaebol", "chaebols"],
+           "rival": ["Pyongyang", "North Korea", "North Korean", "DPRK"]},
     "TW": {"names": ["Taiwan", "Republic of China", "Chinese Taipei", "Formosa"], "aliases": [],
            "codes": ["TWN", "ROC"], "demonyms": ["Taiwanese"], "capital": "Taipei",
            "cities": ["Taipei", "New Taipei", "Kaohsiung", "Taichung", "Tainan", "Taoyuan", "Hsinchu", "Keelung"],
@@ -313,8 +321,10 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
                         "dollars"],
            "symbols": ["NT$", "NTD", "TWD"],
            "extra": ["Legislative Yuan", "Executive Yuan", "Kuomintang", "KMT", "DPP", "Democratic Progressive Party",
-                     "TSMC", "Beijing", "Chinese", "cross-strait", "PLA", "People's Liberation Army", "Taiex",
-                     "TAIEX", "Lai Ching-te", "Penghu", "Kinmen", "Matsu"]},
+                     "TSMC", "cross-strait", "Taiex",
+                     "TAIEX", "Lai Ching-te", "Penghu", "Kinmen", "Matsu", "Foxconn", "MediaTek", "UMC",
+                     "Hon Hai", "CNA", "Mainland Affairs Council", "TPP", "Control Yuan", "Taiwan Strait"],
+           "rival": ["Beijing", "Chinese", "PLA", "People's Liberation Army"]},
     "TH": {"names": ["Thailand", "Kingdom of Thailand", "Siam"], "aliases": [],
            "codes": ["THA"], "demonyms": ["Thai", "Thais"], "capital": "Bangkok",
            "cities": ["Bangkok", "Krung Thep", "Nonthaburi", "Chiang Mai", "Pattaya", "Phuket", "Hat Yai"],
@@ -338,8 +348,11 @@ GAZETTEER: Dict[str, Dict[str, Any]] = {
                       "Yekaterinburg", "Kazan", "Nizhny Novgorod", "Vladivostok"],
            "currency": ["ruble", "rubles", "rouble", "roubles"], "symbols": ["₽", "RUB"],
            "extra": ["Kremlin", "Duma", "State Duma", "Gazprom", "Rosneft", "Sberbank", "Lukoil", "Siberia",
-                     "Siberian", "Ukraine", "Ukrainian", "Kyiv", "Kiev", "Donbas", "Crimea", "FSB", "Putin",
-                     "MOEX", "Urals crude", "Urals"]},
+                     "Siberian", "Donbas", "Crimea", "FSB", "Putin",
+                     "MOEX", "Urals crude", "Urals", "VTB", "Rosatom", "Yandex", "Novatek", "Norilsk",
+                     "Rostec", "Rosstat", "TASS", "Interfax", "RIA Novosti", "Kommersant", "Vedomosti",
+                     "United Russia", "Nabiullina", "Mishustin", "Peskov", "Lavrov", "Medvedev"],
+           "rival": ["Ukraine", "Ukrainian", "Kyiv", "Kiev"]},
 }
 
 GAZETTEER_VERSION = content_hash(json.dumps(GAZETTEER, sort_keys=True, ensure_ascii=False))
@@ -356,6 +369,8 @@ REPLACEMENT = {
     "currency": "[local currency]",
     "symbol": "[local currency]",
     "other_country": "[another country]",
+    # A neighbour, rival or adversary that names the subject by relation.
+    "rival": "[another country]",
 }
 
 #: Terms matched without a trailing boundary: they sit flush against digits.
@@ -397,6 +412,7 @@ def terms_for(iso2: str) -> List[Tuple[str, str]]:
     out += [(t, "currency") for t in g.get("currency", [])]
     out += [(t, "symbol") for t in g.get("symbols", [])]
     out += [(t, "extra") for t in g.get("extra", [])]
+    out += [(t, "rival") for t in g.get("rival", [])]
     for other, og in GAZETTEER.items():
         if other == iso2:
             continue
