@@ -36,6 +36,10 @@ export const CACHE_TTL = {
   // rows between writes and hits Neon at most once per window.
   PRICES: 5 * 60,
 
+  // The outlook, watch list and track record are written once per weekly ETL
+  // (the watch list resolves on the same run), so the same 12h window as RISK.
+  OUTLOOK: 12 * HOUR,
+
   // Live TV channel list (the `live_tv_channel` table). Edited by hand via SQL
   // when a stream dies, so a short 10-min TTL lets a fix propagate quickly while
   // keeping Neon hits cheap for this tiny, rarely-changed table.

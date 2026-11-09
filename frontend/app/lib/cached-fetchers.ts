@@ -132,6 +132,23 @@ export const getNewsAlerts = unstable_cache(
   { revalidate: CACHE_TTL.AI_ALERTS, tags: ["ai-alerts"] }
 );
 
+/**
+ * One country's latest outlook, top-five open watch items and track record.
+ * The iso2 argument is part of the cache key, so each country is its own entry.
+ */
+export const getOutlook = unstable_cache(
+  async (iso2: string) => riskRepository.fetchOutlook(iso2),
+  ["outlook"],
+  { revalidate: CACHE_TTL.OUTLOOK, tags: ["outlook"] }
+);
+
+/** The latest forecast-report aggregate, for a methodology or status page. */
+export const getForecastReport = unstable_cache(
+  async () => riskRepository.fetchForecastReport(),
+  ["forecast-report"],
+  { revalidate: CACHE_TTL.OUTLOOK, tags: ["outlook"] }
+);
+
 /** Latest market-price snapshot for the Prices pane, in curated display order. */
 export const getMarketPrices = unstable_cache(
   async () => riskRepository.fetchMarketPrices(),

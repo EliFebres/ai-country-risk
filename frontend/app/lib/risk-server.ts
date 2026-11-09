@@ -91,6 +91,58 @@ export type EconCalendarEvent = {
   importance: "h" | "m" | "l"; // FMP impact tier
 };
 
+/** One horizon of the outlook: direction, expected score_12m range (integers
+ *  0-100; the UI divides by 100) and the probability over the three bands. */
+export type OutlookHorizon = {
+  direction: "up" | "flat" | "down";
+  low: number;
+  high: number;
+  p_band: { low: number; elevated: number; high: number };
+};
+
+/** One open watch-list item, as the Country Detail screen lists it. */
+export type WatchEntry = {
+  title: string;
+  kind: "scheduled_event" | "calendar" | "development" | "deadline";
+  due_date: string | null;        // 'YYYY-MM-DD' or null for an undated development
+  question: string | null;        // checklist question id (F1..E1), null for calendar rows
+  ledger: "friction" | "order" | "information" | "edge" | null;
+  direction: "up" | "down" | "unclear";
+  importance: number | null;      // 0..1, computed weekly by the backend
+  status: "open";
+  first_seen: string;             // 'YYYY-MM-DD'
+  weeks_open: number;
+};
+
+/** The forecast ledger's grade of this country's production outlooks. */
+export type TrackRecord = {
+  n_4w: number;
+  hit_rate_4w: number | null;
+  brier_4w: number | null;
+  mae_4w: number | null;
+  n_12w: number;
+  hit_rate_12w: number | null;
+  brier_12w: number | null;
+  watch_precision_12wk: number | null;
+  lessons_version: string | null;
+};
+
+/** `GET /api/outlook?iso2=PT`: the latest outlook, the live watch list and the track record. */
+export type OutlookBundle = {
+  iso2: string;
+  run_date: string;
+  headed: {
+    text: string;
+    horizon_4w: OutlookHorizon;
+    horizon_12w: OutlookHorizon;
+    confidence: number | null;
+    drivers: { question: string; ledger: string; direction: string; why: string; evidence: string[] }[];
+    changes_since_last: string;
+  };
+  watch: WatchEntry[];
+  track_record: TrackRecord;
+};
+
 /** One globally-ranked AI news alert for the bottom-bar "AI Alerts" pane. */
 export type NewsAlert = {
   global_rank: number;          // 1..N global importance rank
@@ -504,6 +556,154 @@ export class RiskRepository {
     }
     // Ensure every country from latest is present (even if 0 articles)
     return Array.from(byIso2.values());
+  }
+
+  /**
+   * The latest outlook for one country with its live watch list and track
+   * record, or null when the country has no outlook yet.
+   *
+   * Three queries: the newest `country_outlook` row, the top five open
+   * `watch_item` rows by importance (dated before undated on ties), and the
+   * production grades from `snapshot_diagnostic` (`kind='outlook-eval'`,
+   * variants `4w` and `12w` only: the `-late` plumbing rows never reach the
+   * screen). Scores stay integers 0-100 as the backend stored them.
+   */
+  async fetchOutlook(iso2: string): Promise<OutlookBundle | null> {
+    const pool = await this.pool();
+    const asDate = (v: unknown): string => {
+      if (!v) return "";
+      if (v instanceof Date) {
+        const y = v.getFullYear();
+        const m = String(v.getMonth() + 1).padStart(2, "0");
+        const d = String(v.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
+      }
+      const m = /^(\d{4}-\d{2}-\d{2})/.exec(String(v));
+      return m ? m[1] : String(v);
+    };
+    type HorizonRow = { direction: "up" | "flat" | "down"; score_low: number; score_high: number;
+                        p_band: { low: number; elevated: number; high: number } };
+    const { rows } = await pool.query<{
+      run_date: string | Date;
+      headed_text: string | null;
+      horizon_4w: HorizonRow;
+      horizon_12w: HorizonRow;
+      confidence: number | null;
+      drivers: OutlookBundle["headed"]["drivers"] | null;
+      changes_since_last: string | null;
+      lessons_version: string | null;
+    }>(
+      `SELECT run_date, headed_text, horizon_4w, horizon_12w, confidence, drivers,
+              changes_since_last, lessons_version
+         FROM country_outlook
+        WHERE country_iso2 = $1
+     ORDER BY run_date DESC
+        LIMIT 1;`,
+      [iso2]
+    );
+    const o = rows[0];
+    if (!o) return null;
+    const runDate = asDate(o.run_date);
+    const horizon = (h: HorizonRow): OutlookHorizon => ({
+      direction: h.direction, low: Number(h.score_low), high: Number(h.score_high), p_band: h.p_band,
+    });
+
+    const watch = await pool.query<{
+      title: string; kind: WatchEntry["kind"]; due_date: string | Date | null; question: string | null;
+      expected_direction: WatchEntry["direction"]; importance: number | null; first_seen_run_date: string | Date;
+    }>(
+      `SELECT title, kind, due_date, question, expected_direction, importance, first_seen_run_date
+         FROM watch_item
+        WHERE country_iso2 = $1 AND status = 'open'
+     ORDER BY importance DESC NULLS LAST, (due_date IS NULL) ASC, due_date ASC NULLS LAST, title ASC
+        LIMIT 5;`,
+      [iso2]
+    );
+    const ledgerOf = (q: string | null): WatchEntry["ledger"] => {
+      switch ((q || "").charAt(0)) {
+        case "F": return "friction";
+        case "O": return "order";
+        case "I": return "information";
+        case "E": return "edge";
+        default: return null;
+      }
+    };
+    const runMs = new Date(runDate).getTime();
+    const watchList: WatchEntry[] = watch.rows.map((w) => {
+      const first = asDate(w.first_seen_run_date);
+      const weeks = Math.max(0, Math.round(((runMs - new Date(first).getTime()) / 86_400_000 / 7) * 10) / 10);
+      return {
+        title: w.title, kind: w.kind, due_date: w.due_date ? asDate(w.due_date) : null,
+        question: w.question, ledger: ledgerOf(w.question), direction: w.expected_direction,
+        importance: w.importance != null ? Number(w.importance) : null, status: "open",
+        first_seen: first, weeks_open: weeks,
+      };
+    });
+
+    const grades = await pool.query<{ variant: "4w" | "12w"; n: string; hit: string | null; brier: string | null; mae: string | null }>(
+      `SELECT variant,
+              count(*)::text                                            AS n,
+              avg((payload->>'range_hit')::boolean::int)::text          AS hit,
+              avg((payload->>'brier')::float)::text                      AS brier,
+              avg((payload->>'abs_error_to_midpoint')::float)::text      AS mae
+         FROM snapshot_diagnostic
+        WHERE kind = 'outlook-eval' AND country_iso2 = $1 AND variant IN ('4w', '12w')
+     GROUP BY variant;`,
+      [iso2]
+    );
+    const g = (v: "4w" | "12w") => grades.rows.find((r) => r.variant === v);
+    const num = (s: string | null | undefined, nd = 3) => (s == null ? null : Math.round(Number(s) * 10 ** nd) / 10 ** nd);
+    const precision = await pool.query<{ p: string | null }>(
+      `SELECT payload->>'precision_12w' AS p
+         FROM snapshot_diagnostic
+        WHERE kind = 'watch-eval' AND country_iso2 = $1
+     ORDER BY run_date DESC LIMIT 1;`,
+      [iso2]
+    );
+
+    return {
+      iso2,
+      run_date: runDate,
+      headed: {
+        text: o.headed_text ?? "",
+        horizon_4w: horizon(o.horizon_4w),
+        horizon_12w: horizon(o.horizon_12w),
+        confidence: o.confidence != null ? Number(o.confidence) : null,
+        drivers: o.drivers ?? [],
+        changes_since_last: o.changes_since_last ?? "",
+      },
+      watch: watchList,
+      track_record: {
+        n_4w: Number(g("4w")?.n ?? 0),
+        hit_rate_4w: num(g("4w")?.hit),
+        brier_4w: num(g("4w")?.brier),
+        mae_4w: num(g("4w")?.mae, 2),
+        n_12w: Number(g("12w")?.n ?? 0),
+        hit_rate_12w: num(g("12w")?.hit),
+        brier_12w: num(g("12w")?.brier),
+        watch_precision_12wk: num(precision.rows[0]?.p ?? null),
+        lessons_version: o.lessons_version,
+      },
+    };
+  }
+
+  /**
+   * The latest `forecast-report` aggregate the backend recorded in
+   * `run_ledger`, for a methodology or status page. Null until one has run.
+   */
+  async fetchForecastReport(): Promise<{ run_date: string; report: unknown } | null> {
+    const pool = await this.pool();
+    const { rows } = await pool.query<{ run_date: string | Date; detail: unknown }>(
+      `SELECT run_date, detail
+         FROM run_ledger
+        WHERE job_type = 'forecast-report' AND country_iso2 = ''
+     ORDER BY run_date DESC, created_at DESC
+        LIMIT 1;`
+    );
+    const r = rows[0];
+    if (!r) return null;
+    const d = r.run_date instanceof Date ? r.run_date.toISOString().slice(0, 10) : String(r.run_date).slice(0, 10);
+    return { run_date: d, report: r.detail };
   }
 
   /**
