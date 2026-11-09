@@ -279,13 +279,18 @@ def _calendar_rows(iso2: str, run_date: dt.date) -> Tuple[List[Dict[str, Any]], 
 def _block_dated(scoring: Dict[str, Any], open_items: List[Dict[str, Any]],
                  calendar_rows: List[Dict[str, Any]], calendar_status: str, run_date: dt.date) -> Dict[str, Any]:
     events = (scoring.get("events") or {}).get("valid") or []
+    # Calendar items are resolved by the feed (an actual appears or the row is
+    # pruned), never by the model, so they are listed compactly and are not in
+    # the set the model must answer for. Everything else it must address.
     items = [{
         "item_id": i["item_id"], "kind": i["kind"], "title": i["title"],
         "due_date": _iso(i.get("due_date")), "window_end": _iso(i.get("window_end")),
         "question": i.get("question"), "expected_direction": i.get("expected_direction"),
         "importance": i.get("importance"), "first_seen": _iso(i["first_seen_run_date"]),
         "weeks_open": _weeks(run_date, i["first_seen_run_date"]), "seen_count": i.get("seen_count"),
-    } for i in open_items]
+    } for i in open_items if i["kind"] != "calendar"]
+    calendar_items = [{"title": i["title"], "due_date": _iso(i.get("due_date"))}
+                      for i in open_items if i["kind"] == "calendar"]
     cal = [{
         "event_id": c["event_id"], "date": _iso(c["event_time"]), "event": c["event"],
         "importance": c.get("importance"), "estimate": c.get("estimate"), "previous": c.get("previous"),
@@ -293,6 +298,9 @@ def _block_dated(scoring: Dict[str, Any], open_items: List[Dict[str, Any]],
     return {
         "scheduled_events_this_week": events,
         "open_watch_items": items,
+        "open_watch_items_note": "resolve each of these: happened, did_not_happen or still_open",
+        "open_calendar_items": calendar_items,
+        "open_calendar_items_note": "resolved by the calendar feed, not by you; shown so you do not propose them again",
         "calendar_next_90_days": cal,
         "calendar_status": calendar_status,
     }
@@ -441,7 +449,7 @@ def assemble_outlook_payload(iso2: str, run_date: dt.date) -> Dict[str, Any]:
         "payload_tokens": int(count_tokens(serialized)["tokens"]),
         "payload_fingerprint": content_hash(serialized),
         "inputs_fingerprint": inputs_fingerprint,
-        "open_item_ids": [i["item_id"] for i in open_items],
+        "open_item_ids": [i["item_id"] for i in open_items if i["kind"] != "calendar"],
         "article_ids": [a["id"] for a in articles if a.get("id")],
         "scheduled_events": payload["dated_items"]["scheduled_events_this_week"],
         "calendar_rows": calendar_rows,
@@ -455,7 +463,9 @@ def assemble_outlook_payload(iso2: str, run_date: dt.date) -> Dict[str, Any]:
                 "data": {"indicators": len(payload["data"]["indicators"]),
                          "previous_manifest": bool(prev_manifest)},
                 "dated_items": {"scheduled_events": len(payload["dated_items"]["scheduled_events_this_week"]),
-                                "open_watch_items": len(open_items), "calendar_rows": len(calendar_rows)},
+                                "open_watch_items": len(open_items),
+                                "open_calendar_items": len(payload["dated_items"]["open_calendar_items"]),
+                                "calendar_rows": len(calendar_rows)},
                 "memory": {"previous_outlook_run_date": _iso(prev_run_date),
                            "evaluations": len(memory.get("evaluations") or [])},
                 "base_rates": {"snapshots_on_record": payload["base_rates"]["snapshots_on_record"],
