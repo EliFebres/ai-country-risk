@@ -1,9 +1,23 @@
 """
 The whole schema, in one place, built in one call.
 
-Ten tables. Not eleven, not nine: below ten means merging things whose keys and
-lifecycles differ, above ten means something is stored twice. The count is not a
-target, it is what falls out of keeping one key per kind of fact.
+Twelve tables. Not thirteen, not eleven: below twelve means merging things whose
+keys and lifecycles differ, above twelve means something is stored twice. The
+count is not a target, it is what falls out of keeping one key per kind of fact.
+
+The ten were the record of a reading: who, what evidence, what number, what it
+cost. Two kinds of fact arrived with the outlook and fit none of them. A
+**forecast** (`country_outlook`) is keyed like a snapshot, `(country, run_date)`,
+but it is a different fact: a snapshot says what the week looked like, an
+outlook says what the next weeks will look like, and the second is scored
+against later snapshots while the first never is. Folding it into
+`risk_snapshot` would make a row that is half observation and half claim, and
+the ledger could not tell which columns it is allowed to grade. A **thing to
+watch** (`watch_item`) is keyed `(country, item_id)` and lives across many
+weeks: it is seen, re-seen, resolved or expired, and the only mutable part is
+its status. No existing table has a row that outlives the run that wrote it.
+The evaluations of both are measurements of the instrument, not new facts
+about the country, so they go in `snapshot_diagnostic` under their own kinds.
 
 Before this module the schema lived in four places — prose in
 `backend/README.md` for four tables, `CREATE TABLE` constants scattered through
@@ -36,9 +50,13 @@ from typing import Dict, List, Tuple
 __all__ = [
     "TABLES",
     "INDEXES",
+    "RECONCILIATIONS",
     "STAMPED_FIELDS",
+    "OUTLOOK_STAMPED_FIELDS",
     "BODY_STATUSES",
     "ARTIFACT_KINDS",
+    "WATCH_KINDS",
+    "WATCH_STATUSES",
     "bootstrap",
     "create_all",
     "table_names",
@@ -62,14 +80,38 @@ STAMPED_FIELDS: Tuple[str, ...] = (
     "payload_fingerprint",
 )
 
+# The outlook's own stamps. `lessons_version` is here because the calibration
+# memo the model was shown is part of what produced the forecast, even though
+# the memo text is outside `outlook_prompt_version` by design.
+OUTLOOK_STAMPED_FIELDS: Tuple[str, ...] = (
+    "outlook_prompt_version",
+    "outlook_model",
+    "git_sha",
+    "payload_fingerprint",
+    "lessons_version",
+)
+
 #: How a run read an article. Recorded per article in the manifest, never on
 #: the `article` row: it is a fact about the run.
 BODY_STATUSES = ("full", "clipped", "digest-only", "title-only")
 
-# `rewrite` has no writer yet — it is the masking layer's kind, present in the
-# CHECK so that switching masking on later is not a schema change.
-ARTIFACT_KINDS = ("relevance", "digest", "rewrite")
+# `rewrite` is the masking layer's kind. `lessons` is the forecast ledger's
+# calibration memo, keyed by the hash of its own text so an unchanged memo keeps
+# its version. The CHECK is reconciled on an existing table by RECONCILIATIONS.
+ARTIFACT_KINDS = ("relevance", "digest", "rewrite", "lessons")
 _KINDS_SQL = ", ".join(f"'{k}'" for k in ARTIFACT_KINDS)
+
+#: What a watch item is. `scheduled_event` comes from the scorer's dated
+#: events, `calendar` from `economic_calendar_event`, `development` is an
+#: undated thread the outlook says to follow, `deadline` a dated commitment
+#: named in an article.
+WATCH_KINDS = ("scheduled_event", "calendar", "development", "deadline")
+_WATCH_KINDS_SQL = ", ".join(f"'{k}'" for k in WATCH_KINDS)
+
+#: The lifecycle. `open` is the only state a row is written in; the other four
+#: are terminal and are set by the resolver, never by the model directly.
+WATCH_STATUSES = ("open", "happened", "did_not_happen", "expired", "superseded")
+_WATCH_STATUSES_SQL = ", ".join(f"'{k}'" for k in WATCH_STATUSES)
 
 
 # --- 1. Identity ------------------------------------------------------------
@@ -372,7 +414,97 @@ CREATE TABLE IF NOT EXISTS economic_calendar_event (
 """
 
 
-# Order matters: `risk_snapshot` references `country`.
+# --- 11. The forecast -------------------------------------------------------
+
+COUNTRY_OUTLOOK = """
+CREATE TABLE IF NOT EXISTS country_outlook (
+    country_iso2           CHAR(2) NOT NULL REFERENCES country(iso2),
+    -- The date the forecast was made. Everything in it was knowable on this
+    -- date and nothing after it; the ledger grades it against the first
+    -- snapshot on or after run_date plus the horizon.
+    run_date               DATE NOT NULL,
+
+    -- The scoreable parts. Each is {direction: up|flat|down, score_low,
+    -- score_high, p_band: {low, elevated, high}}: the model's expected
+    -- score_12m interval at the horizon and its probability over the bands.
+    horizon_4w             JSONB NOT NULL,
+    horizon_12w            JSONB NOT NULL,
+    -- Expected direction per ledger at four weeks.
+    ledger_direction       JSONB NOT NULL,
+    -- Up to five {question, ledger, direction, why, evidence}.
+    drivers                JSONB NOT NULL,
+
+    -- The prose, in the neutral article voice. headed_text is what the
+    -- Country Detail screen prints; the validator checks that the range and
+    -- direction word it quotes match the structured horizons.
+    base_case              TEXT,
+    upside_risk            TEXT,
+    downside_risk          TEXT,
+    headed_text            TEXT,
+    confidence             DOUBLE PRECISION,
+    key_uncertainties      JSONB,
+    changes_since_last     TEXT,
+
+    -- Stamps: immutable once written. See OUTLOOK_STAMPED_FIELDS.
+    outlook_prompt_version TEXT,
+    outlook_model          TEXT,
+    git_sha                TEXT,
+    payload_fingerprint    TEXT,
+    lessons_version        TEXT,
+    -- The hash of what it was made from: the snapshot, the open watch items,
+    -- the calendar rows, the memo and the previous outlook's date.
+    inputs_fingerprint     TEXT,
+    payload_tokens         INTEGER,
+    -- Block provenance, calendar availability, redactions, violations. A row
+    -- without one is refused, the same rule as risk_snapshot.
+    manifest               JSONB NOT NULL,
+    created_at             TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (country_iso2, run_date)
+)
+"""
+
+
+# --- 12. The watch list -----------------------------------------------------
+
+WATCH_ITEM = f"""
+CREATE TABLE IF NOT EXISTS watch_item (
+    country_iso2        CHAR(2) NOT NULL,
+    -- A stable hash of (country, kind, normalized title, anchor week), so the
+    -- same thing seen in two weeks is one row with seen_count 2.
+    item_id             TEXT NOT NULL,
+    kind                TEXT NOT NULL CHECK (kind IN ({_WATCH_KINDS_SQL})),
+    title               TEXT NOT NULL,
+    -- Null for developments, which have no date.
+    due_date            DATE,
+    -- due_date plus the grace period, or first seen plus the development
+    -- expiry. The resolver's clock: open past this is expired.
+    window_end          DATE NOT NULL,
+    -- One of the checklist question ids; null for calendar rows.
+    question            TEXT,
+    expected_direction  TEXT CHECK (expected_direction IN ('up', 'down', 'unclear')),
+    -- Computed by code, recomputed every week the item is open.
+    importance          DOUBLE PRECISION,
+    -- Article ids, a calendar event id, or carried_from.
+    source              JSONB,
+    first_seen_run_date DATE NOT NULL,
+    last_seen_run_date  DATE NOT NULL,
+    seen_count          INTEGER NOT NULL DEFAULT 1,
+    -- Whether it ever made the displayed top five, so the ledger can say how
+    -- many of the things that happened were in front of the analyst.
+    ever_shown          BOOLEAN NOT NULL DEFAULT FALSE,
+    status              TEXT NOT NULL DEFAULT 'open'
+                        CHECK (status IN ({_WATCH_STATUSES_SQL})),
+    resolved_run_date   DATE,
+    resolution_note     TEXT,
+    resolution_evidence JSONB,
+    superseded_by       TEXT,
+    created_at          TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (country_iso2, item_id)
+)
+"""
+
+
+# Order matters: `risk_snapshot` and `country_outlook` reference `country`.
 TABLES: Dict[str, str] = {
     "country": COUNTRY,
     "article": ARTICLE,
@@ -384,6 +516,8 @@ TABLES: Dict[str, str] = {
     "market_price": MARKET_PRICE,
     "news_alert": NEWS_ALERT,
     "economic_calendar_event": ECONOMIC_CALENDAR_EVENT,
+    "country_outlook": COUNTRY_OUTLOOK,
+    "watch_item": WATCH_ITEM,
 }
 
 
@@ -406,6 +540,40 @@ INDEXES: Tuple[str, ...] = (
     "ON news_alert (run_date DESC, rank)",
     "CREATE INDEX IF NOT EXISTS econ_event_time_idx "
     "ON economic_calendar_event (event_time)",
+    # The forecast ledger reads every outlook of a week, and the API the
+    # latest per country.
+    "CREATE INDEX IF NOT EXISTS country_outlook_run_date_idx "
+    "ON country_outlook (run_date DESC)",
+    # The display and the resolver read a country's open items.
+    "CREATE INDEX IF NOT EXISTS watch_item_country_status_idx "
+    "ON watch_item (country_iso2, status)",
+    # The report and the track record read evaluations by kind and variant.
+    "CREATE INDEX IF NOT EXISTS snapshot_diagnostic_kind_idx "
+    "ON snapshot_diagnostic (kind, variant, run_date)",
+)
+
+
+# Statements that bring an existing table up to this module's shape where
+# `CREATE TABLE IF NOT EXISTS` is silent: a CHECK constraint that gained a
+# value. Each is a no-op when the table already agrees, and each says
+# IF NOT EXISTS so it is safe to run on every startup like everything else
+# here. `drift()` compares columns and would never notice a constraint.
+RECONCILIATIONS: Tuple[str, ...] = (
+    f"""
+    DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1 FROM pg_constraint
+             WHERE conname = 'llm_artifact_kind_check'
+               AND conrelid = 'llm_artifact'::regclass
+               AND pg_get_constraintdef(oid) LIKE '%lessons%'
+        ) THEN
+            ALTER TABLE llm_artifact DROP CONSTRAINT IF EXISTS llm_artifact_kind_check;
+            ALTER TABLE llm_artifact ADD CONSTRAINT llm_artifact_kind_check
+                CHECK (kind IN ({_KINDS_SQL}));
+        END IF;
+    END $$
+    """,
 )
 
 
@@ -469,12 +637,13 @@ def drift(cur) -> Dict[str, Dict[str, List[str]]]:
 
 
 def table_names() -> List[str]:
-    """The ten, in creation order."""
+    """The twelve, in creation order."""
     return list(TABLES)
 
 
 def create_all(cur) -> List[str]:
-    """Create every table and index if absent. Idempotent.
+    """Create every table and index if absent, then reconcile constraints.
+    Idempotent.
 
     Takes a cursor rather than opening a connection so the caller owns the
     transaction: provisioning that commits on its own leaves a half-built schema
@@ -484,11 +653,13 @@ def create_all(cur) -> List[str]:
         cur.execute(ddl)
     for idx in INDEXES:
         cur.execute(idx)
+    for stmt in RECONCILIATIONS:
+        cur.execute(stmt)
     return table_names()
 
 
 def verify(cur) -> Dict[str, bool]:
-    """Which of the ten the database actually has.
+    """Which of the twelve the database actually has.
 
     The consumer side of `create_all`. A statement that returned without raising
     is not evidence that a table exists.

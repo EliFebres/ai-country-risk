@@ -2,10 +2,12 @@
 The durable record: evidence in, model output cached, the week written down.
 
 This module owns the tables a reader in three years needs — `article`,
-`llm_artifact`, `indicator_series`, `risk_snapshot`, `run_ledger` and
-`snapshot_diagnostic`. `data_push` keeps the dashboard-facing feeds (prices,
-alerts, calendar) and the roster seed, because those have a different lifetime:
-they are overwritten every tick and nobody will ever reconstruct one.
+`llm_artifact`, `indicator_series`, `risk_snapshot`, `run_ledger`,
+`snapshot_diagnostic`, `country_outlook` and `watch_item`. `data_push` keeps
+the dashboard-facing feeds (prices, alerts, calendar) and the roster seed,
+because those have a different lifetime: they are overwritten every tick and
+nobody will ever reconstruct one. The calendar is read here all the same,
+because the watch list needs the rows as they stood on a date.
 
 Two rules are enforced here rather than left to convention:
 
@@ -49,9 +51,27 @@ __all__ = [
     "upsert_snapshot",
     "read_snapshot",
     "read_recent_snapshots",
+    "read_snapshot_series",
+    "read_roster_scores",
+    "first_snapshot_on_or_after",
     "write_ledger",
     "read_ledger",
+    "read_latest_ledger",
     "write_diagnostic",
+    "read_diagnostics",
+    "read_latest_artifact",
+    "write_outlook",
+    "read_outlook",
+    "read_latest_outlook",
+    "read_recent_outlooks",
+    "read_all_outlooks",
+    "upsert_watch_items",
+    "read_watch_items",
+    "resolve_watch_item",
+    "update_watch_importance",
+    "mark_watch_shown",
+    "read_calendar_events",
+    "dump_table_csv",
     "StampConflict",
 ]
 
@@ -381,37 +401,51 @@ _JSON_COLUMNS = {
 }
 
 
-def _check_stamps(cur, country_iso2: str, run_date: Any, incoming: Dict[str, Any]) -> None:
-    """Refuse a write that would change how an existing row was produced.
+def _check_stamps_on(
+    cur, *, table: str, key: Dict[str, Any], fields: Sequence[str], incoming: Dict[str, Any],
+) -> None:
+    """Refuse a write that would change how an existing row of `table` was produced.
+
+    `key` is the row's primary key as column -> value; `fields` the stamped
+    columns. Shared by the snapshot and the outlook, which have different
+    stamps but the same rule.
 
     Raises:
         StampConflict: naming the field and both values.
     """
+    where = " AND ".join(f"{c} = %s" for c in key)
     cur.execute(
-        f"""
-        SELECT {", ".join(schema.STAMPED_FIELDS)}
-          FROM risk_snapshot WHERE country_iso2 = %s AND run_date = %s
-        """,
-        (country_iso2, run_date),
+        f"SELECT {', '.join(fields)} FROM {table} WHERE {where}",
+        tuple(key.values()),
     )
     row = cur.fetchone()
     if not row:
         return
 
-    for field, existing in zip(schema.STAMPED_FIELDS, row):
+    label = " ".join(str(v) for v in key.values())
+    for field, existing in zip(fields, row):
         if existing is None:
             continue  # a stamp may be filled in later; it may not be altered
         new = incoming.get(field)
         if new is not None and new != existing:
             logger.error(
                 "stamp conflict on %s %s: %s is %r, refusing to overwrite with %r",
-                country_iso2, run_date, field, existing, new,
+                table, label, field, existing, new,
             )
             raise StampConflict(
-                f"{country_iso2} {run_date}: {field} is already {existing!r} and "
+                f"{label}: {field} is already {existing!r} and "
                 f"the write would set it to {new!r}. Stamps record how a row was "
                 f"produced and are not rewritable; a new run writes a new row."
             )
+
+
+def _check_stamps(cur, country_iso2: str, run_date: Any, incoming: Dict[str, Any]) -> None:
+    """The snapshot's stamp check. See `_check_stamps_on`."""
+    _check_stamps_on(
+        cur, table="risk_snapshot",
+        key={"country_iso2": country_iso2, "run_date": run_date},
+        fields=schema.STAMPED_FIELDS, incoming=incoming,
+    )
 
 
 def upsert_snapshot(row: Dict[str, Any]) -> None:
@@ -512,6 +546,418 @@ def read_recent_snapshots(
         conn.close()
 
 
+_SERIES_COLUMNS = (
+    "country_iso2", "run_date", "score_12m", "score_3m", "friction_score",
+    "order_score", "information_score", "edge_score", "evidence_coverage",
+)
+
+
+def read_snapshot_series(
+    country_iso2: str, *, since: Any = None, until: Any = None
+) -> List[Dict[str, Any]]:
+    """A country's scores over a window, oldest first, without the manifests.
+
+    What the outlook's trend block is computed from. `until` is inclusive and
+    is how a backfill stays honest: nothing after the as-of date is returned.
+    """
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {", ".join(_SERIES_COLUMNS)} FROM risk_snapshot
+                 WHERE country_iso2 = %s
+                   AND (%s::date IS NULL OR run_date >= %s::date)
+                   AND (%s::date IS NULL OR run_date <= %s::date)
+                 ORDER BY run_date
+                """,
+                (country_iso2, since, since, until, until),
+            )
+            return [dict(zip(_SERIES_COLUMNS, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def read_roster_scores(*, until: Any = None) -> List[Dict[str, Any]]:
+    """Every country's scores up to `until`, for the base rates."""
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {", ".join(_SERIES_COLUMNS)} FROM risk_snapshot
+                 WHERE (%s::date IS NULL OR run_date <= %s::date)
+                 ORDER BY country_iso2, run_date
+                """,
+                (until, until),
+            )
+            return [dict(zip(_SERIES_COLUMNS, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def first_snapshot_on_or_after(country_iso2: str, target: Any) -> Optional[Dict[str, Any]]:
+    """The first snapshot at or after `target`, or None. How a forecast matures."""
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {", ".join(_SERIES_COLUMNS)} FROM risk_snapshot
+                 WHERE country_iso2 = %s AND run_date >= %s
+                 ORDER BY run_date LIMIT 1
+                """,
+                (country_iso2, target),
+            )
+            r = cur.fetchone()
+            return dict(zip(_SERIES_COLUMNS, r)) if r else None
+    finally:
+        conn.close()
+
+
+# --- The forecast -----------------------------------------------------------
+
+_OUTLOOK_COLUMNS = (
+    "country_iso2", "run_date", "horizon_4w", "horizon_12w", "ledger_direction",
+    "drivers", "base_case", "upside_risk", "downside_risk", "headed_text",
+    "confidence", "key_uncertainties", "changes_since_last",
+    "outlook_prompt_version", "outlook_model", "git_sha", "payload_fingerprint",
+    "lessons_version", "inputs_fingerprint", "payload_tokens", "manifest",
+)
+
+_OUTLOOK_JSON = {
+    "horizon_4w", "horizon_12w", "ledger_direction", "drivers",
+    "key_uncertainties", "manifest",
+}
+
+
+def write_outlook(row: Dict[str, Any]) -> None:
+    """Write one country's forecast for one run date.
+
+    Raises:
+        ValueError: if the manifest or a scoreable horizon is missing.
+        StampConflict: if the write would alter an existing row's provenance.
+    """
+    if not row.get("manifest"):
+        raise ValueError(
+            f"{row.get('country_iso2')}: refusing to write an outlook with no "
+            f"manifest. A forecast with no record of what it was made from "
+            f"cannot be graded."
+        )
+    for required in ("country_iso2", "run_date", "horizon_4w", "horizon_12w",
+                     "ledger_direction", "drivers"):
+        if row.get(required) is None:
+            raise ValueError(f"outlook is missing {required}")
+
+    values = []
+    for col in _OUTLOOK_COLUMNS:
+        v = row.get(col)
+        values.append(_json(v) if col in _OUTLOOK_JSON and v is not None else v)
+    assignments = ", ".join(
+        f"{c} = EXCLUDED.{c}" for c in _OUTLOOK_COLUMNS
+        if c not in ("country_iso2", "run_date")
+    )
+
+    conn = db.connect()
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            _check_stamps_on(
+                cur, table="country_outlook",
+                key={"country_iso2": row["country_iso2"], "run_date": row["run_date"]},
+                fields=schema.OUTLOOK_STAMPED_FIELDS, incoming=row,
+            )
+            cur.execute(
+                f"""
+                INSERT INTO country_outlook ({", ".join(_OUTLOOK_COLUMNS)})
+                VALUES ({", ".join(["%s"] * len(_OUTLOOK_COLUMNS))})
+                ON CONFLICT (country_iso2, run_date) DO UPDATE SET {assignments}
+                """,
+                values,
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def _select_outlooks(where: str, params: Tuple, order: str = "run_date DESC", limit: Optional[int] = None) -> List[Dict[str, Any]]:
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT {', '.join(_OUTLOOK_COLUMNS)} FROM country_outlook "
+                f"WHERE {where} ORDER BY {order}"
+                + (f" LIMIT {int(limit)}" if limit else ""),
+                params,
+            )
+            return [dict(zip(_OUTLOOK_COLUMNS, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def read_outlook(country_iso2: str, run_date: Any) -> Optional[Dict[str, Any]]:
+    """One forecast back, whole."""
+    rows = _select_outlooks("country_iso2 = %s AND run_date = %s", (country_iso2, run_date))
+    return rows[0] if rows else None
+
+
+def read_latest_outlook(country_iso2: str, *, before: Any = None) -> Optional[Dict[str, Any]]:
+    """The newest forecast strictly before `before` (or the newest at all)."""
+    rows = _select_outlooks(
+        "country_iso2 = %s AND (%s::date IS NULL OR run_date < %s::date)",
+        (country_iso2, before, before), limit=1,
+    )
+    return rows[0] if rows else None
+
+
+def read_recent_outlooks(country_iso2: str, *, before: Any = None, limit: int = 4) -> List[Dict[str, Any]]:
+    """A country's recent forecasts, newest first."""
+    return _select_outlooks(
+        "country_iso2 = %s AND (%s::date IS NULL OR run_date < %s::date)",
+        (country_iso2, before, before), limit=limit,
+    )
+
+
+def read_all_outlooks(*, until: Any = None) -> List[Dict[str, Any]]:
+    """Every forecast made on or before `until`, oldest first. The ledger's input."""
+    return _select_outlooks(
+        "(%s::date IS NULL OR run_date <= %s::date)", (until, until),
+        order="run_date, country_iso2",
+    )
+
+
+# --- The watch list ---------------------------------------------------------
+
+_WATCH_COLUMNS = (
+    "country_iso2", "item_id", "kind", "title", "due_date", "window_end",
+    "question", "expected_direction", "importance", "source",
+    "first_seen_run_date", "last_seen_run_date", "seen_count", "ever_shown",
+    "status", "resolved_run_date", "resolution_note", "resolution_evidence",
+    "superseded_by",
+)
+_WATCH_INSERTED = (
+    "country_iso2", "item_id", "kind", "title", "due_date", "window_end",
+    "question", "expected_direction", "importance", "source",
+    "first_seen_run_date", "last_seen_run_date",
+)
+
+
+def upsert_watch_items(rows: Iterable[Dict[str, Any]]) -> Dict[str, int]:
+    """Insert new items and re-see existing ones. Returns inserted and re-seen counts.
+
+    On a hit the item's `last_seen_run_date`, `seen_count`, `importance` and
+    `source` move; nothing else does, and a closed item is left closed. The
+    model proposing an item that already happened does not reopen it.
+    """
+    batch: List[Tuple] = []
+    seen = set()
+    for r in rows:
+        key = (r["country_iso2"], r["item_id"])
+        if key in seen:
+            continue
+        seen.add(key)
+        batch.append(tuple(
+            _json(r.get(c)) if c == "source" and r.get(c) is not None else r.get(c)
+            for c in _WATCH_INSERTED
+        ))
+    if not batch:
+        return {"inserted": 0, "reseen": 0}
+
+    conn = db.connect()
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            got = extras.execute_values(
+                cur,
+                f"""
+                INSERT INTO watch_item ({", ".join(_WATCH_INSERTED)})
+                VALUES %s
+                ON CONFLICT (country_iso2, item_id) DO UPDATE SET
+                    last_seen_run_date = GREATEST(watch_item.last_seen_run_date, EXCLUDED.last_seen_run_date),
+                    seen_count         = watch_item.seen_count + 1,
+                    importance         = CASE WHEN watch_item.status = 'open'
+                                              THEN EXCLUDED.importance ELSE watch_item.importance END,
+                    source             = CASE WHEN watch_item.status = 'open'
+                                              THEN EXCLUDED.source ELSE watch_item.source END
+                RETURNING (xmax = 0) AS inserted
+                """,
+                batch, fetch=True,
+            )
+        conn.commit()
+        inserted = sum(1 for (flag,) in got if flag)
+        return {"inserted": inserted, "reseen": len(got) - inserted}
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def read_watch_items(
+    country_iso2: str, *, status: Optional[str] = None, first_seen_until: Any = None,
+) -> List[Dict[str, Any]]:
+    """A country's watch items, most important first.
+
+    `first_seen_until` keeps a backfill honest: an item first seen after the
+    as-of date did not exist yet.
+    """
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {", ".join(_WATCH_COLUMNS)} FROM watch_item
+                 WHERE country_iso2 = %s
+                   AND (%s::text IS NULL OR status = %s)
+                   AND (%s::date IS NULL OR first_seen_run_date <= %s::date)
+                 ORDER BY importance DESC NULLS LAST, due_date NULLS LAST, title
+                """,
+                (country_iso2, status, status, first_seen_until, first_seen_until),
+            )
+            return [dict(zip(_WATCH_COLUMNS, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def resolve_watch_item(
+    country_iso2: str, item_id: str, *, status: str, resolved_run_date: Any,
+    note: Optional[str] = None, evidence: Any = None, superseded_by: Optional[str] = None,
+) -> bool:
+    """Close an open item. Returns whether a row changed.
+
+    Only an open item can be resolved: the terminal states are final, and a
+    second verdict on a closed item is ignored rather than rewriting history.
+    """
+    if status not in schema.WATCH_STATUSES or status == "open":
+        raise ValueError(f"not a terminal watch status: {status!r}")
+    conn = db.connect()
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                UPDATE watch_item
+                   SET status = %s, resolved_run_date = %s, resolution_note = %s,
+                       resolution_evidence = %s, superseded_by = %s
+                 WHERE country_iso2 = %s AND item_id = %s AND status = 'open'
+                """,
+                (status, resolved_run_date, note,
+                 _json(evidence) if evidence is not None else None,
+                 superseded_by, country_iso2, item_id),
+            )
+            changed = cur.rowcount
+        conn.commit()
+        return changed > 0
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def update_watch_importance(country_iso2: str, scores: Dict[str, float]) -> None:
+    """Store this week's computed importance for a country's open items."""
+    if not scores:
+        return
+    conn = db.connect()
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            # One statement per item: a country has a few dozen open items at
+            # most, and execute_values cannot bind the country beside the list.
+            for item_id, importance in scores.items():
+                cur.execute(
+                    "UPDATE watch_item SET importance = %s WHERE country_iso2 = %s "
+                    "AND item_id = %s AND status = 'open'",
+                    (float(importance), country_iso2, item_id),
+                )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def mark_watch_shown(country_iso2: str, item_ids: Sequence[str]) -> None:
+    """Record that these items made the displayed top five."""
+    ids = [i for i in item_ids if i]
+    if not ids:
+        return
+    conn = db.connect()
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE watch_item SET ever_shown = TRUE "
+                "WHERE country_iso2 = %s AND item_id = ANY(%s)",
+                (country_iso2, ids),
+            )
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+_CALENDAR_COLUMNS = (
+    "event_id", "event_time", "country_code", "event", "importance",
+    "currency", "previous", "estimate", "actual", "ai_importance", "created_at",
+)
+
+
+def read_calendar_events(
+    country_code: str, *, start: Any, end: Any,
+    importance: Sequence[str] = ("h", "m"), created_before: Any = None,
+) -> List[Dict[str, Any]]:
+    """Calendar rows for a country inside a window, soonest first.
+
+    `created_before` is the as-of filter for a backfill: a row the database
+    first held after the as-of date was not knowable then. The table keeps no
+    history of its own, so this is as far back as it can honestly go.
+    """
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {", ".join(_CALENDAR_COLUMNS)} FROM economic_calendar_event
+                 WHERE country_code = %s
+                   AND event_time >= %s::date AND event_time < (%s::date + 1)
+                   AND importance = ANY(%s)
+                   AND (%s::date IS NULL OR created_at < (%s::date + 1))
+                 ORDER BY event_time
+                """,
+                (country_code, start, end, list(importance), created_before, created_before),
+            )
+            return [dict(zip(_CALENDAR_COLUMNS, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def dump_table_csv(table: str, path: Any) -> int:
+    """COPY one table to a CSV file with a header. Returns the row count.
+
+    The backup taken before a schema change. A table name is interpolated, so
+    it is checked against the schema first.
+    """
+    if table not in schema.TABLES:
+        raise ValueError(f"{table!r} is not a table in schema.py")
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur, open(path, "w", encoding="utf-8", newline="") as fh:
+            cur.copy_expert(f"COPY {table} TO STDOUT WITH CSV HEADER", fh)
+        with conn.cursor() as cur:
+            cur.execute(f"SELECT count(*) FROM {table}")
+            return int(cur.fetchone()[0])
+    finally:
+        conn.close()
+
+
 # --- What ran, where, and what it cost --------------------------------------
 
 
@@ -584,6 +1030,80 @@ def read_ledger(run_date: Any) -> List[Dict[str, Any]]:
                 (run_date,),
             )
             return [dict(zip(cols, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def read_latest_ledger(job_type: str, *, country_iso2: str = "") -> Optional[Dict[str, Any]]:
+    """The most recent ledger row of one job type."""
+    cols = ("job_type", "country_iso2", "run_date", "started_at", "finished_at",
+            "status", "git_sha", "spend_usd", "detail", "error")
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT {', '.join(cols)} FROM run_ledger "
+                f"WHERE job_type = %s AND country_iso2 = %s "
+                f"ORDER BY run_date DESC, finished_at DESC NULLS LAST LIMIT 1",
+                (job_type, country_iso2),
+            )
+            r = cur.fetchone()
+            return dict(zip(cols, r)) if r else None
+    finally:
+        conn.close()
+
+
+def read_diagnostics(
+    *, kind: str, variant: Optional[str] = None, country_iso2: Optional[str] = None,
+    run_date: Any = None,
+) -> List[Dict[str, Any]]:
+    """Measurements of one kind, oldest first. The ledger and the report read these."""
+    cols = ("country_iso2", "run_date", "kind", "model", "variant", "payload", "created_at")
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"""
+                SELECT {", ".join(cols)} FROM snapshot_diagnostic
+                 WHERE kind = %s
+                   AND (%s::text IS NULL OR variant = %s)
+                   AND (%s::text IS NULL OR country_iso2 = %s)
+                   AND (%s::date IS NULL OR run_date = %s::date)
+                 ORDER BY run_date, country_iso2, variant
+                """,
+                (kind, variant, variant, country_iso2, country_iso2, run_date, run_date),
+            )
+            return [dict(zip(cols, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def read_latest_artifact(
+    *, kind: str, mode: str = "named", country_iso2: str = "", created_before: Any = None,
+) -> Optional[Dict[str, Any]]:
+    """The newest artifact of a kind, or None. How the calibration memo is found.
+
+    `read_artifacts` needs the hashes; the memo is looked up by recency, with
+    `created_before` so a backfill sees the memo that existed on its date.
+    """
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT content_sha256, version, model, payload, created_at
+                  FROM llm_artifact
+                 WHERE kind = %s AND mode = %s AND country_iso2 = %s
+                   AND (%s::date IS NULL OR created_at < (%s::date + 1))
+                 ORDER BY created_at DESC LIMIT 1
+                """,
+                (kind, mode, country_iso2, created_before, created_before),
+            )
+            r = cur.fetchone()
+            if not r:
+                return None
+            return {"content_sha256": r[0], "version": r[1], "model": r[2],
+                    "payload": r[3], "created_at": r[4]}
     finally:
         conn.close()
 

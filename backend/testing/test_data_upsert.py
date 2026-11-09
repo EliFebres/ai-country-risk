@@ -148,8 +148,8 @@ class TestSchemaProvisioning:
         sql = " ".join(s for s, _ in cur.executed)
         for table in created:
             assert f"CREATE TABLE IF NOT EXISTS {table}" in sql
-        # Ten. Not eleven, not nine.
-        assert len(created) == 10, created
+        # Twelve. Not thirteen, not eleven.
+        assert len(created) == 12, created
 
     def test_every_statement_is_safe_to_run_again(self):
         """`create_all` runs on every startup, so a second run must be a no-op."""
@@ -189,7 +189,7 @@ class TestSchemaProvisioning:
         got = store.ensure_schema()
         assert set(got) == set(schema.table_names())
         assert all(got.values())
-        assert len(got) == 10
+        assert len(got) == 12
 
 
 class TestArtifactCache:
