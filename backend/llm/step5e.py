@@ -519,27 +519,8 @@ def revalidate(arm: str, quote_match: str, countries: List[str]) -> None:
 # --- Part 3c: identifiability -------------------------------------------------
 
 
-PROBE_PROMPT = (
-    "You are given an anonymised news payload about one country. Which country is this? "
-    "Give your top 3 guesses with probabilities that sum to at most 1, each with the one detail "
-    "that gave it away, or say there is not enough to tell."
-)
-PROBE_SCHEMA = {
-    "name": "country_probe",
-    "schema": {
-        "type": "object", "additionalProperties": False,
-        "properties": {
-            "enough_to_tell": {"type": "boolean"},
-            "guesses": {"type": "array", "items": {
-                "type": "object", "additionalProperties": False,
-                "properties": {"country": {"type": "string"}, "probability": {"type": "number"},
-                               "reason": {"type": "string"}},
-                "required": ["country", "probability", "reason"]}},
-        },
-        "required": ["enough_to_tell", "guesses"],
-    },
-    "strict": True,
-}
+PROBE_PROMPT = ai_constants.PROBE_PROMPT   # shared with the outlook, see llm/constants.py
+PROBE_SCHEMA = ai_constants.PROBE_SCHEMA
 
 
 def _blank_publishers(payload: Dict[str, Any]) -> Dict[str, Any]:

@@ -438,3 +438,244 @@ ALERTS_RANK_SCHEMA: Dict = {
     "required": ["alerts"],
     "additionalProperties": False,
 }
+
+
+# ---------------------------------------------------------------------------
+# The outlook instrument: a forecaster beside the scorer.
+# ---------------------------------------------------------------------------
+# The scorer reads a week and answers sixteen questions about it. The outlook
+# reads the scorer's answer, the trend, the open watch list and its own record,
+# and says where score_12m is going: a direction, a range and a probability
+# over three bands at two horizons. It is a forecast, so it is graded later
+# against the snapshot that arrives at the horizon, and the grades come back to
+# it as a calibration memo. Nothing here touches CHECKLIST_PROMPT, QUESTIONS,
+# SCORING or PROMPT_VERSION: the two instruments are versioned apart.
+
+OUTLOOK_DIRECTIONS = ("up", "flat", "down")
+WATCH_KINDS = ("scheduled_event", "calendar", "development", "deadline")
+#: The kinds the outlook model may propose. Scheduled events come from the
+#: scorer and calendar rows from the feed; the model names the other two.
+WATCH_PROPOSED_KINDS = ("development", "deadline")
+WATCH_OUTCOMES = ("happened", "did_not_happen", "still_open")
+WATCH_DIRECTIONS = EVENT_DIRECTIONS
+
+#: The arithmetic the outlook and the watch list run on. Inside
+#: OUTLOOK_PROMPT_VERSION, so a changed horizon or weight is a new instrument.
+OUTLOOK_SCORING: Dict[str, Any] = {
+    # The two horizons, in days, and how late a realization may arrive and
+    # still count as that horizon. Later than that, up to late_tolerance_days,
+    # is written as a plumbing check and excluded from every aggregate.
+    "horizons_days": {"4w": 28, "12w": 84},
+    "maturity_tolerance_days": 7,
+    "late_tolerance_days": 45,
+    # The watch list's clock.
+    "grace_days": 14,
+    "development_expiry_days": 56,
+    "watch_horizon_days": 90,
+    "calendar_horizon_days": 90,
+    "display_count": 5,
+    # Importance = 0.4 nearness + 0.3 question weight + 0.2 persistence + 0.1 clarity.
+    "importance_weights": {"nearness": 0.4, "question": 0.3, "persistence": 0.2, "clarity": 0.1},
+    "nearness_near_days": 7,
+    "nearness_far_days": 90,
+    "development_nearness": 0.5,
+    "persistence_cap": 4,
+    "edge_question_weight": 0.1,
+    # The three bands p_band is over, as inclusive score_12m ranges.
+    "bands": {"low": [0, 33], "elevated": [34, 66], "high": [67, 100]},
+    # Caps the validator enforces (strict mode has no array length keywords).
+    "max_drivers": 5,
+    "max_new_watch": 6,
+    "max_uncertainties": 3,
+    "max_chars": {"prose": 400, "headed": 600, "memo": 1200},
+    # How far back the trend block looks, and the gap windows that make a pair
+    # of snapshots a 4-week or 12-week base-rate observation.
+    "trend_weeks": 16,
+    "base_rate_gap_days": {"4w": [21, 35], "12w": [70, 98]},
+    # The words headed_text may use for each direction; the validator checks
+    # that the word matching the quoted horizon is present.
+    "direction_words": {
+        "up": ["up", "higher", "rise", "rising"],
+        "flat": ["flat", "unchanged", "steady"],
+        "down": ["down", "lower", "fall", "falling"],
+    },
+}
+
+OUTLOOK_PROMPT = """You are a country-risk forecaster, not a scorer. The score for this week has already been set by a separate instrument from sixteen checklist questions; your job is to say where that score is going, and you are being measured: every forecast you write is graded later against the score that actually arrives at the horizon, and a memo of your systematic errors is included in your input.
+
+Today is {as_of}. The country is not named anywhere in your input and must not be named or guessed at in your output; write "the country".
+
+What you forecast. Only score_12m levels at two horizons, 4 weeks (28 days) and 12 weeks (84 days), each as a direction (up, flat or down), a range [score_low, score_high] on the 0-100 scale, and a probability over the three bands (low 0-33, elevated 34-66, high 67-100) that sums to 1. Also the expected direction of each of the four ledgers (friction, order, information, edge) at 4 weeks. Treat score_3m as a hint of short-term pressure, not as a thing to forecast.
+
+How to write a range. The range must contain your own median expectation and should widen as your confidence falls. The band that contains the midpoint of your range must carry the largest probability. The repeat noise floor of the scoring instrument is {noise_floor}: a range narrower than the floor is not a forecast, and a direction call on an expected move smaller than the floor should be flat. The base rates block tells you how much scores have actually moved over these horizons across every country and every week on record; a forecast far outside them needs a driver that explains why.
+
+Drivers. Up to five, each naming the checklist question and ledger it acts through, its direction, one sentence of why, and the article ids it rests on. Every driver cites article ids from the input or rests explicitly on a checklist question's current level. Do not invent ids.
+
+Dated items. The input lists this week's scheduled events, every open watch item with how long it has been open, and the economic-calendar rows ahead. For each open watch item give a resolution: happened or did_not_happen, with the article ids that show it, or still_open. Do not propose a new watch item that duplicates an open one; say still_open instead. Propose up to six new items to follow, each with a kind (deadline when it has a date, development when it does not), a title, a date in YYYY-MM-DD if it has one, the checklist question it would move, the expected direction, and the article ids that name it. An undated item is an explicit development, not a deadline with a guessed date.
+
+Memory. Your previous outlook and, where one has matured, its evaluation are in the input. changes_since_last says what moved against that previous outlook in two or three sentences, or is exactly "first outlook" when there is none.
+
+Prose. base_case, upside_risk and downside_risk are each under 400 characters, in the neutral voice of a news article: no "we", no "I", no advice. headed_text is for an analyst with thirty seconds: the horizon, the range written as two integers joined by a hyphen (for example 24-31), the direction word (up, flat or down) and the single biggest reason, under 600 characters, no em dashes, same neutral voice. The range and direction word in headed_text must be the ones in horizon_4w or horizon_12w.
+
+Fill the fields in the order they appear: drivers first, then ledger directions, the two horizons, the key uncertainties (up to three), your confidence in [0, 1], then the prose, with headed_text last so it summarises what you have already committed to."""
+
+
+def outlook_prompt_for(as_of: Any, noise_floor: Any) -> str:
+    """The outlook system prompt with the date and the measured noise floor in it.
+
+    Plain `.replace`, as `prompt_for` does, so braces in the text are safe.
+    `noise_floor` is a short phrase written by the caller ("2 points on
+    score_12m" or "not yet measured"), never a bare number the model has to
+    interpret.
+    """
+    text = OUTLOOK_PROMPT.replace("{as_of}", str(as_of))
+    return text.replace("{noise_floor}", str(noise_floor))
+
+
+_SCORE = {"type": "integer", "minimum": 0, "maximum": 100}
+_PROB = {"type": "number", "minimum": 0, "maximum": 1}
+
+_HORIZON_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "direction": {"type": "string", "enum": list(OUTLOOK_DIRECTIONS)},
+        "score_low": _SCORE,
+        "score_high": _SCORE,
+        "p_band": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {"low": _PROB, "elevated": _PROB, "high": _PROB},
+            "required": ["low", "elevated", "high"],
+        },
+    },
+    "required": ["direction", "score_low", "score_high", "p_band"],
+}
+
+_DRIVER_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "question": {"type": "string", "enum": list(QUESTION_IDS)},
+        "ledger": {"type": "string", "enum": list(LEDGER_FIELDS)},
+        "direction": {"type": "string", "enum": list(OUTLOOK_DIRECTIONS)},
+        "why": {"type": "string"},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["question", "ledger", "direction", "why", "evidence"],
+}
+
+_NEW_WATCH_SCHEMA: Dict[str, Any] = {
+    "type": "object",
+    "additionalProperties": False,
+    "properties": {
+        "kind": {"type": "string", "enum": list(WATCH_PROPOSED_KINDS)},
+        "title": {"type": "string"},
+        "due_date": {"type": ["string", "null"]},
+        "question": {"type": "string", "enum": list(QUESTION_IDS)},
+        "direction": {"type": "string", "enum": list(WATCH_DIRECTIONS)},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+    },
+    "required": ["kind", "title", "due_date", "question", "direction", "evidence"],
+}
+
+#: What `watch_resolutions[].item_id` is allowed to be when no item is open.
+NO_OPEN_ITEMS = "<none>"
+
+
+def build_outlook_schema(open_item_ids: Sequence[str] = ()) -> Dict[str, Any]:
+    """The strict output grammar of the outlook, with the open watch items in it.
+
+    Property order is generation order, chosen so evidence comes before
+    conclusions: drivers, then ledger directions, then the horizons, then the
+    uncertainties and confidence, then the prose with headed_text last, then
+    the watch-list verdicts and proposals. The open item ids are an enum so a
+    verdict cannot name an item that was not in front of the model.
+    """
+    ids = list(dict.fromkeys(i for i in open_item_ids if i)) or [NO_OPEN_ITEMS]
+    resolution = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "item_id": {"type": "string", "enum": ids},
+            "outcome": {"type": "string", "enum": list(WATCH_OUTCOMES)},
+            "evidence": {"type": "array", "items": {"type": "string"}},
+            "note": {"type": "string"},
+        },
+        "required": ["item_id", "outcome", "evidence", "note"],
+    }
+    properties: Dict[str, Any] = {
+        "drivers": {"type": "array", "items": _DRIVER_SCHEMA},
+        "ledger_direction": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": {
+                led: {"type": "string", "enum": list(OUTLOOK_DIRECTIONS)} for led in LEDGER_FIELDS
+            },
+            "required": list(LEDGER_FIELDS),
+        },
+        "horizon_4w": _HORIZON_SCHEMA,
+        "horizon_12w": _HORIZON_SCHEMA,
+        "key_uncertainties": {"type": "array", "items": {"type": "string"}},
+        "confidence": _PROB,
+        "base_case": {"type": "string"},
+        "upside_risk": {"type": "string"},
+        "downside_risk": {"type": "string"},
+        "changes_since_last": {"type": "string"},
+        "headed_text": {"type": "string"},
+        "watch_resolutions": {"type": "array", "items": resolution},
+        "new_watch": {"type": "array", "items": _NEW_WATCH_SCHEMA},
+    }
+    return {
+        "name": "country_outlook_v1",
+        "schema": {
+            "type": "object",
+            "additionalProperties": False,
+            "properties": properties,
+            "required": list(properties),
+        },
+        "strict": True,
+    }
+
+
+#: The schema's shape with a placeholder item id, for the version.
+OUTLOOK_SCHEMA_TEMPLATE: Dict = build_outlook_schema(["<item-id>"])
+OUTLOOK_SCHEMA_VERSION = content_hash(json.dumps(OUTLOOK_SCHEMA_TEMPLATE, sort_keys=True))
+
+#: Prompt text, schema shape and arithmetic together, like PROMPT_VERSION. The
+#: calibration memo is deliberately outside it: the memo changes weekly by
+#: design and is stamped on the row as `lessons_version` instead.
+OUTLOOK_PROMPT_VERSION = content_hash(
+    OUTLOOK_PROMPT + "\n" + OUTLOOK_SCHEMA_VERSION + "\n" + json.dumps(OUTLOOK_SCORING, sort_keys=True)
+)
+
+
+# ---------------------------------------------------------------------------
+# The identifiability probe: which country is this masked payload about?
+# ---------------------------------------------------------------------------
+# First written for step 5e (backend/llm/step5e.py), reused by the outlook on
+# its own payloads. One definition, so the two measurements ask the same
+# question.
+
+PROBE_PROMPT = (
+    "You are given an anonymised news payload about one country. Which country is this? "
+    "Give your top 3 guesses with probabilities that sum to at most 1, each with the one detail "
+    "that gave it away, or say there is not enough to tell."
+)
+PROBE_SCHEMA: Dict[str, Any] = {
+    "name": "country_probe",
+    "schema": {
+        "type": "object", "additionalProperties": False,
+        "properties": {
+            "enough_to_tell": {"type": "boolean"},
+            "guesses": {"type": "array", "items": {
+                "type": "object", "additionalProperties": False,
+                "properties": {"country": {"type": "string"}, "probability": {"type": "number"},
+                               "reason": {"type": "string"}},
+                "required": ["country", "probability", "reason"]}},
+        },
+        "required": ["enough_to_tell", "guesses"],
+    },
+    "strict": True,
+}
+PROBE_MODEL = "gpt-4o-mini-2024-07-18"

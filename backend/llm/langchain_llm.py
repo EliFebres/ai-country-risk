@@ -93,6 +93,54 @@ def legal_badge(iso2: Optional[str], as_of: Optional[date] = None) -> Optional[D
     }
 
 
+def structured_call(
+    *,
+    system: str,
+    user: str,
+    schema: Dict,
+    model: str,
+    meter: Optional["usage.Meter"] = None,
+    seed: int = 42,
+    temperature: float = 0.0,
+    api_key: Optional[str] = None,
+    structured: Any = None,
+) -> Dict[str, Any]:
+    """One strict structured-output call, metered. The outlook's model call.
+
+    The same client shape as `score_country` (system prompt, one user turn of
+    JSON, `strict=True`, `include_raw=True` so the meter can see usage) without
+    the scorer's validation, which belongs to the caller. `score_country` is
+    left as it is: the scorer is a frozen instrument.
+
+    Returns:
+        ``{"parsed", "raw", "failed"}``. On a failed call or an undecodable
+        answer `parsed` is None and `failed` says why.
+    """
+    if structured is None:
+        api_key = api_key or os.getenv("OPENAI_API_KEY")
+        if not api_key:
+            return {"parsed": None, "raw": None, "failed": "OPENAI_API_KEY not set"}
+        structured = ChatOpenAI(
+            model=model, temperature=temperature, seed=seed, max_retries=0, api_key=api_key,
+        ).with_structured_output(schema=schema, strict=True, include_raw=True)
+
+    try:
+        response = structured.invoke([SystemMessage(content=system), HumanMessage(content=user)])
+    except Exception as exc:
+        logger.error("structured call failed: %s", exc)
+        return {"parsed": None, "raw": None, "failed": str(exc)}
+
+    if meter is not None:
+        meter.add_response(model, response)
+
+    parsed = response.get("parsed") if isinstance(response, dict) else response
+    failed = None
+    if parsed is None:
+        err = response.get("parsing_error") if isinstance(response, dict) else None
+        failed = f"answer did not decode: {err}" if err else "answer did not decode"
+    return {"parsed": parsed, "raw": response, "failed": failed}
+
+
 def score_country(
     *,
     iso2: str,

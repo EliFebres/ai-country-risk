@@ -71,6 +71,7 @@ __all__ = [
     "update_watch_importance",
     "mark_watch_shown",
     "read_calendar_events",
+    "read_calendar_rows_by_id",
     "dump_table_csv",
     "StampConflict",
 ]
@@ -777,7 +778,9 @@ def upsert_watch_items(rows: Iterable[Dict[str, Any]]) -> Dict[str, int]:
                 VALUES %s
                 ON CONFLICT (country_iso2, item_id) DO UPDATE SET
                     last_seen_run_date = GREATEST(watch_item.last_seen_run_date, EXCLUDED.last_seen_run_date),
-                    seen_count         = watch_item.seen_count + 1,
+                    -- A week re-run is the same sighting, not a second one.
+                    seen_count         = CASE WHEN watch_item.last_seen_run_date < EXCLUDED.last_seen_run_date
+                                              THEN watch_item.seen_count + 1 ELSE watch_item.seen_count END,
                     importance         = CASE WHEN watch_item.status = 'open'
                                               THEN EXCLUDED.importance ELSE watch_item.importance END,
                     source             = CASE WHEN watch_item.status = 'open'
@@ -935,6 +938,25 @@ def read_calendar_events(
                 (country_code, start, end, list(importance), created_before, created_before),
             )
             return [dict(zip(_CALENDAR_COLUMNS, r)) for r in cur.fetchall()]
+    finally:
+        conn.close()
+
+
+def read_calendar_rows_by_id(event_ids: Sequence[str]) -> Dict[str, Dict[str, Any]]:
+    """Calendar rows by event id, for confirming a watch item's release happened.
+    A pruned row is simply absent."""
+    ids = [e for e in event_ids if e]
+    if not ids:
+        return {}
+    conn = db.connect()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT {', '.join(_CALENDAR_COLUMNS)} FROM economic_calendar_event "
+                f"WHERE event_id = ANY(%s)",
+                (ids,),
+            )
+            return {r[0]: dict(zip(_CALENDAR_COLUMNS, r)) for r in cur.fetchall()}
     finally:
         conn.close()
 
