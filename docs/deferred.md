@@ -290,6 +290,11 @@ measurement results in files under `backend/measurements/`, and they are easier
 to diff there. Drop the table or give it a writer; it should not stay in the
 schema as a promise.
 
+**It has writers since 2026-11-09.** The forecast ledger puts its grades there
+(`outlook-eval`, `outlook-arm`, `watch-eval`), and the step 5e masked merges
+were loaded as `repeat` rows so the noise floor is a query rather than a file
+read. See `docs/outlook-and-watchlist.md` §1.
+
 ## 13. Four legacy tables remain until the week is verified — **closed 2026-09-25**
 
 Week one passed its six checks on dev on 2026-09-25 (final run at `37dd309`), and the
@@ -559,3 +564,59 @@ One line each, so they are not lost. None blocks the weekly run.
 - **2026-11-06. RU O2 = 2** for a stage-managed Duma election reads below what the data says (WGI PV −0.90). Candidate for a wording pass later, not now.
 - **2026-11-06. PISA 2025 results are due early December 2026:** the curated PISA series needs a manual rebuild when they land (§1; already listed, kept here so the date is next to the others).
 
+
+## 25. Left over from the outlook and watch list, 2026-11-09
+
+See `docs/outlook-and-watchlist.md` for what was built. None of these blocks
+the weekly run.
+
+- **Fine-tuning on the forecast export.** `forecast-export` writes the
+  supervised set (masked payload, structured forecast, realized outcome,
+  grade). Blocked until the ledger holds twelve matured 12-week weeks; the
+  first 12w grade can exist on 2026-12-18, so the earliest date this is worth
+  opening is March 2027. Until then the export has zero lines by design.
+- **Outlook votes.** One call per country per week. Blocked until the ledger
+  shows the instrument is noisy (range hit rate or direction hit rate moving
+  between adjacent weeks on an unchanged reading). Four matured 4w weeks
+  needed first (2026-12-05 at the earliest).
+- **Calendar coverage for the test set.** `FMP_CALENDAR_COUNTRIES` is a
+  22-code allowlist; PT, KW, HK and TW are not in it, so only US has `calendar`
+  watch items and the outlook's block 4 says "not available (country not in
+  the FMP calendar allowlist)" for the other four. Widening the allowlist is a
+  fetch-cost decision, not a code change.
+- **Calendar rows have no vintage and are pruned.** `upsert_economic_events`
+  deletes rows a day after they pass, so a release can be confirmed only on
+  the ETL that runs within that day (`watch.confirm_calendar` runs before the
+  prune for this reason). Every other calendar item expires with the note
+  "calendar row pruned before confirmation". A backfill confirms nothing. The
+  fix is a vintage on the table (keep past rows with their `actual`), which
+  is a schema change and was out of scope here.
+- **The noise floor is 0.5 points.** From six masked repeat rows of five runs
+  each; three countries did not move at all and the ledger integers never
+  did. A floor that small makes almost any change a direction call. Remeasure
+  it with more runs before reading the direction hit rates as anything other
+  than "did the sign agree".
+- **The 09-25 to 11-07 gap.** Forty-three days between the first two
+  production weeks. Every 4w grade of a 09-25 outlook is therefore a `-late`
+  plumbing row, excluded from everything downstream. The ledger assumes a
+  weekly cadence; a skipped week in future widens the realization lag the
+  same way and the report says so in its coverage block.
+- **`langchain_llm._parse_iso_date` references `datetime` without importing
+  it**, so the legal badge's `effective_from` always parses as `date.min`.
+  Pre-existing, outside the scorer path's output, left alone this session
+  because the scorer file was to stay as it was.
+- **The 2026-09-25 outlook rows read named-era text.** Their reading block came
+  from snapshots made before masking; `gazetteer.redact` replaced 15 to 26
+  strings per payload and the tripwire passed, but a term the gazetteer lacks
+  would have gone through. The identifiability probe on those weeks is the
+  check; its verdicts are in the doc: PT not identified either week, HK
+  identified through the publisher "South China Morning Post", US through
+  the Iran operations it is exempt from masking for. Publishers remain the
+  open masking question, as after step 5e.
+- **Importance gives calendar speeches the US top five.** A re-seen calendar
+  row due within a week scores 0.65 (nearness 1, question weight 0.5, no
+  direction), above every undated development at 0.65 or below, so the US
+  screen would show four Fed speakers. The formula is the brief's and has no
+  term for the feed's `h`/`m` or the AI importance the calendar ranker already
+  computes; adding one is a one-line change to `watch.importance` and a
+  `lessons`-independent `OUTLOOK_PROMPT_VERSION` bump.
